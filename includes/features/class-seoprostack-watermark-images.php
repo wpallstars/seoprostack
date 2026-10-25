@@ -394,6 +394,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (is_wp_error($restored)) {
             return $restored;
         }
+        $original = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_original_local($record) : true;
+        if (is_wp_error($original)) {
+            return $original;
+        }
         $backup = self::backup_path($record);
         if (!$backup || !is_file($backup)) {
             return new WP_Error('watermark_no_original', __('No unmarked original was kept for this picture.', 'seoprostack'));
@@ -423,6 +427,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 $done    = !is_wp_error($resized) && !is_wp_error($editor->save($copy));
             }
             if ($done && is_file($copy)) {
+                if (class_exists('SEOProStack_Media_Storage')) {
+                    SEOProStack_Media_Storage::finish_original($record);
+                }
                 return $copy;
             }
         }
@@ -1047,11 +1054,23 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$record) {
             return 'unmarked';
         }
+        if (!empty($record['original_delete_failed'])) {
+            $deleted = self::delete_backup($record);
+            if (is_wp_error($deleted)) {
+                return $deleted;
+            }
+            delete_post_meta($attachment_id, self::META);
+            return 'removed';
+        }
         // record_current() reads the marked file, which Media in cloud
         // storage may have removed: bring it back first.
         $restored = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($attachment_id) : true;
         if (is_wp_error($restored)) {
             return $restored;
+        }
+        $original = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_original_local($record) : true;
+        if (is_wp_error($original)) {
+            return $original;
         }
         $backup = self::backup_path($record);
         if (!$backup || !is_file($backup)) {
@@ -1087,8 +1106,14 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (is_array($new_meta)) {
             wp_update_attachment_metadata($attachment_id, $new_meta);
         }
+        $deleted = self::delete_backup($record);
+        if (is_wp_error($deleted)) {
+            $record['original_delete_failed'] = true;
+            update_post_meta($attachment_id, self::META, $record);
+            do_action('seoprostack_media_files_changed', $attachment_id);
+            return $deleted;
+        }
         delete_post_meta($attachment_id, self::META);
-        self::delete_backup($record);
         delete_transient('dirsize_cache');
         do_action('seoprostack_media_files_changed', $attachment_id);
         return 'removed';
@@ -1103,7 +1128,14 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     public static function forget($attachment_id) {
         $record = self::record($attachment_id);
         if ($record) {
-            self::delete_backup($record);
+            $deleted = self::delete_backup($record);
+            // A durable tombstone owns other deletion failures. Keeping stale
+            // attachment meta would make replacement files reuse its inventory.
+            if (is_wp_error($deleted) && 'storage_original_record' === $deleted->get_error_code()) {
+                $record['original_delete_failed'] = true;
+                update_post_meta((int) $attachment_id, self::META, $record);
+                return;
+            }
             delete_post_meta((int) $attachment_id, self::META);
         }
     }
@@ -1227,7 +1259,12 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         // Not wp_unique_filename(): it also renames for WordPress's image
         // size and "-scaled" names, which do not apply here.
+        // A remote-only original no longer reserves its local filename.
+        // A unique suffix prevents a new upload from overwriting that object.
         $name = wp_basename($path);
+        if (defined('SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET') && SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET) {
+            $name = pathinfo($path, PATHINFO_FILENAME) . '-' . wp_generate_uuid4() . '.' . pathinfo($path, PATHINFO_EXTENSION);
+        }
         for ($i = 1; file_exists($target . '/' . $name); $i++) {
             $name = pathinfo($path, PATHINFO_FILENAME) . '-' . $i . '.' . pathinfo($path, PATHINFO_EXTENSION);
         }
@@ -1255,13 +1292,21 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * Delete a record's kept original.
      *
      * @param array $record record() or a new record.
+     * @return true|WP_Error
      */
     private static function delete_backup(array $record) {
+        if (class_exists('SEOProStack_Media_Storage')) {
+            $deleted = SEOProStack_Media_Storage::delete_original($record);
+            if (is_wp_error($deleted)) {
+                return $deleted;
+            }
+        }
         $record['backup'] = isset($record['backup']) ? (string) $record['backup'] : '';
         $path             = self::backup_path($record);
         if ($path && 0 === strpos($record['backup'], 'seoprostack-originals-') && is_file($path)) {
             wp_delete_file($path);
         }
+        return true;
     }
 
     /* --------------------------------------------------------------------- */
