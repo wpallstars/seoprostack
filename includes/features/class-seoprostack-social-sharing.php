@@ -104,7 +104,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 'default'     => '',
                 'parent'      => self::KEY,
                 'label'       => __('Your own platforms', 'seoprostack'),
-                'description' => __('One a line: a name, a Brand icon (a brand’s name; leave it out to use the name’s icon) and the platform’s share address, with {url} where the page’s address goes and {title} for its title, separated by |. Reload the page after saving: each new one is ticked at the end of Share on, to move or untick there.', 'seoprostack'),
+                'description' => __('One a line: a name, a Brand icon (a brand’s name; leave it out to use the name’s icon) and the platform’s share address, which needs {url} where the page’s address goes and may have {title} for its title, separated by |. Reload the page after saving: each new one is ticked at the end of Share on, to move or untick there.', 'seoprostack'),
                 'placeholder' => __('Name | Brand icon | https://… share address with {url} and {title}', 'seoprostack'),
                 'reload'      => true,
             ),
@@ -211,11 +211,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
 
     /**
      * The site's own platforms (Your own platforms), in the networks()
-     * shape, keyed custom-{name}. Each line is "name | Brand icon |
-     * address" or "name | address" (the icon found from the name); the
-     * address must be http(s). Lines without one, and repeated names, are
-     * skipped. The brand found gives the colour and the mark; without one,
-     * the button shows a share symbol in the text colour.
+     * shape, keyed custom-{name} (custom_platform()). Repeated names are
+     * skipped.
      *
      * @param mixed $lines The setting's value; null to read it.
      * @return array<string,array{0:string,1:string,2:string,3:string}>
@@ -226,25 +223,39 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         }
         $networks = array();
         foreach (preg_split('/[\r\n]+/', is_scalar($lines) ? (string) $lines : '') ?: array() as $line) {
-            $parts = array_map('trim', explode('|', $line, 3));
-            if (count($parts) < 2) {
-                continue;
+            $platform = self::custom_platform($line);
+            if ($platform && !isset($networks[$platform[0]])) {
+                $networks[$platform[0]] = $platform[1];
             }
-            $name    = $parts[0];
-            $icon    = 3 === count($parts) ? $parts[1] : '';
-            $address = 3 === count($parts) ? $parts[2] : $parts[1];
-            if ('' === $name || !preg_match('#^https?://\S+$#i', $address)) {
-                continue;
-            }
-            $id  = sanitize_key(str_replace(' ', '-', remove_accents($name)));
-            // Names in other scripts (such as 微博) have no Latin key.
-            $key = 'custom-' . ('' !== $id ? $id : substr(md5($name), 0, 8)); // NOSONAR: a key for a name, not security.
-            if (isset($networks[$key])) {
-                continue;
-            }
-            $networks[$key] = array($name, SEOProStack_Brand_Icons::find('' !== $icon ? $icon : $name), $address, '');
         }
         return $networks;
+    }
+
+    /**
+     * One line of Your own platforms: "name | Brand icon | address" or
+     * "name | address" (the icon found from the name). The address must be
+     * http(s) and hold {url}, so it shares the page. The brand found gives
+     * the colour and the mark; without one, the button shows a share symbol
+     * in the text colour.
+     *
+     * @param string $line Line.
+     * @return array{0:string,1:array{0:string,1:string,2:string,3:string}}|null Key and network, or null.
+     */
+    private static function custom_platform($line) {
+        $parts = array_map('trim', explode('|', (string) $line, 3));
+        if (count($parts) < 2) {
+            return null;
+        }
+        $name    = $parts[0];
+        $icon    = 3 === count($parts) ? $parts[1] : '';
+        $address = 3 === count($parts) ? $parts[2] : $parts[1];
+        if ('' === $name || false === strpos($address, '{url}') || !preg_match('#^https?://\S+$#i', $address)) {
+            return null;
+        }
+        $id = sanitize_key(str_replace(' ', '-', remove_accents($name)));
+        // Names in other scripts (such as 微博) have no Latin key.
+        $key = 'custom-' . ('' !== $id ? $id : substr(md5($name), 0, 8)); // NOSONAR: a key for a name, not security.
+        return array($key, array($name, SEOProStack_Brand_Icons::find('' !== $icon ? $icon : $name), $address, ''));
     }
 
     /**
@@ -452,9 +463,11 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     }
 
     /**
-     * Where Social sharing is off, settings still at 1.3.82's defaults
-     * (OLD_DEFAULTS) take the new ones, so switching it on starts with
-     * them. Sites using it, or with a choice of their own, keep theirs.
+     * Where Social sharing is off and its networks, post types, style and
+     * size all still hold 1.3.82's defaults (OLD_DEFAULTS; one not stored
+     * has never been chosen), they take the new ones, so switching it on
+     * starts with them. Sites using it, or with any of these chosen, keep
+     * theirs.
      *
      * @param array $options Stored settings.
      * @return array
@@ -463,11 +476,14 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         if (!empty($options[self::KEY])) {
             return $options;
         }
-        $settings = self::settings();
         foreach (self::OLD_DEFAULTS as $key => $old) {
-            if (isset($options[$key]) && $old === (is_array($old) ? array_map('strval', (array) $options[$key]) : (string) $options[$key])) {
-                $options[$key] = $settings[$key]['default'];
+            if (isset($options[$key]) && $old !== (is_array($old) ? array_values(array_map('strval', (array) $options[$key])) : (string) $options[$key])) {
+                return $options;
             }
+        }
+        $settings = self::settings();
+        foreach (array_keys(self::OLD_DEFAULTS) as $key) {
+            $options[$key] = $settings[$key]['default'];
         }
         return $options;
     }
@@ -557,11 +573,11 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
      * @param string $key Setting saved.
      */
     public static function setting_saved($key) {
-        $added       = self::$added;
-        self::$added = array();
         if (self::CUSTOM !== $key) {
             return;
         }
+        $added       = self::$added;
+        self::$added = array();
         $chosen = array_values(array_map('strval', (array) SEOProStack_Settings::get('social_sharing_networks')));
         $known  = array_map('strval', array_keys(self::network_options()));
         // In the chosen order, then the new ones (array_intersect() keeps the first array's order).
