@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New: Email protection, on by default on Security, replaces email text and mailto addresses in rendered content, blocks, widgets and menus with encoded placeholders. A small deferred script restores text and links, preserving link markup and mailto queries. Without JavaScript a message explains how to reveal the address. Stored content, feeds, REST/JSON, admin, scripts, styles, textareas and other attributes stay unchanged. Works without Cloudflare; JavaScript-capable scrapers can still decode addresses. Developers can bypass a context with `seoprostack_email_protection_skip` (GitHub issue #927).
+
 = 1.3.80 =
 * Fix: Image loading (`SEOProStack_Image_Loading`) adds `data-no-lazy="1"` to the pictures it loads straight away: the site logo, pictures with `fetchpriority="high"`, the first content pictures (`image_loading_eager`) and pictures matching the exclusion list. It does this in `wp_get_attachment_image_attributes` and `wp_content_img_tag`, so pages are still not rewritten. Page-rewriting lazy loaders skip pictures with that attribute: LiteSpeed Cache 7.9.1 checks it in `src/media.cls.php`, and WP Rocket does too. Before, LiteSpeed Cache's Lazy Load Images replaced even the `fetchpriority="high"` logo with a `data:image/svg+xml` placeholder (`data-lazyloaded`, real address in `data-src`) for visitors who were not logged in, so the logo flashed on every page change. Core's `custom-logo` class joins the default exclusions (`keywords()`), which covers Kadence's main and mobile (`extra-custom-logo`) logos, so logos also lose `loading="lazy"` (GitHub issue #925).
 

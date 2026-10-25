@@ -37,6 +37,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Editors use the business plugins**: WooCommerce, Rank Math, Tutor LMS, Fluent.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
+* **Email protection** (on): hides rendered addresses from HTML scrapers; visitors need JavaScript.
 * **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
 * **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
 * **HTTPS check**: certificate, TLS and HSTS in Site Health.
@@ -151,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: Email protection for content, widgets, blocks and menus, independent of hosting.
 
 = 1.3.80 =
 * Fix: Image loading keeps cache plugins' lazy loading off the logo, so it no longer flashes between pages.
