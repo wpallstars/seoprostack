@@ -153,6 +153,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.80 =
-* Fix: Image loading keeps cache plugins' JavaScript lazy loading, such as LiteSpeed Cache's, off the logo and the first pictures, so the logo no longer flashes between pages.
+* Fix: Image loading keeps cache plugins' lazy loading off the logo, so it no longer flashes between pages.
 
 Older: `changelog.txt`.
