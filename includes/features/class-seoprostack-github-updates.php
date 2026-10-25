@@ -176,6 +176,12 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      */
     public static function only_github_plugin($update, $item) {
         unset($update);
+        // A registered plugin may still take its release from WordPress.org
+        // when Early updates is off. Allow only the shared updater's offer.
+        if (!is_object($item) || !isset($item->id) || !is_string($item->id)
+            || 0 !== strpos($item->id, 'github.com/')) {
+            return false;
+        }
         return (bool) self::auto_update(false, $item);
     }
 
@@ -214,7 +220,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             return '';
         }
         $sources = self::host_controls();
-        $message = __('The host or a WordPress setting turns background updates off. GitHub releases will not install automatically unless the host override below is enabled and WordPress’s other update requirements are met.', 'seoprostack');
+        $message = __('Without the GitHub-only override, the host or a WordPress setting turns background updates off. Enable the override below to allow GitHub releases; WordPress’s other update requirements still apply.', 'seoprostack');
         if ($sources) {
             /* translators: %s: constant and registered filter callback names. */
             $message .= ' ' . sprintf(__('Background-update controls: %s.', 'seoprostack'), implode(', ', $sources));

@@ -17,7 +17,7 @@ Faster admin, easier publishing and safer logins.
 
 Free and open source. Details: the plugin's Read Me tab.
 
-Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Search features**. Replacements import once without changing originals, and wait while the old plugin is active.
+Safe features start on. Find them in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait while the old plugin is active.
 
 = A calmer, faster admin =
 
@@ -93,7 +93,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 = Affiliate disclosure =
 
-The WordPress.org version has no affiliate links. In GitHub builds, some Discover links may earn the developer a commission; they never affect recommendations.
+WordPress.org builds have no affiliate links. GitHub Discover links may earn a commission, without affecting recommendations.
 
 = External services =
 
@@ -126,7 +126,7 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivation restores local image addresses, removes the must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies, storage records and short links; imported media, watermarked originals and bucket objects stay. Removed local copies? Run `wp seoprostack media-storage restore --all` first.
+Deactivation restores local image addresses and removes the must-use file and marked `.htaccess` rules where possible. Deletion removes settings and generated data; imported media, watermarked originals and bucket objects stay. Removed local copies? Run `wp seoprostack media-storage restore --all` first.
 
 = Does it work on multisite? =
 
@@ -140,7 +140,7 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 From where you installed it. GitHub gets new versions first; WordPress.org 30 days on, security fixes at once.
 
-GitHub builds report host background-update blocks in settings and Site Health. The optional **Keep GitHub auto-updates on when the host turns background updates off** is off by default. When on, only plugins and themes served by the shared GitHub updaters can auto-update; core and all other plugins and themes cannot. Translation filters, WordPress safety checks and update holds stay in place. Switching off restores the host's choice.
+GitHub builds report host update blocks in settings and Site Health. An opt-in, off by default, allows only GitHub-served plugin and theme auto-updates, keeping safety checks and holds. See the Read Me tab.
 
 = Where do I get help? =
 
