@@ -64,7 +64,7 @@ Safe features start on. Find them in **Settings → SEO Pro Stack**. Replacement
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally.
+* **Avatars without Gravatar**: served locally; authors' Gravatar pictures copied once.
 
 = Links and speed =
 
@@ -98,6 +98,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 = External services =
 
 * **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read marked pictures publicly. Optional SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET keeps unmarked originals in a separate bucket: disable all public access (no r2.dev URL or custom domain). The plugin cannot detect public access. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **Gravatar** (secure.gravatar.com): Avatars without Gravatar's server asks once, in cron, for the pictures of people who can write posts, sending a hash of each email address. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
 * **Google Analytics** (www.googletagmanager.com): with a measurement ID, browsers load gtag.js and send page views to Google under its privacy policy; not for logged-in users.
@@ -157,6 +158,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = Unreleased =
 * New: Optional private bucket for kept watermark originals, checked restoration and deletion retries (#943).
 * Fix: Independent private-original retries, idle completed inventories and fresh watermark records after replacement.
+* New: Avatars without Gravatar turns Show Avatars on, copies authors' Gravatar pictures once and stops Kadence Pro's Local Gravatars re-downloading them (#945).
 
 = 1.3.83 =
 * New: Social sharing: own platforms, per-type places, 2px rings.

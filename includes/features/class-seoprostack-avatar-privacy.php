@@ -19,6 +19,19 @@
  * pattern. It lets people opt in to Gravatar; this feature never uses it.
  * While Avatar Privacy is loaded it keeps handling avatars.
  *
+ * Gravatar copies (on by default, owner's request, #945): in WP-Cron, the
+ * site fetches once the Gravatar picture of each person who can write posts
+ * and has no picture here, and stores it as their profile picture. Only the
+ * server contacts Gravatar; visitors' browsers never do.
+ *
+ * Kadence Pro's Local Gravatars module (a copy of the Local Gravatars
+ * plugin, which has the same filters) re-downloads every avatar into
+ * `wp-content/gravatars/`, including these local ones; its own filters
+ * leave the address alone while this feature serves avatars.
+ *
+ * Settings version 34 turns Settings → Discussion → Show Avatars on once,
+ * where this feature is on: with it off, core prints no avatar at all.
+ *
  * Files: `uploads/seoprostack-avatars/` (on multisite, profile pictures live
  * in the main site's uploads because users are shared by every site).
  *
@@ -39,7 +52,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
 
     const KEY = 'avatar_privacy';
 
-    /** User meta: array('files' => array(size => file), 'type' => mime, 'from' => Avatar Privacy file). */
+    /** User meta: array('files' => array(size => file), 'type' => mime, 'from' => Avatar Privacy file, 'gravatar' => copied from Gravatar). */
     const META = 'seoprostack_avatar';
 
     /** Folder in uploads. */
@@ -53,6 +66,27 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
 
     /** Pictures imported per request by the bulk import. */
     const IMPORT_LIMIT = 25;
+
+    /** Setting: copy pictures from Gravatar. */
+    const GRAVATAR = 'avatar_gravatar_import';
+
+    /**
+     * User meta: when to ask Gravatar for this person's picture again, as a
+     * timestamp; 0 = asked, not again unless their email address changes.
+     */
+    const GRAVATAR_META = 'seoprostack_avatar_gravatar';
+
+    /** Cron hook of the Gravatar copies. */
+    const GRAVATAR_HOOK = 'seoprostack_avatar_gravatar_import';
+
+    /** People asked about per Gravatar batch. */
+    const GRAVATAR_BATCH = 20;
+
+    /** Seconds a Gravatar batch may run. */
+    const GRAVATAR_BUDGET = 20;
+
+    /** Settings version that turns Show Avatars on. */
+    const SHOW_AVATARS_VERSION = 34;
 
     /** Default styles (core and Avatar Privacy) drawn as a per-person pattern. */
     const GENERATED = array('identicon', 'wavatar', 'monsterid', 'retro', 'robohash', 'bird', 'cat', 'rings');
@@ -86,6 +120,14 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
                 'label'       => __('Profile pictures', 'seoprostack'),
                 'description' => __('People can upload a picture on their profile screen. It is cropped to a square and stored on this site.', 'seoprostack'),
             ),
+            self::GRAVATAR => array(
+                'type'        => 'bool',
+                // On by default at the owner's request (#945): authors' own pictures, still self-hosted.
+                'default'     => true,
+                'parent'      => self::KEY,
+                'label'       => __('Copy pictures from Gravatar', 'seoprostack'),
+                'description' => __('Once, in the background, this site asks Gravatar for the picture of each person who can write posts and has none here, and stores it as their profile picture. Only the site contacts Gravatar; visitors never do.', 'seoprostack'),
+            ),
         );
     }
 
@@ -93,6 +135,10 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
      * Switch on where Avatar Privacy is active, and copy its profile pictures.
      * Its settings need no import: it has no Gravatar-free equivalent of its
      * opt-in, and its default styles are read from core's option.
+     *
+     * Version 34 (#945), where the feature is on: Settings → Discussion →
+     * Show Avatars on, once (people can turn it off again), and the first
+     * Gravatar copies.
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Stored settings version.
@@ -106,16 +152,42 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         if ($active) {
             $options = self::import_setting($options, self::KEY, true);
         }
-        if (!empty($options[self::KEY])) {
-            self::import_pictures();
+        if (!self::stored_on($options, self::KEY)) {
+            return $options;
+        }
+        self::import_pictures();
+        if ((int) $from_version < self::SHOW_AVATARS_VERSION && !get_option('show_avatars')) {
+            update_option('show_avatars', '1');
+        }
+        if (self::stored_on($options, self::GRAVATAR)) {
+            self::schedule_gravatar(MINUTE_IN_SECONDS);
         }
         return $options;
+    }
+
+    /**
+     * Whether a setting is on in the stored settings, or by default when it
+     * is not stored yet.
+     *
+     * @param array  $options Stored settings (raw, without defaults).
+     * @param string $key     Setting key.
+     * @return bool
+     */
+    private static function stored_on(array $options, $key) {
+        if (array_key_exists($key, $options)) {
+            return !empty($options[$key]);
+        }
+        $schema = SEOProStack_Settings::schema();
+        return !empty($schema[$key]['default']);
     }
 
     /**
      * Register hooks.
      */
     public static function boot() {
+        // Also while off, so switching the copies on starts them.
+        add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
+
         if (!self::switched_on()) {
             return;
         }
@@ -132,6 +204,19 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         add_filter('pre_get_avatar_data', array(__CLASS__, 'avatar_data'), 10000, 2);
         add_filter('option_avatar_default', array(__CLASS__, 'map_default'));
         add_filter('avatar_defaults', array(__CLASS__, 'avatar_defaults'), 10000);
+
+        // Kadence Pro's Local Gravatars (and the Local Gravatars plugin):
+        // the avatars are local already, so keep their addresses.
+        add_filter('get_local_gravatars_max_process_time', array(__CLASS__, 'no_local_gravatars'));
+        add_filter('get_local_gravatars_fallback_url', array(__CLASS__, 'keep_avatar_url'), 10, 2);
+
+        if (SEOProStack_Settings::get(self::GRAVATAR)) {
+            add_action(self::GRAVATAR_HOOK, array(__CLASS__, 'run_gravatar'));
+            add_action('user_register', array(__CLASS__, 'person_changed'));
+            add_action('set_user_role', array(__CLASS__, 'person_changed'));
+            add_action('add_user_role', array(__CLASS__, 'person_changed'));
+            add_action('profile_update', array(__CLASS__, 'email_changed'), 10, 2);
+        }
 
         if (!is_admin()) {
             return;
@@ -671,6 +756,221 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
      */
     public static function delete_picture($user_id) {
         self::remove_files(get_user_meta((int) $user_id, self::META, true));
+    }
+
+    /* ------------------------------------------------------------------
+     * Gravatar copies
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Start or stop the copies when the feature or its Gravatar setting is
+     * saved.
+     *
+     * @param string $key Setting key.
+     */
+    public static function setting_saved($key) {
+        if (!in_array($key, array(self::KEY, self::GRAVATAR), true)) {
+            return;
+        }
+        if (self::enabled() && SEOProStack_Settings::get(self::GRAVATAR)) {
+            self::schedule_gravatar(0);
+        } else {
+            wp_unschedule_hook(self::GRAVATAR_HOOK);
+        }
+    }
+
+    /**
+     * Schedule a batch of Gravatar copies, unless one is waiting.
+     *
+     * @param int $delay Seconds from now.
+     */
+    public static function schedule_gravatar($delay) {
+        if (!wp_next_scheduled(self::GRAVATAR_HOOK)) {
+            wp_schedule_single_event(time() + max(0, (int) $delay), self::GRAVATAR_HOOK);
+        }
+    }
+
+    /**
+     * Someone joined or changed role: they may now write posts.
+     */
+    public static function person_changed() {
+        self::schedule_gravatar(MINUTE_IN_SECONDS);
+    }
+
+    /**
+     * Ask Gravatar again when someone's email address changes.
+     *
+     * @param int          $user_id User ID.
+     * @param WP_User|null $old     The user before the change.
+     */
+    public static function email_changed($user_id, $old = null) {
+        $user = get_userdata((int) $user_id);
+        if (!$user || !$old instanceof WP_User || strtolower(trim($old->user_email)) === strtolower(trim($user->user_email))) {
+            return;
+        }
+        delete_user_meta($user->ID, self::GRAVATAR_META);
+        self::schedule_gravatar(MINUTE_IN_SECONDS);
+    }
+
+    /**
+     * Cron: copy the Gravatar pictures of the next people, then schedule the
+     * rest, or the earliest retry.
+     */
+    public static function run_gravatar() {
+        if (!self::enabled() || defined('AVATAR_PRIVACY_PLUGIN_FILE') || !SEOProStack_Settings::get(self::GRAVATAR)) {
+            return;
+        }
+        $start = microtime(true);
+        foreach (self::gravatar_queue(self::GRAVATAR_BATCH) as $user_id) {
+            if (!self::more_time($start, self::GRAVATAR_BUDGET)) {
+                break;
+            }
+            self::copy_gravatar($user_id);
+        }
+
+        if (self::gravatar_queue(1)) {
+            self::schedule_gravatar(MINUTE_IN_SECONDS);
+            return;
+        }
+        $retry = self::gravatar_next_retry();
+        if ($retry > 0) {
+            self::schedule_gravatar($retry - time());
+        }
+    }
+
+    /**
+     * People who can write posts and are due to be asked: never asked, or
+     * a failed request due again.
+     *
+     * @param int $limit Most to return.
+     * @return int[]
+     */
+    private static function gravatar_queue($limit) {
+        $ids = get_users(array(
+            'capability__in' => array('edit_posts'),
+            'fields'         => 'ID',
+            'number'         => (int) $limit,
+            'orderby'        => 'ID',
+            'count_total'    => false,
+            'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- cron only, one batch of authors.
+                'relation' => 'OR',
+                array('key' => self::GRAVATAR_META, 'compare' => 'NOT EXISTS'),
+                array('key' => self::GRAVATAR_META, 'value' => array(1, time()), 'compare' => 'BETWEEN', 'type' => 'NUMERIC'),
+            ),
+        ));
+        return array_map('intval', (array) $ids);
+    }
+
+    /**
+     * When the earliest failed request is due again (0 for none).
+     *
+     * @return int Timestamp.
+     */
+    private static function gravatar_next_retry() {
+        $ids = get_users(array(
+            'capability__in' => array('edit_posts'),
+            'fields'         => 'ID',
+            'number'         => 1,
+            'count_total'    => false,
+            'meta_key'       => self::GRAVATAR_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- cron only; rows exist only for authors.
+            'orderby'        => 'meta_value_num',
+            'order'          => 'ASC',
+            'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- cron only; rows exist only for authors.
+                array('key' => self::GRAVATAR_META, 'value' => time(), 'compare' => '>', 'type' => 'NUMERIC'),
+            ),
+        ));
+        return $ids ? (int) get_user_meta((int) reset($ids), self::GRAVATAR_META, true) : 0;
+    }
+
+    /**
+     * Copy one person's Gravatar picture, unless they have their own picture
+     * here or removed it. A missing picture is recorded and not asked for
+     * again; a failed request is tried again the next day.
+     *
+     * @param int $user_id User ID.
+     */
+    private static function copy_gravatar($user_id) {
+        $user = get_userdata($user_id);
+        if (!$user || '' === trim((string) $user->user_email)) {
+            update_user_meta($user_id, self::GRAVATAR_META, 0);
+            return;
+        }
+
+        // An Avatar Privacy picture is copied first, and wins.
+        self::picture($user_id);
+        $before = get_user_meta($user_id, self::META, true);
+        if (is_array($before) && empty($before['gravatar']) && (!empty($before['files']) || !isset($before['from']))) {
+            update_user_meta($user_id, self::GRAVATAR_META, 0);
+            return;
+        }
+
+        if (!function_exists('download_url')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        $tmp = download_url(self::gravatar_url((string) $user->user_email), 5);
+        if (is_wp_error($tmp)) {
+            // 404: no picture on Gravatar (d=404).
+            update_user_meta($user_id, self::GRAVATAR_META, 'http_404' === $tmp->get_error_code() ? 0 : time() + DAY_IN_SECONDS);
+            return;
+        }
+        $stored = self::store_picture($user_id, $tmp);
+        wp_delete_file($tmp);
+        if (is_wp_error($stored)) {
+            // An unwritable folder may be fixed; an unreadable picture will not be.
+            update_user_meta($user_id, self::GRAVATAR_META, 'seoprostack_avatar_dir' === $stored->get_error_code() ? time() + DAY_IN_SECONDS : 0);
+            return;
+        }
+        $stored['gravatar'] = true;
+
+        // A picture uploaded or removed while this was copying wins.
+        wp_cache_delete($user_id, 'user_meta');
+        if (get_user_meta($user_id, self::META, true) !== $before) {
+            self::remove_files($stored);
+        } else {
+            self::remove_files($before);
+            update_user_meta($user_id, self::META, $stored);
+        }
+        update_user_meta($user_id, self::GRAVATAR_META, 0);
+    }
+
+    /**
+     * Gravatar address of someone's picture at the largest stored size, with
+     * no default image (a 404 instead) and the site's rating.
+     *
+     * @param string $email Email address.
+     * @return string
+     */
+    private static function gravatar_url($email) {
+        $rating = strtolower((string) get_option('avatar_rating', 'g'));
+        if (!in_array($rating, array('g', 'pg', 'r', 'x'), true)) {
+            $rating = 'g';
+        }
+        return 'https://secure.gravatar.com/avatar/' . hash('sha256', strtolower(trim($email))) . '?s=' . max(self::SIZES) . '&d=404&r=' . $rating;
+    }
+
+    /* ------------------------------------------------------------------
+     * Kadence Pro's Local Gravatars
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Local Gravatars' time to copy avatars: none, so it stops at once.
+     *
+     * @return int
+     */
+    public static function no_local_gravatars() {
+        return -1;
+    }
+
+    /**
+     * Local Gravatars' address when it stops: the avatar's own, written as
+     * get_avatar() wrote it, so the markup is unchanged.
+     *
+     * @param mixed $fallback   Its fallback ('' by default).
+     * @param mixed $remote_url The avatar's address.
+     * @return string
+     */
+    public static function keep_avatar_url($fallback, $remote_url = '') {
+        return is_string($remote_url) && '' !== $remote_url ? esc_url($remote_url) : (string) $fallback;
     }
 
     /* ------------------------------------------------------------------
