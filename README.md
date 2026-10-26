@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.83-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.84-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.83
+Version: 1.3.84
 
 <!-- github-only:start -->
 ## Screenshots
@@ -511,14 +511,17 @@ Keeps the title column of post, page, user, media and plugins’ lists wide enou
 
 ### Avatars without Gravatar (Admin)
 
-Serves every avatar from your own site. By default WordPress loads avatars from Gravatar, which tells Gravatar who visits your pages and publishes a hash of each commenter’s email address. With this on, nothing is loaded from or sent to Gravatar.
+Serves every avatar from your own site. By default WordPress loads avatars from Gravatar, which tells Gravatar who visits your pages and publishes a hash of each commenter’s email address. With this on, visitors’ browsers never load anything from Gravatar or send anything to it.
 
+- **Show Avatars**: Settings → Discussion → Show Avatars is turned on once, where this feature is on (settings version 34): with it off, WordPress prints no avatar at all, and themes such as Kadence leave an empty space beside the author’s name. You can turn it off again there.
+- **Copy pictures from Gravatar** (on by default): once, in the background (WP-Cron, 20 people a batch), your site asks Gravatar for the picture of each person who can write posts and has no picture here, and stores it as their profile picture, so authors keep the picture they chose on Gravatar while visitors never contact it. It asks with a SHA-256 hash of the email address, the site’s avatar rating and no default image; someone with no Gravatar picture keeps the default and is not asked again unless their email address changes. A failed request is tried again the next day. A picture someone uploaded or removed here is never replaced. Only your server contacts Gravatar (secure.gravatar.com), and only for these people.
+- **Kadence Pro’s Local Gravatars** (and the Local Gravatars plugin it copies) leaves avatars alone while this feature is on: avatars are local already, and it would download each one again into `wp-content/gravatars/`, and break it when a download failed. Its own filters stop it; its setting is not changed.
 - **Profile pictures**: people upload a picture on their profile screen (Users → Profile), where WordPress would otherwise point them to Gravatar. It is cropped to a square, stored in four sizes (64 to 512 pixels) and the smallest size that fits is used. Photo details such as location are removed. JPEG, PNG, GIF and WebP are accepted up to 5 MB (or the site's lower upload limit), 25 megapixels and 8,000 pixels on either side, checked before decoding. GD processes pictures when it supports their type; otherwise WordPress chooses the image editor. Replacing or removing a picture, or deleting the user, deletes the files. This part can be turned off.
 - **Everyone else** gets the default chosen under Settings → Discussion, drawn on your site: a silhouette, a pattern that differs per person (made from a keyed hash of the email address, so it cannot be traced back), or nothing. Other stored styles, such as Identicon, Retro or Avatar Privacy’s Birds, show the pattern; Mystery Person and the rest show the silhouette.
 - Guests are never matched to accounts by email address, so a guest cannot show someone else’s picture.
 - Avatars that other plugins set (anything not from Gravatar) are kept. The admin bar, comment and user lists, the REST API (`avatar_urls`) and the block editor all use the same avatars.
 - Generated files keep their names, so cached pages keep working. Files are stored in `uploads/seoprostack-avatars/` (on multisite, profile pictures are in the main site’s uploads).
-- Switches on if Avatar Privacy is active, and copies its uploaded profile pictures, since deleting Avatar Privacy deletes them. Pictures are also copied when Avatar Privacy is deactivated, and otherwise the first time they are shown. A picture that cannot be processed is tried again the next day, keeping any earlier copy, and a picture uploaded or removed during a copy is never overwritten. Avatar Privacy lets people opt in to Gravatar; this feature never uses Gravatar, so that choice is not imported. While Avatar Privacy is active, it keeps handling avatars.
+- Switches on if Avatar Privacy is active, and copies its uploaded profile pictures, since deleting Avatar Privacy deletes them. Pictures are also copied when Avatar Privacy is deactivated, and otherwise the first time they are shown. A picture that cannot be processed is tried again the next day, keeping any earlier copy, and a picture uploaded or removed during a copy is never overwritten. Avatar Privacy lets people opt in to Gravatar in visitors’ browsers; this feature never does, so that choice is not imported. While Avatar Privacy is active, it keeps handling avatars.
 
 ### TranslatePress switcher colours (Content)
 
@@ -1971,9 +1974,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.84
 - New: **Media in cloud storage** can keep Watermark pictures' unmarked originals in a separate private bucket, restore them with size and SHA-256 checks for unmarking, re-marking and cropping, and reclaim their local copies only after verification. Includes CLI counts, restoration and durable deletion retries (GitHub issue #943).
 - Fix: Private-original failures retry without blocking public media delivery; completed inventories stay idle, failed inventory jobs retain their retry position, and replacement pictures do not reuse stale watermark records.
+- New: **Avatars without Gravatar** has **Copy pictures from Gravatar** (on by default): once, in the background, your site copies the Gravatar picture of each person who can write posts and has none here, so authors' avatars show while visitors' browsers still never contact Gravatar (GitHub issue #945).
+- Fix: **Avatars without Gravatar** turns Settings → Discussion → **Show Avatars** on once (settings version 34). With it off, WordPress printed no avatar, and Kadence left an empty space by the author's name (GitHub issue #945).
+- Fix: **Kadence Pro's Local Gravatars** no longer downloads local avatars again into `wp-content/gravatars/` while Avatars without Gravatar is on (GitHub issue #945).
 
 ### 1.3.83
 - New: **Social sharing** has **Your own platforms**: add any platform with a name, a [Brand icon](#brand-icons-content) for its logo and colour, and its share address with `{url}` and `{title}`, one a line. Each one added is ticked at the end of **Share on**, to drag into place (GitHub issue #938).

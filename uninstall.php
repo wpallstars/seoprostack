@@ -200,6 +200,7 @@ function seoprostack_uninstall_site() {
     wp_unschedule_hook('seoprostack_database_cleanup');
     wp_unschedule_hook('seoprostack_database_cleanup_more');
     wp_unschedule_hook('seoprostack_deferred_counts');
+    wp_unschedule_hook('seoprostack_avatar_gravatar_import');
 
     // Copied content and excerpts stay; only the sync fingerprint is ours.
     delete_post_meta_by_key('_seoprostack_field_content_hash');
@@ -466,6 +467,8 @@ if (is_multisite()) {
 // Unused magic login links and profile pictures (user meta is network-wide).
 delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
 delete_metadata('user', 0, 'seoprostack_avatar', '', true);
+// When each person's Gravatar picture was asked for (Copy pictures from Gravatar).
+delete_metadata('user', 0, 'seoprostack_avatar_gravatar', '', true);
 // Per-person colour mode for wp-admin. The mode shared with other wpallstars
 // plugins goes only when none of them is still installed (their hooks do not
 // run during an uninstall, so check their main files).

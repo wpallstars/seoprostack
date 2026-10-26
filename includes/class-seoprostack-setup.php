@@ -254,8 +254,11 @@ final class SEOProStack_Setup {
      * v32: Social sharing adds Copy page link after the stored networks (#931).
      * v33: where Social sharing is off, its networks, post types, style and
      *      size still at 1.3.82's defaults take the new ones (#938).
+     * v34: where Avatars without Gravatar is on, Settings → Discussion →
+     *      Show Avatars is turned on once, and the first Gravatar copies are
+     *      scheduled (#945).
      */
-    const DB_VERSION = 33;
+    const DB_VERSION = 34;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
