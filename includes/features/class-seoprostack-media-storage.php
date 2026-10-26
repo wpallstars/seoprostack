@@ -346,7 +346,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $marker = get_post_meta($id, self::DONE, true);
         if (self::upload_marker() === $marker) {
-            $marker = $old['handover_done'] ?? '';
+            // An edit may invalidate DONE while a queue visit is preserving it.
+            $marker = isset($old['handover_generation']) && $old['handover_generation'] === $generation ? ($old['handover_done'] ?? '') : '';
         }
         $suffix = substr(self::upload_marker(), strlen(self::config()['signature']));
         $complete = $source['signature'] . $suffix === $marker;
@@ -500,7 +501,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $record['signature'] = $config['signature'];
         $record['url'] = $config['url'];
         $record['state'] = 'uploaded';
-        unset($record['handover_error'], $record['handover_done']);
+        unset($record['handover_error'], $record['handover_done'], $record['handover_generation']);
         if ($record !== $old && !update_post_meta($id, self::META, $record, $old)) {
             return 'deferred';
         }
@@ -3036,10 +3037,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (is_array($inventory) && !empty($inventory['files']) && isset($inventory['signature']) && $inventory['signature'] !== self::config()['signature']) {
             // Only explicit adopt/migrate may replace an old inventory. Mark the
             // queue visited, preserving its source marker before overwriting DONE.
+            $generation = get_post_meta($id, self::GENERATION, true);
             $marker = get_post_meta($id, self::DONE, true);
             if (self::upload_marker() !== $marker) {
                 $preserved = $inventory;
                 $preserved['handover_done'] = $marker;
+                $preserved['handover_generation'] = $generation;
                 if ($preserved !== $inventory && !update_post_meta($id, self::META, $preserved, $inventory)) {
                     return false;
                 }
