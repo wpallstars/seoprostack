@@ -155,6 +155,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Dark mode for Debug Log Manager's dashboard widget.
+
 = 1.3.84 =
 * New: Avatars show, with authors' Gravatar pictures copied once (#945).
 * New: Private bucket for watermark originals (#943).

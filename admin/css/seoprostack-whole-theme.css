@@ -2616,6 +2616,37 @@ html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
 }
 
 /*
+ * Debug Log Manager: the dashboard's Latest Errors, coloured in a <style> block
+ * inside the widget, which the stylesheet copies do not reach (#f6f7f7 footer
+ * and odd entries, #e6e7e7 lines, #50575e and #777 links, #2271b1 on hover).
+ */
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-entry {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-entry:nth-child(odd) {
+	background-color: var(--sps-ui-stripe);
+}
+
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-footer {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-entry-message a.error-source-link {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-entry-message a.error-source-link span {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-entry-message a.error-source-link:is(:hover, :focus),
+html.sps-dark #wpbody #debug_log_manager_widget .dlm-dashboard-widget-entry-message a.error-source-link:is(:hover, :focus) span {
+	color: var(--sps-ui-accent);
+}
+
+/*
  * FluentCRM's Search contacts panel in the admin bar: its colours are
  * custom properties on the menu item, with dark values only under
  * .dark or .fluent_theme_dark, which wp-admin's screens do not have.
