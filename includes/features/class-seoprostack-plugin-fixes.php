@@ -838,6 +838,36 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     }
 
     /**
+     * Resolve secondary button palette references on the dark body, not the
+     * light root where Kadence declares them. Literal colours stay unchanged.
+     *
+     * @return string
+     */
+    private static function kadence_secondary_button_css() {
+        if (!function_exists('Kadence\kadence')) {
+            return '';
+        }
+        $theme = \Kadence\kadence();
+        if (!is_object($theme) || !is_callable(array($theme, 'sub_option'))) {
+            return '';
+        }
+        $variables = array(
+            'btn-sec'          => array('buttons_secondary_color', 'color'),
+            'btn-sec-hover'    => array('buttons_secondary_color', 'hover'),
+            'btn-sec-bg'       => array('buttons_secondary_background', 'color'),
+            'btn-sec-bg-hover' => array('buttons_secondary_background', 'hover'),
+        );
+        $css = '';
+        foreach ($variables as $variable => $option) {
+            $value = call_user_func(array($theme, 'sub_option'), $option[0], $option[1]);
+            if (is_string($value) && preg_match('/^palette([1-9]|1[0-5])$/D', $value, $match)) {
+                $css .= '--global-palette-' . $variable . ':var(--global-palette' . $match[1] . ');';
+            }
+        }
+        return '' === $css ? '' : 'body.color-switch-dark{' . $css . '}';
+    }
+
+    /**
      * Print, first in the body, the style that turns CSS transitions off
      * while the palette changes (the switch-style toggle's knob keeps its
      * slide), and the script that applies the visitor's saved palette before
@@ -858,6 +888,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             $on . ' *,' . $on . ' *::before,' . $on . ' *::after{transition:none!important}'
             // The knob keeps its slide only for visitors who allow motion.
             . '@media (prefers-reduced-motion:no-preference){' . $on . ' .kcps-style-switch button.kadence-color-palette-toggle::after{transition:transform .5s ease!important}}'
+            . self::kadence_secondary_button_css()
         );
         wp_print_styles(self::KADENCE_SWITCHING);
         $script = <<<'JS'
