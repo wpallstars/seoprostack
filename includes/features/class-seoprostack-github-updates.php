@@ -21,7 +21,7 @@
  * - Reports host background-update blocks in settings and Site Health.
  * - An off-by-default opt-in bypasses automatic_updater_disabled for GitHub
  *   packages only: core and non-served plugins/themes cannot auto-update.
- *   Translation filters are untouched; file-modification and VCS safeguards
+ *   Translations keep the host policy; file-modification and VCS safeguards
  *   and the later Delay automatic updates holds still apply.
  * - SEOPROSTACK_GITHUB_TOKEN and the `seoprostack_github_token` and
  *   `seoprostack_github_plugins` filters, from before the updater was
@@ -52,6 +52,9 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
 
     /** @var bool Read the host policy without our opt-in masking it. */
     private static $checking_host = false;
+
+    /** @var bool Unmasked host decision from the current updater check. */
+    private static $host_disabled = false;
 
     /**
      * Settings.
@@ -126,6 +129,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
                 add_filter('automatic_updater_disabled', array(__CLASS__, 'updater_disabled'), PHP_INT_MAX - 1);
                 add_filter('auto_update_plugin', array(__CLASS__, 'only_github_plugin'), PHP_INT_MAX - 1, 2);
                 add_filter('auto_update_theme', array(__CLASS__, 'only_github_theme'), PHP_INT_MAX - 1, 2);
+                add_filter('auto_update_translation', array(__CLASS__, 'translation_update'), PHP_INT_MAX - 1);
                 foreach (array('auto_update_core', 'allow_minor_auto_core_updates', 'allow_major_auto_core_updates', 'allow_dev_auto_core_updates') as $hook) {
                     add_filter($hook, '__return_false', PHP_INT_MAX - 1);
                 }
@@ -166,7 +170,21 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      * @return bool
      */
     public static function updater_disabled($disabled) {
-        return self::$checking_host ? $disabled : false;
+        if (self::$checking_host) {
+            return $disabled;
+        }
+        self::$host_disabled = (bool) $disabled;
+        return false;
+    }
+
+    /**
+     * Keep translations under the host policy without probing it again.
+     *
+     * @param mixed $update Earlier translation decision.
+     * @return mixed
+     */
+    public static function translation_update($update) {
+        return self::$host_disabled ? false : $update;
     }
 
     /**
@@ -213,11 +231,11 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         self::$checking_host = true;
         try {
             $disabled = (new WP_Automatic_Updater())->is_disabled();
+            if (!$disabled && wp_is_auto_update_enabled_for_type('plugin')) {
+                return '';
+            }
         } finally {
             self::$checking_host = false;
-        }
-        if (!$disabled && wp_is_auto_update_enabled_for_type('plugin')) {
-            return '';
         }
         $sources = self::host_controls();
         $message = __('Without the GitHub-only override, the host or a WordPress setting turns background updates off. Enable the override below to allow GitHub releases; WordPress’s other update requirements still apply.', 'seoprostack');
