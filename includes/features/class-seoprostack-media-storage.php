@@ -1335,7 +1335,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::ready() && !get_post_meta($id, self::META, true)) {
             return;
         }
+        // Never expose a new generation with the previous completion marker.
+        delete_post_meta($id, self::DONE);
         update_post_meta($id, self::GENERATION, wp_generate_uuid4());
+        // Also invalidate a worker's marker written during the generation change.
         delete_post_meta($id, self::DONE);
         self::forget($id);
         delete_transient(self::COUNTS);
@@ -3039,6 +3042,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // queue visited, preserving its source marker before overwriting DONE.
             $generation = get_post_meta($id, self::GENERATION, true);
             $marker = get_post_meta($id, self::DONE, true);
+            self::fresh($id);
+            if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::DONE, true) !== $marker) {
+                return false;
+            }
             if (self::upload_marker() !== $marker) {
                 $preserved = $inventory;
                 $preserved['handover_done'] = $marker;
