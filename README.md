@@ -1355,6 +1355,8 @@ Set `SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET` to a **separate private bucket*
 
 Cloudflare buckets cannot be transferred between accounts. Copy, verify, adopt, then clean up. Keep the previous bucket public and intact until every site is verified, including each subsite on a network.
 
+Before `forget-previous`, run `wp seoprostack media-storage collisions`. It is read-only and lists shared stored paths and object keys, with the latest attachment as the presumed owner of the bytes. Legacy uploads could reuse names after local copies were removed. New uploads reserve inventory filenames and refuse conflicting destination writes. Run `collisions --repair` to give earlier attachments unique filenames: only local copies matching their recorded SHA-256 are copied and uploaded. Missing or mismatched originals are marked failed with a request to re-add the picture, and no longer count as pending handover records. Repair keeps the old inventory as evidence, never deletes bucket objects, and leaves the later attachment untouched. Check and re-add failed pictures before retiring the old bucket.
+
 1. The client creates a bucket and a scoped Object Read & Write key. Set up public reading through a custom domain (production) or `r2.dev` (development). Run `wp seoprostack media-storage status` under the old constants once after upgrading so its non-secret destination description is recorded.
 2. Copy the objects with a provider tool, such as R2 Super Slurper or `rclone copy --checksum agency:bucket client:bucket`, keeping the same key prefix. Do not use a sync/delete operation. Keep the agency bucket unchanged.
 3. Save the client's connection constants in `wp-config.php` or load them from the environment, never as shell command arguments. The old destination is kept read-only as **previous**. On an upgrade after constants have already changed, the plugin recovers the old signature, prefix and public address from records where available; the old endpoint and bucket may show as unknown. Restore the old constants and run status before switching again if their full description is needed. Secrets are never recovered or saved.
@@ -1376,6 +1378,7 @@ wp seoprostack media-storage migrate --dry-run --limit=1000
 wp seoprostack media-storage migrate --limit=1000
 wp seoprostack media-storage status
 wp seoprostack media-storage restore --attachment=<sample-id>
+wp seoprostack media-storage collisions
 wp seoprostack media-storage forget-previous
 ```
 

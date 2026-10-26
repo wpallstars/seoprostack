@@ -232,6 +232,274 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Stream inventories in bounded pages, without caching the whole library.
+     *
+     * @return Generator<int,array>
+     */
+    private static function stored_records() {
+        $before = PHP_INT_MAX;
+        do {
+            $ids = self::inventory_ids(100, $before);
+            $records = self::handover_records($ids);
+            foreach ($ids as $id) {
+                yield $id => $records[$id] ?? array();
+            }
+            if ($ids) {
+                $before = min($ids);
+            }
+        } while ($ids);
+    }
+
+    /**
+     * Supply core's missing directory entries, including original and format names.
+     * Keep reservations while restoring, even when the remove switch is now off.
+     *
+     * @param array|null $files Core's optional short-circuited directory listing.
+     * @param string $dir Directory being checked.
+     * @param string $filename Candidate name (core checks it against the list).
+     * @return array|null
+     */
+    public static function unique_filename_files($files, $dir, $filename) {
+        $root = self::root();
+        $dir = untrailingslashit(wp_normalize_path($dir));
+        if (!$root || (!self::removing() && !get_option(self::FLAG)) || !self::within($dir, $root['dir'])) {
+            return $files;
+        }
+        // Returning an array bypasses scandir(), so include real local files too.
+        $names = is_array($files) ? $files : (is_dir($dir) ? scandir($dir) : array());
+        $names = is_array($names) ? $names : array();
+        $folder = ltrim(substr($dir, strlen($root['dir'])), '/');
+        foreach (self::stored_records() as $values) {
+            foreach (array(self::META, self::REMOVED) as $meta_key) {
+                foreach ($values[$meta_key]['files'] ?? array() as $info) {
+                    $relative = $info['relative'] ?? '';
+                    if (self::safe_relative($relative) && ('.' === dirname($relative) ? '' : dirname($relative)) === $folder) {
+                        $name = wp_basename($relative);
+                        $names[] = $name;
+                        // Core checks exact names with file_exists(), not this list.
+                        // A virtual scaled sibling makes its rendition check reserve
+                        // the original too, even for tiny images with no subsizes.
+                        $extension = pathinfo($name, PATHINFO_EXTENSION);
+                        if ('' !== $extension) {
+                            $names[] = pathinfo($name, PATHINFO_FILENAME) . '-scaled.' . $extension;
+                        }
+                    }
+                }
+            }
+        }
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * Refuse every target claimed by another live attachment, even an unconfirmed
+     * attempt. Compare relative paths across destinations as well as exact keys.
+     *
+     * @param int $id Uploading attachment.
+     * @param array $files Proposed files.
+     * @return bool
+     */
+    private static function conflicting_files($id, $files) {
+        if (!$files) {
+            return false;
+        }
+        $paths = array_column($files, 'relative');
+        $paths = array_fill_keys($paths, true);
+        foreach (self::stored_records() as $other => $values) {
+            if ($other === $id) {
+                continue;
+            }
+            foreach (array(self::META, self::REMOVED) as $meta_key) {
+                $record = $values[$meta_key] ?? array();
+                foreach ($record['files'] ?? array() as $key => $info) {
+                    if (isset($paths[$info['relative'] ?? '']) || (($record['signature'] ?? '') === self::config()['signature'] && isset($files[$key]))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Persist a refusal without scheduling deletion or removing local sources.
+     *
+     * @param int $id Attachment ID.
+     * @param array $record Inventory to preserve.
+     * @param bool $missing Repair could not recover every original local file.
+     */
+    private static function collision_failed($id, $record, $missing = false) {
+        $record['state'] = 'failed';
+        $record['error'] = $missing ? __('Collision repair renamed this attachment, but original local bytes were missing or did not match their recorded SHA-256. Re-add this picture. Shared bucket objects were left untouched.', 'seoprostack') : __('A stored path belongs to another attachment. Run wp seoprostack media-storage collisions and repair it before retrying. If the original bytes are missing, re-add the picture.', 'seoprostack');
+        update_post_meta($id, self::META, $record);
+        update_post_meta($id, self::STATE, 'failed');
+        update_post_meta($id, self::DONE, self::upload_marker());
+        delete_option(self::JOB . 'retry_' . $id);
+        update_option(self::ERROR, $record['error'], false);
+        delete_transient(self::COUNTS);
+        self::forget($id);
+    }
+
+    /**
+     * Report shared claims. Newest attachment ID is the presumed latest upload;
+     * byte ownership still needs verification. Never download a shared object.
+     *
+     * @param array $assoc CLI switches.
+     */
+    private static function cli_collisions($assoc) {
+        if (isset($assoc['repair']) && !self::ready()) {
+            WP_CLI::error('Switch on Media in cloud storage and set its constants before repairing collisions.');
+        }
+        $lease = isset($assoc['repair']) ? self::cli_lease() : '';
+        $start = microtime(true);
+        try {
+            $seen = array();
+            $losers = array();
+            $count = 0;
+            foreach (self::stored_records() as $id => $values) {
+                $claims = array();
+                $attached = get_post_meta($id, '_wp_attached_file', true);
+                if (is_string($attached) && '' !== $attached) {
+                    $claims['path:' . $attached] = true;
+                }
+                foreach (array(self::META, self::REMOVED) as $meta_key) {
+                    $record = $values[$meta_key] ?? array();
+                    foreach ($record['files'] ?? array() as $key => $info) {
+                        $claims['object:' . ($record['signature'] ?? '') . ':' . $key] = true;
+                        if (!empty($info['relative'])) {
+                            $claims['path:' . $info['relative']] = true;
+                        }
+                    }
+                }
+                foreach ($claims as $claim => $unused) {
+                    if (isset($seen[$claim])) {
+                        ++$count;
+                        $losers[$id] = true;
+                        WP_CLI::log(sprintf('%s: attachments %d, %d; latest upload (presumed owner): %d', $claim, $id, $seen[$claim], $seen[$claim]));
+                    } else {
+                        $seen[$claim] = $id;
+                    }
+                }
+            }
+            WP_CLI::log('Shared paths/keys: ' . $count);
+            if (!$lease) {
+                WP_CLI::log('Read only. Use --repair to rename earlier attachments; no bucket objects will be deleted.');
+                return;
+            }
+            foreach (array_keys($losers) as $id) {
+                if (!self::more_time($start, self::BUDGET)) {
+                    WP_CLI::warning('Repair paused at the time budget; repeat collisions --repair.');
+                    break;
+                }
+                WP_CLI::log($id . ': ' . self::repair_collision($id, $start));
+            }
+        } finally {
+            if ($lease) {
+                self::release($lease);
+            }
+        }
+    }
+
+    /**
+     * Copy only local bytes matching the earlier inventory. Keep shared source
+     * files and objects intact. Missing bytes become failed empty inventories,
+     * not pending handover records; retain evidence outside the cleanup file list.
+     *
+     * @param int $id Earlier attachment.
+     * @param float $start Repair batch start.
+     * @return string
+     */
+    private static function repair_collision($id, $start) {
+        $root = self::root();
+        self::fresh($id);
+        $generation = get_post_meta($id, self::GENERATION, true);
+        $attached = get_post_meta($id, '_wp_attached_file', true);
+        $old = get_post_meta($id, self::META, true);
+        $removed = self::fresh_removed($id);
+        if (!$root || !is_string($attached) || !self::safe_relative($attached) || !is_array($old)) {
+            return 'failed: invalid attachment path or inventory; unchanged';
+        }
+        $meta = wp_get_attachment_metadata($id);
+        $meta = is_array($meta) ? $meta : array();
+        $nextgen = get_post_meta($id, '_seoprostack_nextgen', true);
+        $files = ($old['files'] ?? array()) + ($removed['files'] ?? array());
+        if (!is_array($files)) {
+            return 'failed: invalid inventory files; unchanged';
+        }
+        $folder = '.' === dirname($attached) ? '' : dirname($attached) . '/';
+        $dir = $root['dir'] . '/' . $folder;
+        if (!wp_mkdir_p($dir) || !self::within(realpath($dir), realpath($root['dir']))) {
+            return 'failed: uploads directory unavailable; unchanged';
+        }
+        $names = array(wp_basename($attached));
+        if (!empty($meta['original_image'])) {
+            $names[] = wp_basename($meta['original_image']);
+        }
+        foreach ($meta['sizes'] ?? array() as $size) {
+            $names[] = wp_basename($size['file']);
+        }
+        $renamed = array();
+        foreach (array_unique($names) as $name) {
+            $extension = pathinfo($name, PATHINFO_EXTENSION);
+            $stem = pathinfo($name, PATHINFO_FILENAME);
+            $renamed[$name] = wp_unique_filename($dir, $stem . '-collision-' . $id . '-' . wp_generate_password(8, false, false) . '.' . $extension);
+        }
+        $complete = false;
+        foreach ($files as $info) {
+            if (($info['relative'] ?? '') === $attached) {
+                $complete = true;
+            }
+        }
+        foreach ($files as $info) {
+            $relative = $info['relative'] ?? '';
+            $name = wp_basename($relative);
+            $new = $renamed[$name] ?? '';
+            foreach (array('webp', 'avif') as $format) {
+                if (isset($renamed[substr($name, 0, -5)]) && substr($name, -5) === '.' . $format) {
+                    $new = $renamed[substr($name, 0, -5)] . '.' . $format;
+                }
+            }
+            $path = self::safe_relative($relative) ? $root['dir'] . '/' . $relative : '';
+            if ('' === $new || !$path || !is_file($path) || !self::within(realpath($path), realpath($root['dir'])) || empty($info['digest']) || !isset($info['size']) || wp_filesize($path) !== (int) $info['size'] || !self::digest_matches($path, $info['digest']) || file_exists($dir . $new) || !copy($path, $dir . $new)) {
+                $complete = false;
+            }
+        }
+        $record = array('signature' => self::config()['signature'], 'files' => array(), 'state' => 'failed', 'collision_source' => array('inventory' => $old, 'removed' => $removed));
+        self::fresh($id);
+        if (!self::more_time($start, self::BUDGET) || !self::attachment_exists($id) || get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, '_wp_attached_file', true) !== $attached || self::fresh_removed($id) !== $removed || !update_post_meta($id, self::META, $record, $old)) {
+            return 'deferred: attachment changed or repair budget expired; repeat collisions --repair';
+        }
+        if ($removed) {
+            delete_post_meta($id, self::REMOVED, $removed);
+        }
+        update_attached_file($id, $dir . $renamed[wp_basename($attached)]);
+        $meta['file'] = $folder . $renamed[wp_basename($attached)];
+        if (!empty($meta['original_image'])) {
+            $meta['original_image'] = $renamed[wp_basename($meta['original_image'])];
+        }
+        foreach ($meta['sizes'] ?? array() as $size => $info) {
+            $meta['sizes'][$size]['file'] = $renamed[wp_basename($info['file'])];
+        }
+        if (is_array($nextgen) && isset($nextgen['files'])) {
+            $new_files = array();
+            foreach ($nextgen['files'] as $name => $formats) {
+                if (isset($renamed[$name])) {
+                    $new_files[$renamed[$name]] = $formats;
+                }
+            }
+            $nextgen['files'] = $new_files;
+            update_post_meta($id, '_seoprostack_nextgen', $nextgen);
+        }
+        wp_update_attachment_metadata($id, $meta);
+        delete_post_meta($id, self::LOCAL);
+        self::collision_failed($id, $record, !$complete);
+        if (!$complete) {
+            return 'failed: renamed; original local bytes missing or mismatched; re-add this picture. Shared objects untouched';
+        }
+        self::queue($id);
+        return self::upload_attachment($id, $start) ? 'repaired and uploaded under unique names; shared objects untouched' : 'renamed; upload failed, local copies kept';
+    }
+
+    /**
      * A durable old inventory, retained even after its attachment is relabelled.
      *
      * @param int $id Attachment ID.
@@ -338,6 +606,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         if (self::adopted_record($old, $removed)) {
             return 'skipped';
+        }
+        if (self::conflicting_files($id, $old['files'] + ($removed['files'] ?? array()))) {
+            if (!$dry) {
+                self::collision_failed($id, $old);
+            }
+            return 'failed';
         }
         $generation = get_post_meta($id, self::GENERATION, true);
         $source = self::handover_source($old, $removed);
@@ -1054,6 +1328,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             add_filter('attachment_fields_to_edit', array(__CLASS__, 'attachment_field'), 20, 2);
         }
         add_action('delete_attachment', array(__CLASS__, 'deleted'));
+        add_filter('pre_wp_unique_filename_file_list', array(__CLASS__, 'unique_filename_files'), 10, 3);
         add_filter('wp_update_attachment_metadata', array(__CLASS__, 'metadata_updated'), 100, 2);
         add_action('added_post_meta', array(__CLASS__, 'metadata_committed'), 10, 4);
         add_action('updated_post_meta', array(__CLASS__, 'metadata_committed'), 10, 4);
@@ -3075,6 +3350,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return false;
         }
         $record = array('signature' => $config['signature'], 'url' => $config['url'], 'files' => array(), 'state' => 'failed', 'attempts' => $attempt, 'skipped' => 0);
+        if (isset($old['collision_source'])) {
+            $record['collision_source'] = $old['collision_source'];
+        }
         // Keep the previous inventory for deletion/recovery, but never serve a partial upload.
         $pending = $old ? $old : $record;
         $pending['state'] = 'failed';
@@ -3084,6 +3362,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         delete_transient(self::COUNTS);
         clearstatcache();
         $files = self::files($id);
+        if (self::conflicting_files($id, $files)) {
+            self::collision_failed($id, $pending);
+            return false;
+        }
         $start = null === $start ? microtime(true) : (float) $start;
         /** Filter concurrent file PUTs (1–6). @param int $concurrency Maximum in-flight files. */
         $concurrency = max(1, min(6, (int) apply_filters('seoprostack_media_storage_concurrency', 6)));
@@ -3127,6 +3409,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $saved = update_post_meta($id, self::META, $pending);
             if (!$saved && get_post_meta($id, self::META, true) !== $pending) {
                 // The retry was recorded before building this inventory.
+                return false;
+            }
+            // Recheck after durable claims: a concurrent uploader may have claimed
+            // one of these keys since the whole-attachment preflight.
+            if (self::conflicting_files($id, $group)) {
+                self::collision_failed($id, $pending);
                 return false;
             }
             /** Filter the public object cache policy. @param string $policy Cache-Control. */
@@ -3942,6 +4230,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * [--delete-objects]
      * : forget-previous: explicitly delete archived previous objects.
      *
+     * [--repair]
+     * : collisions: rename earlier attachments, copying only verified local bytes.
+     *
      * @param string[] $args Positional arguments.
      * @param array $assoc Named arguments.
      */
@@ -3953,6 +4244,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         if ('restore' === $action) {
             self::cli_restore($assoc);
+            return;
+        }
+        if ('collisions' === $action) {
+            self::cli_collisions($assoc);
             return;
         }
         if (!self::ready()) {
@@ -3975,7 +4270,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         if ('upload' !== $action) {
-            WP_CLI::error('Use status, test, upload, restore, adopt, migrate or forget-previous.');
+            WP_CLI::error('Use status, test, upload, restore, adopt, migrate, collisions or forget-previous.');
         }
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
         if (isset($assoc['retry-failed'])) {
