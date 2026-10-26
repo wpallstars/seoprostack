@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: Kadence Pro dark mode re-declares the four secondary button colour variables on body.color-switch-dark when their Customizer values reference palette slots. Text, hover text and backgrounds resolve against the dark palette instead of the light root; literal colours, transparent and light mode stay unchanged (GitHub issue #942).
 * Fix: admin Dark mode: Debug Log Manager's Latest Errors dashboard widget (`#debug_log_manager_widget`) kept its light colours, which it prints in a `<style>` block inside the widget (`get_dashboard_widget_entries()`, 2.5.3), so the stylesheet copies did not reach them: the `#f6f7f7` footer behind Go to Debug Log Manager and odd entries, `#e6e7e7` lines and `#50575e` source links (`#2271b1` on hover). The footer is now the raised surface with muted text, the entries take the stripe and border colours, and the links are muted, with the light accent on hover and focus (`admin/css/seoprostack-whole-theme.css`) (GitHub issue #947).
 
 = 1.3.84 =

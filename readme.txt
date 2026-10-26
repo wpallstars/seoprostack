@@ -156,6 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Fix: Kadence secondary button colours follow the dark palette (#942).
 * Fix: Dark mode for Debug Log Manager's dashboard widget.
 
 = 1.3.84 =
