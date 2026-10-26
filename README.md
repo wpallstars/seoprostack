@@ -1978,6 +1978,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ## Changelog
 
 ### Unreleased
+- Fix: **Media in cloud storage** reserves offloaded filenames and refuses uploads to paths claimed by another attachment. Use `wp seoprostack media-storage collisions` to report existing collisions and `--repair` to rename earlier attachments without deleting shared bucket objects; missing or mismatched original bytes must be re-added (GitHub issue #956).
 - Fix: Kadence secondary buttons follow the site's chosen palette colours in dark mode, including hover text and backgrounds; literal colours and light mode stay unchanged (GitHub issue #942).
 - Fix: in Dark mode, Debug Log Manager's **Debug Log | Latest Errors** dashboard widget has dark stripes, lines and footer, and readable links; the plugin colours it in the widget itself, which the dark styles did not reach (GitHub issue #947).
 

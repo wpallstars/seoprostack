@@ -354,6 +354,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         try {
             $seen = array();
             $losers = array();
+            $owners = $lease ? get_option(self::JOB . 'collision_owners', array()) : array();
             $count = 0;
             foreach (self::stored_records() as $id => $values) {
                 $claims = array();
@@ -374,6 +375,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     if (isset($seen[$claim])) {
                         ++$count;
                         $losers[$id] = true;
+                        $owners[$seen[$claim]][$id] = true;
                         WP_CLI::log(sprintf('%s: attachments %d, %d; latest upload (presumed owner): %d', $claim, $id, $seen[$claim], $seen[$claim]));
                     } else {
                         $seen[$claim] = $id;
@@ -385,6 +387,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 WP_CLI::log('Read only. Use --repair to rename earlier attachments; no bucket objects will be deleted.');
                 return;
             }
+            // Save dependencies before any loser drops its shared claims. A later
+            // scan cannot rediscover owners whose losers were already renamed.
+            update_option(self::JOB . 'collision_owners', $owners, false);
+            self::queue_collision_owners($start);
             foreach (array_keys($losers) as $id) {
                 if (!self::more_time($start, self::BUDGET)) {
                     WP_CLI::warning('Repair paused at the time budget; repeat collisions --repair.');
@@ -392,10 +398,44 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
                 WP_CLI::log($id . ': ' . self::repair_collision($id, $start));
             }
+            self::queue_collision_owners($start);
         } finally {
             if ($lease) {
                 self::release($lease);
             }
+        }
+    }
+
+    /**
+     * Retry failed owners only once all live shared claims have gone. Keep the
+     * dependency map across budget pauses, including after the final loser moves.
+     *
+     * @param float $start Repair batch start.
+     */
+    private static function queue_collision_owners($start) {
+        $owners = get_option(self::JOB . 'collision_owners', array());
+        foreach (array_map('intval', array_keys($owners)) as $id) {
+            if (!self::more_time($start, self::BUDGET)) {
+                break;
+            }
+            self::fresh($id);
+            $record = get_post_meta($id, self::META, true);
+            $removed = self::fresh_removed($id);
+            $files = (is_array($record) ? ($record['files'] ?? array()) : array()) + ($removed['files'] ?? array());
+            // Re-read claims rather than trusting repair's result: an incomplete
+            // repair can release them, while a deferred repair leaves them live.
+            if (self::conflicting_files($id, $files)) {
+                continue;
+            }
+            if ($files && self::attachment_exists($id) && 'failed' === get_post_meta($id, self::STATE, true)) {
+                self::queue($id);
+                WP_CLI::log($id . ': owner queued after shared claims were repaired');
+            }
+            unset($owners[$id]);
+            update_option(self::JOB . 'collision_owners', $owners, false);
+        }
+        if (!$owners) {
+            delete_option(self::JOB . 'collision_owners');
         }
     }
 
@@ -491,8 +531,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         wp_update_attachment_metadata($id, $meta);
         delete_post_meta($id, self::LOCAL);
-        self::collision_failed($id, $record, !$complete);
         if (!$complete) {
+            self::collision_failed($id, $record, true);
             return 'failed: renamed; original local bytes missing or mismatched; re-add this picture. Shared objects untouched';
         }
         self::queue($id);
