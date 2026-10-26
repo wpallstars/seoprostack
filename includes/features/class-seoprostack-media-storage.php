@@ -344,6 +344,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!$source) {
             return 'failed';
         }
+        $marker = get_post_meta($id, self::DONE, true);
+        if (self::upload_marker() === $marker) {
+            // An edit may invalidate DONE while a queue visit is preserving it.
+            $marker = isset($old['handover_generation']) && $old['handover_generation'] === $generation ? ($old['handover_done'] ?? '') : '';
+        }
+        $suffix = substr(self::upload_marker(), strlen(self::config()['signature']));
+        $complete = $source['signature'] . $suffix === $marker;
         $options = array('migrate' => $migrate, 'dry' => $dry, 'hash' => $hash || $migrate, 'start' => $start);
         $files = self::handover_files($old['files'] + ($removed['files'] ?? array()), $removed, $source, $options);
         if (is_string($files)) {
@@ -354,7 +361,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $record = $old;
         $record['files'] = $files;
-        return self::publish_handover($id, $old, $record, $generation, $source['signature']);
+        return self::publish_handover($id, $old, $record, $generation, $source['signature'], $complete);
     }
 
     /**
@@ -481,9 +488,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param array $record Verified replacement.
      * @param mixed $generation Snapshot generation.
      * @param string $source_signature Old signature.
+     * @param bool $complete Source inventory already includes the current file variants.
      * @return string
      */
-    private static function publish_handover($id, $old, $record, $generation, $source_signature) {
+    private static function publish_handover($id, $old, $record, $generation, $source_signature, $complete) {
         $config = self::config();
         self::fresh($id);
         if (!self::attachment_exists($id) || get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $old) {
@@ -493,14 +501,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $record['signature'] = $config['signature'];
         $record['url'] = $config['url'];
         $record['state'] = 'uploaded';
-        unset($record['handover_error']);
+        unset($record['handover_error'], $record['handover_done'], $record['handover_generation']);
         if ($record !== $old && !update_post_meta($id, self::META, $record, $old)) {
             return 'deferred';
         }
         if (!self::relabel_removed($id, $record, $source_signature)) {
             return 'deferred';
         }
-        update_post_meta($id, self::DONE, $config['signature']);
+        update_post_meta($id, self::DONE, $complete ? self::upload_marker() : $config['signature']);
         update_post_meta($id, self::STATE, 'uploaded');
         update_post_meta($id, self::LOCAL, self::removed($id) ? $config['signature'] : 'kept:' . $config['signature']);
         foreach (array_map('strval', array_keys($record['files'])) as $key) {
@@ -1327,7 +1335,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::ready() && !get_post_meta($id, self::META, true)) {
             return;
         }
+        // Never expose a new generation with the previous completion marker.
+        delete_post_meta($id, self::DONE);
         update_post_meta($id, self::GENERATION, wp_generate_uuid4());
+        // Also invalidate a worker's marker written during the generation change.
         delete_post_meta($id, self::DONE);
         self::forget($id);
         delete_transient(self::COUNTS);
@@ -3028,7 +3039,22 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $inventory = get_post_meta($id, self::META, true);
         if (is_array($inventory) && !empty($inventory['files']) && isset($inventory['signature']) && $inventory['signature'] !== self::config()['signature']) {
             // Only explicit adopt/migrate may replace an old inventory. Mark the
-            // queue visited without changing the source record or its files.
+            // queue visited, preserving its source marker before overwriting DONE.
+            $generation = get_post_meta($id, self::GENERATION, true);
+            $marker = get_post_meta($id, self::DONE, true);
+            self::fresh($id);
+            if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::DONE, true) !== $marker) {
+                return false;
+            }
+            if (self::upload_marker() !== $marker) {
+                $preserved = $inventory;
+                $preserved['handover_done'] = $marker;
+                $preserved['handover_generation'] = $generation;
+                if ($preserved !== $inventory && !update_post_meta($id, self::META, $preserved, $inventory)) {
+                    return false;
+                }
+                $inventory = $preserved;
+            }
             self::archive_inventory($id, $inventory);
             update_post_meta($id, self::DONE, self::upload_marker());
             return false;
