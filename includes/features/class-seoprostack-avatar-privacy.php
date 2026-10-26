@@ -780,14 +780,22 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
     }
 
     /**
-     * Schedule a batch of Gravatar copies, unless one is waiting.
+     * Schedule a batch of Gravatar copies, unless one runs as soon. A later
+     * one (a retry a day away) is brought forward; each batch schedules the
+     * next retry again.
      *
      * @param int $delay Seconds from now.
      */
     public static function schedule_gravatar($delay) {
-        if (!wp_next_scheduled(self::GRAVATAR_HOOK)) {
-            wp_schedule_single_event(time() + max(0, (int) $delay), self::GRAVATAR_HOOK);
+        $when = time() + max(0, (int) $delay);
+        $next = wp_next_scheduled(self::GRAVATAR_HOOK);
+        if ($next && $next <= $when) {
+            return;
         }
+        if ($next) {
+            wp_unschedule_event($next, self::GRAVATAR_HOOK);
+        }
+        wp_schedule_single_event($when, self::GRAVATAR_HOOK);
     }
 
     /**
@@ -907,7 +915,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         if (!function_exists('download_url')) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
         }
-        $tmp = download_url(self::gravatar_url((string) $user->user_email), 5);
+        $tmp = download_url(self::gravatar_url((string) $user->user_email), 3);
         if (is_wp_error($tmp)) {
             // 404: no picture on Gravatar (d=404).
             update_user_meta($user_id, self::GRAVATAR_META, 'http_404' === $tmp->get_error_code() ? 0 : time() + DAY_IN_SECONDS);
