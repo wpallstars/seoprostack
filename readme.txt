@@ -153,6 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Changed: cloud media groups default to 20 requests, with a filterable 32 MiB PUT payload cap (#971).
 * Fix: LiteSpeed noabort covers every request, preventing interrupted page queries and shutdown database errors (#967).
 * Fix: adopt/migrate batches resume with --from-start to restart (#965).
 
