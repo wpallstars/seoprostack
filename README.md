@@ -1985,6 +1985,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+- Fix: **Media in cloud storage** resumes repeated `adopt` and `migrate` batches instead of restarting the adopted-record scan. Each command reports its next position, wraps after the last inventory, and accepts `--from-start`; dry runs and single-attachment runs keep the saved cursor unchanged (GitHub issue #965).
+
 ### 1.3.86
 - Fix: **Email protection** also hides the address in an email link's other attributes, such as the `data-id` the block editor adds to links and a `title`, which still showed it in the HTML; the script puts them back for visitors (GitHub issue #959).
 
