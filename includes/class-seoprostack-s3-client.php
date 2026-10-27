@@ -144,12 +144,12 @@ final class SEOProStack_S3_Client {
             }
             $timeout = min(20, $remaining);
             $responses = $this->request_multiple($requests, $timeout);
-            // A group given less than the usual 20 seconds that ran out of them
-            // continues on the next turn, as remove_local() treats its HEADs; a
-            // transport error there is the batch deadline, not the bucket.
-            $cut_short = $timeout < 20 && microtime(true) >= $deadline - 0.05;
             foreach ($responses as $key => $response) {
-                if ($cut_short && is_wp_error($response) && 'storage_transport' === $response->get_error_code()) {
+                // In a group given less than the usual 20 seconds, a request
+                // still running when the time ran out was stopped by the batch
+                // deadline, not the bucket: it continues on the next turn, as
+                // remove_local() treats its HEADs. Earlier failures stay errors.
+                if ($timeout < 20 && is_wp_error($response) && 'storage_transport' === $response->get_error_code() && !empty($response->get_error_data()['at_deadline'])) {
                     $response = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
                 }
                 $results[$key] = is_wp_error($response) ? $response : true;
@@ -200,21 +200,46 @@ final class SEOProStack_S3_Client {
      */
     private function request_multiple($requests, $timeout = 20) {
         $class = class_exists('WpOrg\\Requests\\Requests') ? 'WpOrg\\Requests\\Requests' : 'Requests';
-        $batch = $this->prepare_parallel($requests, $class, $timeout);
+        $deadline = microtime(true) + $timeout;
+        $batch = $this->prepare_parallel($requests, $class, $deadline);
         if (!$batch['parallel']) {
             return $batch['results'];
         }
+        // When each request finished, so a transport error can be told apart
+        // from one stopped by the group's time limit.
+        $finished = array();
+        $complete = static function ($response, $key) use (&$finished) {
+            if (!isset($finished[$key])) {
+                $finished[$key] = microtime(true);
+            }
+        };
         try {
             // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
-            $responses = $class::request_multiple($batch['parallel'], array('timeout' => $timeout, 'connect_timeout' => min(10, $timeout), 'follow_redirects' => false, 'redirects' => 0, 'data_format' => 'body', 'verify' => ABSPATH . WPINC . '/certificates/ca-bundle.crt', 'max_bytes' => 16 * MB_IN_BYTES + 1));
+            $responses = $class::request_multiple($batch['parallel'], array('timeout' => $timeout, 'connect_timeout' => min(10, $timeout), 'follow_redirects' => false, 'redirects' => 0, 'data_format' => 'body', 'verify' => ABSPATH . WPINC . '/certificates/ca-bundle.crt', 'max_bytes' => 16 * MB_IN_BYTES + 1, 'complete' => $complete));
         } catch (Throwable $error) {
             // Never persist exception messages: they can contain credentials.
             $responses = array();
         }
+        $ended = microtime(true);
         foreach ($batch['parallel'] as $key => $request) {
-            $batch['results'][$key] = $this->multiple_response($request['type'], $responses[$key] ?? null);
+            $batch['results'][$key] = $this->at_deadline($this->multiple_response($request['type'], $responses[$key] ?? null), $finished[$key] ?? $ended, $deadline);
         }
         return $batch['results'];
+    }
+
+    /**
+     * Mark a transport error that ended when the group's time ran out.
+     *
+     * @param array|WP_Error $result Checked result.
+     * @param float $finished When the request ended.
+     * @param float $deadline End of the group's time.
+     * @return array|WP_Error The result, a transport error carrying at_deadline.
+     */
+    private function at_deadline($result, $finished, $deadline) {
+        if (is_wp_error($result) && 'storage_transport' === $result->get_error_code()) {
+            $result->add_data(array('at_deadline' => $finished >= $deadline - 0.25));
+        }
+        return $result;
     }
 
     /**
@@ -222,19 +247,18 @@ final class SEOProStack_S3_Client {
      *
      * @param array $requests Signed requests or errors.
      * @param string $class Bundled Requests class.
-     * @param float $timeout Group timeout.
+     * @param float $deadline End of the group's time.
      * @return array{results:array,parallel:array} Completed results and pending requests.
      */
-    private function prepare_parallel($requests, $class, $timeout) {
+    private function prepare_parallel($requests, $class, $deadline) {
         $results = array();
         $parallel = array();
         $fallback = (new WP_HTTP_Proxy())->is_enabled() || !class_exists($class);
-        $deadline = microtime(true) + $timeout;
         foreach ($requests as $key => $request) {
             if (is_wp_error($request)) {
                 $results[$key] = $request;
             } elseif ($fallback) {
-                $results[$key] = $this->fallback_request($request, $deadline);
+                $results[$key] = $this->at_deadline($this->fallback_request($request, $deadline), microtime(true), $deadline);
             } elseif ((new WP_Http())->block_request($request['url'])) {
                 $results[$key] = new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
             } else {
