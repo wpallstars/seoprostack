@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.84-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.85-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.84
+Version: 1.3.85
 
 <!-- github-only:start -->
 ## Screenshots
@@ -69,7 +69,7 @@ At the top right of the screen, **Source code** opens the plugin’s [GitHub rep
 
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
-- **Security:** Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
+- **Security:** Email protection, Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
@@ -142,6 +142,14 @@ SEO Pro Stack replaces **64 plugins**, some of them in part, with free and Pro e
 These plugins showed what sites need. [Credits](#credits) thanks their makers and links to each one.
 
 Also available, off by default: **Count terms and comments in the background** on the Server tab, for imports, bulk edits and shops, and **Remember admin counts**, for large sites without a persistent object cache.
+
+### Email protection (Security)
+
+**On by default.** Email addresses in rendered content, blocks, text widgets and menus become encoded placeholders in the HTML, including email links. A small deferred script, loaded only when needed, restores their readable text and clickable links, keeping link classes, inner markup and mailto queries. Works on any host, with or without Cloudflare email obfuscation.
+
+Visitors need JavaScript to read protected addresses; without it they see “Email address hidden, enable JavaScript.” This deters scrapers that only read HTML, not bots that run JavaScript. It is obfuscation, not encryption or a guarantee against spam.
+
+Stored content, outgoing email, feeds, REST/JSON responses and admin screens are unchanged. Scripts (including JSON-LD), styles, textareas, input values and attributes other than mailto hrefs are left alone. Addresses hardcoded in templates outside these WordPress output filters are not covered. Turn the setting off to show plain addresses, or return true from `seoprostack_email_protection_skip` (`bool $skip, string $html`) for a context such as a print or export view. Clear page caches after changing the setting.
 
 ### No fade between admin screens (Admin)
 
@@ -1977,7 +1985,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.85
+- New, on by default: **Email protection** (Security tab). Email addresses in posts, pages, blocks, widgets and menus reach the browser encoded, so scrapers that read the HTML find none; a small script shows them and makes mail links work for visitors. It works on any host, with or without Cloudflare (GitHub issue #927).
 - Fix: **Media in cloud storage** reserves offloaded filenames and refuses uploads to paths claimed by another attachment. Use `wp seoprostack media-storage collisions` to report existing collisions and `--repair` to rename earlier attachments without deleting shared bucket objects; missing or mismatched original bytes must be re-added (GitHub issue #956).
 - Fix: Kadence secondary buttons follow the site's chosen palette colours in dark mode, including hover text and backgrounds; literal colours and light mode stay unchanged (GitHub issue #942).
 - Fix: in Dark mode, Debug Log Manager's **Debug Log | Latest Errors** dashboard widget has dark stripes, lines and footer, and readable links; the plugin colours it in the widget itself, which the dark styles did not reach (GitHub issue #947).

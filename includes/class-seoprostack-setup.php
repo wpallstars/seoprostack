@@ -33,6 +33,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Admin_Access',
         'SEOProStack_Editor_Access',
         'SEOProStack_Security_Headers',
+        'SEOProStack_Email_Protection',
         'SEOProStack_Https_Check',
         'SEOProStack_Min_Pass',
         'SEOProStack_Hardening',
