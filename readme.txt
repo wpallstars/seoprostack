@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.85
+Stable tag: 1.3.86
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,10 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.85 =
-* New: Email protection hides addresses from HTML scrapers (#927).
-* Fix: Reserve cloud filenames, refuse conflicts; media-storage collisions reports and repairs them (#956).
-* Fix: Kadence secondary button colours follow the dark palette (#942).
-* Fix: Dark mode for Debug Log Manager's dashboard widget.
+= 1.3.86 =
+* Fix: Email protection also hides addresses in email links' attributes, such as data-id (#959).
 
 Older: `changelog.txt`.

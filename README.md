@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.85-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.86-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.85
+Version: 1.3.86
 
 <!-- github-only:start -->
 ## Screenshots
@@ -149,7 +149,7 @@ Also available, off by default: **Count terms and comments in the background** o
 
 Visitors need JavaScript to read protected addresses; without it they see “Email address hidden, enable JavaScript.” This deters scrapers that only read HTML, not bots that run JavaScript. It is obfuscation, not encryption or a guarantee against spam.
 
-Stored content, outgoing email, feeds, REST/JSON responses and admin screens are unchanged. Scripts (including JSON-LD), styles, textareas, input values and attributes other than mailto hrefs are left alone. Addresses hardcoded in templates outside these WordPress output filters are not covered. Turn the setting off to show plain addresses, or return true from `seoprostack_email_protection_skip` (`bool $skip, string $html`) for a context such as a print or export view. Clear page caches after changing the setting.
+Stored content, outgoing email, feeds, REST/JSON responses and admin screens are unchanged. Scripts (including JSON-LD), styles, textareas, input values and attributes other than mailto hrefs are left alone, except on an email link: there, every attribute holding the address (such as the block editor's `data-id="mailto:…"` or a `title`) is taken out of the HTML. The script puts back such `title`, `aria-label`, `aria-description` and `data-*` attributes; any other attribute holding the address, such as `onclick` or `style`, is dropped and does not come back. Addresses hardcoded in templates outside these WordPress output filters are not covered. Turn the setting off to show plain addresses, or return true from `seoprostack_email_protection_skip` (`bool $skip, string $html`) for a context such as a print or export view. Clear page caches after changing the setting.
 
 ### No fade between admin screens (Admin)
 
@@ -1984,6 +1984,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.86
+- Fix: **Email protection** also hides the address in an email link's other attributes, such as the `data-id` the block editor adds to links and a `title`, which still showed it in the HTML; the script puts them back for visitors (GitHub issue #959).
 
 ### 1.3.85
 - New, on by default: **Email protection** (Security tab). Email addresses in posts, pages, blocks, widgets and menus reach the browser encoded, so scrapers that read the HTML find none; a small script shows them and makes mail links work for visitors. It works on any host, with or without Cloudflare (GitHub issue #927).

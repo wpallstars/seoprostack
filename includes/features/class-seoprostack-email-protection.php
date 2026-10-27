@@ -18,6 +18,12 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
 
     const KEY = 'email_protection';
 
+    /** An email address in decoded text or an attribute value. */
+    const ADDRESS = '/[a-z0-9.!#$%&\'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}/i';
+
+    /** Mailto link attributes the script puts back (with data-*). */
+    const RESTORE = array('title', 'aria-label', 'aria-description');
+
     /** @var int|null One obfuscation key per response; not encryption. */
     private static $key = null;
 
@@ -119,7 +125,43 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         }
         $processor->set_attribute('data-sps-mailto', self::encode(trim($href)));
         $processor->set_attribute('href', '#sps-email');
+        self::protect_link_attributes($processor);
         return $processor->get_updated_html();
+    }
+
+    /**
+     * A mailto link's other attributes can hold the address too: the block
+     * editor's link control writes data-id="mailto:…", and a title or
+     * aria-label may repeat it. Take every such attribute out of the HTML;
+     * the script restores the ones in RESTORE and data-* (not data-sps-*),
+     * never others, so it can never add an event handler or a style.
+     *
+     * @param WP_HTML_Tag_Processor $processor Processor on the link.
+     * @return void
+     */
+    private static function protect_link_attributes($processor) {
+        $names = $processor->get_attribute_names_with_prefix('');
+        if (!is_array($names)) {
+            return;
+        }
+        $hidden = array();
+        foreach ($names as $name) {
+            // data-sps-mailto, set just before, holds only encoded hex.
+            if ('href' === $name || 'data-sps-mailto' === $name) {
+                continue;
+            }
+            $value = $processor->get_attribute($name);
+            if (!is_string($value) || (false === stripos($value, 'mailto:') && !preg_match(self::ADDRESS, $value))) {
+                continue;
+            }
+            $processor->remove_attribute($name);
+            if (in_array($name, self::RESTORE, true) || (0 === strpos($name, 'data-') && 0 !== strpos($name, 'data-sps-'))) {
+                $hidden[$name] = $value;
+            }
+        }
+        if ($hidden) {
+            $processor->set_attribute('data-sps-attrs', self::encode((string) wp_json_encode($hidden)));
+        }
     }
 
     /**
@@ -130,8 +172,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
      */
     private static function protect_text($text) {
         $decoded = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $pattern = '/[a-z0-9.!#$%&\'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}/i';
-        if (!preg_match_all($pattern, $decoded, $matches, PREG_OFFSET_CAPTURE)) {
+        if (!preg_match_all(self::ADDRESS, $decoded, $matches, PREG_OFFSET_CAPTURE)) {
             return $text;
         }
         // Re-escape only this text token, so entities cannot become markup.

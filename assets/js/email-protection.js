@@ -32,11 +32,32 @@
             node.removeAttribute('data-sps-e');
         }
     });
+    // Only these names, never event handlers or styles, whatever the content says.
+    var restorable = /^(?:title|aria-label|aria-description|data-(?!sps-)[a-z0-9_.:-]+)$/i;
+
+    function restoreAttributes(node) {
+        var attributes;
+        try {
+            attributes = JSON.parse(decode(node.getAttribute('data-sps-attrs')) || '{}');
+        } catch (error) {
+            return;
+        }
+        Object.keys(attributes).forEach(function (name) {
+            if (restorable.test(name) && 'string' === typeof attributes[name]) {
+                node.setAttribute(name, attributes[name]);
+            }
+        });
+        node.removeAttribute('data-sps-attrs');
+    }
+
     document.querySelectorAll('a[data-sps-mailto]').forEach(function (node) {
         var href = decode(node.getAttribute('data-sps-mailto'));
         if (/^mailto:/i.test(href)) {
             node.setAttribute('href', href);
             node.removeAttribute('data-sps-mailto');
+            if (node.hasAttribute('data-sps-attrs')) {
+                restoreAttributes(node);
+            }
         }
     });
 }());
