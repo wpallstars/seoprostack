@@ -1820,11 +1820,28 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     public static function waiting($limit) {
         global $wpdb;
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded queue lookup, matching the nextgen queue.
-        return array_map('intval', $wpdb->get_col($wpdb->prepare(
-            "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL ORDER BY p.ID DESC LIMIT %d",
-            self::DONE, self::upload_marker(), 'image/%', max(1, (int) $limit)
-        )));
+        $limit = max(1, (int) $limit);
+        $before = PHP_INT_MAX;
+        $waiting = array();
+        $signature = self::config()['signature'];
+        do {
+            $remaining = $limit - count($waiting);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded, ID-paged queue lookup, matching the nextgen queue.
+            $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL AND p.ID < %d ORDER BY p.ID DESC LIMIT %d",
+                self::DONE, self::upload_marker(), 'image/%', $before, $remaining
+            )));
+            foreach ($ids as $id) {
+                $before = $id;
+                $job = get_option(self::JOB . 'retry_original_' . $id);
+                if (is_array($job) && ($job['signature'] ?? '') === $signature && ($job['next'] ?? 0) > time() && self::needs_original_only($id, (array) get_post_meta($id, self::META, true))) {
+                    continue;
+                }
+                $waiting[] = $id;
+            }
+            // Page past cooling originals so they cannot starve older uploads.
+        } while (count($waiting) < $limit && count($ids) === $remaining);
+        return $waiting;
     }
 
     /**
