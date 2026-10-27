@@ -142,12 +142,21 @@ final class SEOProStack_S3_Client {
                 unset($requests, $request, $body);
                 continue;
             }
-            foreach ($this->request_multiple($requests, min(20, $remaining)) as $key => $response) {
+            $timeout = min(20, $remaining);
+            $responses = $this->request_multiple($requests, $timeout);
+            // A group given less than the usual 20 seconds that ran out of them
+            // continues on the next turn, as remove_local() treats its HEADs; a
+            // transport error there is the batch deadline, not the bucket.
+            $cut_short = $timeout < 20 && microtime(true) >= $deadline - 0.05;
+            foreach ($responses as $key => $response) {
+                if ($cut_short && is_wp_error($response) && 'storage_transport' === $response->get_error_code()) {
+                    $response = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+                }
                 $results[$key] = is_wp_error($response) ? $response : true;
             }
             // Release the last body's reference as well as the signed payloads
             // before allocating the following group.
-            unset($requests, $body);
+            unset($requests, $responses, $body);
         }
         return $results;
     }
