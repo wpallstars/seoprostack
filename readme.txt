@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.87
+Stable tag: 1.3.88
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,10 +152,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.87 =
-* Changed: cloud media sends 20 requests at a time (#971).
-* Fix: a new originals bucket uploads only originals (#968).
-* Fix: LiteSpeed noabort covers every request (#967).
-* Fix: adopt/migrate batches resume with --from-start to restart (#965).
+= 1.3.88 =
+* Fix: typing makes core's Paragraph again, so "* " starts a list; Advanced Text for new lines is now off (#978).
+* Fix: Dark mode for Kadence Blocks' block settings tabs and fields (#978).
 
 Older: `changelog.txt`.
