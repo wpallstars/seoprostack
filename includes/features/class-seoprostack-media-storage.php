@@ -3421,8 +3421,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $concurrency = max(1, min($concurrency, (int) ($cap / $largest)));
         foreach (array_chunk($files, $concurrency, true) as $group) {
             if (!self::more_time($start, self::BUDGET)) {
-                $job['next'] = time() + 60;
-                update_option(self::JOB . 'retry_' . $id, $job, false);
+                self::defer_upload($id, $pending, $old, $job);
                 return false;
             }
             $changed = array();
@@ -3491,14 +3490,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_post_meta($id, self::META, $pending);
             if (is_wp_error($error)) {
                 if ('storage_budget' === $error->get_error_code()) {
-                    $pending['attempts'] = isset($old['attempts']) ? (int) $old['attempts'] : 0;
-                    // This turn did not fail; keep only a failure from an earlier turn.
-                    $pending['state'] = isset($old['state']) && 'failed' === $old['state'] ? 'failed' : 'waiting';
-                    update_post_meta($id, self::META, $pending);
-                    update_post_meta($id, self::STATE, $pending['state']);
-                    delete_transient(self::COUNTS);
-                    $job['next'] = time() + 60;
-                    update_option(self::JOB . 'retry_' . $id, $job, false);
+                    self::defer_upload($id, $pending, $old, $job);
                     return false;
                 }
                 $pending['error'] = $error->get_error_message();
@@ -3510,8 +3502,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
         }
         if (!self::more_time($start, self::BUDGET)) {
-            $job['next'] = time() + 60;
-            update_option(self::JOB . 'retry_' . $id, $job, false);
+            self::defer_upload($id, $pending, $old, $job);
             return false;
         }
         self::retry_original($id);
@@ -3545,6 +3536,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         delete_post_meta($id, self::LOCAL);
         self::forget($id);
         return true;
+    }
+
+    /**
+     * Reschedule a deliberate deferral without counting it as a failed attempt.
+     * Keep the pending inventory, including every unconfirmed attempted key.
+     *
+     * @param int $id Attachment ID.
+     * @param array $pending Inventory saved before and during this upload.
+     * @param array $old Inventory before this upload.
+     * @param array $job Retry job.
+     * @return void
+     */
+    private static function defer_upload($id, $pending, $old, $job) {
+        $pending['attempts'] = isset($old['attempts']) ? (int) $old['attempts'] : 0;
+        // This turn did not fail; keep only a failure from an earlier turn.
+        $pending['state'] = isset($old['state']) && 'failed' === $old['state'] ? 'failed' : 'waiting';
+        update_post_meta($id, self::META, $pending);
+        update_post_meta($id, self::STATE, $pending['state']);
+        delete_transient(self::COUNTS);
+        $job['next'] = time() + 60;
+        update_option(self::JOB . 'retry_' . $id, $job, false);
     }
 
     /**
