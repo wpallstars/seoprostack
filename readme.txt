@@ -153,11 +153,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* Changed: cloud media groups default to 20 requests, with a filterable 32 MiB PUT payload cap (#971).
-* Fix: LiteSpeed noabort covers every request, preventing interrupted page queries and shutdown database errors (#967).
+* Changed: cloud groups default to 20 requests and a filterable 32 MiB PUT payload cap (#971).
+* Fix: LiteSpeed noabort covers every request to prevent interrupted queries (#967).
 * Fix: adopt/migrate batches resume with --from-start to restart (#965).
 
 = 1.3.86 =
-* Fix: Email protection also hides addresses in email links' attributes, such as data-id (#959).
+* Fix: Email protection hides addresses in link attributes too (#959).
 
 Older: `changelog.txt`.
