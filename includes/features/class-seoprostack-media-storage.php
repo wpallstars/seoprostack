@@ -1963,17 +1963,23 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Purge the cached pages of the posts whose pictures lost their local
-     * files in this batch, once each: a page cached before still points at
-     * those files (404) until its cache entry expires. The post a picture
-     * is attached to is purged; never every page, as the batch runs every
-     * minute.
+     * Purge the cached pages of the pictures that lost their local files in
+     * this batch, once each: a page cached before still points at those
+     * files (404) until its cache entry expires. The post a picture is
+     * attached to is purged, and the picture's own page while the site has
+     * attachment pages; never every page, as the batch runs every minute.
      */
     private static function purge_pages() {
         $ids = array();
+        // WordPress 6.4+ can turn attachment pages off; older sites have them.
+        $pages = (bool) get_option('wp_attachment_pages_enabled', '1');
         foreach (array_keys(self::$purge) as $id) {
+            $id = (int) $id;
+            if ($pages && 'attachment' === get_post_type($id)) {
+                $ids[] = $id;
+            }
             // False when the attachment is gone: nothing to purge.
-            $parent = wp_get_post_parent_id((int) $id);
+            $parent = wp_get_post_parent_id($id);
             if ($parent) {
                 $ids[] = $parent;
             }

@@ -90,13 +90,14 @@ final class SEOProStack_Page_Cache {
     /**
      * Purge the cached pages of these posts only, through each cache's own
      * code: LiteSpeed Cache's litespeed_purge_post (which also purges the
-     * archives its settings list) and WP-Optimize's single-post purge when
-     * its page cache is on. Never purges every page. A cache not loaded on
-     * this request is left alone. Other page caches can purge on the
-     * seoprostack_page_cache_purge_post action.
+     * archives its settings list), or for an attachment's page its post tag,
+     * and WP-Optimize's single-post purge when its page cache is on. Never
+     * purges every page. A cache not loaded on this request is left alone.
+     * Other page caches can purge on the seoprostack_page_cache_purge_post
+     * action.
      *
      * @since 1.3.89
-     * @param int[] $ids Post IDs.
+     * @param int[] $ids Post IDs, attachments included.
      */
     public static function purge_posts($ids) {
         $ids = array_unique(array_filter(array_map('intval', (array) $ids), static function ($id) {
@@ -108,7 +109,12 @@ final class SEOProStack_Page_Cache {
         $litespeed = (bool) has_action('litespeed_purge_post');
         $wpo = self::wp_optimize_on() && method_exists('WPO_Page_Cache', 'delete_single_post_cache');
         foreach ($ids as $id) {
-            if ($litespeed) {
+            if ($litespeed && 'attachment' === get_post_type($id)) {
+                // litespeed_purge_post skips the inherit status, and
+                // litespeed_purge_url leaves an admin notice; LiteSpeed tags
+                // every single page with its post ID (Tag::TYPE_POST).
+                do_action('litespeed_purge', 'Po.' . $id); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's hook.
+            } elseif ($litespeed) {
                 do_action('litespeed_purge_post', $id); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's hook.
             }
             if ($wpo) {
