@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.84
+Stable tag: 1.3.85
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -37,6 +37,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Editors use the business plugins**: WooCommerce, Rank Math, Tutor LMS, Fluent.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
+* **Email protection** (on): hides addresses from HTML scrapers; needs JavaScript.
 * **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
 * **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
 * **HTTPS check**: certificate, TLS and HSTS in Site Health.
@@ -151,7 +152,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.85 =
+* New: Email protection hides addresses from HTML scrapers (#927).
 * Fix: Reserve cloud filenames, refuse conflicts; media-storage collisions reports and repairs them (#956).
 * Fix: Kadence secondary button colours follow the dark palette (#942).
 * Fix: Dark mode for Debug Log Manager's dashboard widget.
