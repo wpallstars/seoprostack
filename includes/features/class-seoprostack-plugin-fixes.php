@@ -92,9 +92,11 @@
  * already, so ignore_user_abort() does not help: the run stops partway,
  * Action Scheduler marks its actions failed after 300 seconds, and a query
  * stopped in the middle leaves "Commands out of sync" database errors for
- * every query at shutdown. LiteSpeed's noabort variable keeps those two
- * requests running; LiteSpeed Cache sets it for its own background request
- * the same way. On LiteSpeed servers the rules go in a block at the top of
+ * every query at shutdown. A visitor leaving a page can interrupt its query
+ * the same way. LiteSpeed's noabort variable keeps every request running
+ * within PHP's and LiteSpeed's normal time limits, even after a disconnect.
+ * Abandoned requests still use CPU; LiteSpeed Cache's page cache keeps that
+ * cost small for cached anonymous pages. The rules go in a block at the top of
  * the site's .htaccess (before WordPress's rules, which end rule processing
  * for existing files on a network), on a network following the main site's
  * switch, and the block is removed when this is switched off or SEO Pro
@@ -1505,9 +1507,8 @@ JS;
     }
 
     /**
-     * Rules that keep LiteSpeed running WordPress cron and Action
-     * Scheduler's async request after their caller hangs up. The path
-     * pattern also matches a network's subfolder sites.
+     * Rules that keep LiteSpeed running every request after its caller
+     * hangs up, including pages, WordPress cron and Action Scheduler.
      *
      * @return string[]
      */
@@ -1515,9 +1516,7 @@ JS;
         return array(
             '<IfModule LiteSpeed>',
             'RewriteEngine On',
-            'RewriteRule (^|/)wp-cron\.php$ - [E=noabort:1]',
-            'RewriteCond %{QUERY_STRING} (^|&)action=as_async_request_queue_runner(&|$)',
-            'RewriteRule (^|/)wp-admin/admin-ajax\.php$ - [E=noabort:1]',
+            'RewriteRule .* - [E=noabort:1]',
             '</IfModule>',
         );
     }
