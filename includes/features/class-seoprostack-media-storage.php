@@ -429,6 +429,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             if ($files && self::attachment_exists($id) && 'failed' === get_post_meta($id, self::STATE, true)) {
+                if (is_array($record)) {
+                    unset($record['collision_refused'], $record['error']);
+                    update_post_meta($id, self::META, $record);
+                }
                 self::queue($id);
                 WP_CLI::log($id . ': owner queued after shared claims were repaired');
             }
@@ -4486,13 +4490,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 $before = $id;
                 $record = get_post_meta($id, self::META, true);
                 // Refusals deliberately have no retry job: repair them first.
-                // Legacy refusals predate collision_refused; other recorded
-                // errors may be transient and must remain retryable.
-                $error = is_array($record) ? ($record['error'] ?? '') : '';
-                $legacy_refusal = in_array($error, array(
-                    __('Collision repair renamed this attachment, but original local bytes were missing or did not match their recorded SHA-256. Re-add this picture. Shared bucket objects were left untouched.', 'seoprostack'),
-                    __('A stored path belongs to another attachment. Run wp seoprostack media-storage collisions and repair it before retrying. If the original bytes are missing, re-add the picture.', 'seoprostack'),
-                ), true);
+                // Legacy missing-byte repairs have an empty inventory and durable
+                // collision_source evidence, independent of the saved error's locale.
+                // Other legacy refusals still have live shared inventory claims.
+                $legacy_refusal = is_array($record) && empty($record['collision_refused']) && ((isset($record['collision_source']) && empty($record['files'])) || self::conflicting_files($id, $record['files'] ?? array()));
+                if ($legacy_refusal) {
+                    $record['collision_refused'] = true;
+                    update_post_meta($id, self::META, $record);
+                }
                 if (!empty($record['collision_refused']) || $legacy_refusal || self::removed_elsewhere($id)) {
                     continue;
                 }
