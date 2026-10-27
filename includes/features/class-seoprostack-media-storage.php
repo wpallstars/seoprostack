@@ -329,6 +329,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function collision_failed($id, $record, $missing = false) {
         $record['state'] = 'failed';
+        $record['collision_refused'] = true;
         $record['error'] = $missing ? __('Collision repair renamed this attachment, but original local bytes were missing or did not match their recorded SHA-256. Re-add this picture. Shared bucket objects were left untouched.', 'seoprostack') : __('A stored path belongs to another attachment. Run wp seoprostack media-storage collisions and repair it before retrying. If the original bytes are missing, re-add the picture.', 'seoprostack');
         update_post_meta($id, self::META, $record);
         update_post_meta($id, self::STATE, 'failed');
@@ -428,6 +429,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             if ($files && self::attachment_exists($id) && 'failed' === get_post_meta($id, self::STATE, true)) {
+                if (is_array($record)) {
+                    unset($record['collision_refused'], $record['error']);
+                    update_post_meta($id, self::META, $record);
+                }
                 self::queue($id);
                 WP_CLI::log($id . ': owner queued after shared claims were repaired');
             }
@@ -2791,7 +2796,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 if ($attempts >= $limit) {
                     continue;
                 }
-                delete_option($name);
+                // The attempt replaces this job or removes it on completion.
+                // An early return must not strand a failed attachment.
                 self::upload_attachment((int) $job['id'], $start);
                 ++$attempts;
                 continue;
@@ -4419,6 +4425,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
         if (isset($assoc['retry-failed'])) {
             update_option(self::JOB . 'originalcursor', '', false);
+            self::retry_stranded($limit);
             foreach (self::jobs($limit, '', 'retry_') as $name) {
                 $job = get_option($name);
                 if (is_array($job) && 'retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
@@ -4459,6 +4466,45 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         } while ($attempts && $limit > 0 && self::more_time($start, 60));
         self::schedule();
         WP_CLI::success('Batch finished; remaining pictures continue in the background.');
+    }
+
+    /**
+     * Recover failed uploads whose retry job was lost, newest first.
+     * Page past refusals without loading the whole media library.
+     *
+     * @param int $limit Most attachments to requeue.
+     */
+    private static function retry_stranded($limit) {
+        global $wpdb;
+        $before = PHP_INT_MAX;
+        $queued = 0;
+        do {
+            // Keep ID order: starting from meta_key would sort all failed rows
+            // before LIMIT instead of walking the posts primary-key range.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded ID-paged lookup; meta joins use post_id and jobs use option_name's unique index.
+            $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
+                "SELECT STRAIGHT_JOIN p.ID FROM {$wpdb->posts} p FORCE INDEX (PRIMARY) INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'failed' INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s LEFT JOIN {$wpdb->options} j ON j.option_name = CONCAT(%s, p.ID) WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND p.ID < %d AND j.option_id IS NULL ORDER BY p.ID DESC LIMIT %d",
+                self::STATE, self::DONE, self::upload_marker(), self::JOB . 'retry_', 'image/%', $before, $limit - $queued
+            )));
+            foreach ($ids as $id) {
+                $before = $id;
+                $record = get_post_meta($id, self::META, true);
+                // Refusals deliberately have no retry job: repair them first.
+                // Legacy missing-byte repairs have an empty inventory and durable
+                // collision_source evidence, independent of the saved error's locale.
+                // Other legacy refusals still have live shared inventory claims.
+                $legacy_refusal = is_array($record) && empty($record['collision_refused']) && ((isset($record['collision_source']) && empty($record['files'])) || self::conflicting_files($id, $record['files'] ?? array()));
+                if ($legacy_refusal) {
+                    $record['collision_refused'] = true;
+                    update_post_meta($id, self::META, $record);
+                }
+                if (!empty($record['collision_refused']) || $legacy_refusal || self::removed_elsewhere($id)) {
+                    continue;
+                }
+                self::queue($id);
+                ++$queued;
+            }
+        } while ($ids && $queued < $limit);
     }
 
     /**
