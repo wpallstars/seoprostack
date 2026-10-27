@@ -3176,12 +3176,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Retry private uploads independently of confirmed public inventories.
      *
      * @param int $id Attachment ID.
+     * @return bool Whether the kept original completed successfully.
      */
     private static function retry_original($id) {
         $name = self::JOB . 'retry_original_' . $id;
         if (!self::attachment_exists($id)) {
             delete_option($name);
-            return;
+            return false;
         }
         // Persist before I/O so even an interrupted private upload retries alone.
         update_option($name, array('kind' => 'original_retry', 'id' => $id, 'signature' => self::config()['signature'], 'next' => time() + HOUR_IN_SECONDS), false);
@@ -3197,6 +3198,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         } else {
             delete_option($name);
         }
+        return !is_wp_error($result);
     }
 
     /** @return array<string,int> CLI-only paged counts through the meta_key index. */
@@ -3368,6 +3370,26 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Only a newly enabled originals bucket may reuse the complete AVIF inventory.
+     *
+     * @param int $id Attachment ID.
+     * @param array $record Public inventory.
+     * @return bool
+     */
+    private static function needs_original_only($id, $record) {
+        $config = self::config();
+        if ('' === $config['originals_bucket'] || ($record['signature'] ?? '') !== $config['signature'] || ($record['state'] ?? '') !== 'uploaded' || empty($record['files']) || get_post_meta($id, self::DONE, true) !== $config['signature'] . ':avif') {
+            return false;
+        }
+        foreach ($record['files'] as $info) {
+            if (empty($info['confirmed'])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Upload the whole attachment atomically; unchanged files make no request.
      *
      * @param int $id Attachment ID.
@@ -3405,6 +3427,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config = self::config();
         $generation = get_post_meta($id, self::GENERATION, true);
         $old = self::own_inventory($id);
+        if (self::needs_original_only($id, $old)) {
+            $marker = $config['signature'] . ':avif';
+            if (!self::retry_original($id) || !self::attachment_exists($id)) {
+                return false;
+            }
+            // Network I/O must not mark a concurrent edit or replacement complete.
+            if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $old || get_post_meta($id, self::DONE, true) !== $marker) {
+                return false;
+            }
+            $saved = update_post_meta($id, self::DONE, self::upload_marker(), $marker);
+            delete_transient(self::COUNTS);
+            self::forget($id);
+            return (bool) $saved;
+        }
         $attempt = isset($old['attempts']) ? (int) $old['attempts'] + 1 : 1;
         // Tried first: even a fatal error moves the queue forward and retries later.
         update_post_meta($id, self::DONE, self::upload_marker());
@@ -3663,8 +3699,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!is_array($record) || empty($record['files']) || 'uploaded' !== $record['state'] || $record['signature'] !== $signature) {
             return array();
         }
-        // Legacy inventories stay usable while the queue adds their AVIF files.
-        return in_array(get_post_meta($id, self::DONE, true), array($signature, self::upload_marker()), true) ? $record['files'] : array();
+        // Private originals do not change public URLs; keep serving while queued.
+        // Legacy inventories also stay usable while the queue adds AVIF files.
+        return in_array(get_post_meta($id, self::DONE, true), array($signature, $signature . ':avif', self::upload_marker()), true) ? $record['files'] : array();
     }
 
     /**
