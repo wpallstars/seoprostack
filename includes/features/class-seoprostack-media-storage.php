@@ -2110,7 +2110,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return true;
         }
         $client = self::client();
-        $heads = $client->heads(array_map('strval', array_keys($files)), $deadline);
+        $heads = $client->heads(array_map('strval', array_keys($files)), $deadline, self::concurrency());
         if (microtime(true) >= $deadline) {
             return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
         }
@@ -3249,6 +3249,21 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         return min(16 * MB_IN_BYTES, (int) ($free / 4));
     }
 
+    /** @return int Maximum concurrent storage requests. */
+    private static function concurrency() {
+        /** Filter concurrent storage requests (1–32). @param int $concurrency Maximum in-flight files. */
+        return max(1, min(32, (int) apply_filters('seoprostack_media_storage_concurrency', 20)));
+    }
+
+    /** @return int Group payload allowance, reserving space for transport copies. */
+    private static function group_byte_cap() {
+        $limit = wp_convert_hr_to_bytes(ini_get('memory_limit'));
+        $free = $limit > 0 ? max(0, $limit - memory_get_usage(true) - 16 * MB_IN_BYTES) : 128 * MB_IN_BYTES;
+        /** Filter the group's payload byte cap. @param int $bytes Maximum bytes, default 32 MiB. */
+        $bytes = (int) apply_filters('seoprostack_media_storage_group_bytes', 32 * MB_IN_BYTES);
+        return max(1, min(max(1, $bytes), (int) ($free / 4)));
+    }
+
     /**
      * Collect attachment files and registered WebP and AVIF copies, within uploads.
      *
@@ -3431,19 +3446,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return false;
         }
         $start = null === $start ? microtime(true) : (float) $start;
-        /** Filter concurrent file PUTs (1–6). @param int $concurrency Maximum in-flight files. */
-        $concurrency = max(1, min(6, (int) apply_filters('seoprostack_media_storage_concurrency', 6)));
-        // Keep the whole group's payload within the former single-file memory
-        // allowance, including space for transport copies of those bytes.
-        $cap = self::size_cap();
-        $largest = 1;
-        foreach ($files as $info) {
-            if ($info['size'] <= $cap) {
-                $largest = max($largest, $info['size']);
-            }
-        }
-        $concurrency = max(1, min($concurrency, (int) ($cap / $largest)));
-        foreach (array_chunk($files, $concurrency, true) as $group) {
+        $concurrency = self::concurrency();
+        $byte_cap = self::group_byte_cap();
+        $client = self::client(); // Loads the lazily included S3 client before grouping.
+        foreach (SEOProStack_S3_Client::file_groups($files, $concurrency, $byte_cap) as $group) {
             if (!self::more_time($start, self::BUDGET)) {
                 self::defer_upload($id, $pending, $old, $job);
                 return false;
@@ -3482,7 +3488,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
             /** Filter the public object cache policy. @param string $policy Cache-Control. */
             $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
-            $results = self::client()->put_files($changed, $policy);
+            $results = $client->put_files($changed, $policy, $concurrency, $byte_cap, $start + self::BUDGET);
             $error = null;
             foreach ($group as $key => $info) {
                 // Transport allocations must not change eligibility after PUT.

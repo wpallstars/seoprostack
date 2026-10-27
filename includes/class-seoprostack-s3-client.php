@@ -79,17 +79,52 @@ final class SEOProStack_S3_Client {
     }
 
     /**
-     * Copy a small group, checking every digest before its signed PUT.
+     * Partition file metadata without loading bodies. An oversized file goes alone.
+     *
+     * @param array $files Object keys mapped to file information with size.
+     * @param int $concurrency Maximum requests, bounded to 1–32.
+     * @param int $byte_cap Maximum payload bytes per group.
+     * @return Generator Groups preserving object keys and order.
+     */
+    public static function file_groups($files, $concurrency, $byte_cap) {
+        $concurrency = max(1, min(32, (int) $concurrency));
+        $byte_cap = max(1, (int) $byte_cap);
+        $group = array();
+        $bytes = 0;
+        foreach ($files as $key => $info) {
+            $size = max(0, (int) $info['size']);
+            if ($group && (count($group) >= $concurrency || $bytes + $size > $byte_cap)) {
+                yield $group;
+                $group = array();
+                $bytes = 0;
+            }
+            $group[$key] = $info;
+            $bytes += $size;
+        }
+        if ($group) {
+            yield $group;
+        }
+    }
+
+    /**
+     * Copy bounded groups, checking every digest before its signed PUT.
      *
      * @param array $files Object keys mapped to path, type and digest.
      * @param string $cache_control Cache policy.
+     * @param int $concurrency Maximum requests per group.
+     * @param int $byte_cap Maximum payload bytes per group.
+     * @param float $deadline End of the batch, or zero for the usual timeout.
      * @return array Object keys mapped to true or a redacted WP_Error.
      */
-    public function put_files($files, $cache_control) {
+    public function put_files($files, $cache_control, $concurrency = 20, $byte_cap = 33554432, $deadline = 0) {
         $results = array();
-        foreach (array_chunk($files, 6, true) as $group) {
+        foreach (self::file_groups($files, $concurrency, $byte_cap) as $group) {
             $requests = array();
             foreach ($group as $key => $info) {
+                if ($deadline && microtime(true) >= $deadline) {
+                    $results[$key] = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+                    continue;
+                }
                 $body = $this->read_file($info['path']);
                 if (false === $body || empty($info['digest'])) {
                     $results[$key] = new WP_Error('storage_read', __('The local picture could not be read.', 'seoprostack'));
@@ -99,9 +134,20 @@ final class SEOProStack_S3_Client {
                     $requests[$key] = $this->signed_request('PUT', $key, $body, array('content-type' => $info['type'], 'cache-control' => $cache_control));
                 }
             }
-            foreach ($this->request_multiple($requests) as $key => $response) {
+            $remaining = $deadline ? $deadline - microtime(true) : 20;
+            if ($remaining <= 0) {
+                foreach ($requests as $key => $request) {
+                    $results[$key] = is_wp_error($request) ? $request : new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+                }
+                unset($requests, $request, $body);
+                continue;
+            }
+            foreach ($this->request_multiple($requests, min(20, $remaining)) as $key => $response) {
                 $results[$key] = is_wp_error($response) ? $response : true;
             }
+            // Release the last body's reference as well as the signed payloads
+            // before allocating the following group.
+            unset($requests, $body);
         }
         return $results;
     }
@@ -111,11 +157,12 @@ final class SEOProStack_S3_Client {
      *
      * @param string[] $keys Object keys.
      * @param float $deadline Latest completion time, or zero for the usual timeout.
+     * @param int $concurrency Maximum requests per group.
      * @return array Object keys mapped to object information or WP_Error.
      */
-    public function heads($keys, $deadline = 0) {
+    public function heads($keys, $deadline = 0, $concurrency = 20) {
         $results = array();
-        foreach (array_chunk($keys, 6) as $group) {
+        foreach (array_chunk($keys, max(1, min(32, (int) $concurrency))) as $group) {
             $requests = array();
             foreach ($group as $key) {
                 $requests[$key] = $this->signed_request('HEAD', $key);
