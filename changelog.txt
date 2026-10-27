@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: Media in cloud storage resumes adopt and migrate batches from separate, non-autoloaded destination-bound cursors saved under the existing lease. Commands report the next position and clear their cursor at inventory end to revisit deferred or failed records on the next pass. --from-start ignores the cursor; dry runs and explicit --attachment runs never change it. Existing verification, budget and compare-and-swap behavior is unchanged (GitHub issue #965).
+
 = 1.3.86 =
 * Fix: Email protection also hides the address in a `mailto:` link's other attributes. The block editor's link control writes `data-id="mailto:…"`, and a `title` or `aria-label` may repeat the address, so 1.3.85 still showed it in the HTML. On an email link, every attribute other than `href` whose value holds an address or `mailto:` is removed; `title`, `aria-label`, `aria-description` and `data-*` ones are XOR-encoded together as JSON in `data-sps-attrs`, and `assets/js/email-protection.js` restores only those names, never event handlers or styles. Any other such attribute is dropped (GitHub issue #959).
 

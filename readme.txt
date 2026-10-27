@@ -152,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: adopt/migrate batches resume with --from-start to restart (#965).
+
 = 1.3.86 =
 * Fix: Email protection also hides addresses in email links' attributes, such as data-id (#959).
 
