@@ -92,9 +92,11 @@
  * already, so ignore_user_abort() does not help: the run stops partway,
  * Action Scheduler marks its actions failed after 300 seconds, and a query
  * stopped in the middle leaves "Commands out of sync" database errors for
- * every query at shutdown. LiteSpeed's noabort variable keeps those two
- * requests running; LiteSpeed Cache sets it for its own background request
- * the same way. On LiteSpeed servers the rules go in a block at the top of
+ * every query at shutdown. A visitor leaving a page can interrupt its query
+ * the same way. LiteSpeed's noabort variable keeps every request running
+ * within PHP's and LiteSpeed's normal time limits, even after a disconnect.
+ * Abandoned requests still use CPU; LiteSpeed Cache's page cache keeps that
+ * cost small for cached anonymous pages. The rules go in a block at the top of
  * the site's .htaccess (before WordPress's rules, which end rule processing
  * for existing files on a network), on a network following the main site's
  * switch, and the block is removed when this is switched off or SEO Pro
@@ -344,7 +346,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -1505,9 +1507,8 @@ JS;
     }
 
     /**
-     * Rules that keep LiteSpeed running WordPress cron and Action
-     * Scheduler's async request after their caller hangs up. The path
-     * pattern also matches a network's subfolder sites.
+     * Rules that keep LiteSpeed running every request after its caller
+     * hangs up, including pages, WordPress cron and Action Scheduler.
      *
      * @return string[]
      */
@@ -1515,9 +1516,7 @@ JS;
         return array(
             '<IfModule LiteSpeed>',
             'RewriteEngine On',
-            'RewriteRule (^|/)wp-cron\.php$ - [E=noabort:1]',
-            'RewriteCond %{QUERY_STRING} (^|&)action=as_async_request_queue_runner(&|$)',
-            'RewriteRule (^|/)wp-admin/admin-ajax\.php$ - [E=noabort:1]',
+            'RewriteRule .* - [E=noabort:1]',
             '</IfModule>',
         );
     }
