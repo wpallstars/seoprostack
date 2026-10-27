@@ -1986,7 +1986,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ## Changelog
 
 ### Unreleased
-- Changed: **Media in cloud storage** sends up to 20 PUTs or HEADs together (filterable, maximum 32), with a filterable 32 MiB PUT payload cap and a lower allowance when PHP memory is limited. Larger eligible files go alone; attempted-key records, whole-attachment publication and retries remain intact (GitHub issue #971).
+- Changed: **Media in cloud storage** sends up to 20 PUTs or HEADs together (filterable, maximum 32), with a filterable 32 MiB PUT payload cap and a lower allowance when PHP memory is limited. Larger eligible files go alone; attempted-key records, whole-attachment publication and retries remain intact, and a PUT still running when the batch deadline cuts its group short waits for the next turn instead of failing; earlier transport errors and HTTP errors remain failures (GitHub issue #971).
+- Fix: **Media in cloud storage** uploads only the kept originals when a private originals bucket is added after public uploads finished, instead of restoring and re-uploading every public file; public URLs keep serving meanwhile (GitHub issue #968).
 - Fix: **Fixes for other plugins** keeps every LiteSpeed request running after its caller disconnects, not just cron and Action Scheduler, preventing page queries from being interrupted and leaving “Commands out of sync” errors at shutdown. Normal server time limits still apply; abandoned requests still use CPU (GitHub issue #967).
 - Fix: **Media in cloud storage** resumes repeated `adopt` and `migrate` batches instead of restarting the adopted-record scan. Each command reports its next position, wraps after the last inventory, and accepts `--from-start`; dry runs and single-attachment runs keep the saved cursor unchanged (GitHub issue #965).
 
