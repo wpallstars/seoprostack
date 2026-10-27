@@ -2524,6 +2524,16 @@ html.sps-dark .ace-tm .ace_marker-layer .ace_selection {
 	background: rgb(114 174 230 / 30%);
 }
 
+/* Other copies of the selected word (#fafaff, #c8c8fa line) and the matching bracket (#c0c0c0 line). */
+html.sps-dark .ace-tm .ace_marker-layer .ace_selected-word {
+	background: rgb(114 174 230 / 15%);
+	border-color: var(--sps-ui-info);
+}
+
+html.sps-dark .ace-tm .ace_marker-layer .ace_bracket {
+	border-color: var(--sps-ui-field-border);
+}
+
 /* Its code colours are dark blues, greens and reds made for #fff. */
 html.sps-dark .ace-tm :is(.ace_keyword, .ace_meta.ace_tag, .ace_heading, .ace_entity.ace_name.ace_function, .ace_constant.ace_numeric, .ace_constant.ace_language, .ace_constant.ace_buildin, .ace_comment.ace_doc) {
 	color: var(--sps-ui-info);
