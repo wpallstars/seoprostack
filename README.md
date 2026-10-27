@@ -29,13 +29,13 @@ Version: 1.3.89
 <!-- github-only:start -->
 ## Screenshots
 
-**Settings → SEO Pro Stack**: the Admin tab, with search and the Source code, Support and Buy me a coffee links.
+**Settings → SEO Pro Stack**: the Admin tab, with search, the Source code, Support and Buy me a coffee links and the Light / Dark / System button. Admin features that are safe on any site are on from the start.
 
 ![The SEO Pro Stack settings screen on the Admin tab](.wordpress-org/screenshot-1.png)
 
 **The Speed tab**: each feature is one switch, with its options and the plugin it replaces.
 
-![The Speed tab with Load pages before the click switched on](.wordpress-org/screenshot-2.png)
+![The Speed tab with Recommended speed settings and Load pages before the click switched on](.wordpress-org/screenshot-2.png)
 
 **The Read Me tab** shows this file inside WordPress, banner included.
 
