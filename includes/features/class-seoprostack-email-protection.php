@@ -133,8 +133,8 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
      * A mailto link's other attributes can hold the address too: the block
      * editor's link control writes data-id="mailto:…", and a title or
      * aria-label may repeat it. Take every such attribute out of the HTML;
-     * the script restores the ones in RESTORE (and data-*), never others,
-     * so it can never add an event handler or a style.
+     * the script restores the ones in RESTORE and data-* (not data-sps-*),
+     * never others, so it can never add an event handler or a style.
      *
      * @param WP_HTML_Tag_Processor $processor Processor on the link.
      * @return void
@@ -146,7 +146,8 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         }
         $hidden = array();
         foreach ($names as $name) {
-            if ('href' === $name || 0 === strpos($name, 'data-sps-')) {
+            // data-sps-mailto, set just before, holds only encoded hex.
+            if ('href' === $name || 'data-sps-mailto' === $name) {
                 continue;
             }
             $value = $processor->get_attribute($name);
@@ -154,7 +155,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
                 continue;
             }
             $processor->remove_attribute($name);
-            if (in_array($name, self::RESTORE, true) || 0 === strpos($name, 'data-')) {
+            if (in_array($name, self::RESTORE, true) || (0 === strpos($name, 'data-') && 0 !== strpos($name, 'data-sps-'))) {
                 $hidden[$name] = $value;
             }
         }
