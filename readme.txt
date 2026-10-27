@@ -88,7 +88,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 * **Plugin presets** and **starter data**: opt-in settings and Fluent data, with undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
-* **Fixes for other plugins**: known bug workarounds.
+* **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within normal time limits, still using CPU.
 * **Agency**: order flow, client dashboard and examples.
 * **Recommended**: themes, plugins, hosting and tools.
 
@@ -153,6 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Fix: LiteSpeed noabort covers every request, preventing interrupted page queries and shutdown database errors (#967).
 * Fix: adopt/migrate batches resume with --from-start to restart (#965).
 
 = 1.3.86 =
