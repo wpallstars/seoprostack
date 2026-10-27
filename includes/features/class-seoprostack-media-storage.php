@@ -3397,6 +3397,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether all eligible files were copied.
      */
     public static function upload_attachment($id, $start = null) {
+        global $wpdb;
         $inventory = get_post_meta($id, self::META, true);
         if (is_array($inventory) && !empty($inventory['files']) && isset($inventory['signature']) && $inventory['signature'] !== self::config()['signature']) {
             // Only explicit adopt/migrate may replace an old inventory. Mark the
@@ -3436,10 +3437,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $old || get_post_meta($id, self::DONE, true) !== $marker) {
                 return false;
             }
-            $saved = update_post_meta($id, self::DONE, self::upload_marker(), $marker);
+            // Update only: update_post_meta would insert after a concurrent queue()
+            // deleted DONE, hiding that edit from the pending-upload selection.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic compare-and-update must never resurrect an invalidated marker.
+            $saved = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND CAST(meta_value AS BINARY) = %s", self::upload_marker(), $id, self::DONE, $marker));
+            self::fresh($id);
             delete_transient(self::COUNTS);
             self::forget($id);
-            return (bool) $saved;
+            return 1 === $saved;
         }
         $attempt = isset($old['attempts']) ? (int) $old['attempts'] + 1 : 1;
         // Tried first: even a fatal error moves the queue forward and retries later.
