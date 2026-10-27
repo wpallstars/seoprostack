@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.88-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.89-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.88
+Version: 1.3.89
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1986,6 +1986,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.89
+- Fix: **Media in cloud storage** with **Remove local copies after upload** purges the cached page of the post a picture is attached to once the batch removes the picture's local files (LiteSpeed Cache and WP-Optimize, or any cache on the new `seoprostack_page_cache_purge_post` action), once per post per batch and never every page. A page cached before still pointed at the removed files and showed broken pictures until its cache expired (GitHub issue #976).
+- Fix: **Media in cloud storage** keeps a failed picture's retry job until the retry runs, so a retry that stopped early can no longer leave it failed with nothing to try again, and `upload --retry-failed` requeues failed pictures that had already lost their job. Pictures refused for a shared path still wait for `collisions --repair` (GitHub issue #975).
+- Changed: new screenshots of the Admin, Speed and Read Me tabs for this version.
 
 ### 1.3.88
 - Fix: **Advanced Text for new lines** (Simpler block editor) is off by default, and switched off once on every site, so typing makes core’s Paragraph again, with its shortcuts: `* ` or `- ` for a bulleted list, `1. ` for a numbered one, `## ` for a heading. Kadence’s Advanced Text has none of them. Headings, overlines and styled text are still Advanced Text from the inserter; turn the setting on again if nobody uses the shortcuts (GitHub issue #978).
