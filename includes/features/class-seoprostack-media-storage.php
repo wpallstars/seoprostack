@@ -897,18 +897,42 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $start = microtime(true);
         $options = array('migrate' => $migrate, 'dry' => $dry, 'hash' => isset($assoc['verify-hash']), 'start' => $start);
         $before = PHP_INT_MAX;
+        // Scalar cursors are ignored by the job runner and removed by uninstall.
+        $cursor_name = self::JOB . ($migrate ? 'migratecursor' : 'adoptcursor');
+        $signature = self::config()['signature'];
         $lease = self::cli_lease();
         try {
+            $saved = get_option($cursor_name);
+            $cursor = is_string($saved) ? explode(':', $saved) : array();
+            if (!$one && !isset($assoc['from-start']) && ($cursor[0] ?? '') === $signature) {
+                $before = max(1, (int) ($cursor[1] ?? PHP_INT_MAX));
+            }
             do {
                 $ids = $one ? array($one) : self::inventory_ids(100, $before);
                 if (!self::handover_page($ids, $options, $counts, $limit, $before)) {
                     break;
                 }
             } while (!$one && $ids);
+            if (!$one) {
+                // Revisit deferred/failed records and new uploads on the next pass.
+                if (!$ids || !self::inventory_ids(1, $before)) {
+                    $before = PHP_INT_MAX;
+                }
+                if (!$dry) {
+                    if (PHP_INT_MAX === $before) {
+                        delete_option($cursor_name);
+                    } else {
+                        update_option($cursor_name, $signature . ':' . $before, false);
+                    }
+                }
+            }
         } finally {
             self::release($lease);
         }
         self::handover_summary($counts, $dry);
+        if (!$one) {
+            WP_CLI::log('next: ' . (PHP_INT_MAX === $before ? 'start' : 'before ' . $before));
+        }
     }
 
     /**
@@ -4278,6 +4302,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * [--verify-hash]
      * : adopt: also GET each object and compare its SHA-256.
+     *
+     * [--from-start]
+     * : adopt/migrate: ignore the saved cursor and begin with the newest record.
      *
      * [--delete-objects]
      * : forget-previous: explicitly delete archived previous objects.
