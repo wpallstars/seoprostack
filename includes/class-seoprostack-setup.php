@@ -258,8 +258,11 @@ final class SEOProStack_Setup {
      * v34: where Avatars without Gravatar is on, Settings → Discussion →
      *      Show Avatars is turned on once, and the first Gravatar copies are
      *      scheduled (#945).
+     * v35: Simpler block editor's Advanced Text for new lines is switched
+     *      off once, so core's Paragraph, with its typing shortcuts ("* "
+     *      for a list), is what typing makes again (#978).
      */
-    const DB_VERSION = 34;
+    const DB_VERSION = 35;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an

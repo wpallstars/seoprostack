@@ -2356,6 +2356,201 @@ html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle:hov
 	background: var(--sps-ui-hover);
 }
 
+/* Kadence Blocks: the icon picker's popover (search bar #fff, icons on #f5f5f5, Add Custom SVG #fff with a #f5f5f5 dashed line). */
+html.sps-dark .kadence-icon-picker-search {
+	background-color: var(--sps-ui-surface);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .kadence-icon-picker-link:not(.kadence-icon-picker-selection-toggle) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .kadence-icon-picker-link:not(.kadence-icon-picker-selection-toggle):hover {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .kadence-icon-picker-link.add-custom-svg {
+	color: var(--sps-ui-subtle);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+/* Kadence Blocks: its General / Style / Advanced tabs over every block's settings (#edf2f7, the open one #fff, #cbd5e0 lines). */
+html.sps-dark .kadence-blocks-inspector-tabs button {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark .kadence-blocks-inspector-tabs button.is-active {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	border-bottom-color: var(--sps-ui-accent-fill);
+}
+
+html.sps-dark .kadence-blocks-inspector-tabs button:not(.is-active):hover {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-border);
+}
+
+/* Kadence Blocks: its settings panels' #cbd5e0 lines, its sub-panels (#edf2f7 titles) and the #f9f9f9 spacer above core's Advanced panel. */
+html.sps-dark .components-panel[data-kadence-hide-advanced] .block-editor-block-inspector .components-panel__body,
+html.sps-dark :is(.kadence-blocks-block-parent-selector, .kadence-blocks-block-child-selector, .kadence-blocks-panel-button) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .kb-sub-panel :is(.kb-sub-panel-title, .kb-inner-sub-panel) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .kb-sub-panel .kb-sub-panel-title {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .kt-sidebar-settings-spacer:not(.no-background) {
+	background: var(--sps-ui-canvas);
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark .block-editor-block-inspector__advanced .components-panel__body-toggle.components-button {
+	background: transparent;
+}
+
+/* Kadence Blocks: Normal / Hover tabs (#edf2f7, the open one #fff, #cbd5e0 lines). */
+html.sps-dark .components-panel__body .kt-hover-tabs .components-tab-panel__tabs button {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-panel__body .kt-hover-tabs .components-tab-panel__tabs button.active-tab {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	border-bottom-color: var(--sps-ui-accent-fill);
+}
+
+/*
+ * Kadence Blocks: the fields in its blocks' Style settings, all #fff with
+ * #1e1e1e text: Colour / Background Colour, token pickers (Font Size,
+ * Font Family, presets), a border's style preview and width boxes, and
+ * the Top / Right / Bottom / Left labels over spacing inputs.
+ */
+html.sps-dark :is(.kb-color-control__trigger, .kadence-token-field__trigger.components-button, .kadence-single-border-control-wrap, .kadence-controls-content .measure-input-wrap .input-setting-toggle .components-button.input-setting-toggle-btn) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.kb-color-control__trigger, .kadence-token-field__trigger.components-button):hover {
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark .kb-token-control__row:has(.kb-border-control__box) .kadence-token-field__trigger.components-button {
+	background: transparent;
+}
+
+html.sps-dark .kb-border-control__style-preview {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .kb-border-control__style-preview-rule {
+	border-top-color: var(--sps-ui-text);
+}
+
+html.sps-dark .kadence-border-control .kadence-single-border-control-wrap :is(.components-dropdown-menu__toggle, .kadence-measure-control-select.components-unit-control__select) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .kadence-border-control .kadence-single-border-control-wrap .kadence-measure-control-select.components-unit-control__select:hover {
+	background-color: var(--sps-ui-hover);
+}
+
+/* Kadence Blocks: the empty colour circle beside Colour (#fff) and the lists its pickers open (#1e1e1e text, #f0f0f0 hover and choice). */
+html.sps-dark .kadence-pop-color-icon-indicate .kadence-pop-color-indicate:not([style*="background"]) {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.kb-color-control__item.components-button, .kadence-token-field__item.components-button, .kadence-token-field__reset.components-button) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.kb-color-control__item.components-button, .kadence-token-field__item.components-button, .kadence-token-field__reset.components-button):hover:not(:disabled),
+html.sps-dark .kadence-token-field__item.components-button.is-pressed {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .kadence-token-field__item.components-button.is-pressed:hover:not(:disabled) {
+	background: var(--sps-ui-border);
+}
+
+/* Kadence Blocks: notes and highlights in its token pickers (#fcf9e8, pale yellow). */
+html.sps-dark .kadence-token-field__stale-note {
+	color: var(--sps-ui-warning);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .kb-token-control--highlight {
+	background: var(--sps-ui-raised);
+	box-shadow: 0 0 0 4px var(--sps-ui-raised);
+}
+
+/* Kadence Blocks: Custom CSS in a block's Advanced settings is an Ace editor in its light theme (ace-tm: #fff, gutter #f0f0f0). */
+html.sps-dark .ace_editor.ace-tm {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .ace-tm :is(.ace_gutter, .ace_gutter-active-line) {
+	color: var(--sps-ui-subtle);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .ace-tm :is(.ace_marker-layer .ace_active-line, .ace_gutter-active-line) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .ace-tm .ace_cursor {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .ace-tm .ace_marker-layer .ace_selection {
+	background: rgb(114 174 230 / 30%);
+}
+
+/* Other copies of the selected word (#fafaff, #c8c8fa line) and the matching bracket (#c0c0c0 line). */
+html.sps-dark .ace-tm .ace_marker-layer .ace_selected-word {
+	background: rgb(114 174 230 / 15%);
+	border-color: var(--sps-ui-info);
+}
+
+html.sps-dark .ace-tm .ace_marker-layer .ace_bracket {
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Its code colours are dark blues, greens and reds made for #fff. */
+html.sps-dark .ace-tm :is(.ace_keyword, .ace_meta.ace_tag, .ace_heading, .ace_entity.ace_name.ace_function, .ace_constant.ace_numeric, .ace_constant.ace_language, .ace_constant.ace_buildin, .ace_comment.ace_doc) {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark .ace-tm :is(.ace_string, .ace_constant.ace_library, .ace_support.ace_constant, .ace_comment) {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark .ace-tm :is(.ace_constant, .ace_string.ace_regex, .ace_list, .ace_invalid) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .ace-tm :is(.ace_support.ace_function, .ace_support.ace_class, .ace_variable, .ace_keyword.ace_operator, .ace_xml-pe) {
+	color: var(--sps-ui-muted);
+}
+
 /* Kadence Blocks: colour swatches, a ring of rgb(0 0 0 / 10%) that barely shows on dark; a solid ring here. */
 html.sps-dark .kb-color-swatch {
 	border: 1px solid var(--sps-ui-field-border);

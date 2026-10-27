@@ -19,10 +19,13 @@
  * pinned), YellowPencil's button is left out, and an eye button opens the
  * page in the same tab, beside core's View button that opens a new tab.
  * With Kadence Blocks, core blocks it has its own version of leave the
- * inserter (KADENCE_KEY, KADENCE_BLOCKS), and new lines are Kadence's
- * Advanced Text (KADENCE_TEXT_KEY): Kadence's own "Set Advanced Text as
- * default block" switch is read as on in the post editor, unless the site
- * turned it off in Kadence, and never stored by SEO Pro Stack.
+ * inserter (KADENCE_KEY, KADENCE_BLOCKS). New lines can be Kadence's
+ * Advanced Text (KADENCE_TEXT_KEY, off by default): Kadence's own "Set
+ * Advanced Text as default block" switch is read as on in the post editor,
+ * unless the site turned it off in Kadence, and never stored by SEO Pro
+ * Stack. Off, core's Paragraph is what typing makes, with its shortcuts
+ * ("* " or "- " starts a list, "1. " a numbered one, "## " a heading),
+ * which Advanced Text does not have.
  *
  * The editors also open faster: the site details they ask for are built
  * without describing every REST route first (see index_without_routes()).
@@ -176,10 +179,10 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             ),
             self::KADENCE_TEXT_KEY => array(
                 'type'        => 'bool',
-                'default'     => true,
+                'default'     => false,
                 'parent'      => self::KEY,
                 'label'       => __('Advanced Text for new lines', 'seoprostack'),
-                'description' => __('New lines in the post editor are Kadence’s Advanced Text, as a paragraph, in place of core’s Paragraph: Kadence’s own “Set Advanced Text as default block” switch (Kadence Blocks Controls → Default Editor Block) reads as on. Turning that switch off in Kadence wins. Nothing is stored, and nothing changes without Kadence Blocks.', 'seoprostack'),
+                'description' => __('New lines in the post editor are Kadence’s Advanced Text, as a paragraph, in place of core’s Paragraph: Kadence’s own “Set Advanced Text as default block” switch (Kadence Blocks Controls → Default Editor Block) reads as on. Advanced Text has none of Paragraph’s typing shortcuts, such as “* ” for a bulleted list, “1. ” for a numbered list or “## ” for a heading, so leave this off unless people never use them. Turning that switch off in Kadence wins. Nothing is stored, and nothing changes without Kadence Blocks.', 'seoprostack'),
             ),
         );
     }
@@ -215,8 +218,11 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
     }
 
     /**
-     * Import Disable Bloat's matching switches, and unpin other plugins'
-     * panels once for people who had them pinned (UNPIN_VERSIONS).
+     * Import Disable Bloat's matching switches, unpin other plugins' panels
+     * once for people who had them pinned (UNPIN_VERSIONS), and switch
+     * Advanced Text for new lines off once (settings version 35): it was on
+     * by default, and took Paragraph's typing shortcuts, such as "* " for a
+     * list, away.
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Previous settings version.
@@ -227,6 +233,9 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         if ($choices) {
             $options = self::import_setting($options, self::KEY, true);
             $options = self::import_setting($options, self::ITEMS_KEY, $choices);
+        }
+        if ((int) $from_version < 35) {
+            $options[self::KADENCE_TEXT_KEY] = false;
         }
         $on      = !array_key_exists(self::KEY, $options) || !empty($options[self::KEY]);
         $top_bar = array_key_exists(self::TOP_BAR_KEY, $options) ? (array) $options[self::TOP_BAR_KEY] : array('unpin_panels');
