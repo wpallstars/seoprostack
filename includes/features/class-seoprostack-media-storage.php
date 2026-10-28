@@ -317,16 +317,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $others = self::claim_candidates($id, $files);
         foreach (array_chunk($others, 100) as $chunk) {
             foreach (self::handover_records($chunk) as $other => $values) {
-                if ($other === $id) {
-                    continue;
-                }
-                foreach (array(self::META, self::REMOVED) as $meta_key) {
-                    $record = $values[$meta_key] ?? array();
-                    foreach ($record['files'] ?? array() as $key => $info) {
-                        if (isset($paths[$info['relative'] ?? '']) || (($record['signature'] ?? '') === $signature && isset($files[$key]))) {
-                            return true;
-                        }
-                    }
+                if ($other !== $id && self::records_claim($values, $paths, $files, $signature)) {
+                    return true;
                 }
             }
         }
@@ -334,9 +326,33 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Claims of files, as MD5 hashes: each relative path, and each key under
-     * its destination's signature. A stored file always claims a path, even
-     * an empty one, so a proposed empty path still finds files without one.
+     * Whether another attachment's inventories claim one of the files: the
+     * same relative path under any destination, or the same key under this one.
+     *
+     * @param array $values Inventories by meta key.
+     * @param array $paths Proposed relative paths, as keys.
+     * @param array $files Proposed files by key.
+     * @param string $signature Current destination.
+     * @return bool
+     */
+    private static function records_claim($values, $paths, $files, $signature) {
+        foreach (array(self::META, self::REMOVED) as $meta_key) {
+            $record = $values[$meta_key] ?? array();
+            $same = ($record['signature'] ?? '') === $signature;
+            foreach ($record['files'] ?? array() as $key => $info) {
+                if (isset($paths[$info['relative'] ?? '']) || ($same && isset($files[$key]))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Claims of files, as 16-byte hashes (hex): each relative path, and each
+     * key under its destination's signature. A stored file always claims a
+     * path, even an empty one, so a proposed empty path still finds files
+     * without one.
      *
      * @param array $files Files by key.
      * @param string $signature Destination of the keys.
@@ -347,11 +363,22 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $hashes = array();
         foreach ($files as $key => $info) {
             if ($stored || (is_array($info) && array_key_exists('relative', $info))) {
-                $hashes[md5('p:' . (is_array($info) ? (string) ($info['relative'] ?? '') : ''))] = true;
+                $hashes[self::claim_hash('p:' . (is_array($info) ? (string) ($info['relative'] ?? '') : ''))] = true;
             }
-            $hashes[md5('k:' . $signature . "\n" . $key)] = true;
+            $hashes[self::claim_hash('k:' . $signature . "\n" . $key)] = true;
         }
         return array_keys($hashes);
+    }
+
+    /**
+     * An index key, not a secret: the first 16 bytes of the SHA-256, as hex
+     * for UNHEX() into the binary(16) column.
+     *
+     * @param string $claim Path or key claim.
+     * @return string 32 hex characters.
+     */
+    private static function claim_hash($claim) {
+        return substr(hash('sha256', $claim), 0, 32);
     }
 
     /**
@@ -375,6 +402,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- primary-key lookup in the plugin's own table; $in has one placeholder per hash.
                 $found = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT post_id FROM %i WHERE claim IN ($in) AND post_id <> %d", array_merge(array($table), $chunk, array($id))));
                 if ($wpdb->last_error) {
+                    // Such as a dropped table: create and fill it again.
+                    self::claims_failed();
                     return self::searched_candidates($id, $files);
                 }
                 $ids = array_merge($ids, array_map('intval', $found));
@@ -395,20 +424,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function searched_candidates($id, $files) {
         global $wpdb;
-        $needles = array();
-        foreach ($files as $key => $info) {
-            if (is_array($info) && array_key_exists('relative', $info)) {
-                $relative = (string) $info['relative'];
-                if ('' === $relative) {
-                    // Files without a path match it: every inventory is a candidate.
-                    $needles = array('' => true);
-                    break;
-                }
-                $needles[$relative . '";'] = true;
-            }
-            $needles[is_int($key) ? 'i:' . $key . ';' : $key . '";'] = true;
-        }
-        $needles = array_map('strval', array_keys($needles));
+        $needles = self::search_needles($files);
         $ids = array();
         foreach (array(self::META, self::REMOVED) as $meta_key) {
             $after = 0;
@@ -418,19 +434,52 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 foreach ($rows as $row) {
                     $after = (int) $row->meta_id;
                     $other = (int) $row->post_id;
-                    if ($other === $id || isset($ids[$other])) {
-                        continue;
-                    }
-                    foreach ($needles as $needle) {
-                        if ('' === $needle || false !== strpos($row->meta_value, $needle)) {
-                            $ids[$other] = true;
-                            break;
-                        }
+                    if ($other !== $id && !isset($ids[$other]) && self::has_needle($row->meta_value, $needles)) {
+                        $ids[$other] = true;
                     }
                 }
             } while (200 === count($rows));
         }
         return array_keys($ids);
+    }
+
+    /**
+     * The byte strings a serialized inventory claiming one of the files
+     * contains: each path and each key, serialized whole. A file without a
+     * path matches every inventory, so the only needle is then ''.
+     *
+     * @param array $files Proposed files by key.
+     * @return string[]
+     */
+    private static function search_needles($files) {
+        $needles = array();
+        foreach ($files as $key => $info) {
+            if (is_array($info) && array_key_exists('relative', $info)) {
+                $relative = (string) $info['relative'];
+                if ('' === $relative) {
+                    return array('');
+                }
+                $needles[$relative . '";'] = true;
+            }
+            $needles[is_int($key) ? 'i:' . $key . ';' : $key . '";'] = true;
+        }
+        return array_map('strval', array_keys($needles));
+    }
+
+    /**
+     * Whether a serialized value contains one of the needles ('' matches all).
+     *
+     * @param string $value Serialized inventory.
+     * @param string[] $needles Byte strings.
+     * @return bool
+     */
+    private static function has_needle($value, $needles) {
+        foreach ($needles as $needle) {
+            if ('' === $needle || false !== strpos($value, $needle)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -480,11 +529,39 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the plugin's own table; $values has two placeholders per hash.
             if (false === $wpdb->query($wpdb->prepare("INSERT IGNORE INTO %i (claim, post_id) VALUES $values", $args))) {
-                update_option(self::CLAIMS_STATE, array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => ''), false);
+                self::claims_failed();
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * The claim index failed (a write or lookup error, such as a dropped
+     * table): lookups search the inventories, and the index is created and
+     * filled again from the start, no sooner than ten minutes from now.
+     */
+    private static function claims_failed() {
+        update_option(self::CLAIMS_STATE, array('retry' => time() + 10 * MINUTE_IN_SECONDS), false);
+    }
+
+    /**
+     * When the claim index next needs a build step; null once it is complete
+     * for this version, or while uploads are off.
+     *
+     * @phpstan-impure Reads the index state, which batches change.
+     * @return int|null
+     */
+    private static function claims_due() {
+        if (!self::ready()) {
+            return null;
+        }
+        $state = get_option(self::CLAIMS_STATE, array());
+        $state = is_array($state) ? $state : array();
+        if (self::CLAIMS_SCHEMA === ($state['schema'] ?? '') && SEOPROSTACK_VERSION === ($state['built'] ?? '')) {
+            return null;
+        }
+        return max(time(), (int) ($state['retry'] ?? 0));
     }
 
     /**
@@ -498,6 +575,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         global $wpdb;
         $state = get_option(self::CLAIMS_STATE, array());
         $state = is_array($state) ? $state : array();
+        if ((int) ($state['retry'] ?? 0) > time()) {
+            return;
+        }
         if (self::CLAIMS_SCHEMA !== ($state['schema'] ?? '')) {
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             $table = $wpdb->prefix . self::CLAIMS;
@@ -509,6 +589,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             ) {$wpdb->get_charset_collate()};");
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
             if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+                self::claims_failed();
                 return;
             }
             $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => '');
@@ -2960,26 +3041,44 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // longer applies, so the panel and status stop showing it.
             delete_option(self::ERROR);
         }
+        $due = self::earliest($due, self::claims_due());
         if (null !== $due && $due <= time() + 60) {
             return;
         }
         wp_clear_scheduled_hook(self::HOOK);
         // Work queued between those checks and the clear saw the old event
         // and did not schedule its own: look again after clearing.
-        $due = self::due_now() ? time() : self::next_due();
+        $due = self::due_now() ? time() : self::earliest(self::next_due(), self::claims_due());
         if (null !== $due) {
             self::schedule(max(10, $due - time()));
         }
     }
 
     /**
-     * Whether uploads, removals or restores are waiting now.
+     * The earlier of two times, either of which may be null (none).
+     *
+     * @param int|null $first Time.
+     * @param int|null $second Time.
+     * @return int|null
+     */
+    private static function earliest($first, $second) {
+        if (null === $first || null === $second) {
+            return null === $first ? $second : $first;
+        }
+        return min($first, $second);
+    }
+
+    /**
+     * Whether uploads, removals, restores or a claim index build step are
+     * waiting now. The index build keeps the queue going on a quiet site,
+     * so its speed-up is not left waiting for the next upload.
      *
      * @phpstan-impure Reads queues, which other requests change.
      * @return bool
      */
     private static function due_now() {
-        return (self::ready() && self::waiting(1)) || self::local_due() || self::original_jobs_due();
+        $claims = self::claims_due();
+        return (self::ready() && self::waiting(1)) || self::local_due() || self::original_jobs_due() || (null !== $claims && $claims <= time());
     }
 
     /**

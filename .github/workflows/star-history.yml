@@ -10,8 +10,8 @@ permissions:
 
 jobs:
   update:
-    uses: marcusquinn/aidevops/.github/workflows/star-history-reusable.yml@main
+    uses: marcusquinn/aidevops/.github/workflows/star-history-reusable.yml@baabd4dce4cb801a05d8fc4955b66c5a3427dab1 # v3.39.78
     with:
-      aidevops_ref: main
+      aidevops_ref: baabd4dce4cb801a05d8fc4955b66c5a3427dab1 # v3.39.78
     secrets:
       SYNC_PAT: ${{ secrets.SYNC_PAT }}
