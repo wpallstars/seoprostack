@@ -152,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: read-only watermark dry runs, resumable --stale refreshes, and reuse of kept originals (#996).
+
 = 1.3.91 =
 * Fix: the admin menu no longer widens while a comment awaits moderation (#994).
 * Fix: Fluent Forms colours also apply in the block editor (#992).

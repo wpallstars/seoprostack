@@ -38,6 +38,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     /** Option: name of the folder in uploads that holds the originals. */
     const DIR_OPTION = 'seoprostack_watermark_dir';
 
+    /** Option: resumable newest-first CLI scan, bound to its mark and scope. */
+    const CURSOR = 'seoprostack_watermark_cursor';
+
     const ACTION = 'seoprostack_watermark_image';
 
     const BULK_ADD = 'seoprostack_watermark_add';
@@ -560,9 +563,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     /**
      * The watermark picture: its attachment ID, size and files.
      *
+     * @param bool $restore Restore removed files (false for read-only CLI runs).
      * @return array|WP_Error id, width, height, files => [[path, width, height]].
      */
-    public static function mark() {
+    public static function mark($restore = true) {
         $which = (string) SEOProStack_Settings::get('watermark_images_mark');
         if ('logo' === $which) {
             $id = (int) get_theme_mod('custom_logo');
@@ -581,7 +585,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return new WP_Error('watermark_none', $none);
         }
         // The mark is read from its files, which Media in cloud storage may have removed.
-        $restored = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($id) : true;
+        $restored = $restore && class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($id) : true;
         if (is_wp_error($restored)) {
             return $restored;
         }
@@ -619,6 +623,28 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             }
         }
         return array('id' => $id, 'width' => (int) $meta['width'], 'height' => (int) $meta['height'], 'files' => $files);
+    }
+
+    /**
+     * Fingerprint the actual mark files and every setting affecting output.
+     * Never restore files or persist a cache while calculating it.
+     *
+     * @param array $mark mark().
+     * @return string|WP_Error
+     */
+    private static function mark_signature(array $mark) {
+        $parts = array('id' => $mark['id']);
+        foreach ($mark['files'] as $file) {
+            $digest = hash_file('sha256', $file['path']);
+            if (false === $digest) {
+                return new WP_Error('watermark_signature', __('The watermark picture could not be read.', 'seoprostack'));
+            }
+            $parts[] = array($file['width'], $file['height'], $digest);
+        }
+        foreach (array('mark', 'image', 'position', 'size', 'margin', 'opacity', 'min') as $key) {
+            $parts[$key] = SEOProStack_Settings::get('watermark_images_' . $key);
+        }
+        return hash('sha256', (string) wp_json_encode($parts));
     }
 
     /**
@@ -785,6 +811,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return $metadata;
         }
         $record = self::record($attachment_id);
+        if (!empty($record['remark_pending'])) {
+            // An interrupted refresh owns intermediate files, not a replacement.
+            // Preserve its original until an explicit refresh/removal finishes.
+            return $metadata;
+        }
         if ($record && !self::record_current($attachment_id, $record)) {
             // A new file (replaced): the kept original is of the old one.
             self::forget($attachment_id);
@@ -883,12 +914,20 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (is_wp_error($mark)) {
             return $mark;
         }
+        $signature = self::mark_signature($mark);
+        if (is_wp_error($signature)) {
+            return $signature;
+        }
         wp_raise_memory_limit('image');
 
         $file   = (string) get_attached_file($attachment_id); // unmarkable() checked that it is a file.
         $dir    = dirname($file);
         $record = self::record($attachment_id);
         $first  = !$record;
+        $refresh = !empty($record['remark_pending']);
+        if ($refresh) {
+            $record['files'] = array();
+        }
         if ($first) {
             $source = !empty($metadata['original_image']) && is_file($dir . '/' . wp_basename($metadata['original_image']))
                 ? wp_basename($metadata['original_image'])
@@ -932,6 +971,14 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             }
             return $errors ? $errors[0] : 'small';
         }
+        unset($record['remark_pending'], $record['refresh_paths']);
+        if ($errors) {
+            unset($record['signature']);
+        } elseif ($first || $refresh) {
+            // Merely observing already-marked files must not make an old mark
+            // appear current (for example during browser finalization).
+            $record['signature'] = $signature;
+        }
         update_post_meta($attachment_id, self::META, $record);
 
         // Sizes of the changed files, for the Media Library and WordPress.
@@ -947,7 +994,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             }
         }
         do_action('seoprostack_media_files_changed', $attachment_id);
-        return $metadata;
+        return $errors ? $errors[0] : $metadata;
     }
 
     /**
@@ -1023,7 +1070,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             if (empty($record['backup'])) {
                 return 'marked';
             }
-            $removed = self::remove($attachment_id);
+            $removed = self::remove($attachment_id, true);
             if (is_wp_error($removed)) {
                 return $removed;
             }
@@ -1045,16 +1092,20 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * Remove the watermark: put the kept original back and make every size
      * again from it, as when it was uploaded.
      *
-     * @param int $attachment_id Attachment ID.
+     * @param int  $attachment_id Attachment ID.
+     * @param bool $keep_original Retain the verified original when re-marking.
      * @return string|WP_Error removed or unmarked.
      */
-    public static function remove($attachment_id) {
+    public static function remove($attachment_id, $keep_original = false) {
         $attachment_id = (int) $attachment_id;
         $record        = self::record($attachment_id);
         if (!$record) {
             return 'unmarked';
         }
         if (!empty($record['original_delete_failed'])) {
+            if ($keep_original) {
+                return new WP_Error('watermark_original_delete', __('Retry the kept original’s failed deletion before marking this picture again.', 'seoprostack'));
+            }
             $deleted = self::delete_backup($record);
             if (is_wp_error($deleted)) {
                 return $deleted;
@@ -1079,6 +1130,15 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!self::record_current($attachment_id, $record)) {
             return new WP_Error('watermark_changed', __('This picture was edited or replaced after it was marked, so the kept original is out of date.', 'seoprostack'));
         }
+        if ($keep_original) {
+            $bytes  = (int) filesize($backup);
+            $digest = hash_file('sha256', $backup);
+            if (false === $digest || (isset($record['size']) && $bytes !== (int) $record['size']) || (isset($record['digest']) && $digest !== $record['digest'])) {
+                return new WP_Error('watermark_original_changed', __('The kept original does not match its recorded size and SHA-256.', 'seoprostack'));
+            }
+            $record['size']   = $bytes;
+            $record['digest'] = $digest;
+        }
 
         $file = get_attached_file($attachment_id);
         if (!$file) { // record_current() found it; never restore into an empty folder path.
@@ -1087,6 +1147,17 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $meta   = wp_get_attachment_metadata($attachment_id);
         $dir    = dirname($file);
         $source = $dir . '/' . $record['source'];
+        if ($keep_original) {
+            // Journal ownership before any public file changes. On interruption
+            // either attached path may be in use, with clean or marked bytes.
+            $record['remark_pending'] = true;
+            $record['refresh_paths']  = array(_wp_relative_upload_path($file), _wp_relative_upload_path($source));
+            unset($record['signature']);
+            update_post_meta($attachment_id, self::META, $record);
+            if (get_post_meta($attachment_id, self::META, true) !== $record) {
+                return new WP_Error('watermark_record', __('The refresh recovery record could not be saved.', 'seoprostack'));
+            }
+        }
         if (!@copy($backup, $source)) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- failure is handled.
             return new WP_Error('watermark_restore', __('The original could not be put back.', 'seoprostack'));
         }
@@ -1105,6 +1176,16 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         self::$lock = false;
         if (is_array($new_meta)) {
             wp_update_attachment_metadata($attachment_id, $new_meta);
+        }
+        if ($keep_original) {
+            // Keep private-object identity and ownership throughout the refresh.
+            // A failed/interrupted mark can safely restore this same original.
+            $current = get_attached_file($attachment_id);
+            $record['files'] = $current && is_file($current) ? array(wp_basename($current) => (int) filesize($current)) : array();
+            $record['remark_pending'] = true;
+            unset($record['signature']);
+            update_post_meta($attachment_id, self::META, $record);
+            return 'removed';
         }
         $deleted = self::delete_backup($record);
         if (is_wp_error($deleted)) {
@@ -1148,7 +1229,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function record($attachment_id) {
         $record = get_post_meta((int) $attachment_id, self::META, true);
-        if (!is_array($record) || empty($record['files']) || !is_array($record['files']) || empty($record['source'])) {
+        if (!is_array($record) || !isset($record['files']) || !is_array($record['files']) || (empty($record['files']) && empty($record['remark_pending'])) || empty($record['source'])) {
             return array();
         }
         $record['backup'] = isset($record['backup']) ? (string) $record['backup'] : '';
@@ -1166,6 +1247,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $file = get_attached_file($attachment_id);
         $name = $file ? wp_basename($file) : '';
         clearstatcache();
+        if (!empty($record['remark_pending']) && !empty($record['refresh_paths']) && is_array($record['refresh_paths'])) {
+            return $file && in_array(_wp_relative_upload_path($file), $record['refresh_paths'], true);
+        }
         return '' !== $name && isset($record['files'][$name]) && is_file($file) && (int) filesize($file) === (int) $record['files'][$name];
     }
 
@@ -2050,8 +2134,14 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * [--marked-only]
      * : Mark again only pictures with a watermark record and a kept original. Ignored with --remove.
      *
+     * [--stale]
+     * : Only re-mark pictures made with a different mark or settings (including legacy records).
+     *
+     * [--from-start]
+     * : Ignore the saved --marked-only/--stale cursor and start at the newest picture.
+     *
      * [--dry-run]
-     * : List the pictures that would change.
+     * : List candidates without downloads or writes; animation checks wait for the real run.
      *
      * ## EXAMPLES
      *
@@ -2069,24 +2159,42 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function cli($args, $assoc) {
         $remove      = !empty($assoc['remove']);
-        $marked_only = !$remove && !empty($assoc['marked-only']);
+        $stale       = !$remove && !empty($assoc['stale']);
+        $marked_only = !$remove && (!empty($assoc['marked-only']) || $stale);
         $dry         = !empty($assoc['dry-run']);
+        $signature   = '';
         if (!$remove && !self::enabled()) {
             WP_CLI::error('Watermark pictures is off, or waiting for Easy Watermark to be deactivated.');
         }
         if (!$remove) {
-            $mark = self::mark();
+            $mark = self::mark(!$dry);
             if (is_wp_error($mark)) {
                 WP_CLI::error($mark->get_error_message());
+                return;
+            }
+            $signature = self::mark_signature($mark);
+            if (is_wp_error($signature)) {
+                WP_CLI::error($signature->get_error_message());
+                return;
             }
         }
         $counts = array('added' => 0, 'removed' => 0, 'skipped' => 0, 'failed' => 0);
         $failed = array();
-        $last   = 0;
+        $last   = $marked_only ? PHP_INT_MAX : 0;
+        $scope  = ($stale ? 'stale:' : 'marked:') . $signature;
+        $cursor = get_option(self::CURSOR, array());
+        if ($marked_only && empty($assoc['from-start']) && is_array($cursor) && ($cursor['scope'] ?? '') === $scope) {
+            $last = max(0, (int) ($cursor['before'] ?? PHP_INT_MAX));
+        }
         global $wpdb;
         do {
             if ($marked_only) {
-                $ids = self::library_next('again', $last, 100);
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed descending ID cursor, never an offset or meta-value sort.
+                $ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p WHERE p.post_type = 'attachment' AND p.ID < %d AND EXISTS (SELECT 1 FROM {$wpdb->postmeta} m WHERE m.post_id = p.ID AND m.meta_key = %s) ORDER BY p.ID DESC LIMIT 100",
+                    $last,
+                    self::META
+                ));
             } else {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- paged by ID, so pictures that change are not skipped or repeated.
                 $ids = $wpdb->get_col($wpdb->prepare(
@@ -2097,6 +2205,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             }
             foreach ($ids as $id) {
                 $last = (int) $id;
+                if ($marked_only && !$dry && !$failed) {
+                    // Save before work: a killed request retries this picture,
+                    // and a failure pins the cursor here rather than skipping it.
+                    update_option(self::CURSOR, array('scope' => $scope, 'before' => $last + 1), false);
+                }
                 if ($marked_only) {
                     $record = self::record($last);
                     if (!$record) {
@@ -2106,8 +2219,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                         $counts['skipped']++;
                         continue;
                     }
+                    if ($stale && ($record['signature'] ?? '') === $signature) {
+                        continue;
+                    }
                 }
-                if ($remove ? !self::record($last) : (bool) self::unmarkable($last)) {
+                if ($remove ? !self::record($last) : (bool) self::unmarkable($last, false)) {
                     continue;
                 }
                 if ($dry) {
@@ -2138,6 +2254,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ($dry) {
             WP_CLI::success(sprintf($remove ? '%d pictures would be unmarked.' : '%d pictures would be marked.', $remove ? $counts['removed'] : $counts['added']));
             return;
+        }
+        if ($marked_only && !$failed) {
+            delete_option(self::CURSOR);
         }
         WP_CLI::success(sprintf('%d marked, %d unmarked, %d left alone, %d failed.', $counts['added'], $counts['removed'], $counts['skipped'], $counts['failed']));
         if ($failed) {
