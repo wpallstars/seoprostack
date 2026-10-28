@@ -69,7 +69,8 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Links and speed =
 
-* **Rank Math defaults**: keywords from titles and pillar warnings.
+* **Rank Math defaults**: title keywords, pillar warnings.
+* **FAQ schema** from Details blocks.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
@@ -153,6 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: FAQ schema from Details blocks (#998).
 * Fix: read-only watermark dry runs, resumable --stale refreshes, and reuse of kept originals (#996).
 
 = 1.3.91 =

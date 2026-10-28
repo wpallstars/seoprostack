@@ -759,6 +759,16 @@ WordPress keeps every revision of every post. This keeps the newest few (10 by d
 
 - Replaces Disable Bloat PRO’s post revisions switch, imported once as 0 while it is active.
 
+### FAQ schema from Details blocks (Content)
+
+Off by default and only runs while Rank Math is active. Core’s Details block is the block editor’s own way to write a question and its answer: the summary is the question and the blocks inside are the answer. Rank Math reads only its own FAQ block, so a page written with Details blocks had no FAQ schema. With this on, a single post or page with two or more Details blocks, each with a summary and something inside, gets them as FAQ schema in Rank Math’s structured data (the `rank-math-schema` script), its questions in page order.
+
+- Details blocks count wherever they are in the content: inside rows, columns and groups, and in published synced patterns without a password (each pattern once). A Details block inside another is part of that one’s answer.
+- A lone Details block is more often a “show more” than a question, so a page needs two. One with an empty summary or nothing inside does not count.
+- The question is the summary’s text and the answer the text of the blocks inside, both with tags and shortcodes removed.
+- As Rank Math does with its own FAQ block, Rank Math’s `WebPage` becomes a `FAQPage` too and holds the questions (`mainEntity`). Where the post has no `WebPage` (its Schema Type is None) or the `WebPage` already has a main entity, the questions are a `FAQPage` of their own (`{address}#faq`), part of the `WebPage` if there is one.
+- Nothing is added where the page’s schema already has a `FAQPage`, such as Rank Math’s FAQ block, another plugin’s or the site’s own (this runs at priority 100 on `rank_math/json_ld`, after Rank Math joins a `FAQPage` to its `WebPage` at 99), or while the post needs a password. Nothing is stored.
+
 ### Recommended speed settings (Speed)
 
 On by default; it changes nothing until you click. Below the Speed tab’s settings, a plan from this site’s own size and plugins: which of SEO Pro Stack’s speed and server settings to turn on, why for this site, and what each costs, with the reason when one is not recommended here.
@@ -1991,6 +2001,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **FAQ schema from Details blocks** (Content tab). A post or page with two or more core Details blocks gets them as FAQ schema in Rank Math’s structured data, the way Rank Math’s own FAQ block does, including Details blocks nested in other blocks and synced patterns. Nothing is added where the page already has FAQ schema (such as Rank Math’s FAQ block) or needs a password (GitHub issue #998).
 - Fix: watermark CLI dry runs never restore removed files. `--stale` refreshes only out-of-date marks; refresh scans resume newest first, and reuse verified kept originals and their private-bucket objects (GitHub issue #996).
 
 ### 1.3.91
