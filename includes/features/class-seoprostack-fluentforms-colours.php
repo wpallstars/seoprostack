@@ -19,6 +19,9 @@ class SEOProStack_Fluentforms_Colours extends SEOProStack_Feature {
     const KEY = 'fluentforms_colours';
     const HANDLE = 'fluent-form-styles';
 
+    /** The block editor canvas's copy of the colours. */
+    const EDITOR_HANDLE = 'seoprostack-fluentforms-colours';
+
     /** Whether the palette CSS has already been added on this request. */
     private static $added = false;
 
@@ -34,19 +37,46 @@ class SEOProStack_Fluentforms_Colours extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'content',
                 'label'       => __('Fluent Forms colours', 'seoprostack'),
-                'description' => __('Makes Fluent Forms labels, help text, inputs and file-upload areas follow Kadence’s light and dark palette. Fluent Forms’ saved styles stay unchanged. Nothing changes without Fluent Forms and Kadence.', 'seoprostack'),
+                'description' => __('Makes Fluent Forms labels, help text, inputs and file-upload areas follow Kadence’s light and dark palette, on the page and in the block editor’s preview. Fluent Forms’ saved styles stay unchanged. Nothing changes without Fluent Forms and Kadence.', 'seoprostack'),
             ),
         );
     }
 
-    /** Register only on the front end with Fluent Forms and Kadence (or a child). */
+    /**
+     * Register only with Fluent Forms and Kadence (or a child): on the front
+     * end, and in the block editor's canvas so a form's preview has the
+     * page's colours.
+     */
     public static function boot() {
-        if (!self::enabled() || is_admin() || !class_exists('FluentForm\App\Models\Form') || 'kadence' !== get_template()) {
+        if (!self::enabled() || !class_exists('FluentForm\App\Models\Form') || 'kadence' !== get_template()) {
+            return;
+        }
+        if (is_admin()) {
+            // After a theme's canvas styles (priority 10), as on the page,
+            // where these print with Fluent's late stylesheet: a theme's rules
+            // of the same specificity must not win in the preview only.
+            add_action('enqueue_block_assets', array(__CLASS__, 'editor_styles'), 100);
             return;
         }
         add_action('wp_enqueue_scripts', array(__CLASS__, 'styles'), 100);
         // Shortcodes can enqueue their styles after the head has been printed.
         add_action('wp_footer', array(__CLASS__, 'styles'), 100);
+    }
+
+    /**
+     * The block editor's canvas. WordPress collects the canvas's styles by
+     * running enqueue_block_assets again with the registered styles, so the
+     * inline CSS is added once, at registration.
+     */
+    public static function editor_styles() {
+        if (!is_admin()) {
+            return;
+        }
+        if (!wp_style_is(self::EDITOR_HANDLE, 'registered')) {
+            wp_register_style(self::EDITOR_HANDLE, false, array(), SEOPROSTACK_VERSION);
+            wp_add_inline_style(self::EDITOR_HANDLE, self::css());
+        }
+        wp_enqueue_style(self::EDITOR_HANDLE);
     }
 
     /** Add only alongside Fluent Forms' own front-end stylesheet. */
@@ -55,10 +85,25 @@ class SEOProStack_Fluentforms_Colours extends SEOProStack_Feature {
             return;
         }
         self::$added = true;
+        $css = self::css();
 
-        // Resolve on the form, below body: Kadence's switcher, not the system,
-        // owns the palette. Do not recolour submit buttons or validation states.
-        $css = <<<'CSS'
+        if (wp_style_is(self::HANDLE, 'done')) {
+            // Late-rendered form: the handle has already printed its inline CSS.
+            printf("<style id=\"seoprostack-fluentforms-colours\">%s</style>\n", $css); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed CSS only, with no interpolated values.
+        } else {
+            wp_add_inline_style(self::HANDLE, $css);
+        }
+    }
+
+    /**
+     * The colours. Resolved on the form, below body: Kadence's switcher, not
+     * the system, owns the palette. Submit buttons and validation states keep
+     * their colours.
+     *
+     * @return string
+     */
+    private static function css() {
+        return <<<'CSS'
 body :is(.fluentform, .frm-fluent-form) .ff-el-input--label label,
 body :is(.fluentform, .frm-fluent-form) .ff-el-form-check-label {
     color: var(--global-palette4, #2d3748);
@@ -93,12 +138,5 @@ body :is(.fluentform, .frm-fluent-form) .ff-dropzone .ff_upload_btn.ff-btn:focus
     border-color: var(--global-palette1, #1a7efb);
 }
 CSS;
-
-        if (wp_style_is(self::HANDLE, 'done')) {
-            // Late-rendered form: the handle has already printed its inline CSS.
-            printf("<style id=\"seoprostack-fluentforms-colours\">%s</style>\n", $css); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed CSS only, with no interpolated values.
-        } else {
-            wp_add_inline_style(self::HANDLE, $css);
-        }
     }
 }
