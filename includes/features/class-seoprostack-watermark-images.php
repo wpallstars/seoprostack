@@ -968,6 +968,23 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             // The main file is not marked (too small or failed): nothing is.
             if ($first) {
                 self::delete_backup($record);
+            } elseif ($refresh && !$errors) {
+                // A clean picture that no longer fits the mark is finished,
+                // not an interrupted refresh to restore again on every run.
+                $deleted = self::delete_backup($record);
+                if (is_wp_error($deleted)) {
+                    unset($record['remark_pending'], $record['refresh_paths']);
+                    $record['files'] = array(wp_basename($file) => (int) filesize($file));
+                    $record['original_delete_failed'] = true;
+                    update_post_meta($attachment_id, self::META, $record);
+                } else {
+                    delete_post_meta($attachment_id, self::META);
+                }
+                delete_transient('dirsize_cache');
+                do_action('seoprostack_media_files_changed', $attachment_id);
+                if (is_wp_error($deleted)) {
+                    return $deleted;
+                }
             }
             return $errors ? $errors[0] : 'small';
         }
@@ -2237,6 +2254,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 }
                 $status = $remove ? self::remove($last) : self::add($last);
                 if (is_wp_error($status)) {
+                    if (!$remove && self::unmarkable($last)) {
+                        $counts['skipped']++;
+                        continue;
+                    }
                     $counts['failed']++;
                     if (count($failed) < self::FAILED_LIMIT) {
                         $failed[] = $last;
