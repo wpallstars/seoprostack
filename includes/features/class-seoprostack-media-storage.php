@@ -1736,8 +1736,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         add_filter('wp_calculate_image_srcset', array(__CLASS__, 'srcset'), 20, 5);
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 10, 3);
         // These hooks run only in Rank Math; saved content keeps local URLs.
-        add_filter('rank_math/opengraph/facebook/image', array(__CLASS__, 'seo_image'), 20);
-        add_filter('rank_math/opengraph/twitter/image', array(__CLASS__, 'seo_image'), 20);
+        add_filter('rank_math/opengraph/facebook/image_array', array(__CLASS__, 'seo_image_array'), 20);
+        add_filter('rank_math/opengraph/twitter/image_array', array(__CLASS__, 'seo_image_array'), 20);
         add_filter('rank_math/json_ld', array(__CLASS__, 'seo_schema'), 20);
         add_filter('rest_request_before_callbacks', array(__CLASS__, 'rest_before'), 10, 3);
         add_filter('rest_request_after_callbacks', array(__CLASS__, 'rest_after'), 10, 3);
@@ -4172,12 +4172,24 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Find the owning attachment's output map without scanning attachments.
      *
-     * @param string $url Public image address.
+     * @param string $url Public or local image address.
      * @param bool $original Keep each file's uploaded format.
      * @return array<string,string> Candidate map; callers still match the exact URL.
      */
     private static function indexed_map($url, $original = false) {
         $config = self::config();
+        $uploads = wp_upload_dir(null, false);
+        $local_base = trailingslashit($uploads['baseurl']);
+        $relative = '';
+        if (0 === strpos($url, $local_base)) {
+            $root = self::root();
+            $dir = wp_normalize_path($uploads['basedir']);
+            if (!$root || ($dir !== $root['dir'] && 0 !== strpos($dir, $root['dir'] . '/'))) {
+                return array();
+            }
+            $site_path = ltrim(substr($dir, strlen($root['dir'])), '/');
+            $relative = ($site_path ? $site_path . '/' : '') . rawurldecode(substr($url, strlen($local_base)));
+        }
         $destinations = get_option(self::DESTINATIONS, array());
         $sources = array($config);
         if (!empty($destinations['previous'])) {
@@ -4185,15 +4197,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         foreach ($sources as $source) {
             $base = $source['url'] . '/';
-            if (0 !== strpos($url, $base)) {
+            if ('' === $relative && 0 !== strpos($url, $base)) {
                 continue;
             }
-            $key = rawurldecode(preg_replace('/\?v=[a-f0-9]+$/', '', substr($url, strlen($base))) ?? '');
+            $key = '' !== $relative ? $source['prefix'] . $relative : rawurldecode(preg_replace('/\?v=[a-f0-9]+$/', '', substr($url, strlen($base))) ?? '');
             $id = (int) get_option(self::URL_INDEX . hash('sha256', $source['signature'] . $key), 0);
             if (!$id || !self::serves($id)) {
                 continue;
             }
-            return self::map($id, $original);
+            $map = self::map($id, $original);
+            if ('' === $relative || isset($map[$url])) {
+                return $map;
+            }
         }
         return array();
     }
@@ -4214,15 +4229,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $image = $parts[0];
         $uploads = wp_upload_dir(null, false);
         if (0 === strpos($image, trailingslashit($uploads['baseurl']))) {
-            $id = attachment_url_to_postid($image);
-            if (!$id) {
-                $full = preg_replace('/-\d+x\d+(?=\.[^.]+$)/', '', $image) ?? $image;
-                $id = attachment_url_to_postid($full);
-            }
-            if (!$id || !self::serves($id)) {
-                return $url;
-            }
-            $map = self::map($id, true);
+            // The inventory indexes every recorded sub-size and format copy,
+            // even when its filename differs from the scaled attachment's name.
+            $map = self::indexed_map($image, true);
             $local = $image;
         } else {
             $map = self::indexed_map($image, true);
@@ -4237,6 +4246,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $local = $original;
         }
         return isset($map[$local]) ? $map[$local] . (isset($parts[1]) ? '#' . $parts[1] : '') : $url;
+    }
+
+    /**
+     * Preserve Rank Math's attachment ID, overlay and descriptive metadata.
+     *
+     * @param array $image Rank Math image data.
+     * @return array
+     */
+    public static function seo_image_array($image) {
+        if (isset($image['url']) && is_string($image['url'])) {
+            $image['url'] = self::seo_image($image['url']);
+        }
+        return $image;
     }
 
     /**
