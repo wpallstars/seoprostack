@@ -104,6 +104,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Gone_Urls',
         'SEOProStack_Old_Slugs',
         'SEOProStack_Rank_Math_Defaults',
+        'SEOProStack_Faq_Schema',
         'SEOProStack_External_Links',
         'SEOProStack_Modal_Links',
         'SEOProStack_Linking',
