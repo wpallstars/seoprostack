@@ -108,7 +108,19 @@ class SEOProStack_Faq_Schema extends SEOProStack_Feature {
             $data['WebPage']['mainEntity'] = $entities;
             return $data;
         }
+        $data[self::ENTITY] = self::faq_page($entities, $page, $post);
+        return $data;
+    }
 
+    /**
+     * The questions as a FAQPage of their own, part of the WebPage if any.
+     *
+     * @param array   $entities Question entities.
+     * @param array   $page     Rank Math's WebPage entity, or empty.
+     * @param WP_Post $post     The post.
+     * @return array
+     */
+    private static function faq_page(array $entities, array $page, WP_Post $post) {
         // Rank Math's WebPage follows the canonical address.
         $url = !empty($page['url']) && is_string($page['url']) ? $page['url'] : (string) get_permalink($post);
         $faq = array(
@@ -118,9 +130,8 @@ class SEOProStack_Faq_Schema extends SEOProStack_Feature {
         if (!empty($page['@id']) && is_string($page['@id'])) {
             $faq['isPartOf'] = array('@id' => $page['@id']);
         }
-        $faq['mainEntity']  = $entities;
-        $data[self::ENTITY] = $faq;
-        return $data;
+        $faq['mainEntity'] = $entities;
+        return $faq;
     }
 
     /**
@@ -167,6 +178,7 @@ class SEOProStack_Faq_Schema extends SEOProStack_Feature {
             }
             $name = isset($block['blockName']) ? (string) $block['blockName'] : '';
             if ('core/details' === $name) {
+                // A Details block inside it is part of its answer, not a second question.
                 $entry = self::entry($block);
                 if ($entry) {
                     $found[] = $entry;
@@ -186,7 +198,8 @@ class SEOProStack_Faq_Schema extends SEOProStack_Feature {
 
     /**
      * Questions in a published synced pattern, each pattern read once, so
-     * one used twice (or inside itself) adds its questions once.
+     * one used twice (or inside itself) adds its questions once. As core's
+     * Pattern block shows nothing for one with a password, neither does this.
      *
      * @param array           $block core/block block.
      * @param array<int,bool> $seen  Synced patterns already read.
@@ -200,6 +213,7 @@ class SEOProStack_Faq_Schema extends SEOProStack_Feature {
         $seen[$ref] = true;
         $pattern = get_post($ref);
         if (!$pattern instanceof WP_Post || 'wp_block' !== $pattern->post_type || 'publish' !== $pattern->post_status
+            || '' !== (string) $pattern->post_password
             || (false === strpos($pattern->post_content, '<!-- wp:details') && false === strpos($pattern->post_content, '<!-- wp:block '))) {
             return array();
         }
@@ -215,7 +229,7 @@ class SEOProStack_Faq_Schema extends SEOProStack_Feature {
      */
     private static function entry(array $block) {
         $html     = isset($block['innerHTML']) ? (string) $block['innerHTML'] : '';
-        $question = preg_match('#<summary[^>]*>(.*?)</summary>#s', $html, $match) ? self::text($match[1]) : '';
+        $question = preg_match('#<summary[^>]*>(.*?)</summary>#s', $html, $match) ? self::text(strip_shortcodes($match[1])) : '';
         if ('' === $question) {
             return array();
         }

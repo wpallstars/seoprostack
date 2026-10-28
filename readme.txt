@@ -69,7 +69,8 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Links and speed =
 
-* **Rank Math defaults**: title keywords, pillar warnings. **FAQ schema** from Details blocks.
+* **Rank Math defaults**: title keywords, pillar warnings.
+* **FAQ schema** from Details blocks.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
