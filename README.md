@@ -1987,6 +1987,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: all 79 starter core files match WP Plugin Starter `4fc5c4c`; `star-history.yml` takes the starter's copy (the same aidevops v3.39.78 pin, write access only on its job), long ordered lists stay one column, and `sync-core.sh` supports add-ons (GitHub issue #986).
+
 ### 1.3.90
 - Fix: **Media in cloud storage** uploads no longer slow down as the library grows. Checking that no other picture already claims a picture's files read every stored record, once per picture and again per group of files: up to 4.6 seconds each time with 17,000 pictures. A new index of stored paths finds the few pictures to compare, and the check refuses the same collisions as before. The index builds in the background, a few seconds per batch; until it is ready, a faster search of the records is used (GitHub issue #981).
 - Developers: this README ends like the other wpallstars plugins, with the plugins SEO Pro Stack works well with, Star History and Built with aidevops.

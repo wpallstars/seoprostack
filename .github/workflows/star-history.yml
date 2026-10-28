@@ -1,3 +1,11 @@
+# The stars-over-time chart at the end of README.md
+# (docs/assets/star-history.svg), redrawn weekly and committed to main with
+# SYNC_PAT (GitHub only shows when stars were given to collaborators).
+#
+# The work is the aidevops reusable workflow (https://aidevops.sh), pinned
+# with its helper scripts to the same aidevops commit. From v3.39.78 a
+# repository without SYNC_PAT gets a warning and a skipped run, not a failed
+# one; keep uses: and aidevops_ref on the same commit.
 name: Update Star History
 
 on:
@@ -6,12 +14,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   update:
     uses: marcusquinn/aidevops/.github/workflows/star-history-reusable.yml@baabd4dce4cb801a05d8fc4955b66c5a3427dab1 # v3.39.78
+    permissions:
+      contents: write
     with:
-      aidevops_ref: baabd4dce4cb801a05d8fc4955b66c5a3427dab1 # v3.39.78
+      aidevops_ref: baabd4dce4cb801a05d8fc4955b66c5a3427dab1 # v3.39.78, the same commit as uses:
     secrets:
       SYNC_PAT: ${{ secrets.SYNC_PAT }}
