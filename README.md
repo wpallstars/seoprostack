@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.91-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.92-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.91
+Version: 1.3.92
 
 <!-- github-only:start -->
 ## Screenshots
@@ -758,16 +758,6 @@ Some plugins add panels to the post editor’s sidebar that only the people who 
 WordPress keeps every revision of every post. This keeps the newest few (10 by default, 0 to 100) with core’s `wp_revisions_to_keep` filter, or fewer where another filter or `WP_POST_REVISIONS` asks for fewer. Core removes older ones the next time a post is saved; with 0, it stops saving revisions and leaves the saved ones alone. Autosaves still work. Nothing is stored or deleted by SEO Pro Stack.
 
 - Replaces Disable Bloat PRO’s post revisions switch, imported once as 0 while it is active.
-
-### FAQ schema from Details blocks (Content)
-
-Off by default and only runs while Rank Math is active. Core’s Details block is the block editor’s own way to write a question and its answer: the summary is the question and the blocks inside are the answer. Rank Math reads only its own FAQ block, so a page written with Details blocks had no FAQ schema. With this on, a single post or page with two or more Details blocks, each with a summary and something inside, gets them as FAQ schema in Rank Math’s structured data (the `rank-math-schema` script), its questions in page order.
-
-- Details blocks count wherever they are in the content: inside rows, columns and groups, and in published synced patterns without a password (each pattern once). A Details block inside another is part of that one’s answer.
-- A lone Details block is more often a “show more” than a question, so a page needs two. One with an empty summary or nothing inside does not count.
-- The question is the summary’s text and the answer the text of the blocks inside, both with tags and shortcodes removed.
-- As Rank Math does with its own FAQ block, Rank Math’s `WebPage` becomes a `FAQPage` too and holds the questions (`mainEntity`). Where the post has no `WebPage` (its Schema Type is None) or the `WebPage` already has a main entity, the questions are a `FAQPage` of their own (`{address}#faq`), part of the `WebPage` if there is one.
-- Nothing is added where the page’s schema already has a `FAQPage`, such as Rank Math’s FAQ block, another plugin’s or the site’s own (this runs at priority 100 on `rank_math/json_ld`, after Rank Math joins a `FAQPage` to its `WebPage` at 99), or while the post needs a password. Nothing is stored.
 
 ### Recommended speed settings (Speed)
 
@@ -1999,9 +1989,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.92
 
-- New, off by default: **FAQ schema from Details blocks** (Content tab). A post or page with two or more core Details blocks gets them as FAQ schema in Rank Math’s structured data, the way Rank Math’s own FAQ block does, including Details blocks nested in other blocks and synced patterns. Nothing is added where the page already has FAQ schema (such as Rank Math’s FAQ block) or needs a password (GitHub issue #998).
 - Fix: watermark CLI dry runs never restore removed files. `--stale` refreshes only out-of-date marks; refresh scans resume newest first, and reuse verified kept originals and their private-bucket objects (GitHub issue #996).
 
 ### 1.3.91

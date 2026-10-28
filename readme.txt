@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.91
+Stable tag: 1.3.92
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -69,8 +69,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Links and speed =
 
-* **Rank Math defaults**: title keywords, pillar warnings.
-* **FAQ schema** from Details blocks.
+* **Rank Math defaults**: keywords from titles and pillar warnings.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
@@ -153,12 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: FAQ schema from Details blocks (#998).
+= 1.3.92 =
 * Fix: read-only watermark dry runs, resumable --stale refreshes, and reuse of kept originals (#996).
-
-= 1.3.91 =
-* Fix: the admin menu no longer widens while a comment awaits moderation (#994).
-* Fix: Fluent Forms colours also apply in the block editor (#992).
 
 Older: `changelog.txt`.
