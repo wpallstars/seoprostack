@@ -114,9 +114,53 @@
 	var IN_PLACE_CHEVRON = 24;
 
 	/**
+	 * Text kept for screen readers only: core's .screen-reader-text, or
+	 * any element taken out of the flow and clipped, as such classes do.
+	 * Its box is 1px, but its text still lies beside it, on one line while
+	 * the menu is measured, so it would count as a long name (core's
+	 * "1 Comment in moderation" in the Comments badge).
+	 */
+	function unseen(el) {
+		if (el.classList.contains('screen-reader-text')) {
+			return true;
+		}
+		var style = window.getComputedStyle(el);
+		return ('absolute' === style.position || 'fixed' === style.position) &&
+			(('auto' !== style.clip && '' !== style.clip) || ('none' !== style.clipPath && '' !== style.clipPath));
+	}
+
+	/**
+	 * Box around what an entry shows: its text and elements (badges,
+	 * icons), leaving out text kept for screen readers.
+	 */
+	function drawn(el) {
+		var range = document.createRange();
+		var left = Infinity;
+		var right = -Infinity;
+		function add(box) {
+			if (box.width) {
+				left = Math.min(left, box.left);
+				right = Math.max(right, box.right);
+			}
+		}
+		(function walk(node) {
+			for (var child = node.firstChild; child; child = child.nextSibling) {
+				if (3 === child.nodeType) {
+					range.selectNodeContents(child);
+					add(range.getBoundingClientRect());
+				} else if (1 === child.nodeType && !unseen(child)) {
+					Array.prototype.forEach.call(child.getClientRects(), add);
+					walk(child);
+				}
+			}
+		})(el);
+		return right > left ? { left: left, right: right, width: right - left } : { width: 0 };
+	}
+
+	/**
 	 * Width an entry needs when its menu is open in place: the padding
 	 * before the name, the name, and the padding after it. The name is
-	 * measured on the text itself (scrollWidth leaves out the padding
+	 * measured on what it shows (scrollWidth leaves out the padding
 	 * after it and never reports less than the current width), wherever
 	 * the entry is now, so every menu's entries count, open or not.
 	 * Submenu entries use their in-place padding, not the padding they
@@ -124,9 +168,7 @@
 	 * differently), so an entry needs the same room on every screen.
 	 */
 	function room(el) {
-		var range = document.createRange();
-		range.selectNodeContents(el);
-		var text = range.getBoundingClientRect();
+		var text = drawn(el);
 		if (!text.width) {
 			return 0;
 		}
