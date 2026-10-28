@@ -285,6 +285,7 @@ function seoprostack_uninstall_site() {
     // Background batch of watermarks.
     wp_unschedule_hook('seoprostack_watermark_batch');
     delete_option('seoprostack_watermark_job');
+    delete_option('seoprostack_watermark_cursor');
 
     // Dark mode image contrast: pictures ticked Keep colours in dark mode.
     // The class seoprostack-keep-colours stays in blocks; it does nothing
