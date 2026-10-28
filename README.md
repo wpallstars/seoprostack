@@ -1989,6 +1989,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Fix: **Fluent Forms colours** also applies in the block editor, so a form's preview there has the page's label, help text, input and upload colours instead of Fluent Forms' defaults (GitHub issue #992).
 - Developers: all 79 starter core files match WP Plugin Starter `4fc5c4c`; `star-history.yml` takes the starter's copy (the same aidevops v3.39.78 pin, write access only on its job), long ordered lists stay one column, and `sync-core.sh` supports add-ons (GitHub issue #986).
 
 ### 1.3.90
