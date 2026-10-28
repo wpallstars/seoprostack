@@ -1681,7 +1681,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $id Attachment ID.
      */
     private static function forget($id) {
-        foreach (array('', 'all', 'removed') as $mode) {
+        foreach (array('', 'all', 'removed', ':original', 'all:original', 'removed:original') as $mode) {
             unset(self::$maps[get_current_blog_id() . ':' . (int) $id . ':' . $mode]);
         }
     }
@@ -1735,6 +1735,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         add_filter('wp_calculate_image_srcset_meta', array(__CLASS__, 'srcset_meta'), 20, 3);
         add_filter('wp_calculate_image_srcset', array(__CLASS__, 'srcset'), 20, 5);
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 10, 3);
+        // These hooks run only in Rank Math; saved content keeps local URLs.
+        add_filter('rank_math/opengraph/facebook/image', array(__CLASS__, 'seo_image'), 20);
+        add_filter('rank_math/opengraph/twitter/image', array(__CLASS__, 'seo_image'), 20);
+        add_filter('rank_math/json_ld', array(__CLASS__, 'seo_schema'), 20);
         add_filter('rest_request_before_callbacks', array(__CLASS__, 'rest_before'), 10, 3);
         add_filter('rest_request_after_callbacks', array(__CLASS__, 'rest_after'), 10, 3);
         if (get_option(self::FLAG)) {
@@ -4029,17 +4033,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * one picture's src, size and srcset addresses all ask for it.
      *
      * @param int $id Attachment ID.
+     * @param bool $original Keep each file's uploaded format.
      * @return array<string,string>
      */
-    private static function map($id) {
+    private static function map($id, $original = false) {
         // Pages and wp-admin can differ (build_map()), and a request can be both.
-        $cache = get_current_blog_id() . ':' . (int) $id . ':' . self::serving();
+        $cache = get_current_blog_id() . ':' . (int) $id . ':' . self::serving() . ($original ? ':original' : '');
         if (!isset(self::$maps[$cache])) {
             if (count(self::$maps) >= 500) {
                 // Bound memory in long WP-CLI runs over whole libraries.
                 self::$maps = array();
             }
-            self::$maps[$cache] = self::build_map($id);
+            self::$maps[$cache] = self::build_map($id, $original);
         }
         return self::$maps[$cache];
     }
@@ -4050,9 +4055,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * while a changed picture waits for its next upload).
      *
      * @param int $id Attachment ID.
+     * @param bool $original Keep each file's uploaded format.
      * @return array<string,string>
      */
-    private static function build_map($id) {
+    private static function build_map($id, $original = false) {
         $config = self::config();
         list($gone, $gone_url) = self::gone_files($id);
         $files = $gone + self::completed_files($id);
@@ -4072,7 +4078,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             $local = trailingslashit($uploads['baseurl']) . ($site_path ? substr($relative, strlen($site_path) + 1) : $relative);
-            $target = isset($files[$key . '.webp']) ? $key . '.webp' : $key;
+            $target = !$original && isset($files[$key . '.webp']) ? $key . '.webp' : $key;
             $map[$local] = (isset($gone[$target]) ? $gone_url : $config['url']) . '/' . implode('/', array_map('rawurlencode', explode('/', $target))) . '?v=' . $files[$target]['version'];
             $encoded = trailingslashit($uploads['baseurl']) . implode('/', array_map('rawurlencode', explode('/', $site_path ? substr($relative, strlen($site_path) + 1) : $relative)));
             $map[$encoded] = $map[$local];
@@ -4167,9 +4173,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Find the owning attachment's output map without scanning attachments.
      *
      * @param string $url Public image address.
+     * @param bool $original Keep each file's uploaded format.
      * @return array<string,string> Candidate map; callers still match the exact URL.
      */
-    private static function indexed_map($url) {
+    private static function indexed_map($url, $original = false) {
         $config = self::config();
         $destinations = get_option(self::DESTINATIONS, array());
         $sources = array($config);
@@ -4186,9 +4193,68 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (!$id || !self::serves($id)) {
                 continue;
             }
-            return self::map($id);
+            return self::map($id, $original);
         }
         return array();
+    }
+
+    /**
+     * Serve confirmed originals to share previewers and schema consumers.
+     * Reuse the rendering map, never guess an object from a bucket URL.
+     *
+     * @param string $url Rank Math image address.
+     * @return string
+     */
+    public static function seo_image($url) {
+        if (!is_string($url) || '' === $url || '' === self::serving()) {
+            return $url;
+        }
+        // Schema references can name the same image with a fragment.
+        $parts = explode('#', $url, 2);
+        $image = $parts[0];
+        $uploads = wp_upload_dir(null, false);
+        if (0 === strpos($image, trailingslashit($uploads['baseurl']))) {
+            $id = attachment_url_to_postid($image);
+            if (!$id) {
+                $full = preg_replace('/-\d+x\d+(?=\.[^.]+$)/', '', $image) ?? $image;
+                $id = attachment_url_to_postid($full);
+            }
+            if (!$id || !self::serves($id)) {
+                return $url;
+            }
+            $map = self::map($id, true);
+            $local = $image;
+        } else {
+            $map = self::indexed_map($image, true);
+            $local = array_search($image, $map, true);
+            if (false === $local) {
+                return $url;
+            }
+        }
+        // Strip a generated format suffix only when its original is confirmed.
+        $original = preg_replace('/\.(webp|avif)$/', '', $local) ?? $local;
+        if (isset($map[$original])) {
+            $local = $original;
+        }
+        return isset($map[$local]) ? $map[$local] . (isset($parts[1]) ? '#' . $parts[1] : '') : $url;
+    }
+
+    /**
+     * Keep image nodes and their references in step without changing stored data.
+     * Exact inventory matching leaves page IDs and external images untouched.
+     *
+     * @param array $data Rank Math JSON-LD graph or nested node.
+     * @return array
+     */
+    public static function seo_schema($data) {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = self::seo_schema($value);
+            } elseif (is_string($value) && in_array($key, array('url', 'contentUrl', '@id', 'image', 'primaryImageOfPage'), true)) {
+                $data[$key] = self::seo_image($value);
+            }
+        }
+        return $data;
     }
 
     /**
