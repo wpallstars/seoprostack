@@ -1987,6 +1987,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+- Developers: all 78 starter core files match WP Plugin Starter `d27c538`; the single-site deploy diagnostics fix (#964) is now in the starter, and Scorecard's SARIF uploader is pinned to v4.39.1 (GitHub issue #982).
+
 ### 1.3.89
 - Fix: **Media in cloud storage** with **Remove local copies after upload** purges the cached page of the post a picture is attached to, and the picture's own page, once the batch removes the picture's local files (LiteSpeed Cache and WP-Optimize, or any cache on the new `seoprostack_page_cache_purge_post` action), once per post per batch and never every page. A page cached before still pointed at the removed files and showed broken pictures until its cache expired (GitHub issue #976).
 - Fix: **Media in cloud storage** keeps a failed picture's retry job until the retry runs, so a retry that stopped early can no longer leave it failed with nothing to try again, and `upload --retry-failed` requeues failed pictures that had already lost their job. Pictures refused for a shared path still wait for `collisions --repair` (GitHub issue #975).
