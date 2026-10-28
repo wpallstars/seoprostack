@@ -263,6 +263,9 @@ function seoprostack_uninstall_site() {
     }
     delete_transient('seoprostack_storage_test');
     delete_transient('seoprostack_storage_counts');
+    // The same-path check's claim index; its state option goes with the jobs below.
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- uninstall removes only a fixed plugin-owned table name.
+    $wpdb->query($wpdb->prepare('DROP TABLE IF EXISTS %i', $wpdb->prefix . 'seoprostack_media_claims'));
     // A cursor through the names visits each row once: a row that cannot be
     // deleted is left behind instead of being selected again forever.
     $after = '';

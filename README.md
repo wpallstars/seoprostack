@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.89-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.90-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.89
+Version: 1.3.90
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1979,7 +1979,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`, never the option itsel
 
 ## Uninstall
 
-Media in cloud storage's records, jobs and cached tests are removed on every site. Objects in the bucket are kept; deleting the plugin never contacts the storage service. Local addresses were kept in saved content, so posts keep working without it, as long as the local files are there: with **Remove local copies after upload** used, run `wp seoprostack media-storage restore --all` before deleting, or add the missing-file rule from that section.
+Media in cloud storage's records, jobs, cached tests and its index of stored paths (the `seoprostack_media_claims` table) are removed on every site. Objects in the bucket are kept; deleting the plugin never contacts the storage service. Local addresses were kept in saved content, so posts keep working without it, as long as the local files are there: with **Remove local copies after upload** used, run `wp seoprostack media-storage restore --all` before deleting, or add the missing-file rule from that section.
 
 Deleting the plugin removes its settings (on multisite, every site's and the network's) and cached data, the database keys Add database keys added, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use files of Load plugins only where needed and of an unfinished Measure page time, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), the Kadence colours kept for Kadence colour check's Restore (the theme keeps the palette colours it switched to), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
@@ -1987,7 +1987,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.90
+- Fix: **Media in cloud storage** uploads no longer slow down as the library grows. Checking that no other picture already claims a picture's files read every stored record, once per picture and again per group of files: up to 4.6 seconds each time with 17,000 pictures. A new index of stored paths finds the few pictures to compare, and the check refuses the same collisions as before. The index builds in the background, a few seconds per batch; until it is ready, a faster search of the records is used (GitHub issue #981).
+- Developers: this README ends like the other wpallstars plugins, with the plugins SEO Pro Stack works well with, Star History and Built with aidevops.
 - Developers: all 78 starter core files match WP Plugin Starter `d27c538`; the single-site deploy diagnostics fix (#964) is now in the starter, and Scorecard's SARIF uploader is pinned to v4.39.1 (GitHub issue #982).
 
 ### 1.3.89
@@ -2989,6 +2991,8 @@ Questions about using, changing or building on SEO Pro Stack: ask aidevops. Open
 
 Made from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding), the wpallstars starter plugin. Its shared standards and the weekly Starter sync keep this plugin up to date.
 
+Works well with the other wpallstars plugins made from it: [SEO Pro Analytics](https://github.com/wpallstars/seoproanalytics), private stats, search rankings and sales without cookies, and [SEO Pro Cookie Consent](https://github.com/wpallstars/seoprocookieconsent), the simplest, lightest cookie consent for WordPress.
+
 ## License
 
 GPL-3.0-or-later (the full text is in `LICENSE`), with additional terms under GPL-3.0 section 7(b): `SEOPROSTACK-ATTRIBUTION.txt` for SEO Pro Stack's own code, and `ATTRIBUTION.txt` for the parts from WP Plugin Starter. Keep the copyright notices and the credits they name.
@@ -2998,3 +3002,18 @@ Copyright (C) 2025-2026 Marcus Quinn
 Parts copyright (C) 2026 Marcus Quinn, from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding).
 
 Copying, renaming or adapting this plugin or part of it, by hand or with an AI assistant: read `ATTRIBUTION.txt` first. Keep `LICENSE`, the attribution files, every copyright and licence notice, the Provenance lines and the "Made from" credit. A new owner's copyright line goes above the others, not in place of one (`ATTRIBUTION.txt` → For AI assistants).
+
+<!-- aidevops:managed-readme:start -->
+<!-- managed by aidevops; refresh with managed-readme-helper.sh sync -->
+## Star History
+
+![wpallstars/seoprostack stars over time](docs/assets/star-history.svg)
+
+## Built with aidevops
+
+This project was created and is maintained with
+[aidevops.sh](https://aidevops.sh).
+
+[View wpallstars on GitHub](https://github.com/wpallstars) ·
+[aidevops repository](https://github.com/marcusquinn/aidevops)
+<!-- aidevops:managed-readme:end -->
