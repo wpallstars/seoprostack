@@ -66,6 +66,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $maps = array();
     /** Original leases held until the reader finishes this request. @var array<string,string> */
     private static $original_leases = array();
+    /** Attachments whose local files this batch deleted: their posts' cached pages are purged. @var array<int,true> */
+    private static $purge = array();
 
     /** @return array<string,array> */
     public static function settings() {
@@ -1954,9 +1956,36 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $attempts = $ready ? self::upload_batch($start, $limit) : 0;
         } finally {
             self::release($lease);
+            self::purge_pages();
         }
         self::reschedule();
         return $attempts;
+    }
+
+    /**
+     * Purge the cached pages of the pictures that lost their local files in
+     * this batch, once each: a page cached before still points at those
+     * files (404) until its cache entry expires. The post a picture is
+     * attached to is purged, and the picture's own page while the site has
+     * attachment pages; never every page, as the batch runs every minute.
+     */
+    private static function purge_pages() {
+        $ids = array();
+        // WordPress 6.4+ can turn attachment pages off; older sites have them.
+        $pages = (bool) get_option('wp_attachment_pages_enabled', '1');
+        foreach (array_keys(self::$purge) as $id) {
+            $id = (int) $id;
+            if ($pages && 'attachment' === get_post_type($id)) {
+                $ids[] = $id;
+            }
+            // False when the attachment is gone: nothing to purge.
+            $parent = wp_get_post_parent_id($id);
+            if ($parent) {
+                $ids[] = $parent;
+            }
+        }
+        self::$purge = array();
+        SEOProStack_Page_Cache::purge_posts($ids);
     }
 
     /**
@@ -2181,6 +2210,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         update_option(self::FLAG, 1, true);
         self::delete_local($path);
+        self::$purge[(int) $id] = true;
         if (!self::changed_meanwhile($id, $generation)) {
             return true;
         }
