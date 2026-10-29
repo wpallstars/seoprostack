@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.97-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.98-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.97
+Version: 1.3.98
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1421,6 +1421,7 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 
 - Position (nine places), size and distance from the edge are shares of each picture, so the mark sits in the same place on the full picture and its sizes. A picture with a transparent background works best; SVG watermarks cannot be used.
 - The file, the original WordPress keeps for big pictures and every size at least 400 pixels on its shorter side are marked; thumbnails and small sizes stay clean. Files with `nowatermark` in the name, animated pictures, site icons, logos (Kadence's mobile logo too) and headers are left alone. A marked picture that later becomes the site icon or a logo gets its kept original back; one cropped into a site icon or logo in the Customizer is cropped from its kept original. The `seoprostack_watermark_attachment` filter can leave others alone.
+- **Never watermark** in a picture’s details (Media Library, the editors’ media windows and the attachment edit screen, while Watermark pictures is on or the box is ticked) leaves that picture unmarked: uploads, row, bulk and whole-library marking and `wp seoprostack watermark-images` all skip it, and a picture marked before keeps its mark until **Remove watermark**. It is the `_seoprostack_watermark_skip` post meta (`'1'`, `SEOProStack_Watermark_Images::SKIP_META`), so code that adds a site’s own photographs can set it on `add_attachment`, which runs before WordPress makes and marks their sizes.
 - Marked after WordPress has made every size and after Resize large uploads, including WordPress 7.1 uploads that the browser processes.
 - **Keep unmarked originals** (on by default) copies the original into a folder with a random name in uploads, so a watermark can be removed, or added again with new settings. Pictures marked while it is off cannot be unmarked.
 - CLI refresh: `wp seoprostack watermark-images --stale --dry-run` lists only marked pictures with a kept original whose mark or settings changed; within that scope, older records without a signature count as stale. Run without `--dry-run` to refresh them. `--marked-only` refreshes every marked picture with a kept original. Both work newest first and resume an interrupted run from `seoprostack_watermark_cursor`; `--from-start` starts again, and changing the mark or scope starts a new scan. A failed picture keeps the cursor for retry. Completed scans clear it.
@@ -2152,6 +2153,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.98
+
+- New: **Never watermark** in a picture’s details leaves it unmarked by [Watermark pictures](#watermark-pictures-media), including whole-library marking and marking again, so a site’s own page photographs can stay clean without site code (GitHub issue #1018).
 
 ### 1.3.97
 
