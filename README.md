@@ -2157,6 +2157,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Media in cloud storage** counts pictures whose upload is running as waiting, not failed, in status and the Media Library. Finished failures keep their error and retry; interrupted attempts stay waiting for their retry, and `--retry-failed` also recovers unfinished uploads whose retry job was lost (GitHub issue #1022).
+
 ### 1.3.102
 
 - New: FluentCRM’s email designer and its Email Preview have a button, an envelope with a moon, that shows the email as Apple Mail, Outlook and Gmail may show it in their own dark mode: light backgrounds turn dark and dark text light, while pictures and colours that are already dark stay. It is a preview only; the email that is saved and sent is unchanged. The choice is kept in your browser, for the designer and Email Preview alike. In Dark mode, the designer’s loading panel is dark too, so it no longer flashes white (GitHub issue #1030).

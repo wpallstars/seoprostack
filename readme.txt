@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Cloud media uploads in progress count as waiting, not failed; failed and interrupted uploads still retry (#1022).
+
 = 1.3.102 =
 * New: FluentCRM's email designer and Email Preview can show the email as mail apps show it in their own dark mode; the email that is sent is unchanged. Its loading panel is dark in Dark mode too (#1030).
 
