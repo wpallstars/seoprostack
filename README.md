@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.104-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.105-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.104
+Version: 1.3.105
 
 <!-- github-only:start -->
 ## Screenshots
@@ -978,7 +978,9 @@ colour, including hover, focus and Kadence's live light/dark palette switch.
 - Image/SVG links, buttons, downloads, empty links and links containing an
   existing SVG or Link Whisper icon are left undecorated. Add
   `sps-no-external-icon` to a link or a content container to opt out,
-  including links styled by your own theme.
+  including links styled by your own theme. An element with
+  `sps-external-link-after` inside a link takes the icon instead, even when
+  the link has a picture: Link cards show it after the site name.
 - No changes to saved posts, link targets, rel attributes, accessible names,
   feeds, REST responses or auto-generated excerpts. Links in menus and HTML
   inserted later by scripts are outside this feature's content hooks.
@@ -1121,7 +1123,9 @@ Adds a **Screenshot** block (Embed category) and Browser Shots’ `[browser-shot
 
 Adds a **Link card** block (Embed category): paste the address of a page and the card shows its title, description, site name and picture. The editor reads the page through WordPress’s own link preview route (`wp-block-editor/v1/url-details`), and the picture is copied to the Media Library and shown from your site, so visitors’ browsers never contact the other site.
 
-- Block settings: address (with **Read the page again**), title, description, site name, picture on the right, on the left, above or none (beside the text once the card is 480 pixels wide), open in a new tab, and nofollow. Alignment (wide), margin and an HTML anchor.
+- Block settings: address (with **Read the page again**), title, description, site name, picture on the right, on the left, above or none (beside the text once the card is 480 pixels wide), picture shape, **Use the site’s icon** (or **Use the page’s picture**), open in a new tab, and nofollow. Alignment (wide), margin and an HTML anchor.
+- Picture shape: **Its own shape** (the default: the picture’s own proportions, between square and 2:1, so a social preview picture at 1.91:1 shows whole, words and all), **Wide, as in social previews** (1.91:1), **Square** or **Fill the card’s height** (cropped to the card, as before 1.3.105). Beside the text the picture sits inside the card at the same height in every card, so a list of cards lines up; above the text it takes the card’s width.
+- Site icons: when the page has no picture, the editor uses the site’s icon if it is at least 128 pixels square: the largest of its Apple touch icon, icon links with sizes, Windows tile picture (WordPress’s site icon) and web app manifest, then `/apple-touch-icon.png`. SVG and ICO icons, and smaller ones, are skipped. Icons show whole on a soft background, never cropped. The page is read once, when the icon is looked for, through core’s link preview request settings (`rest_url_details_http_request_args`).
 - Pictures are copied by people who can upload files; a picture copied before is reused. Others see a note that someone who can upload files needs to open the card. Copied pictures keep their address in `_seoprostack_source_url`, as Copy linked images does.
 - The card is built on the server from the block’s settings. Text takes the theme’s colour and borders are translucent, so cards follow the Kadence light and dark modes.
 - Bookmark Card blocks (`mamaduka/bookmark-card`) keep showing, with the same layout in the theme’s colours, while Bookmark Card is inactive. The editor shows a **Convert to Link card** button on each (or use the block switcher); the card keeps its title, description, site, layout, new tab and nofollow, and its picture is copied to the Media Library. Until converted, their pictures still load from the other site.
@@ -2167,8 +2171,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.105
 
+- Better: Link cards show pictures whole. Beside the text, a picture used to be cropped to the card’s height, so social preview pictures lost their sides and logos were cut. Now each picture keeps its own shape, at the same height in every card, inside the card; a new **Picture shape** setting offers wide (as in social previews), square, or **Fill the card’s height** for the old look.
+- New: Link cards use the site’s icon when a page has no picture, if the site has one at least 128 pixels square, and the block settings have **Use the site’s icon** and **Use the page’s picture**. Icons show whole, never cropped.
+- Fixed: with External link icons on, every Link card shows the icon after its site name. Cards with a picture had none, and cards without one had it alone at the bottom left (GitHub issue #1036).
 - New, on by default: **Kadence author box fields** (Admin tab). With the Kadence theme, Users → Profile keeps the **Occupation** and profile link fields that the author box under posts shows, after Kadence Starter Templates, which adds them, is deactivated. Values entered before stay (GitHub issue #1042).
 - Fix: **Dark** mode covers Fluent Security's Two-Factor Authentication card on the profile screen, with its badges and set-up dialogs; the QR code stays white (GitHub issue #1042).
 
