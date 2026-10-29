@@ -140,14 +140,20 @@ class SEOProStack_External_Links extends SEOProStack_Feature {
      * Empty generated content is decorative, not added to accessible names.
      * :has() safely omits media links and icons already supplied by content.
      * Browsers without :has() leave links unchanged rather than mislabel them.
+     *
+     * A link may name where the icon goes with an sps-external-link-after
+     * element inside it (Link cards: after the site name), so links laid out
+     * as boxes, with or without a picture, show it in the same place.
      */
     public static function styles() {
         $mask = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3E%3Cpath fill=\'none\' stroke=\'black\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M9 2h5v5M14 2L7 9M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3\'/%3E%3C/svg%3E")';
+        $icon = '{content:"";display:inline-block;inline-size:.75em;block-size:.75em;margin-inline-start:.2em;vertical-align:baseline;background-color:currentColor;--sps-external-mask:' . $mask . ';-webkit-mask:var(--sps-external-mask) center/contain no-repeat;mask:var(--sps-external-mask) center/contain no-repeat}';
         wp_register_style('seoprostack-external-links', false, array(), SEOPROSTACK_VERSION);
         wp_enqueue_style('seoprostack-external-links');
         wp_add_inline_style('seoprostack-external-links',
-            'a.sps-external-link:not(:empty):not(:has(img,svg,picture,video,canvas,[class*="wpil"],.sps-external-link-icon)):not(.sps-no-external-icon):not(.sps-no-external-icon a)::after{content:"";display:inline-block;inline-size:.75em;block-size:.75em;margin-inline-start:.2em;vertical-align:baseline;background-color:currentColor;--sps-external-mask:' . $mask . ';-webkit-mask:var(--sps-external-mask) center/contain no-repeat;mask:var(--sps-external-mask) center/contain no-repeat}'
-            . '@media(forced-colors:active){a.sps-external-link::after{background-color:LinkText;forced-color-adjust:none}}'
+            'a.sps-external-link:not(:empty):not(:has(img,svg,picture,video,canvas,[class*="wpil"],.sps-external-link-icon,.sps-external-link-after)):not(.sps-no-external-icon):not(.sps-no-external-icon a)::after' . $icon
+            . 'a.sps-external-link:not(.sps-no-external-icon) .sps-external-link-after::after' . $icon
+            . '@media(forced-colors:active){a.sps-external-link::after,a.sps-external-link .sps-external-link-after::after{background-color:LinkText;forced-color-adjust:none}}'
         );
     }
 }

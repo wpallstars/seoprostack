@@ -35,9 +35,17 @@
 	text-decoration: none;
 }
 
+/*
+ * The picture's frame takes the shape render_block() gives it
+ * (--sps-link-card-ratio, width over height); Fill the card's height has
+ * none and follows the picture.
+ */
 .wp-block-seoprostack-link-card__media {
 	display: block;
 	flex: none;
+	overflow: hidden;
+	max-height: 360px;
+	aspect-ratio: var(--sps-link-card-ratio, auto);
 	background: rgba(127, 127, 127, 0.12);
 }
 
@@ -49,6 +57,18 @@
 	object-fit: cover;
 	margin: 0;
 	border-radius: 0;
+}
+
+/* Site icons: whole, on a soft background, never cropped. */
+.wp-block-seoprostack-link-card.is-image-icon .wp-block-seoprostack-link-card__media {
+	height: 8em;
+	aspect-ratio: auto;
+}
+
+.wp-block-seoprostack-link-card.is-image-icon .wp-block-seoprostack-link-card__media img {
+	box-sizing: border-box;
+	padding: 0.9em;
+	object-fit: contain;
 }
 
 .wp-block-seoprostack-link-card__body {
@@ -93,10 +113,49 @@
 		flex-direction: row;
 	}
 
-	.wp-block-seoprostack-link-card.is-media-right .wp-block-seoprostack-link-card__media,
-	.wp-block-seoprostack-link-card.is-media-left .wp-block-seoprostack-link-card__media {
+	/*
+	 * A framed picture sits inside the card, at its shape and the same
+	 * height in every card, so a list of cards lines up and social preview
+	 * pictures show whole.
+	 */
+	.wp-block-seoprostack-link-card.is-media-right:not(.is-shape-fill) .wp-block-seoprostack-link-card__link,
+	.wp-block-seoprostack-link-card.is-media-left:not(.is-shape-fill) .wp-block-seoprostack-link-card__link {
+		align-items: center;
+	}
+
+	.wp-block-seoprostack-link-card.is-media-right:not(.is-shape-fill) .wp-block-seoprostack-link-card__media,
+	.wp-block-seoprostack-link-card.is-media-left:not(.is-shape-fill) .wp-block-seoprostack-link-card__media {
+		width: min(40%, calc(var(--sps-link-card-ratio, 1.91) * 8em));
+		height: auto;
+		max-height: none;
+		aspect-ratio: var(--sps-link-card-ratio, 1.91);
+		margin: 0.75em;
+		border-radius: 6px;
+	}
+
+	.wp-block-seoprostack-link-card.is-media-right:not(.is-shape-fill) .wp-block-seoprostack-link-card__media {
+		margin-left: 0;
+	}
+
+	.wp-block-seoprostack-link-card.is-media-left:not(.is-shape-fill) .wp-block-seoprostack-link-card__media {
+		margin-right: 0;
+	}
+
+	/* Fill the card's height: the text sets it, and the picture is cropped to it. */
+	.wp-block-seoprostack-link-card.is-media-right.is-shape-fill .wp-block-seoprostack-link-card__media,
+	.wp-block-seoprostack-link-card.is-media-left.is-shape-fill .wp-block-seoprostack-link-card__media {
+		position: relative;
 		width: 32%;
 		max-width: 240px;
+		height: auto;
+		max-height: none;
+		aspect-ratio: auto;
+	}
+
+	.wp-block-seoprostack-link-card.is-media-right.is-shape-fill .wp-block-seoprostack-link-card__media img,
+	.wp-block-seoprostack-link-card.is-media-left.is-shape-fill .wp-block-seoprostack-link-card__media img {
+		position: absolute;
+		inset: 0;
 	}
 
 	.wp-block-seoprostack-link-card.is-media-right .wp-block-seoprostack-link-card__media img,
