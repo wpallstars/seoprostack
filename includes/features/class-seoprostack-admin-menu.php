@@ -1427,21 +1427,18 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @return array Top-level entries.
      */
     private static function network_order(array $groups, array $menus) {
-        $top   = isset($groups['top']) ? array_values($groups['top']) : array();
-        $parts = array(
-            $top && 'index.php' === $top[0][2] ? array($top[0]) : array(),
-            $top && 'index.php' === $top[0][2] ? array_slice($top, 1) : $top,
-            isset($groups['multisite']) ? $groups['multisite'] : array(),
+        // sort_section() puts Dashboard first.
+        $top       = array_values($groups['top']);
+        $dashboard = $top && 'index.php' === $top[0][2] ? 1 : 0;
+        $parts     = array_filter(array(
+            array_slice($top, 0, $dashboard),
+            array_slice($top, $dashboard),
+            $groups['multisite'],
             $menus,
-        );
+        ));
         $new = array();
-        $n   = 0;
-        foreach ($parts as $items) {
-            if (!$items) {
-                continue;
-            }
-            if ($new) {
-                ++$n;
+        foreach (array_values($parts) as $n => $items) {
+            if ($n) {
                 $new[] = array('', 'read', 'separator-sps-' . $n, '', 'wp-menu-separator');
             }
             $new = array_merge($new, $items);
