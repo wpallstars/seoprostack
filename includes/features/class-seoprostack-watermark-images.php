@@ -1475,7 +1475,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return '';
         }
         $url = wp_nonce_url(add_query_arg(array('action' => self::ACTION, 'op' => $op, 'attachment' => $post->ID), admin_url('admin-post.php')), self::ACTION . '_' . $post->ID);
-        return sprintf('<a href="%1$s" aria-label="%2$s">%3$s</a>', esc_url($url), esc_attr(sprintf($aria, get_the_title($post))), esc_html($label));
+        return sprintf('<a href="%1$s" aria-label="%2$s" data-seoprostack-watermark="%4$s">%3$s</a>', esc_url($url), esc_attr(sprintf($aria, get_the_title($post))), esc_html($label), esc_attr($op));
     }
 
     /**
@@ -1543,8 +1543,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             'input'         => 'html',
             // The hidden field says the box was shown: an unticked box
             // sends nothing, and another screen's save must not clear it.
+            // The media window saves the box without redrawing its fields,
+            // so the box itself hides or shows Add watermark there (its
+            // rows are display: block, which the hidden attribute loses to).
             'html'          => sprintf(
-                '<input type="hidden" name="%1$s[seoprostack_watermark_skip_shown]" value="1" /><label><input type="checkbox" name="%1$s[seoprostack_watermark_skip]" value="1"%2$s /> %3$s</label>',
+                '<input type="hidden" name="%1$s[seoprostack_watermark_skip_shown]" value="1" /><label><input type="checkbox" name="%1$s[seoprostack_watermark_skip]" value="1"%2$s onchange="var f=this.closest(\'.compat-item\'),a=f&&f.querySelector(\'a[data-seoprostack-watermark=add]\'),r=a&&a.closest(\'tr\');if(r){r.style.display=this.checked?\'none\':\'\';}" /> %3$s</label>',
                 esc_attr($name),
                 checked($skipped, true, false),
                 esc_html__('Never watermark this picture', 'seoprostack')
