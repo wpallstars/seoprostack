@@ -154,6 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.104 =
-* New: On a network, Network Admin's menu is organised too: WordPress's entries, then Ultimate Multisite, then a Developers menu with every other plugin's entries, fitted to its names. Tidy the dashboard lays out the network Dashboard (#1035).
+* New: On a network, Network Admin's menu is organised too, with Ultimate Multisite, then a Developers menu, and Tidy the dashboard lays out the network Dashboard (#1035).
+* Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges (#1037).
 
 Older: `changelog.txt`.
