@@ -66,7 +66,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally.
+* **Avatars without Gravatar**: served locally. **Kadence author box fields** stay on profiles.
 
 = Links and speed =
 
@@ -154,6 +154,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.105 =
-* Better: Link cards show pictures whole, can use the site's icon, and show the external link icon after the site name (#1036).
+* Better: Link cards show pictures whole and can use site icons (#1036).
+* New: Kadence author box fields on profiles (#1042).
+* Fix: Dark mode covers Fluent Security's two-factor card (#1042).
 
 Older: `changelog.txt`.
