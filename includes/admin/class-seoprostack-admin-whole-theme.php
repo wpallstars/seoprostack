@@ -51,6 +51,10 @@ final class SEOProStack_Admin_Whole_Theme {
     /** The stylesheet, relative to the plugin's folder. */
     const STYLESHEET = 'admin/css/seoprostack-whole-theme.css';
 
+    /** FluentCRM's preview of mail apps' dark mode: the script's handle, and the script. */
+    const MAIL_DARK    = 'seoprostack-mail-dark';
+    const MAIL_DARK_JS = 'admin/js/seoprostack-mail-dark.js';
+
     /**
      * Icons (24×24): sun, moon and a half-filled circle, as SEO Pro Analytics'.
      */
@@ -68,6 +72,7 @@ final class SEOProStack_Admin_Whole_Theme {
         add_filter(self::PARTICIPANTS, array(__CLASS__, 'participate'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
         add_action('admin_enqueue_scripts', array(__CLASS__, 'keep_style'), PHP_INT_MAX);
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'fluent_mail_dark'), 20);
         // Before other plugins' own colour mode scripts (Fluent's run at 1).
         add_action('admin_head', array(__CLASS__, 'head'), 0);
         // The Customizer prints its own page: no admin_head, and admin_enqueue_scripts only with its widgets.
@@ -375,10 +380,19 @@ final class SEOProStack_Admin_Whole_Theme {
      * here, and in Dark or System the stylesheet, after FluentCRM's own.
      * The screen around it keeps the frame in step when the mode changes
      * (admin/js/seoprostack-whole-theme.js). The email itself is in a frame
-     * of its own inside, and keeps the colours it is sent with.
+     * of its own inside, and keeps the colours it is sent with; in every
+     * mode, a button in the header previews it as mail apps show it in
+     * their own dark mode (fluent_mail_dark()).
      */
     public static function fluent_editor_head() {
-        if (!is_user_logged_in() || !self::screen_applies()) {
+        if (!is_user_logged_in()) {
+            return;
+        }
+        $data = 'window.seoprostackMailDark = ' . wp_json_encode(self::mail_dark_data()) . ';';
+        $src  = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . self::MAIL_DARK_JS), SEOPROSTACK_URL . self::MAIL_DARK_JS);
+        echo wp_get_inline_script_tag($data, array('id' => self::MAIL_DARK . '-js-before')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output of JSON-encoded strings.
+        echo wp_get_script_tag(array('src' => $src, 'id' => self::MAIL_DARK . '-js', 'defer' => true)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_script_tag() escapes its attributes.
+        if (!self::screen_applies()) {
             return;
         }
         echo self::head_script(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output; the mode is one of MODES, JSON-encoded.
@@ -389,6 +403,37 @@ final class SEOProStack_Admin_Whole_Theme {
         $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
         // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the designer's page prints no enqueued styles of other plugins; as standalone_tag().
         echo '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";
+    }
+
+    /**
+     * Mail apps (Apple Mail, Outlook, Gmail) show an email in their own
+     * dark mode by darkening light backgrounds and lightening dark text,
+     * when it sets no dark colours of its own, as FluentCRM's emails do
+     * not. A button in the email designer's header (fluent_editor_head())
+     * and in its Email Preview, on FluentCRM's screens (here), shows the
+     * email that way, in any colour mode; the email that is saved and sent
+     * is unchanged (admin/js/seoprostack-mail-dark.js).
+     */
+    public static function fluent_mail_dark() {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (!$screen || false === strpos((string) $screen->id, 'fluentcrm')) {
+            return;
+        }
+        $js = self::MAIL_DARK_JS;
+        wp_enqueue_script(self::MAIL_DARK, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), true);
+        wp_add_inline_script(self::MAIL_DARK, 'window.seoprostackMailDark = ' . wp_json_encode(self::mail_dark_data()) . ';', 'before');
+    }
+
+    /**
+     * The preview button's name and hint.
+     *
+     * @return array<string,string>
+     */
+    private static function mail_dark_data() {
+        return array(
+            'label' => __('Preview in mail apps’ dark mode', 'seoprostack'),
+            'hint'  => __('Shows the email as Apple Mail, Outlook and Gmail may show it in their own dark mode. A preview only: the email that is sent is unchanged.', 'seoprostack'),
+        );
     }
 
     /**

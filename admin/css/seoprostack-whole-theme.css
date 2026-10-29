@@ -2860,6 +2860,20 @@ html.sps-dark li#wp-admin-bar-fcrm_adminbar_search {
 }
 
 /*
+ * FluentCRM's "Loading editor" panel, over the email designer while it
+ * loads: a fixed white (#ffffffe6). The designer's ground, so it does not
+ * flash white before the designer shows.
+ */
+html.sps-dark .fcrm_editor_loader_blocks_preview {
+	border-color: var(--sps-ui-border);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .fcrm_editor_loader_blocks_title {
+	color: var(--sps-ui-muted);
+}
+
+/*
  * FluentCRM's email designer (campaigns, templates, sequences and
  * automations' emails): a page of its own in a frame, body.fcrm_custom_editor,
  * which gets this stylesheet and the mode's classes from
