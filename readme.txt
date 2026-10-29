@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.95
+Stable tag: 1.3.96
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -56,6 +56,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
 * **Kadence colour check**: moves hard-to-read Customizer colours to the palette, with Restore.
+* **Fluent Forms by key**: blocks place a form by key, in a panel or modal.
 
 = Media =
 
@@ -152,7 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.95 =
-* New: Fluent Boards starter data adds a Website Setup board: the accounts and keys a site needs, in order, with plain steps and links; starter data can add board tasks (#1011).
+= 1.3.96 =
+* New: Fluent Forms by key: Form by key and Form modal blocks show a form by a key, not its ID, so copied pages show each site's own form (#1016).
 
 Older: `changelog.txt`.
