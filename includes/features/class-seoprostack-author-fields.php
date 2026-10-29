@@ -136,7 +136,7 @@ class SEOProStack_Author_Fields extends SEOProStack_Feature {
         ?>
         <h2><?php esc_html_e('Author box', 'seoprostack'); ?></h2>
         <p class="description"><?php esc_html_e('Shown with the biography in the author box under posts. Leave a field empty to leave it out.', 'seoprostack'); ?></p>
-        <table class="form-table" role="presentation">
+        <table class="form-table">
             <?php foreach (self::fields($user) as $key => $label) : ?>
                 <?php $id = 'seoprostack-author-' . $key; ?>
                 <tr>
@@ -173,15 +173,25 @@ class SEOProStack_Author_Fields extends SEOProStack_Feature {
             ? wp_unslash($_POST['seoprostack_author']) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- each value is sanitised below.
             : array();
         foreach (array_keys(self::fields($user)) as $key) {
-            if (!isset($posted[$key]) || !is_string($posted[$key])) {
-                continue;
-            }
-            $value = 'occupation' === $key ? sanitize_text_field($posted[$key]) : esc_url_raw(trim($posted[$key]));
-            if ('' === $value) {
-                delete_user_meta($user->ID, $key);
-            } else {
-                update_user_meta($user->ID, $key, $value);
+            if (isset($posted[$key]) && is_string($posted[$key])) {
+                self::store($user->ID, $key, $posted[$key]);
             }
         }
+    }
+
+    /**
+     * Sanitise one field and store it; an empty field deletes its meta.
+     *
+     * @param int    $user_id Person whose profile it is.
+     * @param string $key     User meta key.
+     * @param string $raw     Posted value, unslashed.
+     */
+    private static function store($user_id, $key, $raw) {
+        $value = 'occupation' === $key ? sanitize_text_field($raw) : esc_url_raw(trim($raw));
+        if ('' === $value) {
+            delete_user_meta($user_id, $key);
+            return;
+        }
+        update_user_meta($user_id, $key, $value);
     }
 }
