@@ -155,6 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges its page cache (#1037).
+* New: the Plugins screen recommends deactivating and deleting Performant Translations on WordPress 6.5 or later, which does most of its job, and Categories to Tags Converter Importer, whose job Term tools does. Term tools' Move to taxonomy keeps the default category in place (#1043).
 
 = 1.3.103 =
 * New: FluentCRM emails can keep light or use their own dark colours in mail apps' dark mode (designer → Style → Dark mode in mail apps), and the dark mode preview shows Apple Mail or Gmail and Outlook (#1032).

@@ -21,7 +21,8 @@ if (!defined('ABSPATH')) {
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
 // Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
 // Kadence Blocks is listed for page building), Admin Menu Editor, Nav Menu
-// Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools,
+// Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools
+// and Categories to Tags Converter (Term tools),
 // ACF: Better Search (Search custom fields), Slugs Manager: Delete Old
 // Permalinks (Old post addresses; closed on WordPress.org on 2026-04-27),
 // Bookmark Card (Link cards), Wikipedia Preview (Wikipedia previews),
