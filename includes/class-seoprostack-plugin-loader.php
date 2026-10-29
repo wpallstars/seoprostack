@@ -90,6 +90,18 @@ final class SEOProStack_Plugin_Loader {
     /** Query arg that loads every plugin for one request. */
     const LOAD_ALL_ARG = 'seoprostack-load-all';
 
+    /**
+     * Query arg of a render that checks skipping on a page kind
+     * (SEOProStack_Front_Verify): "base" or "trial", a dot and the token.
+     */
+    const VERIFY_ARG = 'seoprostack-verify';
+
+    /** The check under way: token, page kind, plugins tried, expiry. Not autoloaded. */
+    const FRONT_VERIFY = 'seoprostack_plugin_front_verify';
+
+    /** Response header that says a check's render was made as asked. */
+    const VERIFY_HEADER = 'X-SEOProStack-Verify';
+
     /** Settings keys (read straight from the stored options). */
     const SWITCH_KEY = 'plugin_loading';
     const LIST_KEY   = 'plugin_loading_only';
@@ -375,6 +387,15 @@ final class SEOProStack_Plugin_Loader {
 
     /** @var string Public content generation at the start of this request. */
     private static $front_revision = '';
+
+    /**
+     * A check's render (verify_request()): mode ('base' or 'trial'), page
+     * kind and the plugins a trial also skips; an empty mode on other
+     * requests.
+     *
+     * @var array{mode: string, kind: string, skip: string[]}
+     */
+    private static $verify = array('mode' => '', 'kind' => '', 'skip' => array());
 
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
@@ -702,6 +723,7 @@ final class SEOProStack_Plugin_Loader {
      * @param array $options SEO Pro Stack's stored settings.
      */
     private static function start_front(array $options) {
+        self::$verify = self::verify_request();
         if (!self::front_request()) {
             return;
         }
@@ -725,7 +747,8 @@ final class SEOProStack_Plugin_Loader {
         }
         if (!self::front_current()) {
             // Learn once per set of active plugins, one request at a time.
-            if (self::take_front_lock()) {
+            // A check's render never learns: it answers without its header.
+            if ('' === self::$verify['mode'] && self::take_front_lock()) {
                 self::$mode   = 'full';
                 self::$reason = 'learning';
                 self::attribute();
@@ -761,7 +784,7 @@ final class SEOProStack_Plugin_Loader {
                 // learn_front() saves those still unregistered as leftovers,
                 // so later pages with them can skip (GitHub issue #497). Other
                 // unknown content loads every plugin without learning.
-                if ((false !== $content || false !== self::content_needs($text, array('live' => true) + $front))
+                if ('' === self::$verify['mode'] && (false !== $content || false !== self::content_needs($text, array('live' => true) + $front))
                     && self::take_front_lock()) {
                     self::$mode   = 'full';
                     self::$reason = 'learning';
@@ -770,7 +793,13 @@ final class SEOProStack_Plugin_Loader {
                 return;
             }
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
-            $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
+            // Plugins that add to pages, which a check showed this kind of
+            // page renders the same without (SEOProStack_Front_Verify).
+            $verified = (array) ($page['verified'] ?? array());
+            if ('trial' === self::$verify['mode'] && $key === self::$verify['kind']) {
+                $verified = array_merge($verified, self::$verify['skip']);
+            }
+            $chosen = array_diff(array_unique(array_merge($chosen, $candidates, $verified)), $keep);
             $needed = array_merge((array) ($page['needs'] ?? array()), $content);
             if (!empty($context['id']) && in_array((int) $context['id'], (array) ($front['woo_pages'] ?? array()), true)) {
                 $needed[] = 'woocommerce/woocommerce.php';
@@ -790,9 +819,50 @@ final class SEOProStack_Plugin_Loader {
             return; // Unknown public routes load every plugin, not site-wide guesses.
         }
         self::$skipped = self::front_skipped($chosen, $front);
+        if ('' !== self::$verify['mode'] && '' !== $key && $key === self::$verify['kind'] && !headers_sent()) {
+            // Which plugins this render skipped, for the check only (its token).
+            header(self::VERIFY_HEADER . ': ' . self::$verify['mode'] . ' ' . implode(',', array_map('rawurlencode', self::$skipped)));
+        }
         if (self::$skipped) {
             self::filter();
         }
+    }
+
+    /**
+     * A render SEOProStack_Front_Verify asked for with the current token.
+     * The argument is taken out of the request, so the page renders as it
+     * does without it, and page caches are told not to keep the page.
+     *
+     * @return array{mode: string, kind: string, skip: string[]} An empty mode when this is not one.
+     */
+    private static function verify_request() {
+        $none = array('mode' => '', 'kind' => '', 'skip' => array());
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- checked against the token below.
+        $arg = isset($_GET[self::VERIFY_ARG]) && is_string($_GET[self::VERIFY_ARG]) ? (string) wp_unslash($_GET[self::VERIFY_ARG]) : '';
+        // The render's number only makes each address new to caches.
+        if (!preg_match('/^(base|trial)\.([A-Za-z0-9]{32})\.\d{1,3}$/', $arg, $match)) {
+            return $none;
+        }
+        $check = get_option(self::FRONT_VERIFY, array());
+        if (!is_array($check) || empty($check['token']) || !is_string($check['token']) || (int) ($check['expires'] ?? 0) < time()
+            || !hash_equals($check['token'], $match[2]) || empty($check['kind']) || !is_string($check['kind'])) {
+            return $none;
+        }
+        unset($_GET[self::VERIFY_ARG], $_REQUEST[self::VERIFY_ARG]);
+        foreach (array('REQUEST_URI', 'QUERY_STRING') as $name) {
+            if (isset($_SERVER[$name]) && is_string($_SERVER[$name])) {
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- the raw value with only this argument taken out, as WordPress then reads it.
+                $_SERVER[$name] = rtrim((string) preg_replace('/(^|[?&])' . preg_quote(self::VERIFY_ARG, '/') . '=[^&#]*&?/', '$1', $_SERVER[$name]), '?&');
+            }
+        }
+        if (!defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- page caches' shared constant: never keep this page.
+        }
+        return array(
+            'mode' => $match[1],
+            'kind' => $check['kind'],
+            'skip' => array_values(array_filter((array) ($check['skip'] ?? array()), 'is_string')),
+        );
     }
 
     /**
@@ -1788,6 +1858,9 @@ final class SEOProStack_Plugin_Loader {
     public static function flag_screen($plugin = '') {
         if ('filter' !== self::$mode || self::$flagged || '' === self::$screen) {
             return;
+        }
+        if ('trial' === self::$verify['mode']) {
+            return; // A check's trial that fails only shows that the kind needs those plugins.
         }
         self::$flagged = true;
         if ('front' === self::$screen) {
