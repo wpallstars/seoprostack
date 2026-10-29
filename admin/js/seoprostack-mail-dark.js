@@ -256,7 +256,8 @@
 	}
 
 	function label() {
-		return data.label || 'Preview in mail apps’ dark mode';
+		// Not "Preview": FluentCRM hides the header's buttons with it in their name.
+		return data.label || 'Show in mail apps’ dark mode';
 	}
 	function button(className) {
 		var b = document.createElement('button');

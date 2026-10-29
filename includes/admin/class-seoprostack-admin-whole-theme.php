@@ -425,13 +425,14 @@ final class SEOProStack_Admin_Whole_Theme {
     }
 
     /**
-     * The preview button's name and hint.
+     * The preview button's name and hint. Not "Preview" in the name:
+     * FluentCRM hides the header's other buttons with it.
      *
      * @return array<string,string>
      */
     private static function mail_dark_data() {
         return array(
-            'label' => __('Preview in mail apps’ dark mode', 'seoprostack'),
+            'label' => __('Show in mail apps’ dark mode', 'seoprostack'),
             'hint'  => __('Shows the email as Apple Mail, Outlook and Gmail may show it in their own dark mode. A preview only: the email that is sent is unchanged.', 'seoprostack'),
         );
     }
