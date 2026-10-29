@@ -152,7 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.92 =
-* Fix: read-only watermark dry runs, resumable --stale refreshes, and reuse of kept originals (#996).
+= 1.3.93 =
+* Fix: a picture whose local files another storage connection removed no longer holds up the cloud upload queue (#1003).
 
 Older: `changelog.txt`.

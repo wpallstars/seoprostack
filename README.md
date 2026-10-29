@@ -1989,6 +1989,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### 1.3.93
+
+- Fix: **Media in cloud storage** no longer lets a picture whose local files another storage connection removed hold up the upload queue. Its retry stayed due and ran, and was refused, in every batch, using up the batch's retries before pictures waiting for their first upload; such a picture is now marked failed with no retry, as one refused for a path collision is (GitHub issue #1003).
+
 ### 1.3.92
 
 - Fix: watermark CLI dry runs never restore removed files. `--stale` refreshes only out-of-date marks; refresh scans resume newest first, and reuse verified kept originals and their private-bucket objects (GitHub issue #996).
