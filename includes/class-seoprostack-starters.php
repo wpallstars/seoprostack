@@ -1640,7 +1640,7 @@ final class SEOProStack_Starters {
      *
      * @param int    $board_id Board ID.
      * @param string $title    Task title.
-     * @return object|null
+     * @return mixed Fluent Boards' Task, or null.
      */
     private static function board_task($board_id, $title) {
         return \FluentBoards\App\Models\Task::where('board_id', (int) $board_id)
@@ -1652,7 +1652,7 @@ final class SEOProStack_Starters {
     /**
      * Fingerprint of a task's title and description, to notice edits.
      *
-     * @param object $task Task.
+     * @param mixed $task Fluent Boards' Task.
      * @return string
      */
     private static function task_hash($task) {
@@ -1688,12 +1688,13 @@ final class SEOProStack_Starters {
         if (!$task || empty($task->id)) {
             return null;
         }
-        self::place_task($task, $board_id, (int) $stage->id, $item);
-        $task = \FluentBoards\App\Models\Task::find((int) $task->id);
+        $task_id = (int) $task->id;
+        self::place_task($task_id, $board_id, (int) $stage->id, $item);
+        $task = \FluentBoards\App\Models\Task::find($task_id);
         if (!$task) {
             return null;
         }
-        return array('id' => (int) $task->id, 'board_id' => $board_id, 'hash' => self::task_hash($task), 'name' => (string) $item['title']);
+        return array('id' => $task_id, 'board_id' => $board_id, 'hash' => self::task_hash($task), 'name' => (string) $item['title']);
     }
 
     /**
@@ -1701,13 +1702,17 @@ final class SEOProStack_Starters {
      * before it in the starter ("prev"), when that task is open in the same
      * stage; at the top of the stage otherwise.
      *
-     * @param object $task     New task.
-     * @param int    $board_id Board ID.
-     * @param int    $stage_id Stage ID.
-     * @param array  $item     Task item.
+     * @param int   $task_id  New task's ID.
+     * @param int   $board_id Board ID.
+     * @param int   $stage_id Stage ID.
+     * @param array $item     Task item.
      */
-    private static function place_task($task, $board_id, $stage_id, array $item) {
-        if (!method_exists($task, 'moveBetweenTasks')) {
+    private static function place_task($task_id, $board_id, $stage_id, array $item) {
+        if (!method_exists('FluentBoards\App\Models\Task', 'moveBetweenTasks')) {
+            return;
+        }
+        $task = \FluentBoards\App\Models\Task::find($task_id);
+        if (!$task) {
             return;
         }
         $previous = null;
@@ -1716,7 +1721,7 @@ final class SEOProStack_Starters {
                 continue;
             }
             $found = self::board_task($board_id, (string) $item[$key]);
-            if ($found && (int) $found->stage_id === $stage_id && empty($found->archived_at) && (int) $found->id !== (int) $task->id) {
+            if ($found && (int) $found->stage_id === $stage_id && empty($found->archived_at) && (int) $found->id !== $task_id) {
                 $previous = $found;
                 break;
             }
@@ -1724,7 +1729,7 @@ final class SEOProStack_Starters {
         $query = \FluentBoards\App\Models\Task::where('stage_id', $stage_id)
             ->whereNull('parent_id')
             ->whereNull('archived_at')
-            ->where('id', '!=', (int) $task->id);
+            ->where('id', '!=', $task_id);
         if ($previous) {
             $query->where('position', '>', $previous->position);
         }
