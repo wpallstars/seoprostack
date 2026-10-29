@@ -153,7 +153,7 @@ Stored content, outgoing email, feeds, REST/JSON responses and admin screens are
 
 #### Addresses it cannot hide
 
-- **Schema (JSON-LD):** search engines need plain data, so schema emails cannot be encoded. Clear the optional organisation email in your SEO plugin; for example, Rank Math → Titles & Meta → Local SEO → Email.
+- **Schema (JSON-LD):** search engines need plain data, so schema emails cannot be encoded. Clear the optional organisation email in your SEO plugin; for example, Rank Math → Titles & Meta → Local SEO → Email, or Yoast SEO → Settings → Site representation → Organization email address.
 - **Other plugins’ script data:** a chatbot notice, for example AI Engine’s compliance text, may put an address into a script or JSON attribute. Change that text in the plugin’s settings; encoding it could break the plugin.
 - **Theme templates and hard-coded HTML:** addresses outside the content, block, widget and menu filters stay readable. Edit the template at its source.
 

@@ -80,7 +80,9 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
             return new WP_Error('email_check_url', __('Use a page URL on this site’s host and port, without login details.', 'seoprostack'));
         }
         $response = wp_safe_remote_get($url, array(
-            'timeout'             => 3,
+            // Run only on request; an uncached home page on shared hosting
+            // can take several seconds.
+            'timeout'             => 10,
             'redirection'         => 0,
             'limit_response_size' => 2 * MB_IN_BYTES,
         ));
@@ -127,9 +129,10 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
                 if ('SCRIPT' === $processor->get_tag()) {
                     $type = $processor->get_attribute('type');
                     $context = is_string($type) && 'application/ld+json' === strtolower(trim($type)) ? 'schema' : 'script data';
-                    $start = strpos($tag, '>');
-                    if (false !== $start) {
-                        self::find_addresses(substr($tag, $start + 1), $context, $rows);
+                    // The body starts after the opening tag, whose quoted
+                    // attributes may themselves hold a ">".
+                    if (preg_match('~^<script\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $tag, $open)) {
+                        self::find_addresses(substr($tag, strlen($open[0])), $context, $rows);
                     }
                 }
             }
@@ -149,21 +152,46 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
     private static function find_addresses($value, $context, &$rows) {
         preg_match_all(self::ADDRESS, html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'), $matches);
         foreach ($matches[0] as $address) {
+            // Retina file names (logo@2x.png in a srcset) look like
+            // addresses; no top-level domain is a file extension.
+            if (preg_match('/\.(?:png|jpe?g|gif|webp|avif|svg|ico|css|js|json|map)$/i', $address)) {
+                continue;
+            }
             $key = strtolower($address);
             if (!isset($rows[$key])) {
-                $titles = get_option('rank-math-options-titles', array());
-                $rank_email = is_array($titles) && isset($titles['email']) && is_string($titles['email']) ? $titles['email'] : '';
                 $rows[$key] = array(
                     'address' => $address,
                     'context' => $context,
-                    'hint'    => 0 === strcasecmp(trim($rank_email), $address)
-                        ? __('Rank Math: Titles & Meta → Local SEO → Email. Clear the optional email field.', 'seoprostack')
-                        : __('Search your plugins’ settings for this address; if it is in a template, edit it there.', 'seoprostack'),
+                    'hint'    => self::hint($address),
                 );
             } elseif (!in_array($context, explode(', ', $rows[$key]['context']), true)) {
                 $rows[$key]['context'] .= ', ' . $context;
             }
         }
+    }
+
+    /**
+     * Name the setting that prints an address, when it is a known one.
+     * Reads the options only; never changes another plugin's settings.
+     *
+     * @param string $address Readable address.
+     * @return string
+     */
+    private static function hint($address) {
+        $sources = array(
+            // Rank Math → Titles & Meta → Local SEO → Email.
+            array('rank-math-options-titles', 'email', __('Rank Math: Titles & Meta → Local SEO → Email. Clear the optional email field.', 'seoprostack')),
+            // Yoast SEO → Settings → Site representation (wpseo_titles['org-email']).
+            array('wpseo_titles', 'org-email', __('Yoast SEO: Settings → Site representation → Organization email address. Clear the optional field.', 'seoprostack')),
+        );
+        foreach ($sources as $source) {
+            $option = get_option($source[0], array());
+            if (is_array($option) && isset($option[$source[1]]) && is_string($option[$source[1]])
+                && 0 === strcasecmp(trim($option[$source[1]]), $address)) {
+                return $source[2];
+            }
+        }
+        return __('Search your plugins’ settings for this address; if it is in a template, edit it there.', 'seoprostack');
     }
 
     /**
@@ -179,8 +207,12 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         echo '<div class="sps-panel-note"><p>' . esc_html__('Check the public home page for readable addresses in schema, script data, attributes and template text. This runs only when requested, changes no settings and does not check other pages or guarantee protection. Clear page caches after fixing a source.', 'seoprostack') . '</p>';
         echo '<p><a class="button" href="' . esc_url($url) . '">' . esc_html__('Check for readable addresses', 'seoprostack') . '</a></p>';
         if (isset($_GET[self::CHECK])) {
-            check_admin_referer(self::CHECK);
-            $rows = self::check();
+            // Verify here rather than check_admin_referer(), whose wp_die()
+            // would stop the Security tab half drawn.
+            $nonce = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
+            $rows  = wp_verify_nonce($nonce, self::CHECK)
+                ? self::check()
+                : new WP_Error('email_check_nonce', __('The check link has expired. Choose Check for readable addresses again.', 'seoprostack'));
             if (is_wp_error($rows)) {
                 echo '<p>' . esc_html($rows->get_error_message()) . '</p>';
             } elseif (!$rows) {
