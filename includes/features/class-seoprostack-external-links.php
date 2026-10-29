@@ -152,7 +152,7 @@ class SEOProStack_External_Links extends SEOProStack_Feature {
         wp_enqueue_style('seoprostack-external-links');
         wp_add_inline_style('seoprostack-external-links',
             'a.sps-external-link:not(:empty):not(:has(img,svg,picture,video,canvas,[class*="wpil"],.sps-external-link-icon,.sps-external-link-after)):not(.sps-no-external-icon):not(.sps-no-external-icon a)::after' . $icon
-            . 'a.sps-external-link:not(.sps-no-external-icon) .sps-external-link-after::after' . $icon
+            . 'a.sps-external-link:not(.sps-no-external-icon):not(.sps-no-external-icon a) .sps-external-link-after::after' . $icon
             . '@media(forced-colors:active){a.sps-external-link::after,a.sps-external-link .sps-external-link-after::after{background-color:LinkText;forced-color-adjust:none}}'
         );
     }
