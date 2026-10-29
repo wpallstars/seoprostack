@@ -304,6 +304,7 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-page-cache.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentcrm-email-dark.php';
         if (is_multisite()) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-network-plugins.php';
         }
@@ -333,6 +334,7 @@ final class SEOProStack_Setup {
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
         SEOProStack_Page_Cache::init();
+        SEOProStack_FluentCRM_Email_Dark::init();
         if (class_exists('SEOProStack_Network_Plugins', false)) {
             SEOProStack_Network_Plugins::init();
         }

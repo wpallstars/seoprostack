@@ -425,15 +425,80 @@ final class SEOProStack_Admin_Whole_Theme {
     }
 
     /**
-     * The preview button's name and hint. Not "Preview" in the name:
-     * FluentCRM hides the header's other buttons with it.
+     * The preview menu's and the email's dark mode setting's words, and the
+     * dark colours (SEOProStack_FluentCRM_Email_Dark). Not "Preview" in the
+     * button's name: FluentCRM hides the header's other buttons with it.
      *
-     * @return array<string,string>
+     * @return array<string,mixed>
      */
     private static function mail_dark_data() {
+        $labels     = array(
+            'b' => __('Body background', 'seoprostack'),
+            'c' => __('Content background', 'seoprostack'),
+            'h' => __('Headings', 'seoprostack'),
+            't' => __('Text', 'seoprostack'),
+            'a' => __('Links', 'seoprostack'),
+        );
+        $properties = array(
+            'b' => '--fcrm-body-bg',
+            'c' => '--fcrm-content-bg',
+            'h' => '--fcrm-headings-color',
+            't' => '--theme-text-color',
+            'a' => '--fcrm-link-color',
+        );
+        $colours    = array();
+        foreach (SEOProStack_FluentCRM_Email_Dark::COLOURS as $letter => $colour) {
+            $colours[] = array(
+                'key'      => $colour[0],
+                'global'   => $colour[1],
+                'property' => $properties[$letter],
+                'fallback' => $colour[2],
+                'label'    => $labels[$letter],
+            );
+        }
         return array(
-            'label' => __('Show in mail apps’ dark mode', 'seoprostack'),
-            'hint'  => __('Shows the email as Apple Mail, Outlook and Gmail may show it in their own dark mode. A preview only: the email that is sent is unchanged.', 'seoprostack'),
+            'colours' => $colours,
+            'text'    => array(
+                'label'    => __('Mail apps’ dark mode', 'seoprostack'),
+                'hint'     => __('Shows the email as mail apps show it in their own dark mode. A preview only: the email is unchanged.', 'seoprostack'),
+                'modes'    => array(
+                    array(
+                        'value' => '',
+                        'label' => __('Off', 'seoprostack'),
+                        'hint'  => __('The email in light mode.', 'seoprostack'),
+                    ),
+                    array(
+                        'value' => 'apple',
+                        'label' => __('Apple Mail', 'seoprostack'),
+                        'hint'  => __('And other apps that follow the email’s dark mode setting, such as Outlook for Mac.', 'seoprostack'),
+                    ),
+                    array(
+                        'value' => 'forced',
+                        'label' => __('Gmail and Outlook', 'seoprostack'),
+                        'hint'  => __('Gmail, Outlook for Windows and the Outlook apps darken the email themselves, whatever it sets.', 'seoprostack'),
+                    ),
+                ),
+                'panel'    => __('Dark mode in mail apps', 'seoprostack'),
+                'setting'  => __('In mail apps’ dark mode', 'seoprostack'),
+                'colours'  => __('Dark colours', 'seoprostack'),
+                'settings' => array(
+                    array(
+                        'value' => 'auto',
+                        'label' => __('Let the mail app choose', 'seoprostack'),
+                        'help'  => __('Each mail app darkens the email in its own way.', 'seoprostack'),
+                    ),
+                    array(
+                        'value' => 'light',
+                        'label' => __('Keep light', 'seoprostack'),
+                        'help'  => __('Apple Mail and apps like it keep the email light. Gmail and Outlook for Windows still darken it.', 'seoprostack'),
+                    ),
+                    array(
+                        'value' => 'custom',
+                        'label' => __('Use my dark colours', 'seoprostack'),
+                        'help'  => __('Apple Mail and apps like it use these colours in place of the global colours. Blocks with colours of their own keep them. Gmail and Outlook for Windows still darken the email themselves.', 'seoprostack'),
+                    ),
+                ),
+            ),
         );
     }
 

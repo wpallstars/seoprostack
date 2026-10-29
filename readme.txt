@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.102
+Stable tag: 1.3.103
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,7 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.102 =
-* New: FluentCRM's email designer and Email Preview can show the email as mail apps show it in their own dark mode; the email that is sent is unchanged. Its loading panel is dark in Dark mode too (#1030).
+= 1.3.103 =
+* New: FluentCRM emails can keep light or use their own dark colours in mail apps' dark mode (designer → Style → Dark mode in mail apps), and the dark mode preview shows Apple Mail or Gmail and Outlook (#1032).
 
 Older: `changelog.txt`.
