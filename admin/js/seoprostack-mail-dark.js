@@ -178,7 +178,8 @@
 	}
 
 	function paint(doc) {
-		if (!doc || !doc.head || !doc.body) {
+		// A page its frame has since replaced or left has no window.
+		if (!doc || !doc.defaultView || !doc.head || !doc.body) {
 			return;
 		}
 		var style = doc.getElementById(STYLE);
@@ -231,7 +232,13 @@
 		}
 		watched.set(frame, doc.body);
 		var timer = 0;
+		var observer;
 		var later = function () {
+			if (watched.get(frame) !== doc.body || !frame.isConnected) {
+				// The frame shows another page now, or is gone.
+				observer.disconnect();
+				return;
+			}
 			if (!on) {
 				return;
 			}
@@ -240,7 +247,7 @@
 				paint(doc);
 			}, 250);
 		};
-		var observer = new MutationObserver(later);
+		observer = new MutationObserver(later);
 		observer.observe(doc.body, { subtree: true, childList: true, attributes: true, characterData: true });
 		observer.observe(doc.head, { childList: true });
 		paint(doc);
