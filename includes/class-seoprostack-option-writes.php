@@ -42,12 +42,18 @@ class SEOProStack_Option_Writes {
      *   option itself);
      * - state: field holding the licence state, and valid: its value when
      *   valid (true for any non-empty value); state '' checks nothing;
-     * - time: field that changes, or that is added and removed again;
+     * - time: field that changes, or that is added and removed again; ''
+     *   when the whole option is the timestamp (a number), which needs from;
      * - until: field holding when the licence or its cached state expires
-     *   ('' when there is none); the stored value is kept only while it is
-     *   at least a week away.
+     *   (a timestamp or a date; '' when there is none); the stored value is
+     *   kept only while it is at least a week away;
+     * - from (optional): another option holding the licence state, read
+     *   with state, valid and until in place of this one's.
      */
     const KNOWN = array(
+        // Fluent Boards Pro: only the patch saves this timestamp, and nothing
+        // reads it; the licence is in __fbs_plugin_license.
+        '__fbs_plugin_license_lc' => array('entry' => '', 'state' => 'status', 'valid' => 'valid', 'time' => '', 'until' => 'expires', 'from' => '__fbs_plugin_license'),
         // Complianz Pro.
         'cmplz_transients' => array('entry' => 'cmplz_license_status', 'state' => 'value', 'valid' => 'valid', 'time' => 'expires', 'until' => 'expires'),
         // Really Simple Security Pro.
@@ -216,23 +222,22 @@ class SEOProStack_Option_Writes {
         if (!self::known($option)) {
             return $value;
         }
-        $rule  = self::KNOWN[$option];
+        $rule = self::KNOWN[$option];
+        $from = isset($rule['from']) ? (string) $rule['from'] : '';
+        if ('' !== $from && !self::licence_valid($rule, get_option($from))) {
+            return $value;
+        }
+        if ('' === $rule['time']) {
+            // The whole option is the timestamp.
+            return '' !== $from && is_numeric($stored) && is_numeric($value) ? $stored : $value;
+        }
         $old   = '' === $rule['entry'] ? $stored : self::field($stored, $rule['entry']);
         $fresh = '' === $rule['entry'] ? $value : self::field($value, $rule['entry']);
         if ((!is_array($old) && !is_object($old)) || (!is_array($fresh) && !is_object($fresh))) {
             return $value;
         }
-        if ('' !== $rule['state']) {
-            $state = self::field($old, $rule['state']);
-            if (true === $rule['valid'] ? empty($state) : $state !== $rule['valid']) {
-                return $value;
-            }
-        }
-        if ('' !== $rule['until']) {
-            $until = self::field($old, $rule['until']);
-            if (!is_numeric($until) || (int) $until < time() + WEEK_IN_SECONDS) {
-                return $value;
-            }
+        if ('' === $from && !self::licence_valid($rule, $old)) {
+            return $value;
         }
         // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual -- compares array or object values.
         if (self::without($old, $rule['time']) != self::without($fresh, $rule['time'])) {
@@ -248,6 +253,46 @@ class SEOProStack_Option_Writes {
         $value[$rule['entry']] = $old;
         // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- compares array values.
         return $value == $stored ? $stored : $value;
+    }
+
+    /**
+     * Whether a rule's licence is valid and does not expire within a week.
+     *
+     * @param array $rule    Rule from KNOWN.
+     * @param mixed $licence Value holding the licence state.
+     * @return bool
+     */
+    private static function licence_valid(array $rule, $licence) {
+        if ('' !== $rule['state']) {
+            $state = self::field($licence, $rule['state']);
+            if (true === $rule['valid'] ? empty($state) : $state !== $rule['valid']) {
+                return false;
+            }
+        }
+        if ('' !== $rule['until']) {
+            $until = self::timestamp(self::field($licence, $rule['until']));
+            if (null === $until || $until < time() + WEEK_IN_SECONDS) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * A timestamp, or a date as one (as strtotime() reads it), or null.
+     *
+     * @param mixed $value Timestamp or date.
+     * @return int|null
+     */
+    private static function timestamp($value) {
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+        if (!is_string($value) || '' === $value) {
+            return null;
+        }
+        $time = strtotime($value);
+        return false === $time ? null : $time;
     }
 
     /**
