@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.93
+Stable tag: 1.3.94
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,10 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.94 =
 * New: Email protection's on-demand home-page and WP-CLI check finds readable addresses and hints at their sources; documents protection's limits (#1004).
-
-= 1.3.93 =
-* Fix: a picture whose local files another storage connection removed no longer holds up the cloud upload queue (#1003).
 
 Older: `changelog.txt`.

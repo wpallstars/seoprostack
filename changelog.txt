@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.94 =
 * New: Email protection's Security panel offers an explicit, nonce- and capability-protected public home-page check, with the same rows through `wp seoprostack email-protection check [<url>]`. Each readable address appears once with all its contexts (schema, script data, attribute, text) and a Rank Math Local SEO or Yoast SEO Site representation hint when that plugin's stored email (rank-math-options-titles['email'], wpseo_titles['org-email']) matches, otherwise advice to find the source; image file names such as logo@2x.png are not reported. Uses a bounded safe HTTP request on the site's own host and port without cookies or redirects; no request on ordinary admin loads, no stored results and no changes to other plugins' settings. Documents schema emails, other plugins' script data and hard-coded templates that protection cannot hide (GitHub issue #1004).
 * Developers: all 79 starter core files match WP Plugin Starter 8409653. scripts/preflight-release.sh's README.md ending section reads '## Star History' and '## Built with aidevops' from inside the aidevops-managed block first, so an earlier heading of the same name no longer makes it warn (or --strict fail) that the heading is outside a block that holds it; with none inside, it still warns (GitHub issue #1007).
 
