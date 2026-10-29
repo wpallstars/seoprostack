@@ -146,6 +146,9 @@ final class SEOProStack_FluentCRM_Email_Dark {
      */
     private static function head($html, $add) {
         $at = stripos($html, '</head>');
+        if (false === $at) {
+            return $html;
+        }
         return substr($html, 0, $at) . $add . substr($html, $at);
     }
 
@@ -249,7 +252,8 @@ final class SEOProStack_FluentCRM_Email_Dark {
                 continue;
             }
             $name  = strtolower(trim($parts[0]));
-            $value = trim(preg_replace('/\s*!important\s*$/i', '', $parts[1]));
+            $value = preg_replace('/\s*!important\s*$/i', '', $parts[1]);
+            $value = trim(null === $value ? $parts[1] : $value);
             if ('color' === $name) {
                 $colour = self::hex($value);
             } elseif ('background-color' === $name) {
