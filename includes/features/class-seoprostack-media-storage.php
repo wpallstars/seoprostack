@@ -3729,6 +3729,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         update_post_meta($id, self::DONE, self::upload_marker());
         update_post_meta($id, self::STATE, 'failed');
+        // Refusals have no retry job (as collision_failed()): a due one would
+        // run every batch and use up the retry limit before waiting uploads.
+        delete_option(self::JOB . 'retry_' . $id);
         update_option(self::ERROR, __('Some pictures’ local files were removed while another storage connection was set. Set that connection again and run wp seoprostack media-storage restore --all.', 'seoprostack'), false);
         delete_transient(self::COUNTS);
         return true;

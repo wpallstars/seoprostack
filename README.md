@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.92-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.93-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.92
+Version: 1.3.93
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1988,6 +1988,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.93
+
+- Fix: **Media in cloud storage** no longer lets a picture whose local files another storage connection removed hold up the upload queue. Its retry stayed due and ran, and was refused, in every batch, using up the batch's retries before pictures waiting for their first upload; such a picture is now marked failed with no retry, as one refused for a path collision is (GitHub issue #1003).
+- Developers: all 79 starter core files match WP Plugin Starter `4efe5a6`. `sync-core.sh` stops when it cannot tell the plugin's GitHub repository, instead of writing links to one that does not exist (`--repo OWNER/REPO` gives it); the `SYNC_PAT` comment in `star-history.yml` says it the right way round; `preflight-release.sh` takes `--from DIR` and checks the managed README block's headings (GitHub issue #1001).
 
 ### 1.3.92
 

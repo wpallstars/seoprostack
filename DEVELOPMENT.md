@@ -169,6 +169,12 @@ Every pull request and every push to `main` runs these in GitHub Actions
 
 `scripts/lint.sh` with no arguments runs the first seven.
 
+Release preflight also compares core files with a local starter checkout.
+If it is not next to the plugin (for example, in a linked worktree), use
+`scripts/preflight-release.sh --from "<starter checkout>"`. The path is
+passed to `scripts/sync-core.sh --check`; without `--from`, its usual
+`{PREFIX}_STARTER_DIR` override and neighbouring-checkout default apply.
+
 CI downloads actionlint 1.7.12 as a release binary and verifies its published
 SHA-256 checksum; it needs no Docker Hub pull. Before Plugin Check and the
 smoke tests, GitHub-hosted runners configure Docker to use Google's public
@@ -408,7 +414,10 @@ out"), and a line that names no core file is reported. With no admin
 screen, the scripts take `{css}` from the `{css}-wrap` line of
 `scripts/core-public-classes.txt`, and with no `GitHub Plugin URI` header
 (its parent updates it), `sync-core.sh` takes the repository from the
-`origin` remote. Its other core files get its own names, like any plugin's.
+`origin` remote; when that is not on GitHub either, it stops (exit 2) until
+you pass `--repo OWNER/REPO`, so no core file gets a link to a repository
+that does not exist. Its other core files get its own names, like any
+plugin's.
 
 When a sync adds a core doc at the top of the repository (such as
 `STYLING.md`) and the aidevops commit hook rejects it as a new root file,
