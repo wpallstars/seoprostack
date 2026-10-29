@@ -6,8 +6,9 @@
 # Errors stop a release. Warnings need a look and a decision; most matter only
 # for WordPress.org. Notes are for information.
 #
-# Usage: scripts/preflight-release.sh [--ref REF] [--offline] [--strict] [--no-docker]
+# Usage: scripts/preflight-release.sh [--ref REF] [--from DIR] [--offline] [--strict] [--no-docker]
 #   --ref REF    Commit, branch or tag to check (default: HEAD).
+#   --from DIR   Starter checkout for the core comparison (sync-core.sh defaults otherwise).
 #   --offline    Skip checks that ask WordPress.org (latest WordPress version,
 #                slug, contributor profiles).
 #   --strict     Fail on warnings too (use before a WordPress.org submission).
@@ -72,6 +73,7 @@ TMP_DIR=""
 OFFLINE=0
 USE_DOCKER=1
 CHANGELOG_TXT=""
+CORE_CHECK_ARGS=(--check)
 
 die() {
 	local message="$1"
@@ -80,7 +82,7 @@ die() {
 }
 
 usage() {
-	sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
 	return 0
 }
 
@@ -791,11 +793,17 @@ check_replaced_count() {
 check_core_files() {
 	section "Core files"
 	local out status=0
-	out="$(bash "$SCRIPT_DIR/sync-core.sh" --check 2>&1)" || status=$?
+	out="$(bash "$SCRIPT_DIR/sync-core.sh" "${CORE_CHECK_ARGS[@]}" 2>&1)" || status=$?
 	case "$status" in
 	0) ok "$(printf '%s\n' "$out" | tail -n 1)" ;;
 	1) warn "$(printf '%s\n' "$out" | sed -n '2,$p' | tr '\n' ' ')" ;;
-	*) note "not compared: ${out#sync-core: }" ;;
+	*)
+		if [[ ${#CORE_CHECK_ARGS[@]} -gt 1 ]]; then
+			err "not compared: ${out#sync-core: }"
+		else
+			note "not compared: ${out#sync-core: }"
+		fi
+		;;
 	esac
 	return 0
 }
@@ -1218,18 +1226,21 @@ check_readme_ending() {
 	local text order file problems=0
 	# A missing README.md already warns under Credits; read it as empty.
 	text="$(git show "$sha:README.md" 2>/dev/null || :)"
-	# The line numbers of the four markers, in file order, and whether
-	# anything but blank lines follows the managed block's end.
+	# The line numbers of the four markers and of the managed block's two
+	# headings, and the last line that is not blank (so nothing follows the
+	# block's end).
 	order="$(awk '
 		$0 == "## Built with AI" && !b { b = NR }
 		$0 == "## License" && !l { l = NR }
+		$0 == "## Star History" && !h { h = NR }
+		$0 == "## Built with aidevops" && !a { a = NR }
 		$0 == "<!-- aidevops:managed-readme:start -->" && !s { s = NR }
 		$0 == "<!-- aidevops:managed-readme:end -->" { e = NR }
 		NF { last = NR }
-		END { printf "%d %d %d %d %d", b, l, s, e, last }
+		END { printf "%d %d %d %d %d %d %d", b, l, s, e, last, h, a }
 	' <<<"$text")"
-	local built licence start end last
-	read -r built licence start end last <<<"$order"
+	local built licence start end last stars credit
+	read -r built licence start end last stars credit <<<"$order"
 	if ((built == 0 || licence == 0 || built > licence)); then
 		warn "README.md has no '## Built with AI' section followed by '## License'"
 		problems=1
@@ -1240,6 +1251,28 @@ check_readme_ending() {
 	elif ((start < licence || end != last)); then
 		warn "README.md's aidevops-managed sections are not last, after '## License'"
 		problems=1
+	fi
+	# The block keeps both headings between its markers, Star History
+	# first: a hand edit inside the block, or a broken helper run, can keep
+	# the markers and lose or move a heading.
+	if ((start > 0 && end > start)); then
+		local entry line heading
+		local sync="managed-readme-helper.sh sync --repo $PLUGIN_REPO --root ."
+		for entry in "$stars:## Star History" "$credit:## Built with aidevops"; do
+			line="${entry%%:*}"
+			heading="${entry#*:}"
+			if ((line == 0)); then
+				warn "README.md's aidevops-managed block has no '$heading' heading ($sync)"
+				problems=1
+			elif ((line < start || line > end)); then
+				warn "README.md's '$heading' heading is outside its aidevops-managed block ($sync)"
+				problems=1
+			fi
+		done
+		if ((stars > start && stars < end && credit > start && credit < end && credit < stars)); then
+			warn "README.md's '## Built with aidevops' heading comes before '## Star History' ($sync)"
+			problems=1
+		fi
 	fi
 	for file in docs/assets/star-history.svg .github/workflows/star-history.yml; do
 		if ! git cat-file -e "$sha:$file" 2>/dev/null; then
@@ -1425,10 +1458,16 @@ main() {
 	local arg
 	while [[ $# -gt 0 ]]; do
 		arg="$1"
+		local value="${2:-}"
 		case "$arg" in
 		--ref)
 			[[ $# -ge 2 ]] || die "--ref needs a value"
-			ref="$2"
+			ref="$value"
+			shift
+			;;
+		--from)
+			[[ $# -ge 2 ]] || die "--from needs a value"
+			CORE_CHECK_ARGS=(--check --from "$value")
 			shift
 			;;
 		--offline) OFFLINE=1 ;;
