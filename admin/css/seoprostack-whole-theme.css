@@ -2865,11 +2865,11 @@ html.sps-dark li#wp-admin-bar-fcrm_adminbar_search {
  * which gets this stylesheet and the mode's classes from
  * SEOProStack_Admin_Whole_Theme::fluent_editor_head(). FluentCRM paints it
  * with fixed light colours through its own properties (on :root, the
- * header and the smartcode panel); they take the palette here. The email
- * itself is in a frame of its own (editor-canvas) and keeps the colours
- * it is sent with.
+ * header and the smartcode panel); they take the palette here, on body,
+ * which everything in the designer inherits from. The email itself is in
+ * a frame of its own (editor-canvas) and keeps the colours it is sent with.
  */
-html.sps-dark:has(> body.fcrm_custom_editor) {
+html.sps-dark body.fcrm_custom_editor {
 	--fc-primary-bg: var(--sps-ui-surface);
 	--fc-secondary-bg: var(--sps-ui-raised);
 	--fc-light-bg: var(--sps-ui-border);
@@ -2885,6 +2885,8 @@ html.sps-dark:has(> body.fcrm_custom_editor) {
 	--fc-success-bg: #16291b;
 	--fc-error-bg: #33191b;
 	--fc-warning-bg: #2e2716;
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
 }
 
 html.sps-dark body.fcrm_custom_editor :is(.edit-post-header, .editor-header) {
@@ -2901,11 +2903,6 @@ html.sps-dark body.fcrm_custom_editor .fcrm-smartcode-examples-panel {
 	--fcrm-sidebar-border: var(--sps-ui-border);
 	--fcrm-sidebar-text: var(--sps-ui-text);
 	--fcrm-sidebar-muted: var(--sps-ui-subtle);
-}
-
-html.sps-dark body.fcrm_custom_editor {
-	color: var(--sps-ui-text);
-	background: var(--sps-ui-canvas);
 }
 
 /* Save, Preview and Full screen in the header, and the designer's other plain buttons: #fff. */
