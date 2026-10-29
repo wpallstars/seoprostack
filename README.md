@@ -1851,8 +1851,9 @@ Licence checks are calls whose address or form names a licence (`licence`, `lice
 | `_ff_fluentform_pro_license_status_checking` | Fluent Forms Pro | `next_timestamp` |
 | `tutor_license_info` | Tutor LMS Pro | `activated_at` (while `activated`) |
 | `wp-optimize-premium_updater_options` | WP-Optimize Premium | `wp55_option_migrated`, added then removed |
+| `__fbs_plugin_license_lc` | Fluent Boards Pro | the whole option, a timestamp only the patch saves and nothing reads (while `__fbs_plugin_license` is valid) |
 
-Fluent Forms Pro saves its option while its file loads, and Complianz and Really Simple Security may too. Those plugins load before SEO Pro Stack, because plugins load in folder order. With **Load plugins only where needed** on, its must-use file loads this check before any plugin; otherwise only saves made after SEO Pro Stack loads are kept. **Hosting needs** names options still saved on most page views.
+Fluent Forms Pro and Fluent Boards Pro save their options while their files load, and Complianz and Really Simple Security may too. Those plugins load before SEO Pro Stack, because plugins load in folder order. With **Load plugins only where needed** on, its must-use file loads this check before any plugin; otherwise only saves made after SEO Pro Stack loads are kept. **Hosting needs** names options still saved on most page views.
 
 Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, written when something changes, “last seen” at most once a minute), one day’s answers in `seoprostack_lc_*` transients and “Ask me again” in the `seoprostack_licence_later` user meta, all removed on uninstall. Request forms, which can hold licence keys, are never stored; a hash tells answers apart. Tested on WordPress 6.2 and 7.1 with PHP 7.4, with a stand-in licence server and with Kadence Blocks 3.7.12, Kadence Blocks Pro 2.8.19.1 and Kadence Pro 1.2.5. Kadence makes three licence checks (Kadence Pro on its settings screen and in the block editor, Kadence Blocks’ StellarWP account check in the block editor), each when its own cache runs out; all three are caught, Once a day answers repeats from the kept answer, and Never sends nothing, with no PHP messages. Kadence does not cache a failed check, so while one is held it tries again on the next block editor load (held at once, no wait), and with `WP_DEBUG` on Kadence Blocks writes each failure to the debug log, licence key included, as it does whenever its server cannot be reached.
 
@@ -2155,6 +2156,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Faster: **Ask before licence checks** keeps Fluent Boards Pro’s licence timestamp (`__fbs_plugin_license_lc`), which its GPL Vault build saves on every request as it loads, so pages no longer write to the database for it. Kept while the licence in `__fbs_plugin_license` is valid and more than a week from expiry (GitHub issue #1025).
 
 ### 1.3.100
 

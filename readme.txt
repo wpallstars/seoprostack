@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Ask before licence checks stops Fluent Boards Pro's patched build saving its licence timestamp on every request (#1025).
+
 = 1.3.100 =
 * Fix: Dark mode covers FluentCRM's email designer; the email keeps the colours it is sent with (#1023).
 
