@@ -305,6 +305,7 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentcrm-email-dark.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentcrm-email-dark-marker.php';
         if (is_multisite()) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-network-plugins.php';
         }

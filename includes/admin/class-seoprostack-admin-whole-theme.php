@@ -461,45 +461,46 @@ final class SEOProStack_Admin_Whole_Theme {
             'text'    => array(
                 'label'    => __('Mail apps’ dark mode', 'seoprostack'),
                 'hint'     => __('Shows the email as mail apps show it in their own dark mode. A preview only: the email is unchanged.', 'seoprostack'),
-                'modes'    => array(
+                'modes'    => self::mail_dark_options(
+                    'hint',
                     array(
-                        'value' => '',
-                        'label' => __('Off', 'seoprostack'),
-                        'hint'  => __('The email in light mode.', 'seoprostack'),
-                    ),
-                    array(
-                        'value' => 'apple',
-                        'label' => __('Apple Mail', 'seoprostack'),
-                        'hint'  => __('And other apps that follow the email’s dark mode setting, such as Outlook for Mac.', 'seoprostack'),
-                    ),
-                    array(
-                        'value' => 'forced',
-                        'label' => __('Gmail and Outlook', 'seoprostack'),
-                        'hint'  => __('Gmail, Outlook for Windows and the Outlook apps darken the email themselves, whatever it sets.', 'seoprostack'),
-                    ),
+                        ''       => array(__('Off', 'seoprostack'), __('The email in light mode.', 'seoprostack')),
+                        'apple'  => array(__('Apple Mail', 'seoprostack'), __('And other apps that follow the email’s dark mode setting, such as Outlook for Mac.', 'seoprostack')),
+                        'forced' => array(__('Gmail and Outlook', 'seoprostack'), __('Gmail, Outlook for Windows and the Outlook apps darken the email themselves, whatever it sets.', 'seoprostack')),
+                    )
                 ),
                 'panel'    => __('Dark mode in mail apps', 'seoprostack'),
                 'setting'  => __('In mail apps’ dark mode', 'seoprostack'),
                 'colours'  => __('Dark colours', 'seoprostack'),
-                'settings' => array(
+                'settings' => self::mail_dark_options(
+                    'help',
                     array(
-                        'value' => 'auto',
-                        'label' => __('Let the mail app choose', 'seoprostack'),
-                        'help'  => __('Each mail app darkens the email in its own way.', 'seoprostack'),
-                    ),
-                    array(
-                        'value' => 'light',
-                        'label' => __('Keep light', 'seoprostack'),
-                        'help'  => __('Apple Mail and apps like it keep the email light. Gmail and Outlook for Windows still darken it.', 'seoprostack'),
-                    ),
-                    array(
-                        'value' => 'custom',
-                        'label' => __('Use my dark colours', 'seoprostack'),
-                        'help'  => __('Apple Mail and apps like it use these colours in place of the global colours. Blocks with colours of their own keep them. Gmail and Outlook for Windows still darken the email themselves.', 'seoprostack'),
-                    ),
+                        'auto'   => array(__('Let the mail app choose', 'seoprostack'), __('Each mail app darkens the email in its own way.', 'seoprostack')),
+                        'light'  => array(__('Keep light', 'seoprostack'), __('Apple Mail and apps like it keep the email light. Gmail and Outlook for Windows still darken it.', 'seoprostack')),
+                        'custom' => array(__('Use my dark colours', 'seoprostack'), __('Apple Mail and apps like it use these colours in place of the global colours. Blocks with colours of their own keep them. Gmail and Outlook for Windows still darken the email themselves.', 'seoprostack')),
+                    )
                 ),
             ),
         );
+    }
+
+    /**
+     * A list of options for the preview menu or the setting.
+     *
+     * @param string                               $note The key for each option's note (hint or help).
+     * @param array<string,array{0:string,1:string}> $rows Value => array(label, note).
+     * @return array<int,array<string,string>>
+     */
+    private static function mail_dark_options($note, $rows) {
+        $out = array();
+        foreach ($rows as $value => $row) {
+            $out[] = array(
+                'value' => (string) $value,
+                'label' => $row[0],
+                $note   => $row[1],
+            );
+        }
+        return $out;
     }
 
     /**

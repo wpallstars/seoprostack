@@ -518,7 +518,12 @@
 			// Changes made elsewhere: a template or design imported. FluentCRM
 			// replaces its settings object on every change.
 			var seen = config();
-			var follow = function () {
+			var follow = function (event) {
+				// Only the designer's own frames: the message is a cue to read
+				// the settings again; its data is never used.
+				if (event && event.type === 'message' && event.origin !== window.location.origin) {
+					return;
+				}
 				window.setTimeout(function () {
 					if (config() !== seen) {
 						seen = config();
