@@ -2860,6 +2860,55 @@ html.sps-dark li#wp-admin-bar-fcrm_adminbar_search {
 }
 
 /*
+ * FluentCRM's email designer (campaigns, templates, sequences and
+ * automations' emails): a page of its own in a frame, body.fcrm_custom_editor,
+ * which gets this stylesheet and the mode's classes from
+ * SEOProStack_Admin_Whole_Theme::fluent_editor_head(). FluentCRM paints it
+ * with fixed light colours through its own properties (on :root, the
+ * header and the smartcode panel); they take the palette here. The email
+ * itself is in a frame of its own (editor-canvas) and keeps the colours
+ * it is sent with.
+ */
+html.sps-dark:has(> body.fcrm_custom_editor) {
+	--fc-primary-bg: var(--sps-ui-surface);
+	--fc-secondary-bg: var(--sps-ui-raised);
+	--fc-light-bg: var(--sps-ui-border);
+	--fc-deep-bg: var(--sps-ui-text);
+	--fc-primary-text: var(--sps-ui-text);
+	--fc-secondary-text: var(--sps-ui-muted);
+	--fc-text-muted: var(--sps-ui-subtle);
+	--fc-text-inverse: var(--sps-ui-canvas);
+	--fc-primary-border: var(--sps-ui-border);
+	--fc-secondary-border: var(--sps-ui-field-border);
+	--fc-primary-button: var(--sps-ui-text);
+	--fc-text-link: var(--sps-ui-info);
+	--fc-success-bg: #16291b;
+	--fc-error-bg: #33191b;
+	--fc-warning-bg: #2e2716;
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.edit-post-header, .editor-header) {
+	--fcrm-compose-btn-bg: var(--sps-ui-raised);
+	--fcrm-compose-btn-border: var(--sps-ui-field-border);
+	--fcrm-compose-btn-text: var(--sps-ui-text);
+	--fcrm-compose-btn-hover: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-smartcode-examples-panel {
+	--fcrm-sidebar-accent: var(--sps-ui-muted);
+	--fcrm-sidebar-accent-soft: var(--sps-ui-raised);
+	--fcrm-sidebar-accent-hover: var(--sps-ui-border);
+	--fcrm-sidebar-border: var(--sps-ui-border);
+	--fcrm-sidebar-text: var(--sps-ui-text);
+	--fcrm-sidebar-muted: var(--sps-ui-subtle);
+}
+
+html.sps-dark body.fcrm_custom_editor {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+/*
  * Fluent Boards' first-run set-up: a #fff card and step form, a #fafafa
  * step heading, #eee buttons and dark text, outside its own dark theme.
  * The blue banner, the Next button and the current step keep their
