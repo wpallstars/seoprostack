@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.103
+Stable tag: 1.3.104
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,10 +153,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges its page cache (#1037).
-
-= 1.3.103 =
-* New: FluentCRM emails can keep light or use their own dark colours in mail apps' dark mode (designer → Style → Dark mode in mail apps), and the dark mode preview shows Apple Mail or Gmail and Outlook (#1032).
+= 1.3.104 =
+* New: On a network, Network Admin's menu is organised too, with Ultimate Multisite, then a Developers menu, and Tidy the dashboard lays out the network Dashboard (#1035).
+* Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges (#1037).
 
 Older: `changelog.txt`.

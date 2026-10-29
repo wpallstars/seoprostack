@@ -6,7 +6,9 @@
  * admin/data/dashboard.php: which column each widget goes in and in what
  * order, which widgets nobody sees, which only developers see, and which
  * statistics only people who can publish see. People who cannot edit posts
- * see no widgets, and the Welcome panel is hidden.
+ * see no widgets, and the Welcome panel is hidden. The network Dashboard
+ * (multisite) gets its own columns, `network_columns`, and the same hidden
+ * widgets.
  *
  * The order is applied through the per-person "meta-box-order_dashboard"
  * option that do_meta_boxes() reads, so WordPress itself moves the boxes.
@@ -58,7 +60,7 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Tidy the dashboard', 'seoprostack'),
-                'description' => __('The same Dashboard on every site: writing and activity first, then forms and email, then visitors, SEO and the site. Hides the Welcome panel, WordPress news and plugin promotions. Site Health and WPVulnerability show to developers only, statistics to people who can publish, and subscribers and customers see no boxes.', 'seoprostack'),
+                'description' => __('The same Dashboard on every site: writing and activity first, then forms and email, then visitors, SEO and the site. Hides the Welcome panel, WordPress news and plugin promotions. Site Health and WPVulnerability show to developers only, statistics to people who can publish, and subscribers and customers see no boxes. On a network, the network Dashboard is laid out too.', 'seoprostack'),
             ),
             self::REARRANGE_KEY => array(
                 'type'        => 'bool',
@@ -79,12 +81,23 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
         }
         // After Hide dashboard widgets (9999) and anything plugins add late.
         add_action('wp_dashboard_setup', array(__CLASS__, 'setup'), PHP_INT_MAX - 1);
+        add_action('wp_network_dashboard_setup', array(__CLASS__, 'setup'), PHP_INT_MAX - 1);
+    }
+
+    /**
+     * Screen ID of the Dashboard being laid out: the network's in Network
+     * Admin, which keeps its own widgets, order and Screen Options.
+     *
+     * @return string
+     */
+    private static function screen() {
+        return is_network_admin() ? 'dashboard-network' : 'dashboard';
     }
 
     /**
      * Rules, from admin/data/dashboard.php.
      *
-     * @return array{columns:array<string,string[]>,hidden:string[],developers:string[],reports:string[],start_hidden:string[]}
+     * @return array{columns:array<string,string[]>,network_columns:array<string,string[]>,hidden:string[],developers:string[],reports:string[],start_hidden:string[]}
      */
     public static function rules() {
         static $rules = null;
@@ -93,13 +106,14 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
             /**
              * Filter how Tidy the dashboard lays out widgets.
              *
-             * @param array $rules columns (column => widget IDs), hidden,
-             *                     developers, reports and start_hidden
-             *                     (widget IDs).
+             * @param array $rules columns and network_columns (column =>
+             *                     widget IDs, for each site's and the
+             *                     network's Dashboard), hidden, developers,
+             *                     reports and start_hidden (widget IDs).
              */
             $data  = apply_filters('seoprostack_dashboard_layout', is_array($data) ? $data : array());
             $rules = array();
-            foreach (array('columns', 'hidden', 'developers', 'reports', 'start_hidden') as $key) {
+            foreach (array('columns', 'network_columns', 'hidden', 'developers', 'reports', 'start_hidden') as $key) {
                 $rules[$key] = isset($data[$key]) && is_array($data[$key]) ? $data[$key] : array();
             }
         }
@@ -123,6 +137,12 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
     public static function setup() {
         global $wp_meta_boxes;
 
+        $screen = self::screen();
+        if ('dashboard-network' === $screen && !self::on_dashboard()) {
+            // Ultimate Multisite runs wp_network_dashboard_setup on its own
+            // screens to list the network's widgets; leave that list whole.
+            return;
+        }
         remove_action('welcome_panel', 'wp_welcome_panel');
 
         $present = self::present();
@@ -142,17 +162,20 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
         }
         foreach (array_keys(array_intersect_key($present, $remove)) as $id) {
             foreach (self::COLUMNS as $context) {
-                remove_meta_box($id, 'dashboard', $context);
+                remove_meta_box($id, $screen, $context);
             }
             unset($present[$id]);
         }
-        if (empty($wp_meta_boxes['dashboard']) || !$present) {
+        if (empty($wp_meta_boxes[$screen]) || !$present) {
             return;
         }
-        self::start_hidden(array_keys($present));
+        if ('dashboard' === $screen) {
+            // Those widgets are each site's; the network's Screen Options stay as saved.
+            self::start_hidden(array_keys($present));
+        }
 
         $order = array_fill_keys(self::COLUMNS, array());
-        foreach ($rules['columns'] as $context => $ids) {
+        foreach ($rules['dashboard-network' === $screen ? 'network_columns' : 'columns'] as $context => $ids) {
             if (!isset($order[$context])) {
                 continue;
             }
@@ -172,7 +195,7 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
             return implode(',', $ids);
         }, $order);
 
-        add_filter('get_user_option_meta-box-order_dashboard', array(__CLASS__, 'order'));
+        add_filter('get_user_option_meta-box-order_' . $screen, array(__CLASS__, 'order'));
         if (!SEOProStack_Settings::get(self::REARRANGE_KEY)) {
             // wp_dashboard_setup runs before the page header is printed.
             add_action('admin_head', array(__CLASS__, 'lock_style'));
@@ -229,10 +252,11 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
         global $wp_meta_boxes;
 
         $present = array();
-        if (empty($wp_meta_boxes['dashboard']) || !is_array($wp_meta_boxes['dashboard'])) {
+        $screen  = self::screen();
+        if (empty($wp_meta_boxes[$screen]) || !is_array($wp_meta_boxes[$screen])) {
             return $present;
         }
-        foreach ($wp_meta_boxes['dashboard'] as $context => $priorities) {
+        foreach ($wp_meta_boxes[$screen] as $context => $priorities) {
             foreach (array('high', 'sorted', 'core', 'default', 'low') as $priority) {
                 if (empty($priorities[$priority])) {
                     continue;
@@ -262,12 +286,12 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
     }
 
     /**
-     * Whether this is the Dashboard screen.
+     * Whether this is the Dashboard screen (a site's or the network's).
      *
      * @return bool
      */
     private static function on_dashboard() {
-        return function_exists('get_current_screen') && get_current_screen() && 'dashboard' === get_current_screen()->id;
+        return function_exists('get_current_screen') && get_current_screen() && self::screen() === get_current_screen()->id;
     }
 
     /**
