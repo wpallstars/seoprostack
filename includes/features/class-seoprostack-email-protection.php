@@ -80,9 +80,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
             return new WP_Error('email_check_url', __('Use a page URL on this site’s host and port, without login details.', 'seoprostack'));
         }
         $response = wp_safe_remote_get($url, array(
-            // Run only on request; an uncached home page on shared hosting
-            // can take several seconds.
-            'timeout'             => 10,
+            'timeout'             => 3,
             'redirection'         => 0,
             'limit_response_size' => 2 * MB_IN_BYTES,
         ));
