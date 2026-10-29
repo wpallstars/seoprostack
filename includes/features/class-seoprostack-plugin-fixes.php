@@ -205,6 +205,25 @@
  * two frames in which the palette changes. The switch-style toggle still
  * slides.
  *
+ * Kadence Blocks Pro's query blocks (checked with 2.8.20.1) run their query
+ * through rest_do_request() while the page renders. The first
+ * rest_get_server() of a request fires rest_api_init, so every plugin
+ * registers all its REST routes for a page that uses none of them: about
+ * 450 ms of a 700 ms query block on a site with WooCommerce, MCP Adapter
+ * and Fluent's apps. While a query block whose query has not run renders,
+ * a server holding only the query loop route (as Kadence registers it)
+ * stands in as the global one, so Kadence's own request is answered there
+ * with WordPress's usual checks and filters. It stops standing in as soon
+ * as a dispatch starts and after the block, so any other REST use gets the
+ * full server as before. REST requests (the editor, Kadence's filters
+ * reloading results) already have the full server and are not changed.
+ *
+ * The Kadence theme (checked with 1.5.2) reads its settings with
+ * get_theme_mod() over 1,300 times as it builds a page's CSS, and each read
+ * decodes the whole theme_mods option again (37 KB on one site: 250 ms per
+ * page). The decoded value is kept for the rest of the request and given
+ * through the option's own filters; a changed stored value is decoded again.
+ *
  * Image Copytrack 1.2.4's vendor script uses regeneratorRuntime but declares
  * only wp-element and wp-i18n as dependencies. On screens where no other
  * plugin loads the runtime first, including Add Plugins and View details,
@@ -308,6 +327,23 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      */
     private static $kadence_active = array();
 
+    /** Kadence Blocks Pro's query loop route, which its query blocks request while the page renders. */
+    const KADENCE_QUERY_ROUTE = '/wp/v2/kadence_query/query';
+
+    /** Kadence Blocks Pro's query loop REST controller. */
+    const KADENCE_QUERY_CONTROLLER = 'Kadence_Blocks_Query_Loop_CPT_Rest_Controller';
+
+    /** Whether the query loop's own server is dispatching Kadence's request. */
+    private static $kadence_query_dispatching = false;
+
+    /**
+     * Kadence theme mods, decoded once per stored value: site ID and option
+     * name => array(stored value, decoded value).
+     *
+     * @var array<string, array{0:string,1:array<mixed>}>
+     */
+    private static $kadence_theme_mods = array();
+
     /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
     const CRONTROL_NOTICE = 'crontrol-status-notice';
 
@@ -346,7 +382,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -399,6 +435,15 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (!is_admin()) {
             // First thing in the body, before anything is drawn.
             add_action('wp_body_open', array(__CLASS__, 'kadence_dark_mode_script'), 0);
+            if (defined('KBP_VERSION')) {
+                // Last, so a block another filter answers is left alone.
+                add_filter('pre_render_block', array(__CLASS__, 'kadence_query_server'), PHP_INT_MAX, 2);
+                add_filter('render_block', array(__CLASS__, 'kadence_query_server_done'), PHP_INT_MAX);
+            }
+        }
+        if ('kadence' === get_template()) {
+            // Last, so a value another filter gives is kept.
+            add_filter('pre_option_theme_mods_' . get_stylesheet(), array(__CLASS__, 'kadence_theme_mods'), PHP_INT_MAX, 2);
         }
         // Now (init, priority 0): LiteSpeed Cache reads the constant when a
         // crawl starts and in its role simulation (init, priority 5).
@@ -929,6 +974,112 @@ JS;
                 'data-cfasync'     => 'false',
             )
         );
+    }
+
+    /**
+     * Before a Kadence query block renders whose query has not run yet,
+     * stand in a REST server holding only the query loop route
+     * (SEOProStack_Kadence_Query_Server), so Kadence's rest_do_request() does
+     * not boot the whole REST API. Not when a REST server is already running
+     * (REST requests, or one another plugin started).
+     *
+     * @param string|null          $pre   Content another filter gave instead.
+     * @param array<string, mixed> $block Block about to render.
+     * @return string|null Unchanged.
+     */
+    public static function kadence_query_server($pre, $block) {
+        global $wp_rest_server, $kbp_ql_id, $kb_query_rest_responses;
+        // Cheapest first: this runs for every block on the page.
+        if (null !== $pre || empty($kbp_ql_id) || !empty($wp_rest_server) || self::$kadence_query_dispatching
+            || !isset($block['blockName']) || !is_string($block['blockName']) || 0 !== strpos($block['blockName'], 'kadence/query-')
+            || !empty($kb_query_rest_responses[$kbp_ql_id]) || !class_exists(self::KADENCE_QUERY_CONTROLLER, false)) {
+            return $pre;
+        }
+        $type       = get_post_type_object('kadence_query');
+        $controller = $type ? $type->get_rest_controller() : null;
+        if (null === $controller || !is_a($controller, self::KADENCE_QUERY_CONTROLLER) || !method_exists($controller, 'query') || !method_exists($controller, 'get_query_params')) {
+            return $pre;
+        }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-query-server.php';
+        $server = new SEOProStack_Kadence_Query_Server();
+        // As Kadence Blocks Pro registers it (its register_routes()).
+        $server->register_route(
+            'wp/v2',
+            self::KADENCE_QUERY_ROUTE,
+            array(
+                array(
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => array($controller, 'query'),
+                    'permission_callback' => '__return_true',
+                    'args'                => $controller->get_query_params(),
+                ),
+            )
+        );
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- core's REST server global: rest_get_server() returns this until the dispatch starts or the block ends.
+        $wp_rest_server = $server;
+        return $pre;
+    }
+
+    /**
+     * After each block: stop standing in for the REST server.
+     *
+     * @param string $content Block content.
+     * @return string Unchanged.
+     */
+    public static function kadence_query_server_done($content) {
+        self::kadence_query_server_off();
+        return $content;
+    }
+
+    /**
+     * Stop standing in for the REST server, so the next rest_get_server()
+     * starts the full one.
+     */
+    public static function kadence_query_server_off() {
+        if (isset($GLOBALS['wp_rest_server']) && $GLOBALS['wp_rest_server'] instanceof SEOProStack_Kadence_Query_Server) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- core's REST server global, unset again as before the block.
+            $GLOBALS['wp_rest_server'] = null;
+        }
+    }
+
+    /**
+     * Note whether the query loop's own server is dispatching, so blocks
+     * Kadence renders inside its query do not stand in a server again.
+     *
+     * @param bool $on Whether it is.
+     */
+    public static function kadence_query_dispatching($on) {
+        self::$kadence_query_dispatching = (bool) $on;
+    }
+
+    /**
+     * Answer reads of the Kadence theme's mods with the value decoded once
+     * per stored value, through the option's own filters, as get_option()
+     * would. A changed stored value (a save, another site) is decoded again;
+     * an option that is not autoloaded is left to WordPress.
+     *
+     * @param mixed  $pre    Value another filter gave, or false.
+     * @param string $option Option name.
+     * @return mixed
+     */
+    public static function kadence_theme_mods($pre, $option) {
+        if (false !== $pre || wp_installing()) {
+            return $pre;
+        }
+        $all = wp_load_alloptions();
+        if (!isset($all[$option]) || !is_string($all[$option])) {
+            return $pre;
+        }
+        $key = get_current_blog_id() . ':' . $option;
+        if (!isset(self::$kadence_theme_mods[$key]) || self::$kadence_theme_mods[$key][0] !== $all[$option]) {
+            $value = maybe_unserialize($all[$option]);
+            if (!is_array($value)) {
+                return $pre;
+            }
+            self::$kadence_theme_mods[$key] = array($all[$option], $value);
+        }
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own option_{name} filter, which get_option() skips for a value from pre_option.
+        return apply_filters("option_{$option}", self::$kadence_theme_mods[$key][1], $option);
     }
 
     /**
