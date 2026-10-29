@@ -89,6 +89,15 @@ pattern so people can extend it. Adding only fills what is missing; Remove
 takes back only unused items SEO Pro Stack added. Check both on a throwaway
 site with `wp seoprostack starters diff|add|remove`, with items in use.
 
+Board tasks (`fluentboards_tasks`, the Website Setup board) are instructions
+anyone can follow: what the service is for, numbered steps with links checked
+to load, where its key belongs (never in the task), and when it is done. Keep
+them in running order; a task from another plugin names the one it follows
+with `after`. Affiliate links follow `AGENTS.md` (listed in `.wporg-links`).
+Anything WordPress.org would not have the plugin recommend, such as premium
+plugin update services (GPL Vault, owner's decision), goes in
+`starters/github/<same file name>.json`, which only GitHub builds include.
+
 ## Presets and starter data together
 
 A preset and starter data never set the same setting, so the order they are

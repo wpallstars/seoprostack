@@ -9,4 +9,7 @@
 # WordPress.org plugins must not alter WordPress update routines.
 /includes/features/class-seoprostack-update-delay.php
 /includes/class-seoprostack-update-offers.php
+# Starter data that recommends premium plugin update services (GPL Vault):
+# GitHub builds only, at the owner's request.
+/starters/github/
 # Keep README.md: the admin Read Me tab shows it (admin/data/readme.php).

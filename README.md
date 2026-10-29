@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.94-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.95-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.94
+Version: 1.3.95
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1615,15 +1615,41 @@ Each asks first. Items are added through the plugin's own models, with its own c
 |---|---|
 | FluentCRM | Lists named after where a contact came from: Website Contact Form, Booking Form, Newsletter Subscription Form, User Registration Form, Post Comment Form and Data Subject Access Request Form, plus Website Shop Customers with WooCommerce and free and paid course lists with Tutor LMS. Tags for who the contact is to you (Customer / Client, VIP, Supplier, Partner, Distributor, Reseller, Job Applicant, Staff, Employee, Contractor, Quote Requested) and what they are on the website (Website User, Admin, Editor, Author, Contributor, Commenter, Newsletter Subscriber, and Shop Manager, Course Student and Tutor where those plugins are active). Contact fields Company, Role and Website. Role-based tagging (FluentCRM Pro) tags contacts by WordPress role; WooCommerce customers and Tutor LMS students go to their list and tag as pending. Signing up from comments, checkout and registration stays off. |
 | Fluent Forms | A **Contact Form**, **Discovery Call Form** (company, role, website, message and preferred times), **Subscription Form** and **Data Subject Access Request Form** (who is asking, what they want, and entries deleted after 10 years). With FluentCRM active, each sends people to the FluentCRM list named after it, and tags them from their answers: the newsletter tick box adds Website Newsletter Subscriber, and the access request's types add Customer / Client, Supplier, Employee, Contractor or Website User. Without Fluent Forms Pro, phone fields and the proof of identity and address uploads are left out. |
-| Fluent Boards | A **Website** board for requests and feedback, with To-Do, In Progress, Done (please check) and Closed (closes tasks) and the default colour labels. |
+| Fluent Boards | A **Website** board for requests and feedback, with To-Do, In Progress, Done (please check) and Closed (closes tasks) and the default colour labels. A **Website Setup** board with one task per account and key the site needs, in the order to do them, each with plain steps and links: see [Website Setup board](#website-setup-board). |
 | Fluent Booking | A free, 30-minute **Discovery Call** for the administrator adding it, using their existing host calendar or a new one named after their display name. New calendars share only this event; existing sharing settings stay as they are. With FluentCRM active, confirmed bookings join Website Booking Form. Review the default availability, timezone and meeting location before sharing the booking page. Remove keeps events with bookings and calendars with other events or shared host use. |
 
-They are JSON files in `starters/`, one per plugin folder; `includes/class-seoprostack-starters.php` describes the format. A file not named after a plugin folder, with `"set": true`, is a starter set that spans plugins, such as the Agency example data; sets are added only by name, never by `--all`. Besides lists, tags, contact fields, settings, boards and forms, items can be Fluent Support products, FluentBooking events, FluentCommunity spaces, Tutor LMS courses with topics and lessons, draft pages and SEO Pro Stack's own settings, each made through that plugin's own code. Form fields can be compact (element, name, label and options), completed from Fluent Forms' own field defaults. Items name each other with `{form:Title}`, `{board:Title}`, `{event:Title}`, `{page:Title}` and the like (their ID on this site) and `{url:Page title}` (a page's address); a setting that names an item the site does not have yet is filled in when it is added later. What was added is recorded in the `seoprostack_starters_added` option (not autoloaded); uninstalling SEO Pro Stack removes the record but leaves the lists, tags, fields and boards, which are that plugin's data.
+They are JSON files in `starters/`, one per plugin folder; `includes/class-seoprostack-starters.php` describes the format. Items in `starters/github/` (same file names) are added to those starters in GitHub builds only; the WordPress.org build leaves the folder out. A file not named after a plugin folder, with `"set": true`, is a starter set that spans plugins, such as the Agency example data; sets are added only by name, never by `--all`. Besides lists, tags, contact fields, settings, boards and forms, items can be Fluent Support products, FluentBooking events, FluentCommunity spaces, Tutor LMS courses with topics and lessons, draft pages and SEO Pro Stack's own settings, each made through that plugin's own code. Form fields can be compact (element, name, label and options), completed from Fluent Forms' own field defaults. Items name each other with `{form:Title}`, `{board:Title}`, `{event:Title}`, `{page:Title}` and the like (their ID on this site) and `{url:Page title}` (a page's address); a setting that names an item the site does not have yet is filled in when it is added later. What was added is recorded in the `seoprostack_starters_added` option (not autoloaded); uninstalling SEO Pro Stack removes the record but leaves the lists, tags, fields and boards, which are that plugin's data.
 
 - `wp seoprostack starters list`: each starter, whether its plugin is active, how many items are missing and how many SEO Pro Stack added.
 - `wp seoprostack starters diff <plugin>`: the items this site does not have yet.
 - `wp seoprostack starters add <plugin>… | --all`: add the missing items. Boards and booking events are created by `--user`, or the first administrator. Booking events are matched by title within that user's host calendar; existing events and calendars are left alone.
 - `wp seoprostack starters remove <plugin>…`: remove what was added, while unused.
+
+#### Website Setup board
+
+Fluent Boards' starter data adds a **Website Setup** board: a checklist of the accounts and keys a site needs, one task each, in the order to set them up, written so anyone can follow them. Each task says what the service is for, the steps with links, where its key belongs and when the task is done:
+
+1. Hosting (Hostinger), with SSH access for the AI assistant.
+2. Cloudflare for the domain's DNS and security.
+3. [aidevops](https://aidevops.sh), the AI assistant's toolkit, and SSH access so it can run WP-CLI on the server.
+4. Connecting another AI client to the board (Fluent Boards' **Settings → MCP for AI Agents**), optional.
+5. Business email (Purelymail) and the website's own email sending (Amazon SES with FluentSMTP).
+6. File storage for backups (Cloudflare R2).
+7. Google Cloud, with a budget alert, and Google Search Console.
+8. Payment processing: Stripe, PayPal, Paddle or Polar, or more than one.
+
+Other plugins add their own tasks to the same board through the `seoprostack_starters` filter, after the task they follow: SEO Pro Directory adds Google Maps Platform, Outscraper, Jev (optional) and its first listings after Setup Google Cloud. Add Fluent Boards' starter data first, so those tasks find the one they follow (otherwise they go to the top). Tasks never hold a password or key; each says where its key belongs (the plugin's settings, `wp-config.php`, or the aidevops secret store).
+
+**Without an AI assistant:** open **Plugins**, find Fluent Boards' row, choose **Add starter data**, then open **Fluent Boards → Website Setup** and work through the tasks from the top, moving each to Done.
+
+**With an AI assistant:** set up SSH access to the hosting first (the board's SSH task says how; on Hostinger it is in hPanel under **Advanced → SSH Access**, on any plan but Single), so the assistant can run WP-CLI on the server and check its own work. We recommend it for every site. Then ask it to run, in the site's folder:
+
+```bash
+wp seoprostack starters diff fluent-boards --url=<site address>
+wp seoprostack starters add fluent-boards --user=<your username> --url=<site address>
+```
+
+and to go through the tasks with you, doing the parts it can (settings in WordPress, and DNS records if you give it a Cloudflare API token through its secret store) and asking you for the parts only you can do, such as signing up, paying and entering keys. Adding again adds only tasks that are missing; tasks you edited, finished or archived stay as they are.
 
 ### Hosting needs (Server)
 
@@ -1949,7 +1975,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `wpallstars_github_token` (GitHub builds, shared updater): GitHub token for a repository (token, owner/repo), for private repositories; defaults to the `WPALLSTARS_GITHUB_TOKEN` constant, then `SEOPROSTACK_GITHUB_TOKEN`. `seoprostack_github_token` still works.
 - `wpallstars_github_updater_enabled` and `wpallstars_github_updater_early` (GitHub builds, shared updater): whether it runs (false while Git Updater is active, or when Updates from GitHub is off) and whether plugins also on WordPress.org take GitHub releases first (Early updates from GitHub).
 - `wpallstars_github_updater_checks_in_cron` (GitHub builds, shared updater): return false to let update checks that fall due run on the admin screen being opened, as in WordPress, instead of in WP-Cron.
-- `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
+- `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`). A plugin adds tasks to another starter's board (`fluentboards_tasks` with `board`, `title`, `description` and `after`) as its own starter, keyed by its own folder, with the board item too, so its row on the Plugins screen offers them.
 - `seoprostack_woo_light_shop_page`: whether a page keeps WooCommerce’s scripts with Lighter WooCommerce pages on (bool), for products the content check does not see.
 - `seoprostack_replaced_plugin_extras`: what a replaced plugin does on this site that SEO Pro Stack does not (plain names, plugin folder). The Plugins screen names them instead of saying the plugin can go.
 - `seoprostack_host_plugins`: plugins web hosts add to new sites, which the Plugins screen recommends deactivating while active (plugin folder => `host` name and `use`, plain text completing “It is not needed to run your site, only for …”).
@@ -1998,6 +2024,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.95
+
+- New: Fluent Boards starter data adds a **Website Setup** board: one task per account and key a site needs (hosting, Cloudflare, aidevops and SSH access for it, connecting an AI client to the board, business email, Amazon SES, Cloudflare R2, Google Cloud, payment processing), in the order to do them, with plain steps and links, and where each key belongs. The README's [Website Setup board](#website-setup-board) says what to click without an AI assistant, and what an assistant runs over SSH. Starter data can now add board tasks (`fluentboards_tasks`), placed after the task they follow, and other plugins add their own to the same board; Remove takes back only tasks that are unchanged, open, still in their first stage and without a due date, assignees, labels, comments, attachments or subtasks (GitHub issue #1011).
+- Developers: `starters/github/` holds starter items for GitHub builds only, merged into the starter of the same name and left out of the WordPress.org build (`.distignore-wporg`); `scripts/preflight-plugin.sh` checks its JSON too.
 
 ### 1.3.94
 

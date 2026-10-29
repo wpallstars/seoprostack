@@ -1,8 +1,8 @@
 {
     "name": "Fluent Boards",
-    "tested": "2.1.0",
-    "updated": "2026-10-01",
-    "notes": "One board for the website, where the team and clients put requests and feedback. Work moves from To-Do to In Progress, then to Done (please check) so the person who asked can confirm, and only then to Closed. Add more boards the same way: one per area of work, with a check step before Closed.",
+    "tested": "2.2.2",
+    "updated": "2026-10-29",
+    "notes": "Two boards. Website: where the team and clients put requests and feedback. Work moves from To-Do to In Progress, then to Done (please check) so the person who asked can confirm, and only then to Closed. Website Setup: the accounts and keys the site needs, one task each, in the order to do them, with plain steps and links anyone can follow. Never paste a password or key into a task or comment: each task says where the key belongs. Other plugins add their own setup tasks to the same board (SEO Pro Directory adds Google Maps Platform and Outscraper). Add more boards the same way: one per area of work, with a check step before Closed.",
     "items": {
         "fluentboards_boards": [
             {
@@ -15,6 +15,68 @@
                     { "title": "Done (please check)" },
                     { "title": "Closed", "closed": true }
                 ]
+            },
+            {
+                "title": "Website Setup",
+                "type": "to-do",
+                "description": "The accounts and keys this site needs, in the order to set them up. Each task has the steps and links. Never paste a password or key into a task or comment.",
+                "stages": [
+                    { "title": "To-Do" },
+                    { "title": "In Progress" },
+                    { "title": "Done", "closed": true }
+                ]
+            }
+        ],
+        "fluentboards_tasks": [
+            {
+                "board": "Website Setup",
+                "title": "Setup Hosting (Hostinger)",
+                "description": "Where the website lives. We use Hostinger: fast LiteSpeed servers, daily backups and SSH access for your AI assistant.\n\n1. Open [Hostinger](https://hostinger.com?REFERRALCODE=1MARCUS454) and choose a **Premium** or **Business** web hosting plan, or Cloud hosting for bigger sites. The Single plan has no SSH access, which aidevops needs.\n2. Sign up, pay, and turn on two-factor authentication in your account settings.\n3. In hPanel, add the website and its domain (a temporary domain is fine until the domain is ready).\n4. Note the plan name and data centre in a comment on this task, never a password.\n\nDone when the site loads at its address and you can log in to hPanel."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Cloudflare (domain DNS and security)",
+                "description": "Cloudflare runs the domain's DNS for free and protects and speeds up the site.\n\n1. Buy the domain if you have not yet, at any registrar (such as [101domain](https://www.101domain.com/affiliate/evergreenje.html)) or Cloudflare itself.\n2. [Create a Cloudflare account](https://developers.cloudflare.com/fundamentals/account/create-account/) and turn on two-factor authentication.\n3. Add the domain ([full setup](https://developers.cloudflare.com/dns/zone-setups/full-setup/setup/)): Cloudflare copies the existing DNS records. Check the website's A record points at your hosting's IP (hPanel shows it).\n4. At your registrar, replace the nameservers with the two Cloudflare gives you. It can take up to a day.\n5. SSL/TLS: choose [Full (strict)](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/) once the host has an SSL certificate.\n\nDone when Cloudflare shows the domain as **Active** and the site loads over https."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup aidevops (your AI assistant)",
+                "description": "[aidevops](https://aidevops.sh) lets an AI assistant on your computer set up and look after this site with you: plugin updates, settings, checks and fixes, and these setup tasks.\n\n1. On a Mac, open Terminal and run `brew install marcusquinn/tap/aidevops && aidevops update`. On Linux or Windows (WSL): `npm install -g aidevops && aidevops update`.\n2. Follow the setup it starts. Check with `aidevops status`.\n3. Start a session with `aidevops opencode` and type `/onboarding` for a guided tour.\n4. Keys go in its secret store, never in chat: `aidevops secret set NAME` asks for the value privately.\n\nDocs: [aidevops.sh/docs](https://aidevops.sh/docs) and [GitHub](https://github.com/marcusquinn/aidevops).\n\nDone when `aidevops status` shows it ready."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup SSH Access for aidevops",
+                "description": "SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your AI can do in seconds what takes many clicks, and check its own work. Recommended for every site.\n\n1. On your computer, make a key if you have none: `ssh-keygen -t ed25519` (press Enter for the defaults; a passphrase is optional).\n2. In Hostinger's hPanel, open **Advanced → SSH Access**, turn SSH on and add your public key (the text in `~/.ssh/id_ed25519.pub`). Hostinger's guide: [connect via SSH](https://www.hostinger.com/support/1583245-how-to-connect-to-a-hosting-plan-via-ssh-in-hostinger/).\n3. Note the IP, port and username hPanel shows, and ask your AI to add a short name for the server to `~/.ssh/config` and test it with `ssh <name> 'wp --info'`.\n4. Tell aidevops which folder the site is in (hPanel shows it, such as `domains/example.com/public_html`).\n\nNever share your hosting password or private key. Done when `wp --info` works over SSH."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Connect your AI to this Board",
+                "description": "Optional. With SSH (the task before), aidevops can already read and update this board through WP-CLI. To let another AI client (ChatGPT, Claude) work on the board directly:\n\n1. In Fluent Boards, open **Settings → MCP for AI Agents** (Fluent Boards 2.2 or later) and turn **Enable MCP for AI Agents** on. If it asks for the MCP adapter, install it from that screen.\n2. Follow **Connect your AI client** there: it makes a key (a WordPress application password) for your user and shows the address to give your AI client. On a multisite, Fluent Boards must be network-activated first.\n3. Leave **Allow board members to use MCP** off unless the whole team needs it.\n\nWithout any AI: work through the tasks in order and move each to Done when finished."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Business Email (Purelymail)",
+                "description": "Mailboxes people write to, such as hello@ and support@ at your domain. [Purelymail](https://purelymail.com/) is simple and low-cost ([pricing](https://purelymail.com/pricing)).\n\n1. Sign up and add your domain.\n2. Purelymail lists DNS records (MX, SPF, DKIM, DMARC): add each in Cloudflare → DNS, with the proxy (orange cloud) off. A domain has one SPF record: if another service asks for one, merge them into it.\n3. Create the mailboxes, or one mailbox with aliases, and add them to your email app. Purelymail's [docs](https://purelymail.com/docs/) cover each step.\n4. Send a test to and from an outside address.\n\nDone when mail arrives both ways and Purelymail shows the DNS records as correct."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Email Sending (Amazon SES)",
+                "description": "The website's own emails (forms, newsletters, password resets) go through [Amazon SES](https://aws.amazon.com/ses/), so they reach inboxes instead of spam. FluentSMTP connects WordPress to it.\n\n1. Create an AWS account, turn on two-factor authentication, and open [SES](https://console.aws.amazon.com/ses/) in the region nearest your visitors.\n2. [Verify your domain](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html): add the three DKIM CNAME records in Cloudflare → DNS (proxy off), and a DMARC record if Purelymail did not add one ([DMARC](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dmarc.html)).\n3. [Request production access](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html), saying the site sends only emails people ask for.\n4. Create access keys that may only send email, and enter them in **FluentSMTP → Settings** ([guide](https://fluentsmtp.com/docs/set-up-amazon-ses-in-fluent-smtp/)), then send a test.\n\nFluentSMTP encrypts the key with the site's salts: re-enter it if they change. Done when the test email arrives."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup File Storage (Cloudflare R2)",
+                "description": "[Cloudflare R2](https://developers.cloudflare.com/r2/get-started/) stores files off the server, such as backups, with no download fees. The free allowance covers most sites.\n\n1. In Cloudflare, open **R2 Object Storage** and add a payment method (needed even for the free tier).\n2. Create a bucket named after the site, such as `example-com-backups`.\n3. [Create an API token](https://developers.cloudflare.com/r2/api/tokens/) with **Object Read & Write** for that bucket only.\n4. Give the access key, secret and endpoint to the plugin that uses them (your backup plugin), or to aidevops with `aidevops secret set`. Never in a task or comment.\n\nDone when a first backup appears in the bucket."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Google Cloud",
+                "description": "Google services the site uses (such as Maps) are billed through a Google Cloud project. Google Search Console is free and separate: add the site there too ([Search Console](https://search.google.com/search-console/about)).\n\n1. Sign in to the [Google Cloud console](https://console.cloud.google.com/) with the business's Google account.\n2. Create a billing account (a card is needed; most small sites stay in the free monthly credit), then a project named after the site.\n3. Set a [budget alert](https://cloud.google.com/billing/docs/how-to/budgets), such as 20 a month in your currency. It emails you as spending nears the amount but does not stop it: when one arrives, check what is using the API and lower or turn off what you do not need. To set a hard limit, [cap each API's daily requests](https://cloud.google.com/apis/docs/capping-api-usage).\n\nDone when the project exists with billing and a budget alert."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Payment Processing",
+                "description": "Choose who takes card payments. You can use more than one.\n\n- [Stripe](https://stripe.com/): cards, Apple Pay and Google Pay; you handle sales tax. Keys: [Stripe API keys](https://docs.stripe.com/keys).\n- [PayPal](https://www.paypal.com/business): customers who prefer PayPal. Keys: [developer dashboard](https://developer.paypal.com/dashboard/).\n- [Paddle](https://www.paddle.com/) or [Polar](https://polar.sh/): a merchant of record, who handles sales tax and VAT for you, for a higher fee ([Paddle pricing](https://www.paddle.com/pricing), [Polar docs](https://docs.polar.sh/)).\n\n1. Open a business account and complete its identity checks.\n2. Connect it in the plugin that takes the payments (such as Ultimate Multisite → Settings → Payments, or Fluent Forms → Payments), in test mode first. Keys go in that plugin's settings, never in a task.\n3. Make a test purchase end to end, then switch to live mode.\n\nDone when a live payment reaches your account and its receipt email arrives."
             }
         ]
     }

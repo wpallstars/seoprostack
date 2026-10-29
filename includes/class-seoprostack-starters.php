@@ -41,6 +41,18 @@
  *   labels (title, color: a Fluent Boards colour such as "blue-bold"; without
  *   labels the board gets Fluent Boards' default ones). Matched by title among
  *   boards that are not archived.
+ * - fluentboards_tasks: board (a board's title, added by this or another
+ *   starter), title, description (Markdown, as Fluent Boards keeps it) and
+ *   after (the title of the task it follows). Added to the board's first
+ *   stage, after the task named in after, or else after the item before it
+ *   in the starter, or at the top when neither is in that stage. Matched by
+ *   title among the board's tasks, archived ones included, so a task someone
+ *   finished and archived is not added again. Another plugin adds tasks to
+ *   the same board with the seoprostack_starters filter: its own starter,
+ *   with the board too (matched by title, so it is made only once).
+ *   Remove keeps tasks that were edited, moved to another stage, closed,
+ *   archived, given a due date, assignees or labels, commented on or
+ *   given attachments or subtasks.
  * - fluentsupport_products: title, description. Matched by title.
  * - fluentbooking_events: title, description, duration, crm_list (a list
  *   slug), location (phone_guest, phone_organizer, online_meeting,
@@ -76,8 +88,8 @@
  * Adding never changes or removes anything already there: items that exist
  * are skipped. What was added is recorded, and Remove takes away only those
  * items, and only while unused (no contacts, no tasks, no contact values,
- * no tickets, no members or posts, no enrolments, pages and settings
- * unchanged). Everything runs through the plugin's own models and fires its
+ * no tickets, no members or posts, no enrolments, pages, settings and
+ * board tasks unchanged). Everything runs through the plugin's own models and fires its
  * own created and deleted actions.
  *
  * @package SEOProStack
@@ -104,6 +116,7 @@ final class SEOProStack_Starters {
         'fluentcrm_settings',
         'fluentform_forms',
         'fluentboards_boards',
+        'fluentboards_tasks',
         'fluentsupport_products',
         'fluentbooking_events',
         'fluentcommunity_spaces',
@@ -183,6 +196,22 @@ final class SEOProStack_Starters {
                 $starters[basename($file, '.json')] = $data;
             }
         }
+        // GitHub builds only (.distignore-wporg leaves starters/github/ out of
+        // the WordPress.org build): items added to the starter of the same
+        // name, such as services WordPress.org would not have us recommend.
+        $extras = glob(SEOPROSTACK_DIR . 'starters/github/*.json');
+        foreach (is_array($extras) ? $extras : array() as $file) {
+            $data = wp_json_file_decode($file, array('associative' => true));
+            $slug = basename($file, '.json');
+            if (!is_array($data) || empty($data['items']) || !is_array($data['items']) || !isset($starters[$slug]['items'])) {
+                continue;
+            }
+            foreach ($data['items'] as $type => $list) {
+                if (is_array($list)) {
+                    $starters[$slug]['items'][$type] = array_merge(isset($starters[$slug]['items'][$type]) ? (array) $starters[$slug]['items'][$type] : array(), $list);
+                }
+            }
+        }
 
         /**
          * Filter the starter data.
@@ -200,6 +229,12 @@ final class SEOProStack_Starters {
             foreach (self::TYPES as $type) {
                 if (!empty($starter['items'][$type]) && is_array($starter['items'][$type])) {
                     $items[$type] = array_values(array_filter($starter['items'][$type], 'is_array'));
+                }
+            }
+            if (isset($items['fluentboards_tasks'])) {
+                $items['fluentboards_tasks'] = self::chain_tasks($items['fluentboards_tasks']);
+                if (!$items['fluentboards_tasks']) {
+                    unset($items['fluentboards_tasks']);
                 }
             }
             if ($items) {
@@ -226,6 +261,32 @@ final class SEOProStack_Starters {
     public static function get($slug) {
         $all = self::all();
         return isset($all[$slug]) ? $all[$slug] : null;
+    }
+
+    /**
+     * Board tasks with a board and title, each told the title of the task
+     * before it on the same board in the starter ("prev"), so it can follow
+     * that one when the task named in "after" is not on the board.
+     *
+     * @param array $tasks Task items.
+     * @return array
+     */
+    private static function chain_tasks(array $tasks) {
+        $out  = array();
+        $last = array();
+        foreach ($tasks as $task) {
+            $board = isset($task['board']) ? trim((string) $task['board']) : '';
+            $title = isset($task['title']) ? trim((string) $task['title']) : '';
+            if ('' === $board || '' === $title) {
+                continue;
+            }
+            $task['board'] = $board;
+            $task['title'] = $title;
+            $task['prev']  = isset($last[$board]) ? $last[$board] : '';
+            $last[$board]  = $title;
+            $out[]         = $task;
+        }
+        return $out;
     }
 
     /**
@@ -705,6 +766,8 @@ final class SEOProStack_Starters {
                 return sprintf(/* translators: %s: form name */ __('Form: %s', 'seoprostack'), (string) $item['title']);
             case 'fluentboards_boards':
                 return sprintf(/* translators: %s: board name */ __('Board: %s', 'seoprostack'), (string) $item['title']);
+            case 'fluentboards_tasks':
+                return sprintf(/* translators: 1: task name, 2: board name */ __('Task: %1$s (%2$s)', 'seoprostack'), (string) $item['title'], (string) $item['board']);
             case 'fluentsupport_products':
                 return sprintf(/* translators: %s: product name */ __('Support product: %s', 'seoprostack'), (string) $item['title']);
             case 'fluentbooking_events':
@@ -750,6 +813,9 @@ final class SEOProStack_Starters {
                 return null !== \FluentForm\App\Models\Form::where('title', (string) $item['title'])->first();
             case 'fluentboards_boards':
                 return null !== \FluentBoards\App\Models\Board::where('title', (string) $item['title'])->whereNull('archived_at')->first();
+            case 'fluentboards_tasks':
+                $board = self::find_id('fluentboards_boards', (string) $item['board']);
+                return $board && null !== self::board_task($board, (string) $item['title']);
             case 'fluentbooking_events':
                 $calendar = \FluentBooking\App\Models\Calendar::where('user_id', self::booking_user())->where('type', 'simple')->first();
                 return $calendar && $calendar->events()->where('title', (string) $item['title'])->exists();
@@ -904,6 +970,9 @@ final class SEOProStack_Starters {
 
             case 'fluentboards_boards':
                 return self::create_board($item);
+
+            case 'fluentboards_tasks':
+                return self::create_task($item);
 
             case 'fluentsupport_products':
                 $product = \FluentSupport\App\Models\Product::create(array(
@@ -1567,6 +1636,116 @@ final class SEOProStack_Starters {
     }
 
     /**
+     * A task on a board by title, archived ones and those in any stage
+     * included; subtasks are not matched.
+     *
+     * @param int    $board_id Board ID.
+     * @param string $title    Task title.
+     * @return mixed Fluent Boards' Task, or null.
+     */
+    private static function board_task($board_id, $title) {
+        return \FluentBoards\App\Models\Task::where('board_id', (int) $board_id)
+            ->whereNull('parent_id')
+            ->where('title', sanitize_text_field($title))
+            ->first();
+    }
+
+    /**
+     * Fingerprint of a task's title and description, to notice edits.
+     *
+     * @param mixed $task Fluent Boards' Task.
+     * @return string
+     */
+    private static function task_hash($task) {
+        return hash('sha256', (string) $task->title . "\n" . (string) $task->description);
+    }
+
+    /**
+     * Create a board task in the board's first stage, as Fluent Boards' own
+     * add-task form does, then put it after the task it follows.
+     *
+     * @param array $item Task item.
+     * @return array|null
+     */
+    private static function create_task(array $item) {
+        $board_id = self::find_id('fluentboards_boards', (string) $item['board']);
+        if (!$board_id || !class_exists('FluentBoards\App\Services\TaskService') || !class_exists('FluentBoards\App\Models\Stage')) {
+            return null;
+        }
+        $stage = \FluentBoards\App\Models\Stage::where('board_id', $board_id)->whereNull('archived_at')->orderBy('position', 'ASC')->first();
+        if (!$stage) {
+            return null;
+        }
+        $description = isset($item['description']) ? (string) $item['description'] : '';
+        // Fluent Boards' own description sanitiser keeps Markdown links and quotes.
+        $description = function_exists('fluent_boards_sanitize_description') ? fluent_boards_sanitize_description($description) : wp_kses_post($description);
+        $task = (new \FluentBoards\App\Services\TaskService())->createTask(array(
+            'title'       => sanitize_text_field((string) $item['title']),
+            'description' => $description,
+            'board_id'    => $board_id,
+            'stage_id'    => (int) $stage->id,
+            'created_by'  => self::creator(),
+        ), $board_id);
+        if (!$task || empty($task->id)) {
+            return null;
+        }
+        $task_id = (int) $task->id;
+        self::place_task($task_id, $board_id, (int) $stage->id, $item);
+        $task = \FluentBoards\App\Models\Task::find($task_id);
+        if (!$task) {
+            return null;
+        }
+        return array('id' => $task_id, 'board_id' => $board_id, 'stage_id' => (int) $task->stage_id, 'hash' => self::task_hash($task), 'name' => (string) $item['title']);
+    }
+
+    /**
+     * Put a new task after the one named in "after", or else after the one
+     * before it in the starter ("prev"), when that task is open in the same
+     * stage; at the top of the stage otherwise.
+     *
+     * @param int   $task_id  New task's ID.
+     * @param int   $board_id Board ID.
+     * @param int   $stage_id Stage ID.
+     * @param array $item     Task item.
+     */
+    private static function place_task($task_id, $board_id, $stage_id, array $item) {
+        if (!method_exists('FluentBoards\App\Models\Task', 'moveBetweenTasks')) {
+            return;
+        }
+        // Fluent Boards keeps positions to two decimals and places a task
+        // half way between its neighbours, so a few inserts at the same spot
+        // tie (0.495 is stored as 0.50). Number the stage 1, 2, 3… first, in
+        // its current order, as Fluent Boards itself does when it runs out.
+        if (method_exists('FluentBoards\App\Models\Task', 'reIndexTasksPositions')) {
+            \FluentBoards\App\Models\Task::reIndexTasksPositions(array('stage_id' => $stage_id));
+        }
+        $task = \FluentBoards\App\Models\Task::find($task_id);
+        if (!$task) {
+            return;
+        }
+        $previous = null;
+        foreach (array('after', 'prev') as $key) {
+            if (empty($item[$key])) {
+                continue;
+            }
+            $found = self::board_task($board_id, (string) $item[$key]);
+            if ($found && (int) $found->stage_id === $stage_id && empty($found->archived_at) && (int) $found->id !== $task_id) {
+                $previous = $found;
+                break;
+            }
+        }
+        $query = \FluentBoards\App\Models\Task::where('stage_id', $stage_id)
+            ->whereNull('parent_id')
+            ->whereNull('archived_at')
+            ->where('id', '!=', $task_id);
+        if ($previous) {
+            $query->where('position', '>', $previous->position);
+        }
+        $next = $query->orderBy('position', 'ASC')->first();
+        $task->moveBetweenTasks($previous ? (int) $previous->id : 0, $next ? (int) $next->id : 0);
+    }
+
+    /**
      * Add a board's labels the way Fluent Boards adds its default ones: a
      * colour preset (light colours stored, dark ones picked when shown).
      *
@@ -1917,6 +2096,28 @@ final class SEOProStack_Starters {
                     return $name;
                 }
                 (new \FluentBoards\App\Services\BoardService())->deleteBoard((int) $board->id);
+                return true;
+
+            case 'fluentboards_tasks':
+                $task = \FluentBoards\App\Models\Task::find((int) $record['id']);
+                if (!$task || (int) $task->board_id !== (int) $record['board_id']) {
+                    return false;
+                }
+                // Kept once someone worked on it: moved to another stage,
+                // given a due date, assignees or labels, edited, closed,
+                // archived, commented on, or given attachments or subtasks.
+                if ('open' !== (string) $task->status || !empty($task->archived_at)
+                    || (isset($record['stage_id']) && (int) $task->stage_id !== (int) $record['stage_id'])
+                    || !empty($task->due_at)
+                    || $task->assignees()->count() > 0
+                    || $task->labels()->count() > 0
+                    || self::task_hash($task) !== (string) $record['hash']
+                    || $task->comments()->count() > 0
+                    || $task->attachments()->count() > 0
+                    || \FluentBoards\App\Models\Task::where('parent_id', (int) $task->id)->count() > 0) {
+                    return $name;
+                }
+                (new \FluentBoards\App\Services\TaskService())->deleteTask($task);
                 return true;
 
             case 'fluentform_forms':
