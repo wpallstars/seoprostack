@@ -103,6 +103,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_access_roles';
     $options[] = 'seoprostack_admin_bar_items';
     $options[] = 'seoprostack_admin_menu';
+    // Organise the admin menu: page owners in Network Admin (main site).
+    $options[] = 'seoprostack_admin_menu_network';
     $options[] = 'seoprostack_writer_types';
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';

@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.104-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.105-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.104
+Version: 1.3.105
 
 <!-- github-only:start -->
 ## Screenshots
@@ -393,6 +393,7 @@ Groups the admin menu under the headings **Content**, **Communications**, **SEO*
 - Some plugins move menu entries with their own scripts, matching them by name (for example moving any entry called “Analytics” above Posts). The menu script puts the printed entries back in order as the page loads; entries such scripts add are left where they put them.
 - With [Developer admins](#developer-admins-admin) on, people who are not developers do not see the Developers menu or open its pages, do not see or switch developer plugins (those placed in Developers) on the Plugins screen, and do not see the counts those plugins add to other entries, such as WPVulnerability's known vulnerabilities on Plugins, Appearance → Themes and Dashboard → Updates. Until 0.13.0 this, the developer list and the other limits were this feature’s **Client safeguards**; they moved to Developer admins, so they also work without the organised menu.
 - **Writers see only writing** (off by default, as it changes what people can open): contributors and authors (people who can write posts but not edit other people’s) see Dashboard, the posts and post types they can edit, Media if they can upload, Comments and their profile. Plugins often open their pages to anyone who can log in or write (settings pages that ask only for `read` or `edit_posts`, such as AI Engine’s, Media File Renamer’s, FluentCommunity’s or WooCommerce’s Home); those are hidden from writers and refused with a 403 if opened. Tools is hidden too, as it offers writers nothing of WordPress’s own. So are plugins’ post types without the content editor, such as Lasso Lite’s short links, which use the same permissions as posts but are records, not writing: their list, Add New and edit screens are refused too. Post types with the editor stay. Which plugin post types have no editor is kept in the `seoprostack_writer_types` option, so screens where Load plugins only where needed skips the plugin still know. Pages that ask for a capability a plugin gives the role on purpose (an instructor or support agent capability, for example) stay. Editors, shop managers and administrators are not affected. Subscribers and customers, who only log in to comment, review or buy, never need the admin: use **Block dashboard access**. Filters: `seoprostack_is_writer`, `seoprostack_writer_hides_page` and `seoprostack_writer_hides_post_type`.
+- **Network Admin** (multisite), with the main site’s settings: WordPress’s own entries (Dashboard, Sites, Users, Themes, Plugins, Settings), then a spacer and Ultimate Multisite, then a spacer and a **Developers** menu that opens to the side with every other plugin’s entries: their own menus (such as DB Cleaner or GPL Vault) and their pages under WordPress’s menus (such as SEO Pro Stack, WP Migrate or WPVulnerability under Settings), plain pages sharing one **Settings** entry as on each site. Pages inside a plugin’s own menu stay there. There are no headings, places to choose or Move menu entries there, and the menu fits its names as on each site. Which plugin owns each page is kept apart, in the main site’s `seoprostack_admin_menu_network` option.
 - Replaces Admin Menu Editor and Admin Menu Editor Pro. Their settings are not imported: places come from the rules above, so every site gets the same menu. Admin Menu Editor’s own settings are left alone; while it is active, this feature waits.
 
 ### Dashboard and sidebar widgets (Admin)
@@ -410,6 +411,7 @@ Lays out the Dashboard the same way on every site, from rules made from 12 sites
 - **Developers only**: Site Health status, WPVulnerability Status (known vulnerabilities) and AI Engine Advisor. AI Engine Advisor (a daily list of general advice about the site’s plugins) also starts unticked in Screen Options, once per person, including people who saved Screen Options before; ticking it there shows it from then on. Developers are those of [Developer admins](#developer-admins-admin): the administrators ticked there, or every administrator while it is off; on multisite, super admins, and while it is on, the site’s administrators ticked there.
 - **People who can publish**: At a Glance and the form, support and email statistics, so contributors do not see them. People who cannot edit posts, such as subscribers and customers, see no boxes.
 - Everyone gets the same layout and boxes cannot be dragged. **Let people rearrange boxes** (off by default) allows dragging and keeps each person’s own arrangement; until someone rearranges, they get the layout above. Saved arrangements are never deleted, so switching the feature off gives them back.
+- **Network Dashboard** (multisite), with the main site’s settings: Ultimate Multisite’s search engine warning, First Steps and Activity Stream; then its Summary and WooCommerce Network Orders; then WPVulnerability Status and Right Now. The hidden boxes and the rearranging switch are the same as on each site.
 - Works alongside Hide dashboard widgets: boxes it hides stay hidden.
 
 ### Notification emails (Admin)
@@ -1114,7 +1116,7 @@ Adds a **Screenshot** block (Embed category) and Browser Shots’ `[browser-shot
 Adds a **Link card** block (Embed category): paste the address of a page and the card shows its title, description, site name and picture. The editor reads the page through WordPress’s own link preview route (`wp-block-editor/v1/url-details`), and the picture is copied to the Media Library and shown from your site, so visitors’ browsers never contact the other site.
 
 - Block settings: address (with **Read the page again**), title, description, site name, picture on the right, on the left, above or none (beside the text once the card is 480 pixels wide), picture shape, **Use the site’s icon** (or **Use the page’s picture**), open in a new tab, and nofollow. Alignment (wide), margin and an HTML anchor.
-- Picture shape: **Its own shape** (the default: the picture’s own proportions, between square and 2:1, so a social preview picture at 1.91:1 shows whole, words and all), **Wide, as in social previews** (1.91:1), **Square** or **Fill the card’s height** (cropped to the card, as before 1.3.104). Beside the text the picture sits inside the card at the same height in every card, so a list of cards lines up; above the text it takes the card’s width.
+- Picture shape: **Its own shape** (the default: the picture’s own proportions, between square and 2:1, so a social preview picture at 1.91:1 shows whole, words and all), **Wide, as in social previews** (1.91:1), **Square** or **Fill the card’s height** (cropped to the card, as before 1.3.105). Beside the text the picture sits inside the card at the same height in every card, so a list of cards lines up; above the text it takes the card’s width.
 - Site icons: when the page has no picture, the editor uses the site’s icon if it is at least 128 pixels square: the largest of its Apple touch icon, icon links with sizes, Windows tile picture (WordPress’s site icon) and web app manifest, then `/apple-touch-icon.png`. SVG and ICO icons, and smaller ones, are skipped. Icons show whole on a soft background, never cropped. The page is read once, when the icon is looked for, through core’s link preview request settings (`rest_url_details_http_request_args`).
 - Pictures are copied by people who can upload files; a picture copied before is reused. Others see a note that someone who can upload files needs to open the card. Copied pictures keep their address in `_seoprostack_source_url`, as Copy linked images does.
 - The card is built on the server from the block’s settings. Text takes the theme’s colour and borders are translucent, so cards follow the Kadence light and dark modes.
@@ -2161,12 +2163,16 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### 1.3.104
+### 1.3.105
 
 - Better: Link cards show pictures whole. Beside the text, a picture used to be cropped to the card’s height, so social preview pictures lost their sides and logos were cut. Now each picture keeps its own shape, at the same height in every card, inside the card; a new **Picture shape** setting offers wide (as in social previews), square, or **Fill the card’s height** for the old look.
 - New: Link cards use the site’s icon when a page has no picture, if the site has one at least 128 pixels square, and the block settings have **Use the site’s icon** and **Use the page’s picture**. Icons show whole, never cropped.
 - Fixed: with External link icons on, every Link card shows the icon after its site name. Cards with a picture had none, and cards without one had it alone at the bottom left (GitHub issue #1036).
+
+### 1.3.104
+
 - Fix: **Load plugins only where needed** keeps what the site’s pages learned when LiteSpeed Cache empties its page cache. Each purge saves LiteSpeed Cache’s purge queue (`litespeed.purge.queue`, `litespeed.purge.queue2`), and Purge All also saves when it emptied the CSS (`litespeed.optimize.timestamp_purge_css`). Purges include **Purge All** in wp-admin, `wp litespeed-purge` and the purge after a deployment. The queue counted as a setting, so every purge made pages load every plugin until each page kind learned again (GitHub issue #1037).
+- New: On a network, **Organise the admin menu** organises Network Admin’s menu too: WordPress’s own entries (Dashboard, Sites, Users, Themes, Plugins, Settings), then Ultimate Multisite, then a **Developers** menu holding every other plugin’s entries, such as DB Cleaner, GPL Vault and the plugin pages that were under Settings, with a spacer between each. **Fit the menu to its names** widens it as on each site. **Tidy the dashboard** lays out the network Dashboard: Ultimate Multisite’s First Steps and Activity Stream, then its Summary and WooCommerce Network Orders, then WPVulnerability Status and Right Now (GitHub issue #1035).
 
 ### 1.3.103
 

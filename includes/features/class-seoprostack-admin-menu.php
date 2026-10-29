@@ -26,6 +26,12 @@
  * developer plugins on the Plugins screen. Until 0.13.0 this and the
  * developer list were this feature's "Client safeguards".
  *
+ * Network Admin (multisite): WordPress's own entries, then a spacer and the
+ * network's manager (Ultimate Multisite), then a spacer and the Developers
+ * menu with every other plugin's entries, their own menus and their pages
+ * under WordPress's menus (network_place()). No headings and no places to
+ * choose there; the menu fits its names as on each site.
+ *
  * Writers (on by default): people who can write posts but not edit other
  * people's, such as contributors and authors, do not see or open plugin
  * pages that ask only for a capability every writer has, plugin post types
@@ -65,6 +71,29 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
 
     /** Option: which plugin owns each admin page, until plugins change. */
     const CACHE = 'seoprostack_admin_menu';
+
+    /** Option: the same for Network Admin, whose pages differ (main site). */
+    const NETWORK_CACHE = 'seoprostack_admin_menu_network';
+
+    /**
+     * Network Admin: plugin folders of the network's manager, which keeps
+     * its own place between WordPress's entries and Developers (Ultimate
+     * Multisite, earlier named WP Multisite WaaS and WP Ultimo).
+     */
+    const NETWORK_MANAGERS = array('ultimate-multisite', 'wp-multisite-waas', 'wp-ultimo');
+
+    /** Network Admin: menu addresses of the network's manager start with this. */
+    const NETWORK_MANAGER_MENU = 'wp-ultimo';
+
+    /** Network Admin: WordPress's menus whose plugin pages go to Developers. */
+    const NETWORK_PARENTS = array(
+        'index.php'    => true,
+        'sites.php'    => true,
+        'users.php'    => true,
+        'themes.php'   => true,
+        'plugins.php'  => true,
+        'settings.php' => true,
+    );
 
     /**
      * Option: plugin post type => whether it is not for writing, kept for
@@ -364,7 +393,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             add_action('admin_init', array(__CLASS__, 'block_writer_page'));
         }
 
-        if (!is_admin() || is_network_admin() || is_user_admin()) {
+        // Network Admin too (network_place()); not the user admin.
+        if (!is_admin() || is_user_admin()) {
             return;
         }
         add_filter('parent_file', array(__CLASS__, 'organise'), PHP_INT_MAX);
@@ -427,9 +457,19 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * then entries placed under the heading itself (`admin-heading`), such
      * as Users.
      *
+     * Network Admin has WordPress's entries (top), the network's manager
+     * (multisite) and Developers, without headings (network_order()).
+     *
      * @return array<string,string> Key => label.
      */
     public static function sections() {
+        if (is_network_admin()) {
+            return array(
+                'top'         => '',
+                'multisite'   => __('Ultimate Multisite', 'seoprostack'),
+                'super-admin' => __('Developers', 'seoprostack'),
+            );
+        }
         return array(
             'top'            => '',
             'content'        => __('Content', 'seoprostack'),
@@ -581,6 +621,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @return string
      */
     private static function place($slug, $parent) {
+        if (is_network_admin()) {
+            return self::network_place($slug, $parent);
+        }
         if (null === self::$moves) {
             self::$moves = self::moves();
         }
@@ -608,6 +651,31 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
+     * Where an entry goes in Network Admin: WordPress's own network screens
+     * stay at the top, the network's manager (Ultimate Multisite) gets its
+     * own place, and every other plugin goes to Developers: its own menus,
+     * and its pages under WordPress's menus (such as Settings). Pages
+     * inside a plugin's menu stay there. The catalog and "Move menu
+     * entries" are for each site's menu, so they do not apply.
+     *
+     * @param string $slug   Entry address.
+     * @param string $parent Menu it is in ('' for top-level entries).
+     * @return string
+     */
+    private static function network_place($slug, $parent) {
+        $owner   = self::owner($slug, $parent);
+        $manager = in_array($owner, self::NETWORK_MANAGERS, true) || 0 === strpos($slug, self::NETWORK_MANAGER_MENU);
+        if ('' === $parent) {
+            if ($manager) {
+                return 'multisite';
+            }
+            return self::is_core($slug) ? 'top' : 'super-admin';
+        }
+        // WordPress's own pages have no plugin behind them.
+        return !$manager && '' !== $owner && isset(self::NETWORK_PARENTS[$parent]) ? 'super-admin' : '';
+    }
+
+    /**
      * Section of a top-level entry that no rule places: a link to a page
      * inside another menu (such as WooCommerce's Payments, a link to its
      * settings) goes with that menu, post types go to Content, the rest
@@ -618,6 +686,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @return string
      */
     private static function fallback_section($slug, array $page_parents) {
+        if (is_network_admin()) {
+            return 'super-admin';
+        }
         $sections = self::sections();
         $args     = self::parse_slug($slug)['args'];
         if (isset($args['page']) && $args['page'] !== $slug) {
@@ -714,7 +785,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      */
     private static function owners() {
         if (null === self::$owners) {
-            $stored       = get_option(self::CACHE);
+            $stored       = get_option(self::cache_name());
             self::$owners = is_array($stored) && isset($stored['plugins'], $stored['owners']) && self::fingerprint() === $stored['plugins'] && is_array($stored['owners'])
                 ? $stored['owners']
                 : array();
@@ -727,9 +798,18 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      */
     public static function save_owners() {
         if (self::$owners_changed) {
-            update_option(self::CACHE, array('plugins' => self::fingerprint(), 'owners' => self::$owners), false);
+            update_option(self::cache_name(), array('plugins' => self::fingerprint(), 'owners' => self::$owners), false);
             self::$owners_changed = false;
         }
+    }
+
+    /**
+     * Option the owners are kept in: Network Admin's pages are not a site's.
+     *
+     * @return string
+     */
+    private static function cache_name() {
+        return is_network_admin() ? self::NETWORK_CACHE : self::CACHE;
     }
 
     /**
@@ -737,6 +817,10 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      */
     public static function forget() {
         delete_option(self::CACHE);
+        if (is_multisite()) {
+            // Network Admin's, kept in the main site's options.
+            delete_blog_option(get_main_site_id(), self::NETWORK_CACHE);
+        }
         self::$owners = null;
     }
 
@@ -970,8 +1054,19 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             return $slug;
         }
         $parent_file = (string) strtok($parent, '?');
-        $base        = file_exists(ABSPATH . 'wp-admin/' . $parent_file) ? $parent : 'admin.php';
+        $base        = file_exists(self::admin_dir() . $parent_file) ? $parent : 'admin.php';
         return add_query_arg(array('page' => $slug), $base);
+    }
+
+    /**
+     * Folder of the screens the menu links to: wp-admin, or wp-admin/network
+     * in Network Admin (core looks for a menu's file in the folder of the
+     * screen being shown).
+     *
+     * @return string
+     */
+    private static function admin_dir() {
+        return ABSPATH . (is_network_admin() ? 'wp-admin/network/' : 'wp-admin/');
     }
 
     /**
@@ -997,7 +1092,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             return $cache[$slug];
         }
         $parts = self::parse_slug($slug);
-        $core  = (bool) preg_match('/^[a-z0-9-]+\.php$/', $parts['file']) && file_exists(ABSPATH . 'wp-admin/' . $parts['file']) && !isset($parts['args']['page']);
+        $core  = (bool) preg_match('/^[a-z0-9-]+\.php$/', $parts['file']) && file_exists(self::admin_dir() . $parts['file']) && !isset($parts['args']['page']);
         if ($core && isset($parts['args']['post_type'])) {
             $type = get_post_type_object($parts['args']['post_type']);
             $core = $type && !empty($type->_builtin);
@@ -1235,7 +1330,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         self::$flyouts = array();
         self::$hooks   = array();
         foreach (self::MENUS as $key => $icon) {
-            $items = $groups[$key];
+            // Network Admin has no Administrators menu.
+            $items = isset($groups[$key]) ? $groups[$key] : array();
             unset($groups[$key]);
             if (!$items || ('super-admin' === $key && !$developer)) {
                 continue;
@@ -1263,6 +1359,13 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // Last in its list (core links the menu to its first entry), first among the menus.
                 $out_sub = array($slug => array_merge($out_sub[$slug], self::page_markers())) + $out_sub;
             }
+        }
+
+        if (is_network_admin()) {
+            self::$original = array($menu, $submenu, $self);
+            $menu           = self::network_order($groups, $menus); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- printed now, restored on adminmenu.
+            $submenu        = $out_sub; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
+            return $parent_file;
         }
 
         // Entries placed under the Admin heading, such as Users, come after the two menus.
@@ -1311,6 +1414,36 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $menu           = $new; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- printed now, restored on adminmenu.
         $submenu        = $out_sub; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
         return $parent_file;
+    }
+
+    /**
+     * Network Admin's menu: Dashboard, WordPress's other entries (Sites,
+     * Users, Themes, Plugins, Settings), the network's manager (Ultimate
+     * Multisite) and the Developers menu, with core's spacers between
+     * them, as core puts one after Dashboard.
+     *
+     * @param array $groups Section key => entries.
+     * @param array $menus  The Developers menu's entry, if it has entries.
+     * @return array Top-level entries.
+     */
+    private static function network_order(array $groups, array $menus) {
+        // sort_section() puts Dashboard first.
+        $top       = array_values($groups['top']);
+        $dashboard = $top && 'index.php' === $top[0][2] ? 1 : 0;
+        $parts     = array_filter(array(
+            array_slice($top, 0, $dashboard),
+            array_slice($top, $dashboard),
+            $groups['multisite'],
+            $menus,
+        ));
+        $new = array();
+        foreach (array_values($parts) as $n => $items) {
+            if ($n) {
+                $new[] = array('', 'read', 'separator-sps-' . $n, '', 'wp-menu-separator');
+            }
+            $new = array_merge($new, $items);
+        }
+        return $new;
     }
 
     /**
