@@ -32,8 +32,9 @@
 	var ICON = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
 		+ '<path fill="none" stroke="currentColor" stroke-width="1.5" d="M14 17.25H4.25a1.5 1.5 0 0 1-1.5-1.5v-9.5a1.5 1.5 0 0 1 1.5-1.5h13.5a1.5 1.5 0 0 1 1.5 1.5V9M3.25 6.5 11 12l7.75-5.5"/>'
 		+ '<path fill="currentColor" d="M22.25 18.9a4.25 4.25 0 0 1-5.6-5.6 4.25 4.25 0 1 0 5.6 5.6z"/></svg>';
-	// The button, as the header's own (36 px, FluentCRM's secondary style), pressed as WordPress's.
-	var HOST_CSS = '.' + BUTTON + '.components-button{width:36px;height:36px;padding:7px;justify-content:center}'
+	// The button, as the header's own (36 px, FluentCRM's secondary style; FluentCRM hides
+	// other buttons there), pressed as WordPress's.
+	var HOST_CSS = '.' + BUTTON + '.components-button{display:inline-flex!important;width:36px;height:36px;padding:7px;justify-content:center}'
 		+ '.' + BUTTON + '[aria-pressed="true"]{background:#1e1e1e!important;border-color:#1e1e1e!important;color:#fff!important}'
 		+ 'html.sps-dark .' + BUTTON + '[aria-pressed="true"]{background:#f0f0f1!important;border-color:#f0f0f1!important;color:#101517!important}'
 		+ '.sps-mail-dark-group{margin-left:8px}';
@@ -115,9 +116,11 @@
 	}
 
 	// The element's place, from <body>: the email's page has no ids or classes to rely on.
+	// Two ids' weight, so the email's and the editor's own !important rules give way.
+	var WEIGHT = ':not(#sps-mail-dark):not(#sps-mail-dark)';
 	function path(el, body, cache) {
 		if (el === body) {
-			return 'body';
+			return 'body' + WEIGHT;
 		}
 		if (cache.has(el)) {
 			return cache.get(el);
@@ -140,7 +143,7 @@
 		var body = doc.body;
 		var view = doc.defaultView;
 		var cache = new Map();
-		var out = ['html{color-scheme:dark;background:#1f1f1f!important}'];
+		var out = ['html' + WEIGHT + '{color-scheme:dark;background:#1f1f1f!important}'];
 		var all = [body].concat(Array.prototype.slice.call(body.getElementsByTagName('*')));
 		all.forEach(function (el) {
 			if (SKIP[el.tagName] || el.namespaceURI !== 'http://www.w3.org/1999/xhtml') {
