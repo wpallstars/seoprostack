@@ -46,6 +46,9 @@ final class SEOProStack_Front_Verify {
     /** Seconds after which a check starts no more renders. */
     const BUDGET = 60;
 
+    /** Most words that may change on each render (random IDs) for a page to be compared. */
+    const VOLATILE = 50;
+
     /** Response headers that must be the same, lower case. */
     const HEADERS = array(
         'content-type', 'content-language', 'link', 'x-robots-tag', 'cache-control', 'expires', 'vary', 'location',
@@ -73,7 +76,7 @@ final class SEOProStack_Front_Verify {
         }
         $learned = (int) ($kind['learned'] ?? 0);
         if (!self::local((string) $kind['url'])) {
-            self::save($key, $learned, array(), 'address', '');
+            self::save($key, $learned, array('skip' => array(), 'result' => 'address', 'note' => '', 'pages' => 0));
             return;
         }
         $busy = get_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, array());
@@ -90,7 +93,7 @@ final class SEOProStack_Front_Verify {
         update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
         $result = self::check($key, $kind, $check);
         SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_VERIFY);
-        self::save($key, $learned, $result['skip'], $result['result'], $result['note']);
+        self::save($key, $learned, $result);
         self::next();
     }
 
@@ -100,19 +103,15 @@ final class SEOProStack_Front_Verify {
      * @param string $key   Page kind.
      * @param array  $kind  What was learned for it.
      * @param array  $check The check under way (token, kind, skip, expires).
-     * @return array{skip: string[], result: string, note: string}
+     * @return array{skip: string[], result: string, note: string, pages: int}
      */
     private static function check($key, array $kind, array $check) {
         $start = microtime(true);
         $url   = (string) $kind['url'];
-        $base  = self::render($url, 'base', $check);
-        if (!is_array($base)) {
-            return array('skip' => array(), 'result' => 'failed', 'note' => $base);
-        }
-        $again = self::render($url, 'base', $check);
         $note  = '';
-        if (!is_array($again) || !self::same($base, $again, $note)) {
-            return array('skip' => array(), 'result' => 'unstable', 'note' => is_array($again) ? $note : $again);
+        $base  = self::baseline($url, $check, $note);
+        if (!is_array($base)) {
+            return array('skip' => array(), 'result' => $base, 'note' => $note, 'pages' => 0);
         }
 
         $groups = array(array_values((array) $kind['propose']));
@@ -139,26 +138,78 @@ final class SEOProStack_Front_Verify {
         }
         $skip = $passed ? array_values(array_diff($passed['skipped'], $base['skipped'])) : array();
         if (!$skip) {
-            return array('skip' => array(), 'result' => 'differs', 'note' => $first);
+            return array('skip' => array(), 'result' => 'differs', 'note' => $first, 'pages' => 1);
         }
 
         // One page is one sample: a post of the same type must agree.
+        $pages = 1;
         if (0 === strpos($key, 'single:') && SEOProStack_Feature::more_time($start, self::BUDGET)) {
             $check['skip'] = $tried;
             update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
             foreach (self::other_posts(substr($key, 7), (int) ($kind['id'] ?? 0)) as $other) {
-                $other_base = self::render($other, 'base', $check);
-                if (!is_array($other_base)) {
+                $other_base = self::baseline($other, $check, $note);
+                if ('failed' === $other_base) {
                     continue; // Not a page this kind serves (its own template or content), or it failed as served.
                 }
-                $other_trial = self::render($other, 'trial', $check);
-                if (!is_array($other_trial) || !self::same($other_base, $other_trial, $note)) {
-                    return array('skip' => array(), 'result' => 'differs', 'note' => is_array($other_trial) ? $note : $other_trial);
+                $other_trial = is_array($other_base) ? self::render($other, 'trial', $check) : $other_base;
+                if (!is_array($other_base) || !is_array($other_trial) || !self::same($other_base, $other_trial, $note)) {
+                    return array('skip' => array(), 'result' => 'differs', 'note' => is_array($other_trial) ? $note : $other_trial, 'pages' => 2);
                 }
+                $pages = 2;
                 break;
             }
         }
-        return array('skip' => $skip, 'result' => 'verified', 'note' => '');
+        return array('skip' => $skip, 'result' => 'verified', 'note' => '', 'pages' => $pages);
+    }
+
+    /**
+     * A page rendered as served, twice: the first render, with the words
+     * that changed between the two (random IDs a plugin makes on each
+     * render), which a trial may change too.
+     *
+     * @param string $url   Page address.
+     * @param array  $check The check under way.
+     * @param string $note  Set to why there is none.
+     * @return array|string The render with 'volatile' positions, or 'failed' or 'unstable'.
+     */
+    private static function baseline($url, array $check, &$note) {
+        $base = self::render($url, 'base', $check);
+        if (!is_array($base)) {
+            $note = $base;
+            return 'failed';
+        }
+        $again = self::render($url, 'base', $check);
+        if (!is_array($again)) {
+            $note = $again;
+            return 'failed';
+        }
+        $base['volatile'] = array();
+        if (self::same($base, $again, $note)) {
+            return $base;
+        }
+        $words = self::words($base['html']);
+        $other = self::words($again['html']);
+        if ($base['headers'] !== $again['headers'] || $base['skipped'] !== $again['skipped'] || count($words) !== count($other)) {
+            return 'unstable'; // Changes shape on each render: nothing can be compared.
+        }
+        $volatile = array_keys(array_diff_assoc($words, $other));
+        if (count($volatile) > self::VOLATILE) {
+            $note = sprintf('%d words change on each render', count($volatile));
+            return 'unstable';
+        }
+        $base['volatile'] = array_fill_keys($volatile, true);
+        return $base;
+    }
+
+    /**
+     * A page as words and what is between them, in order.
+     *
+     * @param string $html Normalised page.
+     * @return string[]
+     */
+    private static function words($html) {
+        $words = preg_split('/([A-Za-z0-9_]+)/', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+        return is_array($words) ? $words : array($html);
     }
 
     /**
@@ -242,9 +293,11 @@ final class SEOProStack_Front_Verify {
     }
 
     /**
-     * Whether two renders are the same; if not, where they first differ.
+     * Whether two renders are the same, but for words that change on each
+     * render of the first (its 'volatile' positions); if not, where they
+     * first differ.
      *
-     * @param array  $a    One render.
+     * @param array  $a    The render as served.
      * @param array  $b    The other.
      * @param string $note Set to the first difference.
      * @return bool
@@ -258,6 +311,13 @@ final class SEOProStack_Front_Verify {
         }
         if ($a['html'] === $b['html']) {
             return true;
+        }
+        if (!empty($a['volatile'])) {
+            $words = self::words($a['html']);
+            $other = self::words($b['html']);
+            if (count($words) === count($other) && !array_diff_key(array_diff_assoc($words, $other), $a['volatile'])) {
+                return true;
+            }
         }
         $at   = strspn($a['html'] ^ $b['html'], "\0");
         $from = max(0, $at - 40);
@@ -311,13 +371,14 @@ final class SEOProStack_Front_Verify {
     /**
      * Save the result for the kind, if it was not learned again meanwhile.
      *
-     * @param string   $key     Page kind.
-     * @param int      $learned When it was learned.
-     * @param string[] $skip    Plugins it renders the same without.
-     * @param string   $result  'verified', 'differs', 'unstable', 'failed' or 'address'.
-     * @param string   $note    First difference or failure.
+     * @param string $key     Page kind.
+     * @param int    $learned When it was learned.
+     * @param array  $result  skip (plugins it renders the same without),
+     *                        result ('verified', 'differs', 'unstable',
+     *                        'failed' or 'address'), note (first difference
+     *                        or failure) and pages (how many were compared).
      */
-    private static function save($key, $learned, array $skip, $result, $note) {
+    private static function save($key, $learned, array $result) {
         wp_cache_delete(SEOProStack_Plugin_Loader::FRONT, 'options');
         wp_cache_delete('alloptions', 'options');
         $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
@@ -327,11 +388,12 @@ final class SEOProStack_Front_Verify {
         }
         $front['kinds'][$key]['verify'] = array(
             'time'   => time(),
-            'result' => $result,
-            'note'   => wp_check_invalid_utf8(substr((string) $note, 0, 200), true),
+            'result' => (string) $result['result'],
+            'note'   => wp_check_invalid_utf8(substr((string) $result['note'], 0, 200), true),
+            'pages'  => (int) ($result['pages'] ?? 0),
         );
-        if ($skip) {
-            $front['kinds'][$key]['verified'] = array_values($skip);
+        if (!empty($result['skip'])) {
+            $front['kinds'][$key]['verified'] = array_values((array) $result['skip']);
         }
         SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::FRONT, $front, true);
     }
