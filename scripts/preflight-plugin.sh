@@ -30,7 +30,7 @@ check_presets_starters() {
 				catch (e) { problems.push("ERROR " + folder + "/" + f + " is not valid JSON: " + e.message); return null; }
 			}).filter(Boolean);
 		};
-		const presets = load("presets"), starters = load("starters");
+		const presets = load("presets"), starters = load("starters").concat(load("starters/github"));
 		for (const [file, data] of presets) {
 			for (const name of Object.keys((data && data.options) || {})) (presetOptions[name] = presetOptions[name] || []).push(file);
 			// Every setting the preset changes is named in the dialog, by the paths the dialog uses.

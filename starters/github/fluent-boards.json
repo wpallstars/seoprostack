@@ -1,0 +1,16 @@
+{
+    "name": "Fluent Boards (GitHub builds)",
+    "tested": "2.2.2",
+    "updated": "2026-10-29",
+    "notes": "GitHub builds only: added to starters/fluent-boards.json and left out of the WordPress.org build (.distignore-wporg), which does not recommend premium plugin update services. We use GPL Vault for testing and updates, and pay for support from the plugin and theme makers whose support we rely on.",
+    "items": {
+        "fluentboards_tasks": [
+            {
+                "board": "Website Setup",
+                "title": "Setup Premium Plugin Updates (GPL Vault)",
+                "after": "Connect your AI to this Board",
+                "description": "Optional. [GPL Vault](https://www.gplvault.com/) gives updates for many premium plugins and themes (such as Kadence Pro and Fluent add-ons) under one subscription, which suits testing and sites with many plugins. Buy the maker's own licence for any plugin whose support you need: it pays for the plugin and gets you their help.\n\n1. Choose a plan on [GPL Vault's pricing page](https://www.gplvault.com/pricing/) and sign up.\n2. Download the **GPL Vault Updater** plugin from your account, then in WordPress go to **Plugins → Add New → Upload Plugin** and activate it (Network Activate on a multisite).\n3. Enter your licence key in the updater's settings: it stays in WordPress, never in a task.\n\nDone when premium plugins show updates under **Dashboard → Updates**."
+            }
+        ]
+    }
+}
