@@ -1,11 +1,12 @@
 /*
  * Form by key panels and Form modals (SEOProStack_Form_Keys): a starting
- * look in Kadence's palette that a theme's own rules for these classes always
- * beat. Each selector weighs as little as it can: nothing for the panel;
- * one element for the title and introduction (a theme's heading margins weigh
- * as much); one class and one element for the modal panel, above Kadence
- * Blocks Pro's .kt-modal-container (white, 600px) and below any rule that
- * names the modal's class. Only the two fixes at the end have full weight.
+ * look in Kadence's palette and spacing scale that a theme's own rules for
+ * these classes always beat. Each selector weighs as little as it can:
+ * nothing for the panel; one element for the title and introduction (a
+ * theme's heading margins weigh as much); one class and one element for the
+ * modal panel, above Kadence Blocks Pro's .kt-modal-container (white, 600px)
+ * and below any rule that names the modal's class. Only the two fixes at the
+ * end have full weight.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -19,23 +20,28 @@
 	border-radius: 8px;
 	background: var(--global-palette9, #fff);
 }
+
 div:where(.seoprostack-form-modal) .kt-modal-container {
 	max-width: 640px;
 	background-color: var(--global-palette9, #fff);
 	color: var(--global-palette4, #2d3748);
 	overscroll-behavior: contain;
 }
+
 /* Room on the right for the close button. */
 h2:where(.seoprostack-form-modal-title) {
-	margin: 0 48px 8px 0;
+	margin: 0 var(--global-kb-spacing-lg, 3rem) var(--global-kb-spacing-xxs, 0.5rem) 0;
 }
+
 p:where(.seoprostack-form-modal-intro) {
-	margin: 0 0 1.5em;
+	margin: 0 0 var(--global-kb-spacing-sm, 1.5rem);
 }
+
 :where(.seoprostack-form-missing) {
-	padding: 0.75em 1em;
-	border: 1px dashed currentColor;
+	padding: var(--global-kb-spacing-xxs, 0.5rem) var(--global-kb-spacing-xs, 1rem);
+	border: 1px dashed currentcolor;
 }
+
 /* An open searchable list takes room in the panel instead of floating over
    it: Fluent's step wrappers hide overflow (for the step slide), which cut a
    floating list short. In the flow it always opens below its field. */
@@ -46,6 +52,7 @@ p:where(.seoprostack-form-modal-intro) {
 	bottom: auto;
 	margin: -1px 0 0;
 }
+
 /* The modal script closes only when its animation ends: keep an animation. */
 @media (prefers-reduced-motion: reduce) {
 	.seoprostack-form-modal .kt-modal-container {
