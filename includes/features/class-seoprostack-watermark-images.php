@@ -860,6 +860,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function unmarkable($attachment_id, $read_file = true) {
         $attachment_id = (int) $attachment_id;
+        // First, so a picture never to be marked is not brought back from
+        // cloud storage only to be left alone.
+        if (self::skipped($attachment_id)) {
+            return new WP_Error('watermark_never', __('Its details say “Never watermark”.', 'seoprostack'));
+        }
         // Media in cloud storage may have removed the local files: bring
         // them back to mark them; a Media Library row only lists them.
         $stored        = class_exists('SEOProStack_Media_Storage') && SEOProStack_Media_Storage::removed($attachment_id);
@@ -877,9 +882,6 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         if (false !== stripos(wp_basename($file), 'nowatermark')) {
             return new WP_Error('watermark_excluded', __('The file name says “nowatermark”.', 'seoprostack'));
-        }
-        if (self::skipped($attachment_id)) {
-            return new WP_Error('watermark_never', __('Its details say “Never watermark”.', 'seoprostack'));
         }
         // Site icons, logos, headers and backgrounds cropped in the Customizer.
         if ('' !== (string) get_post_meta($attachment_id, '_wp_attachment_context', true)) {
