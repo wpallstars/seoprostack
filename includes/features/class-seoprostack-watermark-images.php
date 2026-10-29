@@ -35,6 +35,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     /** Post meta: files marked (name => bytes), kept original and its name. */
     const META = '_seoprostack_watermark';
 
+    /**
+     * Post meta: '1' when a picture is never to be marked ("Never watermark"
+     * in its details), such as a site's own page photographs. Code that adds
+     * such pictures may set it too.
+     */
+    const SKIP_META = '_seoprostack_watermark_skip';
+
     /** Option: name of the folder in uploads that holds the originals. */
     const DIR_OPTION = 'seoprostack_watermark_dir';
 
@@ -290,6 +297,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             add_action('admin_post_' . self::JOB_ACTION, array(__CLASS__, 'handle_job'));
             add_action('wp_ajax_seoprostack_watermark_progress', array(__CLASS__, 'ajax_progress'));
             add_filter('attachment_fields_to_edit', array(__CLASS__, 'details_field'), 10, 2);
+            add_filter('attachment_fields_to_edit', array(__CLASS__, 'skip_field'), 11, 2);
+            add_filter('attachment_fields_to_save', array(__CLASS__, 'save_skip_field'), 10, 2);
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         }
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
@@ -851,6 +860,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function unmarkable($attachment_id, $read_file = true) {
         $attachment_id = (int) $attachment_id;
+        // First, so a picture never to be marked is not brought back from
+        // cloud storage only to be left alone.
+        if (self::skipped($attachment_id)) {
+            return new WP_Error('watermark_never', __('Its details say “Never watermark”.', 'seoprostack'));
+        }
         // Media in cloud storage may have removed the local files: bring
         // them back to mark them; a Media Library row only lists them.
         $stored        = class_exists('SEOProStack_Media_Storage') && SEOProStack_Media_Storage::removed($attachment_id);
@@ -1082,6 +1096,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function add($attachment_id) {
         $attachment_id = (int) $attachment_id;
+        // Before a marked picture's mark comes off to be made again: "Never
+        // watermark" leaves the picture as it is (Remove watermark unmarks).
+        if (self::skipped($attachment_id)) {
+            return new WP_Error('watermark_never', __('Its details say “Never watermark”.', 'seoprostack'));
+        }
         $record        = self::record($attachment_id);
         if ($record) {
             if (empty($record['backup'])) {
@@ -1458,7 +1477,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return '';
         }
         $url = wp_nonce_url(add_query_arg(array('action' => self::ACTION, 'op' => $op, 'attachment' => $post->ID), admin_url('admin-post.php')), self::ACTION . '_' . $post->ID);
-        return sprintf('<a href="%1$s" aria-label="%2$s">%3$s</a>', esc_url($url), esc_attr(sprintf($aria, get_the_title($post))), esc_html($label));
+        return sprintf('<a href="%1$s" aria-label="%2$s" data-seoprostack-watermark="%4$s">%3$s</a>', esc_url($url), esc_attr(sprintf($aria, get_the_title($post))), esc_html($label), esc_attr($op));
     }
 
     /**
@@ -1488,6 +1507,78 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             );
         }
         return $fields;
+    }
+
+    /**
+     * Whether a picture's details say "Never watermark".
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return bool
+     */
+    public static function skipped($attachment_id) {
+        return '1' === (string) get_post_meta((int) $attachment_id, self::SKIP_META, true);
+    }
+
+    /**
+     * "Never watermark" in a picture's details, in the Media Library and the
+     * editors' media windows alike (it saves in place). Shown while Watermark
+     * pictures is on, and wherever it is already ticked so it can be cleared.
+     *
+     * @param array   $fields Attachment fields.
+     * @param WP_Post $post   Attachment.
+     * @return array
+     */
+    public static function skip_field($fields, $post) {
+        if (!current_user_can('edit_post', $post->ID) || !wp_attachment_is_image($post)) {
+            return $fields;
+        }
+        $skipped = self::skipped($post->ID);
+        if (!$skipped && !self::enabled()) {
+            return $fields;
+        }
+        $name = 'attachments[' . (int) $post->ID . ']';
+        $help = self::record($post->ID)
+            ? __('It is marked now: ticked, it is never marked again, and Remove watermark takes the mark off.', 'seoprostack')
+            : __('Leave this picture unmarked, also when every picture is marked or marked again.', 'seoprostack');
+        $fields['seoprostack_watermark_skip'] = array(
+            'label'         => __('Never watermark', 'seoprostack'),
+            'input'         => 'html',
+            // The hidden field says the box was shown: an unticked box
+            // sends nothing, and another screen's save must not clear it.
+            // The media window saves the box without redrawing its fields,
+            // so the box itself hides or shows Add watermark there (its
+            // rows are display: block, which the hidden attribute loses to).
+            'html'          => sprintf(
+                '<input type="hidden" name="%1$s[seoprostack_watermark_skip_shown]" value="1" /><label><input type="checkbox" name="%1$s[seoprostack_watermark_skip]" value="1"%2$s onchange="var f=this.closest(\'.compat-item\'),a=f&&f.querySelector(\'a[data-seoprostack-watermark=add]\'),r=a&&a.closest(\'tr\');if(r){r.style.display=this.checked?\'none\':\'\';}" /> %3$s</label>',
+                esc_attr($name),
+                checked($skipped, true, false),
+                esc_html__('Never watermark this picture', 'seoprostack')
+            ),
+            'helps'         => $help,
+            'show_in_edit'  => true,
+            'show_in_modal' => true,
+        );
+        return $fields;
+    }
+
+    /**
+     * Save "Never watermark" from a picture's details.
+     *
+     * @param array $post       Attachment post data.
+     * @param array $attachment Submitted attachment fields.
+     * @return array
+     */
+    public static function save_skip_field($post, $attachment) {
+        $id = isset($post['ID']) ? (int) $post['ID'] : 0;
+        if (!$id || empty($attachment['seoprostack_watermark_skip_shown']) || !current_user_can('edit_post', $id)) {
+            return $post;
+        }
+        if (!empty($attachment['seoprostack_watermark_skip'])) {
+            update_post_meta($id, self::SKIP_META, '1');
+        } else {
+            delete_post_meta($id, self::SKIP_META);
+        }
+        return $post;
     }
 
     /**

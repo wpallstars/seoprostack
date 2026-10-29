@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.97
+Stable tag: 1.3.98
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,7 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.97 =
-* New: Fluent Forms by key: Form by key and Form modal blocks show a form by a key, not its ID, so copied pages show each site's own form (#1016).
+= 1.3.98 =
+* New: Never watermark, in a picture's details, leaves that picture unmarked by Watermark pictures (#1018).
 
 Older: `changelog.txt`.
