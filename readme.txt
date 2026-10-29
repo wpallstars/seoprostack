@@ -66,7 +66,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally.
+* **Avatars without Gravatar**: served locally. **Kadence author box fields** stay on profiles.
 
 = Links and speed =
 
@@ -154,7 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Kadence author box fields keep Occupation and profile links on the profile screen after Kadence Starter Templates is deactivated (#1042).
 * Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges its page cache (#1037).
+* Fix: Dark mode covers Fluent Security's two-factor card on the profile screen (#1042).
 
 = 1.3.103 =
 * New: FluentCRM emails can keep light or use their own dark colours in mail apps' dark mode (designer → Style → Dark mode in mail apps), and the dark mode preview shows Apple Mail or Gmail and Outlook (#1032).
