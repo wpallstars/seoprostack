@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.99-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.100-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.99
+Version: 1.3.100
 
 <!-- github-only:start -->
 ## Screenshots
@@ -59,7 +59,7 @@ The colour mode icon in the admin bar, just left of your name, sets **Light** (t
 
 Dark also covers the Customizer's controls (its preview keeps the site's colours), Widgets and Menus, and the screens of the plugins SEO Pro Stack recommends where they have no dark mode of their own (Rank Math with its setup wizard, Content AI and Link Genius, WooCommerce, Admin Columns, ACF and Secure Custom Fields, Kadence Blocks, the Kadence theme's dashboard and Starter Templates, Kadence's Style Library, Kadence Conversions' editor (the pop-up keeps its own colours), Kadence WooCommerce Email Designer, Kadence Starter Site Assist, Fluent Forms, Meow Apps, Readabler, Ninja Tables, YellowPencil's buttons, Tutor LMS, Complianz with its Terms & Conditions, Code Snippets, Bit Integrations, AutomatorWP, CMB2 fields, Advanced DB Cleaner, WP-Optimize, EventON, SliceWP, Antispam Bee, Simple Cloudflare Turnstile, Plugin Groups and Revive.so, rich text fields such as the profile's biography, and the searchable dropdowns many plugins use), loading animations, and the placeholder shown while **Load pages before the click** opens the next admin screen, so nothing flashes white. Brand-coloured buttons and badges keep their colours. On Tutor LMS's screens, its course builder included, the colours its script sets are recoloured from the page's head, before anything is drawn (the `seoprostack_admin_dark_script_styles` filter, `bool $recolours, WP_Screen|null $screen`, turns that on for another screen). Revive.so's screens drop other plugins' stylesheets, so Dark's is put back there. Text another plugin leaves hard to read in Dark (below WCAG AA: 4.5:1, or 3:1 for large text) gets the nearest colour of the same hue that reads, as screens load and change and on hover; only text colours change, and Light undoes it. The `seoprostack_admin_dark_contrast_guard` filter (`bool $guards, WP_Screen|null $screen`) turns that off for a screen. Fluent plugins (FluentCRM, Fluent Booking, FluentSMTP, Fluent Boards, Fluent Support), LiteSpeed Cache and Bit Social keep their own light and dark modes in your browser; they follow the mode chosen here, and their own dark designs are left as they are. WP Sheet Editor's spreadsheet opens in the mode chosen here too (its site-wide setting is not changed), and its own Dark mode switch changes the mode here.
 
-Dark also covers Redux option panels, Super Speedy and Scalability Pro, FluentCRM's **Search contacts** panel in the admin bar, Tutor LMS's course status menus and empty state, dialog error messages, the progress of plugin, theme and translation updates, and Debug Log Manager's **Latest Errors** dashboard widget.
+Dark also covers Redux option panels, Super Speedy and Scalability Pro, FluentCRM's **Search contacts** panel in the admin bar, FluentCRM's email designer (campaigns, templates, sequences and automations; the email itself keeps the colours it is sent with), Tutor LMS's course status menus and empty state, dialog error messages, the progress of plugin, theme and translation updates, and Debug Log Manager's **Latest Errors** dashboard widget.
 
 Every other plugin's and theme's screens turn dark too, without a section of their own: in Dark, SEO Pro Stack makes a dark copy of each of their stylesheets holding only the rules that paint a light background, a light border or dark grey text, in Dark's colours, and loads it right after the original. Brand colours, pictures and the block editor's canvas keep theirs. Copies are kept in `wp-content/uploads/seoprostack-dark`, made again when a stylesheet changes, and deleted when SEO Pro Stack is deactivated or uninstalled. Colours set in a screen's own `<style>` blocks, in `style` attributes or by script are not reached; the contrast guard still makes their text readable. The `seoprostack_admin_dark_fallback` filter (`bool $on, WP_Screen|null $screen`) turns the copies off for a screen, and `seoprostack_admin_dark_fallback_style` (`bool $copy, string $handle, string $href`) for one stylesheet.
 
@@ -2155,6 +2155,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.100
+
+- Fix: Dark mode covers FluentCRM’s email designer, the editor for campaign, template, sequence and automation emails, with its header buttons, sidebar panels, colour settings, smartcode, link and AI writer pop-ups and the footer settings dialog. The designer is a page of its own in a frame, which no plugin’s styles reached, so its dark design comes from FluentCRM’s own hook and follows a change of mode while it is open. The email itself keeps the colours it is sent with (GitHub issue #1023).
 
 ### 1.3.99
 
