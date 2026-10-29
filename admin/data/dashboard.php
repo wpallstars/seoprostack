@@ -9,6 +9,9 @@
  *               column, side the second, column3 the third. Widgets that
  *               are not listed stay in the column their plugin chose,
  *               below the listed ones.
+ * - network_columns: the same for the network Dashboard (multisite:
+ *               Network Admin → Dashboard). The other lists apply there
+ *               too.
  * - hidden:     widgets nobody sees: news, plugin promotions and boxes
  *               that repeat a plugin's own screen.
  * - developers: widgets only developers see (see Developer admins;
@@ -38,7 +41,7 @@ if (!defined('ABSPATH')) {
 }
 
 return array(
-    'columns'      => array(
+    'columns'         => array(
         // Writing and what is happening on the site.
         'normal'  => array(
             // Core's warnings stay at the top, where WordPress puts them.
@@ -64,7 +67,27 @@ return array(
             'mwai_advisor_widget',
         ),
     ),
-    'hidden'       => array(
+    'network_columns' => array(
+        // Setting up the network and what is happening on it.
+        'normal'  => array(
+            'dashboard_browser_nag',
+            'dashboard_php_nag',
+            'wu-warnings',                      // Ultimate Multisite: search engines told not to index.
+            'wp-ultimo-setup',                  // Ultimate Multisite - First Steps.
+            'wp-ultimo-activity-stream',        // Ultimate Multisite - Activity Stream.
+        ),
+        // Sign-ups and sales.
+        'side'    => array(
+            'wp-ultimo-summary',                // Ultimate Multisite - Summary.
+            'woocommerce_network_orders',
+        ),
+        // The network itself.
+        'column3' => array(
+            'wpvulnerability',                  // WPVulnerability Status.
+            'network_dashboard_right_now',
+        ),
+    ),
+    'hidden'          => array(
         'dashboard_primary',                // WordPress Events and News.
         'woocommerce_dashboard_status',     // Repeats WooCommerce → Home.
         'wc_admin_dashboard_setup',         // WooCommerce Setup: repeats WooCommerce → Home's task list.
@@ -76,17 +99,17 @@ return array(
         // under Tools shows the same entries.
         'debug_log_manager_widget',
     ),
-    'developers'   => array(
+    'developers'      => array(
         'dashboard_site_health',
         'wpvulnerability',                  // WPVulnerability Status: known vulnerabilities.
         'mwai_advisor_widget',              // AI Engine Advisor.
     ),
-    'start_hidden' => array(
+    'start_hidden'    => array(
         // AI Engine Advisor: a daily list of general advice about the
         // site's plugins, too much for a Dashboard.
         'mwai_advisor_widget',
     ),
-    'reports'      => array(
+    'reports'         => array(
         'dashboard_right_now',
         'fluentform_stat_widget',
         'fluent_support_reports_widget',
