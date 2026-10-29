@@ -224,6 +224,14 @@
  * page). The decoded value is kept for the rest of the request and given
  * through the option's own filters; a changed stored value is decoded again.
  *
+ * Kadence Blocks 3.8.0 reads its design token library from the database
+ * each time a block asks for a preset or palette, with no memo: about 1,900
+ * identical queries (SELECT * FROM {prefix}kb_design_tokens WHERE slug = ...)
+ * for one page, roughly 280 ms. Each read's rows are kept for the rest of
+ * the request and given back as wpdb::get_row() would read them; any other
+ * statement on the table (a save, a delete) forgets them, so the next read
+ * queries again. Only with WordPress's own wpdb class, not a db.php drop-in.
+ *
  * Image Copytrack 1.2.4's vendor script uses regeneratorRuntime but declares
  * only wp-element and wp-i18n as dependencies. On screens where no other
  * plugin loads the runtime first, including Add Plugins and View details,
@@ -344,6 +352,22 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      */
     private static $kadence_theme_mods = array();
 
+    /** A read of Kadence Blocks' design token table, as its query builder writes it. */
+    const KADENCE_TOKEN_READ = "/^SELECT \\* FROM `?\\w+kb_design_tokens`? WHERE slug = '[^'\\\\]*'$/";
+
+    /**
+     * Rows of Kadence Blocks' design token reads in this request: SQL => rows.
+     *
+     * @var array<string, array<int, object>>
+     */
+    private static $kadence_token_rows = array();
+
+    /** The token read whose rows the next query collects ('' for none). */
+    private static $kadence_token_pending = '';
+
+    /** Re-arms wpdb's invalid-text check after a read it did not run (in wpdb's scope). */
+    private static $kadence_token_rearm = null;
+
     /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
     const CRONTROL_NOTICE = 'crontrol-status-notice';
 
@@ -431,6 +455,10 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (defined('KADENCE_BLOCKS_VERSION') && version_compare((string) KADENCE_BLOCKS_VERSION, self::KADENCE_TOKENS_FROM, '>=')) {
             add_filter('kadence_palette_option', array(__CLASS__, 'kadence_palette_before'), 9, 2);
             add_filter('kadence_palette_option', array(__CLASS__, 'kadence_palette_after'), 11, 2);
+            // Last, so the SQL other filters leave is the one checked.
+            if (isset($GLOBALS['wpdb']) && 'wpdb' === get_class($GLOBALS['wpdb'])) {
+                add_filter('query', array(__CLASS__, 'kadence_token_reads'), PHP_INT_MAX);
+            }
         }
         if (!is_admin()) {
             // First thing in the body, before anything is drawn.
@@ -1080,6 +1108,72 @@ JS;
         }
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own option_{name} filter, which get_option() skips for a value from pre_option.
         return apply_filters("option_{$option}", self::$kadence_theme_mods[$key][1], $option);
+    }
+
+    /**
+     * Answer a repeated read of Kadence Blocks' design token table, made
+     * through wpdb::get_row(), with the rows the first read returned.
+     *
+     * Runs as wpdb::query() starts, so the previous query's rows are still
+     * in $wpdb: the first read is collected as the next query begins. A
+     * read answered here leaves $wpdb as running it would (flushed, then
+     * the rows, the SQL, their count, the call's name and the invalid-text
+     * check) and returns '', which makes query() return before reaching
+     * the server; get_row() then reads those rows. A direct query() call,
+     * which returns its result rather than leaving rows to read, is run.
+     *
+     * @param string $query SQL about to run.
+     * @return string
+     */
+    public static function kadence_token_reads($query) {
+        global $wpdb;
+        if ('' !== self::$kadence_token_pending) {
+            if (self::$kadence_token_pending === $wpdb->last_query && '' === $wpdb->last_error && is_array($wpdb->last_result)) {
+                self::$kadence_token_rows[self::$kadence_token_pending] = $wpdb->last_result;
+            }
+            self::$kadence_token_pending = '';
+        }
+        if (!is_string($query) || false === strpos($query, 'kb_design_tokens')) {
+            return $query;
+        }
+        if (!preg_match(self::KADENCE_TOKEN_READ, $query)) {
+            // A save, delete or other statement on the table: read it again.
+            self::$kadence_token_rows = array();
+            return $query;
+        }
+        // get_row() names this SQL just before calling query(); a direct
+        // query() call still shows the previous call's name.
+        if (0 !== strpos((string) $wpdb->func_call, '$db->get_row("' . $query . '",')) {
+            return $query;
+        }
+        if (!isset(self::$kadence_token_rows[$query])) {
+            self::$kadence_token_pending = $query;
+            return $query;
+        }
+        if (null === self::$kadence_token_rearm) {
+            self::$kadence_token_rearm = Closure::bind(
+                static function ($db) {
+                    $db->check_current_query = true;
+                },
+                null,
+                'wpdb'
+            );
+        }
+        $wpdb->flush();
+        $wpdb->last_query = $query;
+        $wpdb->last_result = array_map(
+            static function ($row) {
+                return clone $row;
+            },
+            self::$kadence_token_rows[$query]
+        );
+        $wpdb->num_rows = count($wpdb->last_result);
+        // As query() names a query it runs, so a direct query() call next is
+        // not taken for get_row().
+        $wpdb->func_call = "\$db->query(\"$query\")";
+        // query() re-arms the check only for a query it runs.
+        (self::$kadence_token_rearm)($wpdb);
+        return '';
     }
 
     /**
