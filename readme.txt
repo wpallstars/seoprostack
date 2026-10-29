@@ -113,7 +113,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 * **Linked websites**: opt-in cached health checks send public addresses without queries or visitor data; their policies apply. Local click totals last 90 days, without cookies or visitor IDs.
 * **GitHub** (github.com, api.github.com), GitHub builds: release checks twice daily; no site data. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other addresses: Copy linked images and Link cards download pictures (Link cards read the page for its site icon when it has no picture); iFrames load pages. Short-link counts use a year-long `sps_link_` cookie per link, holding “1”; totals only, no IPs. No other data is sent.
+Other addresses: Copy linked images and Link cards download pictures and site icons; iFrames load pages. Short-link counts use a year-long `sps_link_` cookie per link, holding “1”; totals only, no IPs. No other data is sent.
 
 = Built with AI =
 
@@ -154,6 +154,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.104 =
-* Better: Link cards show pictures whole, at their own shape (or wide, square or filling the card), and use the site's icon when a page has no picture. External link icons show after every card's site name (#1036).
+* Better: Link cards show pictures whole, can use the site's icon, and show the external link icon after the site name (#1036).
 
 Older: `changelog.txt`.
