@@ -2860,6 +2860,183 @@ html.sps-dark li#wp-admin-bar-fcrm_adminbar_search {
 }
 
 /*
+ * FluentCRM's email designer (campaigns, templates, sequences and
+ * automations' emails): a page of its own in a frame, body.fcrm_custom_editor,
+ * which gets this stylesheet and the mode's classes from
+ * SEOProStack_Admin_Whole_Theme::fluent_editor_head(). FluentCRM paints it
+ * with fixed light colours through its own properties (on :root, the
+ * header and the smartcode panel); they take the palette here, on body,
+ * which everything in the designer inherits from. The email itself is in
+ * a frame of its own (editor-canvas) and keeps the colours it is sent with.
+ */
+html.sps-dark body.fcrm_custom_editor {
+	--fc-primary-bg: var(--sps-ui-surface);
+	--fc-secondary-bg: var(--sps-ui-raised);
+	--fc-light-bg: var(--sps-ui-border);
+	--fc-deep-bg: var(--sps-ui-text);
+	--fc-primary-text: var(--sps-ui-text);
+	--fc-secondary-text: var(--sps-ui-muted);
+	--fc-text-muted: var(--sps-ui-subtle);
+	--fc-text-inverse: var(--sps-ui-canvas);
+	--fc-primary-border: var(--sps-ui-border);
+	--fc-secondary-border: var(--sps-ui-field-border);
+	--fc-primary-button: var(--sps-ui-text);
+	--fc-text-link: var(--sps-ui-info);
+	--fc-success-bg: #16291b;
+	--fc-error-bg: #33191b;
+	--fc-warning-bg: #2e2716;
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.edit-post-header, .editor-header) {
+	--fcrm-compose-btn-bg: var(--sps-ui-raised);
+	--fcrm-compose-btn-border: var(--sps-ui-field-border);
+	--fcrm-compose-btn-text: var(--sps-ui-text);
+	--fcrm-compose-btn-hover: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-smartcode-examples-panel {
+	--fcrm-sidebar-accent: var(--sps-ui-muted);
+	--fcrm-sidebar-accent-soft: var(--sps-ui-raised);
+	--fcrm-sidebar-accent-hover: var(--sps-ui-border);
+	--fcrm-sidebar-border: var(--sps-ui-border);
+	--fcrm-sidebar-text: var(--sps-ui-text);
+	--fcrm-sidebar-muted: var(--sps-ui-subtle);
+}
+
+/* Save, Preview and Full screen in the header, and the designer's other plain buttons: #fff. */
+html.sps-dark body.fcrm_custom_editor :is(.fcrm_secondary_btn, .fcrm_danger_btn, .fcrm_delete_btn, .fcrm-color-toggle, .fcrm-color-toggle__clear, .fc-layout-picker .fc-layout-picker-option, .fcrm-ai-writing-popover__tone-btn) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm_secondary_btn, .fcrm_danger_btn, .fcrm_delete_btn, .fcrm-ai-writing-popover__tone-btn):is(:hover, :focus) {
+	background: var(--sps-ui-border);
+	color: var(--sps-ui-text);
+}
+
+/*
+ * WordPress's settings groups (Global colors): a #1e1e1e heading and #ddd
+ * lines around each colour. The screen's contrast guard does not run in
+ * this frame, so they are set here.
+ */
+html.sps-dark body.fcrm_custom_editor :is(.components-tools-panel-header .components-heading, .block-editor-block-card__title, .block-editor-block-card__name) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body.fcrm_custom_editor .block-editor-tools-panel-color-gradient-settings__item {
+	border-color: var(--sps-ui-border);
+}
+
+/* The colour being picked: #f0f0f0 behind the accent. */
+html.sps-dark body.fcrm_custom_editor .block-editor-panel-color-gradient-settings__dropdown.is-open {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+/* The sidebar's Style, Layout and Code panels: a light grey title bar, #e0e0e0 lines, dark text. */
+html.sps-dark body.fcrm_custom_editor .fcrm-email-style-settings .fcrm-style-panel > .components-panel__body-title {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-email-style-settings .fcrm-style-panel > .components-panel__body-title .components-panel__body-toggle, .fcrm-design-presets__label, .fcrm-sidebar-info-content h3, .fc-layout-picker .fc-layout-picker-option span, .fcrm-layout-selector .fcrm-layout-option .fcrm-layout-label, .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-tinymce__label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-sidebar-info-content p, .fcrm-design-presets__empty, .fcrm-color-hex, .fcrm-footer-settings__hint, .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-tinymce__help) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-sidebar-tabs [role="tablist"], .fcrm-email-style-settings .fcrm-style-panel .fcrm-typo-section, .fcrm-footer-settings__divider, .fcrm-layout-settings-modal__extra, .fcrm-layout-selector .fcrm-layout-grid, .fcrm-color-toggle-wrap) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-layout-selector .fcrm-layout-thumb-placeholder, .fcrm-layout-selector .fcrm-layout-thumb-svg, .fcrm-design-presets__thumb, .fcrm-design-presets__placeholder) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-design-presets__item:is(:hover, :focus) {
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Smartcodes ({} in the toolbar and the sidebar's list), links to pages and the AI writer's pop-up: #fff, #f9fafb and #0e121b text. */
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover, .fcrm-smart-link-popover, .fcrm-ai-writing-popover) .components-popover__content,
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover .fcrm-smartcode-toolbar-popover__search, .fcrm-smartcode-group__search) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover .fcrm-smartcode-toolbar-popover__sidebar, .fcrm-smartcode-toolbar-popover .fcrm-smartcode-toolbar-popover__doc-btn, .fcrm-ai-writing-popover__footer, .fcrm-ai-writing-popover__preview-text, .fcrm-ai-writing-popover__tone-badge, .fcrm-ai-writer-block__footer, .fcrm-smartcode-group__code, .fcrm-smartcode-group__copy-btn, .fcrm-smartcode-tip code, .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-text-mode__quicktags, .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-tinymce__header .fcrm-footer-editor-toggle .fcrm-footer-toggle-switch) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover__item, .fcrm-smartcode-toolbar-popover__item .fcrm-smartcode-toolbar-popover__item-label, .fcrm-smart-link-popover .fcrm-smart-link-popover__item-title, .fcrm-ai-writing-popover__header, .fcrm-ai-writing-popover__sub-header, .fcrm-ai-writing-popover__action, .fcrm-ai-writing-popover__tone-badge-value, .fcrm-ai-writing-popover__preview-text, .fcrm-ai-writer-block__prompt, .fcrm-ai-writer-block__title) {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover__tab, .fcrm-smartcode-toolbar-popover__feedback, .fcrm-smartcode-toolbar-popover__empty, .fcrm-smartcode-toolbar-popover__item .fcrm-smartcode-toolbar-popover__item-code, .fcrm-smart-link-popover .fcrm-smart-link-popover__item-url, .fcrm-smart-link-popover .fcrm-smart-link-popover__empty, .fcrm-smartcode-popover .fcrm-smartcode-popover__label, .fcrm-ai-writing-popover__back-btn, .fcrm-ai-writing-popover__action-desc, .fcrm-ai-writing-popover__tone-btn, .fcrm-ai-writing-popover__loading) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover__item, .fcrm-smart-link-popover .fcrm-smart-link-popover__item, .fcrm-ai-writing-popover__action, .fcrm-ai-writing-popover__back-btn):is(:hover, :focus),
+html.sps-dark body.fcrm_custom_editor .fcrm-smartcode-toolbar-popover .fcrm-smartcode-toolbar-popover__doc-btn:hover {
+	color: var(--sps-ui-text) !important;
+	background: var(--sps-ui-hover) !important;
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover__tab.is-active, .fcrm-ai-writing-popover__tone-btn.is-active) {
+	color: var(--sps-ui-canvas);
+	background: var(--sps-ui-text);
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-smartcode-toolbar-popover .fcrm-smartcode-toolbar-popover__search input, .fcrm-smart-link-popover .fcrm-smart-link-popover__content .components-search-control input, .fcrm-smart-link-popover .fcrm-smart-link-popover__content .components-search-control, .fcrm-ai-writing-popover__sub-header, .fcrm-ai-writer-block__header, .fcrm-ai-writer-block__inner, .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-text-mode) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-smartcode-popover .fcrm-smartcode-popover__name {
+	color: var(--sps-ui-info);
+	background: #152333;
+}
+
+html.sps-dark body.fcrm_custom_editor :is(.fcrm-ai-writing-popover__error, .fcrm-ai-writer-block__error) {
+	color: var(--sps-ui-bad);
+	background: #33191b;
+	border-color: #6b2e2e;
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-ai-writer-block__inner {
+	background: var(--sps-ui-surface);
+}
+
+/* The footer settings dialog: its text box, as plain text, and its buttons. */
+html.sps-dark body.fcrm_custom_editor .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-text-mode__textarea {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-text-mode__quicktags button {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-tinymce__header .fcrm-footer-editor-toggle .fcrm-footer-toggle-switch button.active {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	box-shadow: none;
+}
+
+html.sps-dark body.fcrm_custom_editor .fcrm-footer-settings-modal .fcrm-footer-tinymce-wrap .fcrm-footer-tinymce__header .fcrm-footer-editor-toggle .fcrm-footer-toggle-switch button:hover:not(.active) {
+	color: var(--sps-ui-text);
+}
+
+/*
  * Fluent Boards' first-run set-up: a #fff card and step form, a #fafafa
  * step heading, #eee buttons and dark text, outside its own dark theme.
  * The blue banner, the Next button and the current step keep their

@@ -48,6 +48,9 @@ final class SEOProStack_Admin_Whole_Theme {
     /** The stylesheet's handle (and `<link>` ID, with `-css`). */
     const STYLE = 'seoprostack-whole-theme';
 
+    /** The stylesheet, relative to the plugin's folder. */
+    const STYLESHEET = 'admin/css/seoprostack-whole-theme.css';
+
     /**
      * Icons (24×24): sun, moon and a half-filled circle, as SEO Pro Analytics'.
      */
@@ -73,6 +76,8 @@ final class SEOProStack_Admin_Whole_Theme {
         add_filter('style_loader_tag', array(__CLASS__, 'standalone_tag'), 10, 2);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('in_admin_header', array(__CLASS__, 'fluent_dark_early'), 0);
+        // After FluentCRM's own stylesheet in its email designer's <head> (10).
+        add_action('fluent_crm/block_editor_head', array(__CLASS__, 'fluent_editor_head'), 20);
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
         add_action('wp_ajax_' . self::ACTION, array(__CLASS__, 'save'));
         // The admin bar's links, when the script has not loaded.
@@ -362,6 +367,31 @@ final class SEOProStack_Admin_Whole_Theme {
     }
 
     /**
+     * FluentCRM's email designer (campaigns, templates, sequences and
+     * automations' emails) is a page of its own, shown in a frame on its
+     * screens (post-new.php?fluent_crm_block_editor=1). It is printed at
+     * admin_init and stops there: no admin_head, and no other plugin's
+     * enqueued scripts or styles. So its <head> gets the mode's classes
+     * here, and in Dark or System the stylesheet, after FluentCRM's own.
+     * The screen around it keeps the frame in step when the mode changes
+     * (admin/js/seoprostack-whole-theme.js). The email itself is in a frame
+     * of its own inside, and keeps the colours it is sent with.
+     */
+    public static function fluent_editor_head() {
+        if (!is_user_logged_in() || !self::screen_applies()) {
+            return;
+        }
+        echo self::head_script(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output; the mode is one of MODES, JSON-encoded.
+        if ('light' === self::mode()) {
+            return;
+        }
+        $css = self::STYLESHEET;
+        $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
+        // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the designer's page prints no enqueued styles of other plugins; as standalone_tag().
+        echo '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";
+    }
+
+    /**
      * The stylesheet and scripts. The stylesheet loads at once only when it
      * is needed (Dark, System, or SEO Pro Stack's own screen); otherwise the
      * script loads it on the first switch to dark. On screens styled by
@@ -380,7 +410,7 @@ final class SEOProStack_Admin_Whole_Theme {
         if (!$toggle && (!$applies || 'light' === $mode)) {
             return;
         }
-        $css = 'admin/css/seoprostack-whole-theme.css';
+        $css = self::STYLESHEET;
         $js  = 'admin/js/seoprostack-whole-theme.js';
         $url = SEOPROSTACK_URL . $css . '?ver=' . filemtime(SEOPROSTACK_DIR . $css);
         if ($applies && ('light' !== $mode || self::own_screen())) {
@@ -485,7 +515,7 @@ final class SEOProStack_Admin_Whole_Theme {
         if (!is_admin() || did_action('admin_head') || !in_array($handle, $handles, true) || 'light' === self::mode() || !self::screen_applies()) {
             return $tag;
         }
-        $css = 'admin/css/seoprostack-whole-theme.css';
+        $css = self::STYLESHEET;
         $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
         // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the screen prints only its own handles; this follows its stylesheet.
         return $tag . self::head_script() . '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";

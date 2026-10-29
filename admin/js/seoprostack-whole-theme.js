@@ -541,10 +541,41 @@
 		}
 		doc.documentElement.classList.toggle('sps-dark-canvas', root.classList.contains('sps-dark'));
 	}
+	/*
+	 * FluentCRM's email designer: a page of its own in a frame, which takes
+	 * the mode's classes, and in Dark the stylesheet, from its own <head>
+	 * (SEOProStack_Admin_Whole_Theme::fluent_editor_head()). A change of
+	 * mode here reaches it too, with the stylesheet on the first switch to
+	 * dark. The email inside it is a frame of its own, left as it is sent.
+	 */
+	function designerFrame(frame) {
+		var doc;
+		try {
+			doc = frame.contentDocument;
+		} catch (e) {
+			return;
+		}
+		if (!doc || !doc.body || !doc.head || !doc.body.classList.contains('fcrm_custom_editor')) {
+			return;
+		}
+		var html = doc.documentElement;
+		var nowDark = root.classList.contains('sps-dark');
+		if (nowDark && data.css && !doc.getElementById('seoprostack-whole-theme-css')) {
+			var link = doc.createElement('link');
+			link.rel = 'stylesheet';
+			link.id = 'seoprostack-whole-theme-css';
+			link.href = data.css;
+			doc.head.appendChild(link);
+		}
+		order.forEach(function (value) { html.classList.toggle('sps-theme-' + value, root.classList.contains('sps-theme-' + value)); });
+		html.classList.toggle('sps-mode-dark', root.classList.contains('sps-mode-dark'));
+		html.classList.toggle('sps-dark', nowDark);
+	}
 	function dieAll() {
 		Array.prototype.forEach.call(document.querySelectorAll('iframe'), function (frame) {
 			dieFrame(frame);
 			canvasFrame(frame);
+			designerFrame(frame);
 		});
 	}
 	// A frame's load event does not bubble, so it is caught on the way down.
@@ -552,6 +583,7 @@
 		if (event.target && event.target.tagName === 'IFRAME') {
 			dieFrame(event.target);
 			canvasFrame(event.target);
+			designerFrame(event.target);
 		}
 	}, true);
 
