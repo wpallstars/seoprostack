@@ -71,6 +71,8 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   cannot write posts count as safe. README.md → Features lists them.
   Modal links is on at the owner's request (#929): it changes only links to
   the ID of a modal or drawer, which before jumped to a hidden element.
+  Links skip redirects is on (#1046): it changes only links to an address the
+  site permanently redirects to another of its own pages, which ends there.
   Avatars stay self-hosted with Show Avatars on, and Copy pictures from
   Gravatar is on (#945): only the server asks Gravatar, once per author.
   Features that need choices about the site first, or change its content

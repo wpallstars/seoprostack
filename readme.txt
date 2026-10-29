@@ -155,6 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * New: the Plugins screen recommends deactivating and deleting Performant Translations on WordPress 6.5 or later, which does most of its job, and Categories to Tags Converter Importer, whose job Term tools does. Term tools' Move to taxonomy keeps the default category in place (#1043).
+* New, on by default: Links skip redirects (Links tab): links in content and menus to an address Rank Math permanently redirects to another page of the site point straight at that page (#1046).
 
 = 1.3.105 =
 * Better: Link cards show pictures whole and can use site icons (#1036).

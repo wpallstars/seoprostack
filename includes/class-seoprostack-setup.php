@@ -108,6 +108,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Rank_Math_Defaults',
         'SEOProStack_External_Links',
         'SEOProStack_Modal_Links',
+        'SEOProStack_Redirect_Links',
         'SEOProStack_Linking',
         'SEOProStack_Maintenance',
         'SEOProStack_Speed_Plan',
