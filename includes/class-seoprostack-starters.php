@@ -50,7 +50,8 @@
  *   finished and archived is not added again. Another plugin adds tasks to
  *   the same board with the seoprostack_starters filter: its own starter,
  *   with the board too (matched by title, so it is made only once).
- *   Remove keeps tasks that were edited, closed, archived, commented on or
+ *   Remove keeps tasks that were edited, moved to another stage, closed,
+ *   archived, given a due date, assignees or labels, commented on or
  *   given attachments or subtasks.
  * - fluentsupport_products: title, description. Matched by title.
  * - fluentbooking_events: title, description, duration, crm_list (a list
@@ -1656,7 +1657,7 @@ final class SEOProStack_Starters {
      * @return string
      */
     private static function task_hash($task) {
-        return md5((string) $task->title . "\n" . (string) $task->description); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
+        return hash('sha256', (string) $task->title . "\n" . (string) $task->description);
     }
 
     /**
@@ -1694,7 +1695,7 @@ final class SEOProStack_Starters {
         if (!$task) {
             return null;
         }
-        return array('id' => $task_id, 'board_id' => $board_id, 'hash' => self::task_hash($task), 'name' => (string) $item['title']);
+        return array('id' => $task_id, 'board_id' => $board_id, 'stage_id' => (int) $task->stage_id, 'hash' => self::task_hash($task), 'name' => (string) $item['title']);
     }
 
     /**
@@ -2102,7 +2103,14 @@ final class SEOProStack_Starters {
                 if (!$task || (int) $task->board_id !== (int) $record['board_id']) {
                     return false;
                 }
+                // Kept once someone worked on it: moved to another stage,
+                // given a due date, assignees or labels, edited, closed,
+                // archived, commented on, or given attachments or subtasks.
                 if ('open' !== (string) $task->status || !empty($task->archived_at)
+                    || (isset($record['stage_id']) && (int) $task->stage_id !== (int) $record['stage_id'])
+                    || !empty($task->due_at)
+                    || $task->assignees()->count() > 0
+                    || $task->labels()->count() > 0
                     || self::task_hash($task) !== (string) $record['hash']
                     || $task->comments()->count() > 0
                     || $task->attachments()->count() > 0
