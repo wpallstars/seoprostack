@@ -87,8 +87,9 @@ check_readme_setup_tasks() {
 	local script
 	script="$(dirname "${BASH_SOURCE[0]}")/readme-setup-tasks.js"
 	section "README setup tasks"
+	# A release gate: without node the README cannot be checked, so it fails.
 	if ! command -v node >/dev/null 2>&1; then
-		warn "node not found, README setup tasks not checked"
+		err "node not found, so README setup tasks cannot be checked (install Node.js)"
 		return 0
 	fi
 	local out
@@ -105,7 +106,9 @@ plugin_preflight() {
 	if [[ -d "$dir/presets" || -d "$dir/starters" ]]; then
 		check_presets_starters "$dir"
 	fi
-	if [[ -f "$dir/starters/fluent-boards.json" ]]; then
+	# Either half alone is drift too: README tasks without the starter file,
+	# or the starter file without the README block (the script says which).
+	if [[ -f "$dir/starters/fluent-boards.json" ]] || grep -qF '<!-- setup-tasks:start -->' "$dir/README.md" 2>/dev/null; then
 		check_readme_setup_tasks "$dir"
 	fi
 	return 0

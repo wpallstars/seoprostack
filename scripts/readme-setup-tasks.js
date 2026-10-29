@@ -28,19 +28,18 @@ const check = args.includes('--check');
 const dirAt = args.indexOf('--dir');
 const dir = dirAt >= 0 && args[dirAt + 1] ? path.resolve(args[dirAt + 1]) : path.resolve(__dirname, '..');
 
-const readmePath = path.join(dir, 'README.md');
-const tasksPath = path.join(dir, 'starters', 'fluent-boards.json');
-
 function fail(message) {
 	process.stderr.write('readme-setup-tasks: ' + message + '\n');
 	process.exit(1);
 }
 
+// Work in the plugin folder, so only the two fixed file names are opened.
 let readme;
 let starter;
 try {
-	readme = fs.readFileSync(readmePath, 'utf8');
-	starter = JSON.parse(fs.readFileSync(tasksPath, 'utf8'));
+	process.chdir(dir);
+	readme = fs.readFileSync('README.md', 'utf8');
+	starter = JSON.parse(fs.readFileSync('starters/fluent-boards.json', 'utf8'));
 } catch (e) {
 	fail(e.message);
 }
@@ -75,5 +74,5 @@ if (next === readme) {
 if (check) {
 	fail('README.md differs from the Website Setup tasks in starters/fluent-boards.json: run node scripts/readme-setup-tasks.js');
 }
-fs.writeFileSync(readmePath, next);
+fs.writeFileSync('README.md', next);
 process.stdout.write('README.md: wrote the ' + tasks.length + ' Website Setup tasks\n');

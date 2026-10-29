@@ -1646,6 +1646,8 @@ and to go through the tasks with you, doing the parts it can (settings in WordPr
 
 The Website Setup board's tasks, in order, as Fluent Boards' starter data adds them. Plugins that add their own tasks list them in their README (SEO Pro Directory: **Setting up a new directory**).
 
+In GitHub builds, the Hostinger and 101domain links in these tasks (here and on the board) are the developer's affiliate or referral links, which may earn a commission or account credit. They do not change what we recommend. The WordPress.org build has plain links instead (`.wporg-links`).
+
 <!-- setup-tasks:start -->
 <!-- Made by scripts/readme-setup-tasks.js from starters/fluent-boards.json: edit the tasks there, then run it. -->
 
