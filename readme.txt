@@ -152,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: Email protection's on-demand home-page and WP-CLI check finds readable addresses and hints at their sources; documents protection's limits (#1004).
+
 = 1.3.93 =
 * Fix: a picture whose local files another storage connection removed no longer holds up the cloud upload queue (#1003).
 

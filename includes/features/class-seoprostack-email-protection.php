@@ -18,6 +18,9 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
 
     const KEY = 'email_protection';
 
+    /** Explicit, nonce-protected request to inspect the public home page. */
+    const CHECK = 'seoprostack_email_check';
+
     /** An email address in decoded text or an attribute value. */
     const ADDRESS = '/[a-z0-9.!#$%&\'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}/i';
 
@@ -35,13 +38,20 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'security',
                 'label'       => __('Email protection', 'seoprostack'),
-                'description' => __('Hide email addresses in content, widgets, blocks and menus from scrapers that read HTML. A small script restores the text and email links for visitors. Without JavaScript, a message asks visitors to enable it. Does not change stored content, form values, feeds or REST responses. Works without Cloudflare; scrapers that run JavaScript can still read addresses.', 'seoprostack'),
+                'description' => __('Hide email addresses in content, widgets, blocks and menus from scrapers that read HTML. A small script restores the text and email links for visitors. Without JavaScript, a message asks visitors to enable it. Does not change stored content, form values, feeds or REST responses. Works without Cloudflare; scrapers that run JavaScript can still read addresses. Cannot hide schema emails, other plugins’ script data or hard-coded templates: remove the optional schema email, change the plugin’s text or edit the template at its source.', 'seoprostack'),
+                'panel'       => true,
             ),
         );
     }
 
     /** Register output filters only while enabled. */
     public static function boot() {
+        if (defined('WP_CLI') && WP_CLI) {
+            WP_CLI::add_command('seoprostack email-protection check', array(__CLASS__, 'cli_check'));
+        }
+        if (is_admin()) {
+            add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'));
+        }
         if (!self::enabled() || is_admin()) {
             return;
         }
@@ -49,6 +59,164 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
             add_filter($hook, array(__CLASS__, 'protect'), 999);
         }
         add_filter('script_loader_tag', array(__CLASS__, 'defer_script'), 10, 2);
+    }
+
+    /**
+     * Inspect one public page, without cookies or cross-host redirects.
+     *
+     * @param string $url Optional page on this site's host and port.
+     * @return array|WP_Error Rows with address, context and hint, or a fetch error.
+     */
+    public static function check($url = '') {
+        $home = home_url('/');
+        $url  = '' === $url ? $home : $url;
+        $parts = wp_parse_url($url);
+        $site  = wp_parse_url($home);
+        if (!is_array($parts) || !is_array($site) || empty($parts['host']) || empty($parts['scheme'])
+            || !in_array($parts['scheme'], array('http', 'https'), true)
+            || 0 !== strcasecmp($parts['host'], (string) ($site['host'] ?? ''))
+            || ($parts['port'] ?? ('https' === $parts['scheme'] ? 443 : 80)) !== ($site['port'] ?? ('https' === ($site['scheme'] ?? '') ? 443 : 80))
+            || isset($parts['user']) || isset($parts['pass'])) {
+            return new WP_Error('email_check_url', __('Use a page URL on this site’s host and port, without login details.', 'seoprostack'));
+        }
+        $response = wp_safe_remote_get($url, array(
+            'timeout'             => 3,
+            'redirection'         => 0,
+            'limit_response_size' => 2 * MB_IN_BYTES,
+        ));
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        if (200 !== wp_remote_retrieve_response_code($response)) {
+            return new WP_Error('email_check_http', __('The page did not return HTTP 200. Redirects are not followed; use its final URL on this site.', 'seoprostack'));
+        }
+        $html = wp_remote_retrieve_body($response);
+        if (strlen($html) >= 2 * MB_IN_BYTES) {
+            return new WP_Error('email_check_size', __('The page is too large to check completely (2 MB limit).', 'seoprostack'));
+        }
+        return self::check_html($html);
+    }
+
+    /**
+     * Find readable addresses, keeping each once with all observed contexts.
+     * Encoded placeholders are never decoded or treated as findings.
+     *
+     * @param string $html Public page source.
+     * @return array Rows for both the settings panel and WP-CLI.
+     */
+    private static function check_html($html) {
+        $rows = array();
+        preg_match_all('~<!--[\s\S]*?(?:-->|$)|<script\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>[\s\S]*?(?:</script\s*>|$)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $html, $tokens, PREG_OFFSET_CAPTURE);
+        $offset = 0;
+        foreach ($tokens[0] as $token) {
+            self::find_addresses(substr($html, $offset, $token[1] - $offset), 'text', $rows);
+            $tag = $token[0];
+            $processor = new WP_HTML_Tag_Processor($tag);
+            if ($processor->next_tag()) {
+                $names = $processor->get_attribute_names_with_prefix('');
+                foreach (is_array($names) ? $names : array() as $name) {
+                    if (in_array($name, array('data-sps-e', 'data-sps-mailto', 'data-sps-attrs'), true)) {
+                        continue;
+                    }
+                    $value = $processor->get_attribute($name);
+                    if (is_string($value)) {
+                        $json = json_decode($value, true);
+                        self::find_addresses($value, is_array($json) ? 'script data' : 'attribute', $rows);
+                    }
+                }
+                if ('SCRIPT' === $processor->get_tag()) {
+                    $type = $processor->get_attribute('type');
+                    $context = is_string($type) && 'application/ld+json' === strtolower(trim($type)) ? 'schema' : 'script data';
+                    $start = strpos($tag, '>');
+                    if (false !== $start) {
+                        self::find_addresses(substr($tag, $start + 1), $context, $rows);
+                    }
+                }
+            }
+            $offset = $token[1] + strlen($tag);
+        }
+        self::find_addresses(substr($html, $offset), 'text', $rows);
+        return array_values($rows);
+    }
+
+    /**
+     * Add unique matches to the shared result, without changing plugin options.
+     *
+     * @param string $value   Source text or attribute value.
+     * @param string $context Source context.
+     * @param array  $rows    Results keyed by lower-case address.
+     */
+    private static function find_addresses($value, $context, &$rows) {
+        preg_match_all(self::ADDRESS, html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'), $matches);
+        foreach ($matches[0] as $address) {
+            $key = strtolower($address);
+            if (!isset($rows[$key])) {
+                $titles = get_option('rank-math-options-titles', array());
+                $rank_email = is_array($titles) && isset($titles['email']) && is_string($titles['email']) ? $titles['email'] : '';
+                $rows[$key] = array(
+                    'address' => $address,
+                    'context' => $context,
+                    'hint'    => 0 === strcasecmp(trim($rank_email), $address)
+                        ? __('Rank Math: Titles & Meta → Local SEO → Email. Clear the optional email field.', 'seoprostack')
+                        : __('Search your plugins’ settings for this address; if it is in a template, edit it there.', 'seoprostack'),
+                );
+            } elseif (!in_array($context, explode(', ', $rows[$key]['context']), true)) {
+                $rows[$key]['context'] .= ', ' . $context;
+            }
+        }
+    }
+
+    /**
+     * On-demand home-page check inside the existing setting's panel.
+     *
+     * @param string $key Setting being rendered.
+     */
+    public static function panel($key) {
+        if (self::KEY !== $key || !current_user_can('manage_options')) {
+            return;
+        }
+        $url = wp_nonce_url(add_query_arg(self::CHECK, '1', SEOProStack_Admin_Manager::tab_url('security')), self::CHECK);
+        echo '<div class="sps-panel-note"><p>' . esc_html__('Check the public home page for readable addresses in schema, script data, attributes and template text. This runs only when requested, changes no settings and does not check other pages or guarantee protection. Clear page caches after fixing a source.', 'seoprostack') . '</p>';
+        echo '<p><a class="button" href="' . esc_url($url) . '">' . esc_html__('Check for readable addresses', 'seoprostack') . '</a></p>';
+        if (isset($_GET[self::CHECK])) {
+            check_admin_referer(self::CHECK);
+            $rows = self::check();
+            if (is_wp_error($rows)) {
+                echo '<p>' . esc_html($rows->get_error_message()) . '</p>';
+            } elseif (!$rows) {
+                echo '<p>' . esc_html__('No readable addresses found in this page’s HTML. This is not a guarantee against scrapers that run JavaScript.', 'seoprostack') . '</p>';
+            } else {
+                echo '<ul>';
+                foreach ($rows as $row) {
+                    echo '<li><code>' . esc_html($row['address']) . '</code> — ' . esc_html($row['context']) . ': ' . esc_html($row['hint']) . '</li>';
+                }
+                echo '</ul>';
+            }
+        }
+        echo '</div>';
+    }
+
+    /**
+     * Check a public page for readable email addresses.
+     *
+     * ## OPTIONS
+     *
+     * [<url>]
+     * : Page on this site's host and port. Defaults to the home page.
+     *
+     * @param array $args Positional arguments.
+     */
+    public static function cli_check($args) {
+        $rows = self::check($args[0] ?? '');
+        if (is_wp_error($rows)) {
+            WP_CLI::error($rows->get_error_message());
+            return;
+        }
+        if (!$rows) {
+            WP_CLI::success(__('No readable addresses found in this page’s HTML.', 'seoprostack'));
+            return;
+        }
+        \WP_CLI\Utils\format_items('table', $rows, array('address', 'context', 'hint'));
     }
 
     /**

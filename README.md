@@ -151,6 +151,16 @@ Visitors need JavaScript to read protected addresses; without it they see “Ema
 
 Stored content, outgoing email, feeds, REST/JSON responses and admin screens are unchanged. Scripts (including JSON-LD), styles, textareas, input values and attributes other than mailto hrefs are left alone, except on an email link: there, every attribute holding the address (such as the block editor's `data-id="mailto:…"` or a `title`) is taken out of the HTML. The script puts back such `title`, `aria-label`, `aria-description` and `data-*` attributes; any other attribute holding the address, such as `onclick` or `style`, is dropped and does not come back. Addresses hardcoded in templates outside these WordPress output filters are not covered. Turn the setting off to show plain addresses, or return true from `seoprostack_email_protection_skip` (`bool $skip, string $html`) for a context such as a print or export view. Clear page caches after changing the setting.
 
+#### Addresses it cannot hide
+
+- **Schema (JSON-LD):** search engines need plain data, so schema emails cannot be encoded. Clear the optional organisation email in your SEO plugin; for example, Rank Math → Titles & Meta → Local SEO → Email.
+- **Other plugins’ script data:** a chatbot notice, for example AI Engine’s compliance text, may put an address into a script or JSON attribute. Change that text in the plugin’s settings; encoding it could break the plugin.
+- **Theme templates and hard-coded HTML:** addresses outside the content, block, widget and menu filters stay readable. Edit the template at its source.
+
+Open the Email protection panel on **Security** and choose **Check for readable addresses** to fetch the public home page. It runs only when requested and lists each address once, with its contexts (`schema`, `script data`, `attribute` or `text`) and a source hint. It ignores protected placeholders and never changes another plugin’s settings. Clear page caches after fixing a source. The check inspects at most 2 MB, does not follow redirects, and cannot guarantee protection or cover pages it has not checked.
+
+WP-CLI: `wp seoprostack email-protection check [<url>]` prints the same address, context and hint rows. Without a URL it checks the home page; an optional URL must use this site’s host and port. Findings exit successfully; an invalid URL or failed fetch reports an error.
+
 ### No fade between admin screens (Admin)
 
 WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s view transitions. The fade can flash, and each screen change waits for it. With this on, screens change straight away, as before 7.0. **On by default**; switch it off to get the fade back.
@@ -1988,6 +1998,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: **Email protection** can check the public home page on request for addresses left readable in schema, other plugins’ script data, attributes and templates, with source hints; the same check is available in WP-CLI. Documents what protection cannot hide and where to remove those addresses (GitHub issue #1004).
 
 ### 1.3.93
 
