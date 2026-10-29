@@ -39,6 +39,7 @@ class SEOProStack_Form_Keys_CLI {
      * @param array $assoc Associative arguments.
      */
     public function list_($args, $assoc) {
+        unset($args);
         $copy   = self::copy_from($assoc);
         $fields = array('id', 'title', 'status', 'form_key');
         if ('' !== $copy) {
@@ -108,6 +109,7 @@ class SEOProStack_Form_Keys_CLI {
      * @param array $assoc Associative arguments.
      */
     public function unset_($args, $assoc) {
+        unset($assoc);
         $form_id = self::existing_form($args);
         SEOProStack_Form_Key_Store::set($form_id, '');
         WP_CLI::success(sprintf('Form %d has no key.', $form_id));
