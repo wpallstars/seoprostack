@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Cloud media uploads in progress count as waiting, not failed; failed and interrupted uploads still retry (#1022).
+
 = 1.3.109 =
 * Fix: Dark mode covers Ultimate Multisite's checkout field template previews (#1051).
 

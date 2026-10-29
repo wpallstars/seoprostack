@@ -2198,6 +2198,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Media in cloud storage** counts pictures whose upload is running as waiting, not failed, in status and the Media Library. Finished failures keep their error and retry; interrupted attempts stay waiting for their retry, and `--retry-failed` also recovers unfinished uploads whose retry job was lost (GitHub issue #1022).
+
 ### 1.3.109
 
 - Fix: Dark mode covers Ultimate Multisite's checkout field template previews: the picture beside a template's description and the larger one shown on hover are dark, in a dark frame, instead of white. Site template and theme screenshots keep their colours (GitHub issue #1051).
@@ -2233,7 +2237,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### 1.3.103
 
 - New: each FluentCRM email has a **Dark mode in mail apps** setting, at the end of the designer’s Style panel: **Let the mail app choose** (the default; the email is sent as before), **Keep light**, which asks mail apps to show it in its light colours, or **Use my dark colours**, with dark versions of the body and content backgrounds, headings, text and links for apps that honour an email’s own colour scheme, such as Apple Mail. Boxes and buttons with colours of their own keep them. The dark mode preview is now a menu: **Apple Mail** shows the email’s own setting, **Gmail and Outlook** shows the app darkening the email whatever it sets (GitHub issue #1032).
-
 ### 1.3.102
 
 - New: FluentCRM’s email designer and its Email Preview have a button, an envelope with a moon, that shows the email as Apple Mail, Outlook and Gmail may show it in their own dark mode: light backgrounds turn dark and dark text light, while pictures and colours that are already dark stay. It is a preview only; the email that is saved and sent is unchanged. The choice is kept in your browser, for the designer and Email Preview alike. In Dark mode, the designer’s loading panel is dark too, so it no longer flashes white (GitHub issue #1030).

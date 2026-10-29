@@ -3762,12 +3762,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * copies. Pages keep their bucket addresses meanwhile.
      *
      * @param int $id Attachment ID.
+     * @param array $pending Inventory saved before this upload.
      * @return bool Whether the upload may go on.
      */
-    private static function restore_for_upload($id) {
+    private static function restore_for_upload($id, $pending) {
         $restored = self::removed($id) ? self::restore_attachment($id) : true;
         if (is_wp_error($restored)) {
-            update_option(self::ERROR, $restored->get_error_message(), false);
+            self::upload_failed($id, $pending, $restored->get_error_message());
             return false;
         }
         return true;
@@ -3855,20 +3856,22 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         update_post_meta($id, self::DONE, self::upload_marker());
         $job = array('kind' => 'retry', 'id' => $id, 'signature' => $config['signature'], 'next' => time() + HOUR_IN_SECONDS);
         update_option(self::JOB . 'retry_' . $id, $job, false);
-        if (!self::restore_for_upload($id)) {
-            return false;
-        }
-        $record = array('signature' => $config['signature'], 'url' => $config['url'], 'files' => array(), 'state' => 'failed', 'attempts' => $attempt, 'skipped' => 0);
+        $record = array('signature' => $config['signature'], 'url' => $config['url'], 'files' => array(), 'state' => 'waiting', 'attempts' => $attempt, 'skipped' => 0);
         if (isset($old['collision_source'])) {
             $record['collision_source'] = $old['collision_source'];
         }
         // Keep the previous inventory for deletion/recovery, but never serve a partial upload.
         $pending = $old ? $old : $record;
-        $pending['state'] = 'failed';
+        // An unfinished attempt is waiting, including one killed before it returns.
+        $pending['state'] = 'waiting';
+        unset($pending['error']);
         $pending['attempts'] = $attempt;
         update_post_meta($id, self::META, $pending);
-        update_post_meta($id, self::STATE, 'failed');
+        update_post_meta($id, self::STATE, 'waiting');
         delete_transient(self::COUNTS);
+        if (!self::restore_for_upload($id, $pending)) {
+            return false;
+        }
         clearstatcache();
         $files = self::files($id);
         if (self::conflicting_files($id, $files)) {
@@ -3953,9 +3956,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     self::defer_upload($id, $pending, $old, $job);
                     return false;
                 }
-                $pending['error'] = $error->get_error_message();
-                update_post_meta($id, self::META, $pending);
-                update_option(self::ERROR, $pending['error'], false);
+                self::upload_failed($id, $pending, $error->get_error_message());
                 $job['next'] = time() + ($attempt < 2 ? HOUR_IN_SECONDS : ($attempt < 3 ? 6 : 24) * HOUR_IN_SECONDS);
                 update_option(self::JOB . 'retry_' . $id, $job, false);
                 return false;
@@ -3996,6 +3997,22 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         delete_post_meta($id, self::LOCAL);
         self::forget($id);
         return true;
+    }
+
+    /**
+     * Publish a finished failure, never the start of a network request.
+     *
+     * @param int $id Attachment ID.
+     * @param array $pending Inventory including attempted and confirmed keys.
+     * @param string $message Failure message.
+     */
+    private static function upload_failed($id, $pending, $message) {
+        $pending['state'] = 'failed';
+        $pending['error'] = $message;
+        update_post_meta($id, self::META, $pending);
+        update_post_meta($id, self::STATE, 'failed');
+        update_option(self::ERROR, $message, false);
+        delete_transient(self::COUNTS);
     }
 
     /**
@@ -4919,7 +4936,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Recover failed uploads whose retry job was lost, newest first.
+     * Recover failed or unfinished uploads whose retry job was lost, newest first.
      * Page past refusals without loading the whole media library.
      *
      * @param int $limit Most attachments to requeue.
@@ -4929,11 +4946,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $before = PHP_INT_MAX;
         $queued = 0;
         do {
-            // Keep ID order: starting from meta_key would sort all failed rows
+            // Keep ID order: starting from meta_key would sort all matching rows
             // before LIMIT instead of walking the posts primary-key range.
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded ID-paged lookup; meta joins use post_id and jobs use option_name's unique index.
             $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
-                "SELECT STRAIGHT_JOIN p.ID FROM {$wpdb->posts} p FORCE INDEX (PRIMARY) INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'failed' INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s LEFT JOIN {$wpdb->options} j ON j.option_name = CONCAT(%s, p.ID) WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND p.ID < %d AND j.option_id IS NULL ORDER BY p.ID DESC LIMIT %d",
+                "SELECT STRAIGHT_JOIN p.ID FROM {$wpdb->posts} p FORCE INDEX (PRIMARY) INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value IN ('failed', 'waiting') INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s LEFT JOIN {$wpdb->options} j ON j.option_name = CONCAT(%s, p.ID) WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND p.ID < %d AND j.option_id IS NULL ORDER BY p.ID DESC LIMIT %d",
                 self::STATE, self::DONE, self::upload_marker(), self::JOB . 'retry_', 'image/%', $before, $limit - $queued
             )));
             foreach ($ids as $id) {
