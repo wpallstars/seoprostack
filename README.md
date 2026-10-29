@@ -2002,6 +2002,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - New: **Email protection** can check the public home page on request for addresses left readable in schema, other pluginsâ€™ script data, attributes and templates, with source hints; the same check is available in WP-CLI. Documents what protection cannot hide and where to remove those addresses (GitHub issue #1004).
+- Developers: starter core files match WP Plugin Starter 8409653: `scripts/preflight-release.sh` reads the aidevops-managed block's headings from inside its markers first, so an earlier heading of the same name no longer gives a false "outside its block" warning (GitHub issue #1007).
 
 ### 1.3.93
 
