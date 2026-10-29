@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.98
+Stable tag: 1.3.99
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,7 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.98 =
-* New: Never watermark, in a picture's details, leaves that picture unmarked by Watermark pictures (#1018).
+= 1.3.99 =
+* Faster: pages with a Kadence Blocks Pro query loop no longer start every plugin's REST API to run it, and the Kadence theme decodes its settings once per page (#1020).
 
 Older: `changelog.txt`.
