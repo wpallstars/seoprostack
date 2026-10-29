@@ -1,0 +1,20 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/form",
+	"version": "1.3.97",
+	"title": "Form by key",
+	"category": "widgets",
+	"icon": "feedback",
+	"description": "A Fluent form chosen by its key, so the page shows the same form on every site it is copied to.",
+	"keywords": [ "form", "fluent", "contact", "enquiry", "newsletter" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"formKey": { "type": "string", "default": "" },
+		"panel": { "type": "boolean", "default": true }
+	},
+	"supports": {
+		"html": false
+	},
+	"editorScript": "seoprostack-form-keys-editor"
+}

@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.96-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.97-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.96
+Version: 1.3.97
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1205,6 +1205,18 @@ Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing co
 - The options panel lists the posts that still contain Spectra blocks, with edit links.
 - Switches on if Spectra is active and its blocks are in use (settings version 5). Spectra has no settings to import; its blocks carry their own styles.
 
+### Fluent Forms by key (Content)
+
+**On by default.** Places a Fluent form by a key it carries instead of its ID. Form IDs differ on every site a page reaches (a template, a copied site, an imported form), so a page that names a form ID shows the wrong form, or none, elsewhere. With a key, the page shows whichever form holds that key on the site it is on. Nothing changes without Fluent Forms.
+
+- **Keys**: lower-case words joined by hyphens, such as `contact` or `quote-request`, stored in the form's Fluent Forms meta (`seoprostack_form_key`), so they travel with Fluent Forms' own export and import. `wp seoprostack form-keys list` shows each form's key; `wp seoprostack form-keys set <form-id> <key>` and `unset <form-id>` change them; `set --copy-from=<meta-key>` gives every form the key it already holds under another meta key. Starter data forms take a `key` too. When two published forms hold one key, the older one shows.
+- **Form by key block** (`seoprostack/form`): choose the form in the block settings, from the site's keyed forms, and whether it sits in a panel. The editor shows the form as the page does. `[seoprostack_form key="contact"]` (`panel="0"` for none) does the same where blocks cannot go.
+- **Form modal block** (`seoprostack/form-modal`): the form in a Kadence Blocks Pro modal, with an optional title and introduction, printed at the foot of the page so no row's layout traps it. Any link to its `#ID` (the modal ID, or the form key) opens it, through Kadence's own modal triggers or [Modal links](#modal-links-links); so does arriving with `#ID` in the address. The editor shows a summary of what opens it. Without Kadence Blocks Pro, the form shows in place in a panel with the same ID, so the same links reach it. `[seoprostack_form_modal key="quote" id="quote" title="…" intro="…"]` too.
+- In a form modal, a press that starts in the panel and ends on the dark overlay (a drag out of a field, or a tap while a searchable list closes) no longer closes it; an opened searchable list scrolls into view and takes room in the panel instead of being cut off; and Tab stays on the visible fields of a multi-step form instead of leaving through its hidden later steps.
+- The panel and modal start with a plain look in Kadence's palette, which a theme's own rules for `.seoprostack-form-panel`, `.seoprostack-form-modal`, `.seoprostack-form-modal-title` and `.seoprostack-form-modal-intro` override. Editors see a short notice where a form is missing; visitors see nothing.
+- Every submission of a keyed form fires `seoprostack_form_submitted` (key, data, form, entry ID), so other plugins, such as a CRM hand-off, follow forms by key.
+- **Policy links in forms open a new tab** (on by default, under this setting): links inside a Fluent form to the privacy policy (Settings → Privacy's page), `privacy-policy`, `cookie-policy` or the terms (`terms`, `terms-and-conditions`, `terms-of-service`, `terms-of-use`) open in a new tab, so reading them never loses what the visitor typed. They get `rel="noopener"`, the `seoprostack-new-tab` class for a theme's arrow and "(opens in a new tab)" for screen readers; links already opening a new tab are left alone. The `seoprostack_form_policy_paths` filter changes the paths.
+
 ### Kadence query filters scroll to results (Content)
 
 When a visitor changes a filter (a checkbox, radio button or drop-down) in a Kadence Blocks Pro query loop, the results reload in place, and on a long list the visitor is left partway down the page. This scrolls back up to the top of the loop.
@@ -2140,6 +2152,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.97
+
+- New, on by default: **[Fluent Forms by key](#fluent-forms-by-key-content)** (Content). The **Form by key** and **Form modal** blocks place a Fluent form by a key it carries, not its ID, so a page copied to another site, or made from a template, shows that site's own form. Choose the form in the block settings; the modal opens from any link to its `#ID`. Keys are set with `wp seoprostack form-keys`, and starter data forms can carry one. Every submission of a keyed form tells other plugins its key (`seoprostack_form_submitted`). **Policy links in forms open a new tab**, on by default, keeps what a visitor typed while they read the privacy policy or terms (GitHub issue #1016).
 
 ### 1.3.96
 

@@ -25,7 +25,8 @@
  *   on this site are left out. Added only when the setting is not stored.
  * - fluentform_forms: title, template (a Fluent Forms template the form starts
  *   from, for its default settings and notifications), form_fields (as in a
- *   Fluent Forms export), settings (merged into its form settings) and
+ *   Fluent Forms export), settings (merged into its form settings), key (a
+ *   form key for the Form by key block, SEOProStack_Form_Keys) and
  *   crm_feed: a FluentCRM feed with list and tags as slugs and tag_routers
  *   (tag, field, value), added only with FluentCRM active. Matched by title.
  *   Fields may be compact: an element with only the keys that differ
@@ -1346,6 +1347,11 @@ final class SEOProStack_Starters {
             $settings = \FluentForm\App\Models\FormMeta::retrieve('formSettings', $id);
             $settings = is_array($settings) ? $settings : \FluentForm\App\Models\Form::getFormsDefaultSettings();
             \FluentForm\App\Models\FormMeta::persist($id, 'formSettings', self::merge_settings($settings, $item['settings']));
+        }
+
+        // A key, so pages place the form with the Form by key block.
+        if (isset($item['key']) && preg_match(SEOProStack_Form_Keys::PATTERN, (string) $item['key'])) {
+            \FluentForm\App\Models\FormMeta::persist($id, SEOProStack_Form_Keys::META, (string) $item['key']);
         }
 
         if (!empty($item['crm_feed']) && is_array($item['crm_feed']) && self::type_ready('fluentcrm_lists')) {
