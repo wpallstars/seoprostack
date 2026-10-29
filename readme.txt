@@ -66,7 +66,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally.
+* **Avatars without Gravatar**: served locally. **Kadence author box fields** stay on profiles.
 
 = Links and speed =
 
@@ -152,6 +152,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: Kadence author box fields keep Occupation and profile links on the profile screen after Kadence Starter Templates is deactivated (#1042).
+* Fix: Dark mode covers Fluent Security's two-factor card on the profile screen (#1042).
 
 = 1.3.104 =
 * New: On a network, Network Admin's menu is organised too, with Ultimate Multisite, then a Developers menu, and Tidy the dashboard lays out the network Dashboard (#1035).

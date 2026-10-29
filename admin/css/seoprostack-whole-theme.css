@@ -9268,6 +9268,127 @@ html.sps-dark .plugin-groups .groups-modern li a.current {
 	border-bottom-color: var(--sps-ui-subtle);
 }
 
+/*
+ * Fluent Security's Two-Factor Authentication card on the profile and edit
+ * user screens (TwoFaProfileHandler, #fls2fa): coloured in a <style> block
+ * printed with the card, which the stylesheet copies do not reach (#fff card
+ * and dialogs, #f0f0f1 lines, #1d2327 names, #edfaef and #fcf5e6 badges).
+ * The QR code keeps its white ground, so phones can read it.
+ */
+html.sps-dark #wpbody .fls2fa__intro {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__card, .fls2fa__noscript, .fls2fa-modal__dialog) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark #wpbody .fls2fa--js .fls2fa-modal__dialog {
+	box-shadow: 0 16px 48px rgb(0 0 0 / 60%);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__row, .fls2fa__device) {
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .fls2fa-modal__head {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__name, .fls2fa__device-name, .fls2fa__field-label, .fls2fa-modal__head h3, .fls2fa__codes li) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__meta, .fls2fa__device-meta, .fls2fa__hint, .fls2fa__modal-lead, .fls2fa__status-text, .fls2fa-modal__x) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .fls2fa__note {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__icon, .fls2fa__status) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__icon--on, .fls2fa__status--on) {
+	color: var(--sps-ui-good);
+	background: #183a24;
+}
+
+html.sps-dark #wpbody :is(.fls2fa__icon--warn, .fls2fa__status--warn) {
+	color: var(--sps-ui-warning);
+	background: #3a3016;
+}
+
+html.sps-dark #wpbody .fls2fa__hint--warn {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark #wpbody .fls2fa .fls2fa__danger {
+	color: var(--sps-ui-bad);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #wpbody .fls2fa .fls2fa__danger:is(:hover, :focus) {
+	color: var(--sps-ui-bad);
+	background: #3e1c1e;
+	border-color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wpbody .fls2fa__banner {
+	color: var(--sps-ui-text);
+	background: #3a3016;
+	border-color: #52431c;
+	border-left-color: var(--sps-ui-warning);
+}
+
+html.sps-dark #wpbody .fls2fa__banner svg {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark #wpbody .fls2fa__banner--info {
+	background: #1b3048;
+	border-color: #24405f;
+	border-left-color: var(--sps-ui-info);
+}
+
+html.sps-dark #wpbody .fls2fa__banner--info svg {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark #wpbody .fls2fa__banner--error {
+	background: #3e1c1e;
+	border-color: #5a2629;
+	border-left-color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wpbody .fls2fa__banner--error svg {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wpbody :is(.fls2fa__code-block, .fls2fa__codes) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .fls2fa__qr {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .fls2fa__details summary {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody .fls2fa--js .fls2fa-modal.is-open {
+	background: rgb(0 0 0 / 65%);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */

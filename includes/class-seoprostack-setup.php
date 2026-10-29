@@ -57,6 +57,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Admin_Bar_Hide',
         'SEOProStack_List_Columns',
         'SEOProStack_Avatar_Privacy',
+        'SEOProStack_Author_Fields',
         'SEOProStack_Magic_Login',
         'SEOProStack_Duplicate_Posts',
         'SEOProStack_Post_Versions',
