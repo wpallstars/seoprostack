@@ -48,6 +48,9 @@ final class SEOProStack_Admin_Whole_Theme {
     /** The stylesheet's handle (and `<link>` ID, with `-css`). */
     const STYLE = 'seoprostack-whole-theme';
 
+    /** The stylesheet, relative to the plugin's folder. */
+    const STYLESHEET = 'admin/css/seoprostack-whole-theme.css';
+
     /**
      * Icons (24×24): sun, moon and a half-filled circle, as SEO Pro Analytics'.
      */
@@ -382,7 +385,7 @@ final class SEOProStack_Admin_Whole_Theme {
         if ('light' === self::mode()) {
             return;
         }
-        $css = 'admin/css/seoprostack-whole-theme.css';
+        $css = self::STYLESHEET;
         $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
         // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the designer's page prints no enqueued styles of other plugins; as standalone_tag().
         echo '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";
@@ -407,7 +410,7 @@ final class SEOProStack_Admin_Whole_Theme {
         if (!$toggle && (!$applies || 'light' === $mode)) {
             return;
         }
-        $css = 'admin/css/seoprostack-whole-theme.css';
+        $css = self::STYLESHEET;
         $js  = 'admin/js/seoprostack-whole-theme.js';
         $url = SEOPROSTACK_URL . $css . '?ver=' . filemtime(SEOPROSTACK_DIR . $css);
         if ($applies && ('light' !== $mode || self::own_screen())) {
@@ -512,7 +515,7 @@ final class SEOProStack_Admin_Whole_Theme {
         if (!is_admin() || did_action('admin_head') || !in_array($handle, $handles, true) || 'light' === self::mode() || !self::screen_applies()) {
             return $tag;
         }
-        $css = 'admin/css/seoprostack-whole-theme.css';
+        $css = self::STYLESHEET;
         $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
         // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the screen prints only its own handles; this follows its stylesheet.
         return $tag . self::head_script() . '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";
