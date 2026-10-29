@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.101 =
 * Faster: Ask before licence checks keeps Fluent Boards Pro's __fbs_plugin_license_lc, which its GPL Vault build (2.2.2) saves with time() in its main file on every load; nothing in Fluent Boards or Fluent Boards Pro reads it. SEOProStack_Option_Writes::KNOWN rules can now name the whole option as the timestamp (time '', kept while stored and new values are both numbers), read the licence state from another option (from: __fbs_plugin_license, status valid) and take a date string as the expiry (until, through strtotime(); still at least a week away). Like the other known options it is kept from the start of the request when the must-use file of Load plugins only where needed runs (GitHub issue #1025).
 
 = 1.3.100 =
