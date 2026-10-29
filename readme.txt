@@ -155,5 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.104 =
 * Better: Link cards show pictures whole, can use the site's icon, and show the external link icon after the site name (#1036).
+* Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges its page cache (#1037).
 
 Older: `changelog.txt`.

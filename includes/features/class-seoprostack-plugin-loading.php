@@ -238,8 +238,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * count; plain wp-admin views now keep records by rule (GitHub issue
      * #515), so new ones need no entry, but these are also saved through
      * AJAX or the REST API by a signed-in admin. Names ending in "." or "_"
-     * are prefixes (also LiteSpeed Cache's async tasks and crawler).
-     * Update caches and bookkeeping (GitHub issue #602): WordPress's flag
+     * are prefixes (also LiteSpeed Cache's async tasks and crawler, and its
+     * purge queues `litespeed.purge.queue` and `queue2`, saved by every
+     * purge, including `wp litespeed-purge`, and the time Purge All last
+     * emptied its CSS, `litespeed.optimize.timestamp_purge_css`; its
+     * settings are `litespeed.conf.*`). Emptying a page cache does not change which
+     * plugins a page needs. Update caches and bookkeeping (GitHub issue #602): WordPress's flag
      * for changed suggested privacy policy text, which admin screens and
      * AJAX flip back and forth, the update and licence caches of plugins
      * using EDD Software Licensing's updater, and Freemius's API cache.
@@ -249,7 +253,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_', 'html-regression-track-admin-assets',
         'stellarwp_uplink_update_status_', 'burst_installed_integrations',
         'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.',
-        '_wp_suggested_policy_text_has_changed', 'edd_sl_', 'edd_api_request_', 'fs_api_cache');
+        'litespeed.purge.', 'litespeed.optimize.timestamp_purge_css', '_wp_suggested_policy_text_has_changed', 'edd_sl_', 'edd_api_request_', 'fs_api_cache');
 
     /**
      * Post fields WordPress keeps about editing, not content: the lock
