@@ -79,10 +79,34 @@ check_presets_starters() {
 	return 0
 }
 
+# README.md's setup tasks are the Website Setup board's tasks, word for word
+# (scripts/readme-setup-tasks.js writes them), so a reader without the board
+# follows the same steps.
+check_readme_setup_tasks() {
+	local dir="$1"
+	local script
+	script="$(dirname "${BASH_SOURCE[0]}")/readme-setup-tasks.js"
+	section "README setup tasks"
+	if ! command -v node >/dev/null 2>&1; then
+		warn "node not found, README setup tasks not checked"
+		return 0
+	fi
+	local out
+	if out="$(node "$script" --check --dir "$dir" 2>&1)"; then
+		ok "$out"
+	else
+		err "$out"
+	fi
+	return 0
+}
+
 plugin_preflight() {
 	local dir="$1"
 	if [[ -d "$dir/presets" || -d "$dir/starters" ]]; then
 		check_presets_starters "$dir"
+	fi
+	if [[ -f "$dir/starters/fluent-boards.json" ]]; then
+		check_readme_setup_tasks "$dir"
 	fi
 	return 0
 }

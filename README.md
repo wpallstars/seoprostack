@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.95-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.96-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.95
+Version: 1.3.96
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1627,16 +1627,7 @@ They are JSON files in `starters/`, one per plugin folder; `includes/class-seopr
 
 #### Website Setup board
 
-Fluent Boards' starter data adds a **Website Setup** board: a checklist of the accounts and keys a site needs, one task each, in the order to set them up, written so anyone can follow them. Each task says what the service is for, the steps with links, where its key belongs and when the task is done:
-
-1. Hosting (Hostinger), with SSH access for the AI assistant.
-2. Cloudflare for the domain's DNS and security.
-3. [aidevops](https://aidevops.sh), the AI assistant's toolkit, and SSH access so it can run WP-CLI on the server.
-4. Connecting another AI client to the board (Fluent Boards' **Settings → MCP for AI Agents**), optional.
-5. Business email (Purelymail) and the website's own email sending (Amazon SES with FluentSMTP).
-6. File storage for backups (Cloudflare R2).
-7. Google Cloud, with a budget alert, and Google Search Console.
-8. Payment processing: Stripe, PayPal, Paddle or Polar, or more than one.
+Fluent Boards' starter data adds a **Website Setup** board: a checklist of the accounts and keys a site needs, one task each, in the order to set them up, written so anyone can follow them. Each task says what the service is for, the steps with links, where its key belongs and when the task is done. Once added, the tasks are in **Fluent Boards → Website Setup**, where you move each one along as you go; the same steps are below ([The setup tasks](#the-setup-tasks)), to read before adding them or to follow on a site without Fluent Boards.
 
 Other plugins add their own tasks to the same board through the `seoprostack_starters` filter, after the task they follow: SEO Pro Directory adds Google Maps Platform, Outscraper, Jev (optional) and its first listings after Setup Google Cloud. Add Fluent Boards' starter data first, so those tasks find the one they follow (otherwise they go to the top). Tasks never hold a password or key; each says where its key belongs (the plugin's settings, `wp-config.php`, or the aidevops secret store).
 
@@ -1650,6 +1641,129 @@ wp seoprostack starters add fluent-boards --user=<your username> --url=<site add
 ```
 
 and to go through the tasks with you, doing the parts it can (settings in WordPress, and DNS records if you give it a Cloudflare API token through its secret store) and asking you for the parts only you can do, such as signing up, paying and entering keys. Adding again adds only tasks that are missing; tasks you edited, finished or archived stay as they are.
+
+#### The setup tasks
+
+The Website Setup board's tasks, in order, as Fluent Boards' starter data adds them. Plugins that add their own tasks list them in their README (SEO Pro Directory: **Setting up a new directory**).
+
+<!-- setup-tasks:start -->
+<!-- Made by scripts/readme-setup-tasks.js from starters/fluent-boards.json: edit the tasks there, then run it. -->
+
+##### 1. Setup Hosting (Hostinger)
+
+Where the website lives. We use Hostinger: fast LiteSpeed servers, daily backups and SSH access for your AI assistant.
+
+1. Open [Hostinger](https://hostinger.com?REFERRALCODE=1MARCUS454) and choose a **Premium** or **Business** web hosting plan, or Cloud hosting for bigger sites. The Single plan has no SSH access, which aidevops needs.
+2. Sign up, pay, and turn on two-factor authentication in your account settings.
+3. In hPanel, add the website and its domain (a temporary domain is fine until the domain is ready).
+4. Note the plan name and data centre in a comment on this task, never a password.
+
+Done when the site loads at its address and you can log in to hPanel.
+
+##### 2. Setup Cloudflare (domain DNS and security)
+
+Cloudflare runs the domain's DNS for free and protects and speeds up the site.
+
+1. Buy the domain if you have not yet, at any registrar (such as [101domain](https://www.101domain.com/affiliate/evergreenje.html)) or Cloudflare itself.
+2. [Create a Cloudflare account](https://developers.cloudflare.com/fundamentals/account/create-account/) and turn on two-factor authentication.
+3. Add the domain ([full setup](https://developers.cloudflare.com/dns/zone-setups/full-setup/setup/)): Cloudflare copies the existing DNS records. Check the website's A record points at your hosting's IP (hPanel shows it).
+4. At your registrar, replace the nameservers with the two Cloudflare gives you. It can take up to a day.
+5. SSL/TLS: choose [Full (strict)](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/) once the host has an SSL certificate.
+
+Done when Cloudflare shows the domain as **Active** and the site loads over https.
+
+##### 3. Setup aidevops (your AI assistant)
+
+[aidevops](https://aidevops.sh) lets an AI assistant on your computer set up and look after this site with you: plugin updates, settings, checks and fixes, and these setup tasks.
+
+1. On a Mac, open Terminal and run `brew install marcusquinn/tap/aidevops && aidevops update`. On Linux or Windows (WSL): `npm install -g aidevops && aidevops update`.
+2. Follow the setup it starts. Check with `aidevops status`.
+3. Start a session with `aidevops opencode` and type `/onboarding` for a guided tour.
+4. Keys go in its secret store, never in chat: `aidevops secret set NAME` asks for the value privately.
+
+Docs: [aidevops.sh/docs](https://aidevops.sh/docs) and [GitHub](https://github.com/marcusquinn/aidevops).
+
+Done when `aidevops status` shows it ready.
+
+##### 4. Setup SSH Access for aidevops
+
+SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your AI can do in seconds what takes many clicks, and check its own work. Recommended for every site.
+
+1. On your computer, make a key if you have none: `ssh-keygen -t ed25519` (press Enter for the defaults; a passphrase is optional).
+2. In Hostinger's hPanel, open **Advanced → SSH Access**, turn SSH on and add your public key (the text in `~/.ssh/id_ed25519.pub`). Hostinger's guide: [connect via SSH](https://www.hostinger.com/support/1583245-how-to-connect-to-a-hosting-plan-via-ssh-in-hostinger/).
+3. Note the IP, port and username hPanel shows, and ask your AI to add a short name for the server to `~/.ssh/config` and test it with `ssh <name> 'wp --info'`.
+4. Tell aidevops which folder the site is in (hPanel shows it, such as `domains/example.com/public_html`).
+
+Never share your hosting password or private key. Done when `wp --info` works over SSH.
+
+##### 5. Connect your AI to this Board
+
+Optional. With SSH (the task before), aidevops can already read and update this board through WP-CLI. To let another AI client (ChatGPT, Claude) work on the board directly:
+
+1. In Fluent Boards, open **Settings → MCP for AI Agents** (Fluent Boards 2.2 or later) and turn **Enable MCP for AI Agents** on. If it asks for the MCP adapter, install it from that screen.
+2. Follow **Connect your AI client** there: it makes a key (a WordPress application password) for your user and shows the address to give your AI client. On a multisite, Fluent Boards must be network-activated first.
+3. Leave **Allow board members to use MCP** off unless the whole team needs it.
+
+Without any AI: work through the tasks in order and move each to Done when finished.
+
+##### 6. Setup Business Email (Purelymail)
+
+Mailboxes people write to, such as hello@ and support@ at your domain. [Purelymail](https://purelymail.com/) is simple and low-cost ([pricing](https://purelymail.com/pricing)).
+
+1. Sign up and add your domain.
+2. Purelymail lists DNS records (MX, SPF, DKIM, DMARC): add each in Cloudflare → DNS, with the proxy (orange cloud) off. A domain has one SPF record: if another service asks for one, merge them into it.
+3. Create the mailboxes, or one mailbox with aliases, and add them to your email app. Purelymail's [docs](https://purelymail.com/docs/) cover each step.
+4. Send a test to and from an outside address.
+
+Done when mail arrives both ways and Purelymail shows the DNS records as correct.
+
+##### 7. Setup Email Sending (Amazon SES)
+
+The website's own emails (forms, newsletters, password resets) go through [Amazon SES](https://aws.amazon.com/ses/), so they reach inboxes instead of spam. FluentSMTP connects WordPress to it.
+
+1. Create an AWS account, turn on two-factor authentication, and open [SES](https://console.aws.amazon.com/ses/) in the region nearest your visitors.
+2. [Verify your domain](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html): add the three DKIM CNAME records in Cloudflare → DNS (proxy off), and a DMARC record if Purelymail did not add one ([DMARC](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dmarc.html)).
+3. [Request production access](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html), saying the site sends only emails people ask for.
+4. Create access keys that may only send email, and enter them in **FluentSMTP → Settings** ([guide](https://fluentsmtp.com/docs/set-up-amazon-ses-in-fluent-smtp/)), then send a test.
+
+FluentSMTP encrypts the key with the site's salts: re-enter it if they change. Done when the test email arrives.
+
+##### 8. Setup File Storage (Cloudflare R2)
+
+[Cloudflare R2](https://developers.cloudflare.com/r2/get-started/) stores files off the server, such as backups, with no download fees. The free allowance covers most sites.
+
+1. In Cloudflare, open **R2 Object Storage** and add a payment method (needed even for the free tier).
+2. Create a bucket named after the site, such as `example-com-backups`.
+3. [Create an API token](https://developers.cloudflare.com/r2/api/tokens/) with **Object Read & Write** for that bucket only.
+4. Give the access key, secret and endpoint to the plugin that uses them (your backup plugin), or to aidevops with `aidevops secret set`. Never in a task or comment.
+
+Done when a first backup appears in the bucket.
+
+##### 9. Setup Google Cloud
+
+Google services the site uses (such as Maps) are billed through a Google Cloud project. Google Search Console is free and separate: add the site there too ([Search Console](https://search.google.com/search-console/about)).
+
+1. Sign in to the [Google Cloud console](https://console.cloud.google.com/) with the business's Google account.
+2. Create a billing account (a card is needed; most small sites stay in the free monthly credit), then a project named after the site.
+3. Set a [budget alert](https://cloud.google.com/billing/docs/how-to/budgets), such as 20 a month in your currency. It emails you as spending nears the amount but does not stop it: when one arrives, check what is using the API and lower or turn off what you do not need. To set a hard limit, [cap each API's daily requests](https://cloud.google.com/apis/docs/capping-api-usage).
+
+Done when the project exists with billing and a budget alert.
+
+##### 10. Setup Payment Processing
+
+Choose who takes card payments. You can use more than one.
+
+- [Stripe](https://stripe.com/): cards, Apple Pay and Google Pay; you handle sales tax. Keys: [Stripe API keys](https://docs.stripe.com/keys).
+- [PayPal](https://www.paypal.com/business): customers who prefer PayPal. Keys: [developer dashboard](https://developer.paypal.com/dashboard/).
+- [Paddle](https://www.paddle.com/) or [Polar](https://polar.sh/): a merchant of record, who handles sales tax and VAT for you, for a higher fee ([Paddle pricing](https://www.paddle.com/pricing), [Polar docs](https://docs.polar.sh/)).
+
+1. Open a business account and complete its identity checks.
+2. Connect it in the plugin that takes the payments (such as Ultimate Multisite → Settings → Payments, or Fluent Forms → Payments), in test mode first. Keys go in that plugin's settings, never in a task.
+3. Make a test purchase end to end, then switch to live mode.
+
+Done when a live payment reaches your account and its receipt email arrives.
+
+<!-- setup-tasks:end -->
 
 ### Hosting needs (Server)
 
@@ -2024,6 +2138,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.96
+
+- Docs: [The setup tasks](#the-setup-tasks) gives the Website Setup board's tasks with the same steps and links, to read before adding them or to follow without Fluent Boards; the board section says where the tasks are once added (**Fluent Boards → Website Setup**) (GitHub issue #1014).
+- Developers: `scripts/readme-setup-tasks.js` writes them from `starters/fluent-boards.json`, and `scripts/preflight-plugin.sh` stops a release when the two differ.
 
 ### 1.3.95
 
