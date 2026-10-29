@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges its page cache (#1037).
+
 = 1.3.102 =
 * New: FluentCRM's email designer and Email Preview can show the email as mail apps show it in their own dark mode; the email that is sent is unchanged. Its loading panel is dark in Dark mode too (#1030).
 
