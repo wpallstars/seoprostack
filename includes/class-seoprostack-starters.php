@@ -1711,6 +1711,13 @@ final class SEOProStack_Starters {
         if (!method_exists('FluentBoards\App\Models\Task', 'moveBetweenTasks')) {
             return;
         }
+        // Fluent Boards keeps positions to two decimals and places a task
+        // half way between its neighbours, so a few inserts at the same spot
+        // tie (0.495 is stored as 0.50). Number the stage 1, 2, 3… first, in
+        // its current order, as Fluent Boards itself does when it runs out.
+        if (method_exists('FluentBoards\App\Models\Task', 'reIndexTasksPositions')) {
+            \FluentBoards\App\Models\Task::reIndexTasksPositions(array('stage_id' => $stage_id));
+        }
         $task = \FluentBoards\App\Models\Task::find($task_id);
         if (!$task) {
             return;

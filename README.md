@@ -1638,7 +1638,7 @@ Fluent Boards' starter data adds a **Website Setup** board: a checklist of the a
 7. Google Cloud, with a budget alert, and Google Search Console.
 8. Payment processing: Stripe, PayPal, Paddle or Polar, or more than one.
 
-Other plugins add their own tasks to the same board through the `seoprostack_starters` filter, after the task they follow: SEO Pro Directory adds Google Maps Platform, Outscraper and its first listings. Tasks never hold a password or key; each says where its key belongs (the plugin's settings, `wp-config.php`, or the aidevops secret store).
+Other plugins add their own tasks to the same board through the `seoprostack_starters` filter, after the task they follow: SEO Pro Directory adds Google Maps Platform, Outscraper and its first listings after Setup Google Cloud. Add Fluent Boards' starter data first, so those tasks find the one they follow (otherwise they go to the top). Tasks never hold a password or key; each says where its key belongs (the plugin's settings, `wp-config.php`, or the aidevops secret store).
 
 **Without an AI assistant:** open **Plugins**, find Fluent Boards' row, choose **Add starter data**, then open **Fluent Boards → Website Setup** and work through the tasks from the top, moving each to Done.
 
