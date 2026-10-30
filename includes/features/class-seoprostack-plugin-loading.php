@@ -398,6 +398,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             foreach (array('added_post_meta', 'updated_post_meta', 'deleted_post_meta') as $hook) {
                 add_action($hook, array(__CLASS__, 'post_meta_changed'), 10, 3);
             }
+            add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'verify_front'), 10, 0);
         }
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
@@ -757,6 +758,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     public static function forget() {
         update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, wp_generate_uuid4(), true);
+        if (false !== get_option(SEOProStack_Plugin_Loader::FRONT_PAGES)) {
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_PAGES);
+        }
         delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         delete_option(SEOProStack_Plugin_Loader::FRONT_FAILED);
         if (false !== get_option(SEOProStack_Plugin_Loader::MAP)) {
@@ -994,8 +998,48 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             echo '<div class="sps-panel-note"><p>';
             esc_html_e('Open any page of the site once: SEO Pro Stack then checks what each plugin adds there and shows it next to each plugin below. Until then the site loads every plugin.', 'seoprostack');
             echo '</p></div>';
+        } else {
+            self::verify_status((array) $front);
         }
         self::forget_status();
+    }
+
+    /**
+     * What the checks of single addresses found: how many were checked,
+     * how many skip more plugins and how many more on average, what waits,
+     * and why checks are paused.
+     *
+     * @param array $front What was learned on the site.
+     */
+    private static function verify_status(array $front) {
+        $proposes = false;
+        foreach ((array) ($front['kinds'] ?? array()) as $kind) {
+            $proposes = $proposes || (is_array($kind) && !empty($kind['propose']));
+        }
+        if (!$proposes) {
+            return;
+        }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-front-verify.php';
+        $summary = SEOProStack_Front_Verify::summary();
+        echo '<div class="sps-panel-note"><p>';
+        esc_html_e('Plugins that add something to pages load on every page of their kind. Each address visitors open is then checked once in the background: a scheduled task renders it without those plugins, and the address skips only those it rendered exactly the same without, and that keep no record of page views. Saving content or settings checks again.', 'seoprostack');
+        echo '</p><p>';
+        echo esc_html(sprintf(
+            /* translators: 1: addresses checked, 2: addresses that skip more plugins, 3: average number of plugins, 4: addresses waiting */
+            __('Checked: %1$s addresses; %2$s skip more plugins (%3$s on average); %4$s waiting.', 'seoprostack'),
+            number_format_i18n($summary['checked']),
+            number_format_i18n($summary['skipping']),
+            number_format_i18n($summary['average'], 1),
+            number_format_i18n($summary['queued'])
+        ));
+        if ($summary['paused']) {
+            echo ' ' . esc_html(sprintf(
+                /* translators: %s: time */
+                __('Paused until %s: the site could not load its own pages for the check.', 'seoprostack'),
+                wp_date((string) get_option('time_format'), $summary['paused'])
+            ));
+        }
+        echo '</p></div>';
     }
 
     /**
@@ -1460,6 +1504,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                     $needs = array_values(array_unique(array_merge((array) $kinds[$key]['needs'], $needs)));
                 }
                 $kinds[$key] = array('needs' => $needs, 'learned' => time(), 'inert' => (array) ($kinds[$key]['inert'] ?? array()));
+                $propose = self::front_propose($notes, $needs);
+                if ($propose) {
+                    $kinds[$key]['propose'] = $propose;
+                }
                 $learned_kind = true;
             }
         }
@@ -1522,6 +1570,49 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!$state['relearn']) {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         }
+        if ($learned_kind && !empty($kinds[$key]['propose'])) {
+            // The page that learned its kind is the first to check.
+            $address = SEOProStack_Plugin_Loader::front_address();
+            if ('' !== $address['key']) {
+                SEOProStack_Plugin_Loader::queue_address($address['key'], $address['path'], $key);
+            }
+        }
+    }
+
+    /**
+     * Plugins an address of a page kind may also skip if a check shows it
+     * renders the same without them (SEOProStack_Front_Verify): plugins
+     * that add to pages or extend one that does, but not those the kind
+     * needs, those that always load or check logins, nor those kept for the
+     * site. Each address is checked by itself, so plugins that change each
+     * post's content or filter the whole page are proposed too: a page they
+     * change renders differently without them and keeps them.
+     *
+     * @param array<string,string[]> $notes What each plugin adds to the site.
+     * @param string[]               $needs What the kind was learned to need.
+     * @return string[]
+     */
+    private static function front_propose(array $notes, array $needs) {
+        $keep = array_merge($needs, array(plugin_basename(SEOPROSTACK_FILE)), (array) SEOProStack_Settings::get(SEOProStack_Plugin_Loader::KEEP_KEY));
+        $propose = array();
+        foreach ($notes as $file => $list) {
+            $list = (array) $list;
+            if (in_array($file, $keep, true) || array_intersect($list, array('always', 'core', 'login'))
+                || !array_intersect($list, array('pages', 'extends'))) {
+                continue;
+            }
+            $propose[] = (string) $file;
+        }
+        return $propose;
+    }
+
+    /** Check the addresses visitors opened that might skip more plugins (scheduled). */
+    public static function verify_front() {
+        if (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
+            return;
+        }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-front-verify.php';
+        SEOProStack_Front_Verify::run();
     }
 
     /** The bounded query kinds whose templates and global parts are learned. */
@@ -2081,6 +2172,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     public static function forget_front_now() {
         $revision = wp_generate_uuid4();
         update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, $revision, true);
+        // Checks of single addresses hold for one revision.
+        if (false !== get_option(SEOProStack_Plugin_Loader::FRONT_PAGES)) {
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_PAGES);
+        }
         // Not a stale cached copy of a map that is already gone (GitHub issue #476).
         wp_cache_delete(SEOProStack_Plugin_Loader::FRONT, 'options');
         $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());

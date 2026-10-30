@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.107
+Stable tag: 1.3.108
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= 1.3.108 =
+* Faster: Load plugins only where needed checks each address visitors open in the background and skips the plugins it renders exactly the same without, so single pages load far fewer plugins; pages that use a plugin, such as a form, keep it (#1039).
 
 = 1.3.107 =
 * Fix: Dark mode covers Ultimate Multisite's pop-up fields, switches, pickers and charts (#1048).

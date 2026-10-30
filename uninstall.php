@@ -96,6 +96,10 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_front_migrated';
     $options[] = 'seoprostack_plugin_front_forgets';
     $options[] = 'seoprostack_plugin_front_code';
+    $options[] = 'seoprostack_plugin_front_verify';
+    $options[] = 'seoprostack_plugin_front_verify_seen';
+    $options[] = 'seoprostack_plugin_front_pages';
+    $options[] = 'seoprostack_plugin_front_queue';
     $options[] = 'seoprostack_plugin_learned_by';
     $options[] = 'seoprostack_plugin_updates_full';
     // Correct update counts: updates counted with every plugin loaded.
@@ -203,6 +207,7 @@ function seoprostack_uninstall_site() {
     wp_unschedule_hook('seoprostack_database_cleanup_more');
     wp_unschedule_hook('seoprostack_deferred_counts');
     wp_unschedule_hook('seoprostack_avatar_gravatar_import');
+    wp_unschedule_hook('seoprostack_front_verify');
 
     // Copied content and excerpts stay; only the sync fingerprint is ours.
     delete_post_meta_by_key('_seoprostack_field_content_hash');

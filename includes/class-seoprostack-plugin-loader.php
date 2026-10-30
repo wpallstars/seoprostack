@@ -90,6 +90,42 @@ final class SEOProStack_Plugin_Loader {
     /** Query arg that loads every plugin for one request. */
     const LOAD_ALL_ARG = 'seoprostack-load-all';
 
+    /**
+     * Query arg of a render that checks skipping on one address
+     * (SEOProStack_Front_Verify): "base" or "trial", the token and the
+     * render's number, separated by dots.
+     */
+    const VERIFY_ARG = 'seoprostack-verify';
+
+    /** The check under way: token, address, page kind, plugins tried, expiry. Not autoloaded. */
+    const FRONT_VERIFY = 'seoprostack_plugin_front_verify';
+
+    /** What a check's last render did besides its page: render number and plugins. Not autoloaded. */
+    const FRONT_VERIFY_SEEN = 'seoprostack_plugin_front_verify_seen';
+
+    /**
+     * Addresses a check showed render the same with more plugins skipped
+     * (SEOProStack_Front_Verify::save()): revision and plugin set they hold
+     * for, the skip sets, the addresses as one string and what each kind
+     * learned from its checks. Not autoloaded.
+     */
+    const FRONT_PAGES = 'seoprostack_plugin_front_pages';
+
+    /** Addresses visitors opened that have not been checked: key => path, kind, time. Not autoloaded. */
+    const FRONT_QUEUE = 'seoprostack_plugin_front_queue';
+
+    /** Scheduled task that checks the queued addresses. */
+    const VERIFY_HOOK = 'seoprostack_front_verify';
+
+    /** Seconds a check holds for at most, even when nothing changed. */
+    const PAGES_MAX_AGE = WEEK_IN_SECONDS;
+
+    /** Most addresses queued at once. */
+    const QUEUE_MAX = 50;
+
+    /** Response header that says a check's render was made as asked. */
+    const VERIFY_HEADER = 'X-SEOProStack-Verify';
+
     /** Settings keys (read straight from the stored options). */
     const SWITCH_KEY = 'plugin_loading';
     const LIST_KEY   = 'plugin_loading_only';
@@ -375,6 +411,21 @@ final class SEOProStack_Plugin_Loader {
 
     /** @var string Public content generation at the start of this request. */
     private static $front_revision = '';
+
+    /**
+     * A check's render (verify_request()): mode ('base' or 'trial'),
+     * address key, page kind, the plugins a trial also skips and the
+     * render's number; an empty mode on other requests.
+     *
+     * @var array{mode: string, key: string, kind: string, skip: string[], n: int}
+     */
+    private static $verify = array('mode' => '', 'key' => '', 'kind' => '', 'skip' => array(), 'n' => 0);
+
+    /** @var array<string,bool> Plugins that wrote, sent or mailed during a check's render. */
+    private static $effects = array();
+
+    /** @var array{key: string, path: string, kind: string}|null This page, to queue for a check at shutdown. */
+    private static $queue = null;
 
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
@@ -702,6 +753,10 @@ final class SEOProStack_Plugin_Loader {
      * @param array $options SEO Pro Stack's stored settings.
      */
     private static function start_front(array $options) {
+        self::$verify = self::verify_request();
+        if ('' !== self::$verify['mode']) {
+            self::watch_effects();
+        }
         if (!self::front_request()) {
             return;
         }
@@ -725,7 +780,8 @@ final class SEOProStack_Plugin_Loader {
         }
         if (!self::front_current()) {
             // Learn once per set of active plugins, one request at a time.
-            if (self::take_front_lock()) {
+            // A check's render never learns: it answers without its header.
+            if ('' === self::$verify['mode'] && self::take_front_lock()) {
                 self::$mode   = 'full';
                 self::$reason = 'learning';
                 self::attribute();
@@ -746,6 +802,7 @@ final class SEOProStack_Plugin_Loader {
             && empty($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD']
             ? self::front_context() : array();
         $key = (string) ($context['kind'] ?? '');
+        $checking = false;
         if ('' !== $key) {
             $page = isset($front['kinds'][$key]) ? $front['kinds'][$key] : array();
             $text = (string) ($context['content'] ?? '');
@@ -761,7 +818,7 @@ final class SEOProStack_Plugin_Loader {
                 // learn_front() saves those still unregistered as leftovers,
                 // so later pages with them can skip (GitHub issue #497). Other
                 // unknown content loads every plugin without learning.
-                if ((false !== $content || false !== self::content_needs($text, array('live' => true) + $front))
+                if ('' === self::$verify['mode'] && (false !== $content || false !== self::content_needs($text, array('live' => true) + $front))
                     && self::take_front_lock()) {
                     self::$mode   = 'full';
                     self::$reason = 'learning';
@@ -770,7 +827,25 @@ final class SEOProStack_Plugin_Loader {
                 return;
             }
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
-            $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
+            // Plugins that add to pages, which a check showed this address
+            // renders the same without (SEOProStack_Front_Verify). A check's
+            // own renders use only what it asks for; other addresses that
+            // could skip more are queued for a check.
+            $address  = self::front_address();
+            $checking = '' !== self::$verify['mode'] && '' !== $address['key'] && $address['key'] === self::$verify['key'] && $key === self::$verify['kind'];
+            $verified = array();
+            if ($checking) {
+                $verified = 'trial' === self::$verify['mode'] ? self::$verify['skip'] : array();
+            } elseif ('' === self::$verify['mode'] && !empty($page['propose']) && '' !== $address['key']) {
+                $verified = self::page_skips($address['key'], $front);
+                if (null === $verified) {
+                    $verified    = array();
+                    self::$queue = array('key' => $address['key'], 'path' => $address['path'], 'kind' => $key);
+                    add_action('shutdown', array(__CLASS__, 'queue_page'), 20);
+                }
+            }
+            $verified = array_intersect($verified, (array) ($page['propose'] ?? array()));
+            $chosen = array_diff(array_unique(array_merge($chosen, $candidates, $verified)), $keep);
             $needed = array_merge((array) ($page['needs'] ?? array()), $content);
             if (!empty($context['id']) && in_array((int) $context['id'], (array) ($front['woo_pages'] ?? array()), true)) {
                 $needed[] = 'woocommerce/woocommerce.php';
@@ -790,9 +865,220 @@ final class SEOProStack_Plugin_Loader {
             return; // Unknown public routes load every plugin, not site-wide guesses.
         }
         self::$skipped = self::front_skipped($chosen, $front);
+        if ($checking && !headers_sent()) {
+            // Which plugins this render skipped, for the check only (its token).
+            header(self::VERIFY_HEADER . ': ' . self::$verify['mode'] . ' ' . implode(',', array_map('rawurlencode', self::$skipped)));
+        }
         if (self::$skipped) {
             self::filter();
         }
+    }
+
+    /**
+     * A render SEOProStack_Front_Verify asked for with the current token.
+     * The argument is taken out of the request, so the page renders as it
+     * does without it, and page caches are told not to keep the page.
+     *
+     * @return array{mode: string, key: string, kind: string, skip: string[], n: int} An empty mode when this is not one.
+     */
+    private static function verify_request() {
+        $none = array('mode' => '', 'key' => '', 'kind' => '', 'skip' => array(), 'n' => 0);
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- checked against the token below.
+        $arg = isset($_GET[self::VERIFY_ARG]) && is_string($_GET[self::VERIFY_ARG]) ? (string) wp_unslash($_GET[self::VERIFY_ARG]) : '';
+        // The render's number makes each address new to caches and names
+        // what the render reports (report_effects()).
+        if (!preg_match('/^(base|trial)\.([A-Za-z0-9]{32})\.(\d{1,4})$/', $arg, $match)) {
+            return $none;
+        }
+        $check = get_option(self::FRONT_VERIFY, array());
+        if (!is_array($check) || empty($check['token']) || !is_string($check['token']) || (int) ($check['expires'] ?? 0) < time()
+            || !hash_equals($check['token'], $match[2]) || empty($check['kind']) || !is_string($check['kind'])
+            || empty($check['key']) || !is_string($check['key'])) {
+            return $none;
+        }
+        unset($_GET[self::VERIFY_ARG], $_REQUEST[self::VERIFY_ARG]);
+        foreach (array('REQUEST_URI', 'QUERY_STRING') as $name) {
+            if (isset($_SERVER[$name]) && is_string($_SERVER[$name])) {
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- the raw value with only this argument taken out, as WordPress then reads it.
+                $_SERVER[$name] = rtrim((string) preg_replace('/(^|[?&])' . preg_quote(self::VERIFY_ARG, '/') . '=[^&#]*&?/', '$1', $_SERVER[$name]), '?&');
+            }
+        }
+        if (!defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- page caches' shared constant: never keep this page.
+        }
+        return array(
+            'mode' => $match[1],
+            'key'  => $check['key'],
+            'kind' => $check['kind'],
+            'skip' => array_values(array_filter((array) ($check['skip'] ?? array()), 'is_string')),
+            'n'    => (int) $match[3],
+        );
+    }
+
+    /**
+     * This request's address as a check renders it again: the path and only
+     * the arguments that choose what the page shows, sorted, and a short key
+     * for it.
+     *
+     * @return array{key: string, path: string} Empty when it has none.
+     */
+    public static function front_address() {
+        $uri  = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only the path and known arguments are kept, and only hashed or requested from the site itself.
+        $path = wp_parse_url($uri, PHP_URL_PATH);
+        if (!is_string($path) || '' === $path || '/' !== $path[0] || strlen($uri) > 2048 || preg_match('/[\s<>"\'\\\\]/', $path)) {
+            return array('key' => '', 'path' => '');
+        }
+        $query = array();
+        parse_str((string) wp_parse_url($uri, PHP_URL_QUERY), $query);
+        if (isset($query['s'])) {
+            // Anyone can make up search words: each would be a new address to check.
+            return array('key' => '', 'path' => '');
+        }
+        $keep = array();
+        foreach (array('cpage', 'p', 'page', 'page_id', 'paged') as $name) {
+            if (isset($query[$name])) {
+                if (!is_scalar($query[$name])) {
+                    return array('key' => '', 'path' => '');
+                }
+                $keep[$name] = (string) $query[$name];
+            }
+        }
+        $path .= $keep ? '?' . http_build_query($keep, '', '&', PHP_QUERY_RFC3986) : '';
+        return array('key' => substr(hash('sha256', $path), 0, 12), 'path' => $path);
+    }
+
+    /**
+     * What a check found for an address (SEOProStack_Front_Verify::save()),
+     * held for this content revision and plugin set: the plugins it may also
+     * skip, none, or null when it has not been checked (or not lately).
+     *
+     * @param string $key   Address key (front_address()).
+     * @param array  $front What was learned on the site.
+     * @return string[]|null
+     */
+    private static function page_skips($key, array $front) {
+        $map = get_option(self::FRONT_PAGES, array());
+        if (!is_array($map) || ($map['revision'] ?? null) !== self::$front_revision || ($map['active'] ?? null) !== ($front['active'] ?? false)) {
+            return null;
+        }
+        $entry = self::page_entry($map, $key);
+        if (null === $entry || $entry[1] * HOUR_IN_SECONDS < time() - self::PAGES_MAX_AGE) {
+            // Checks paused (the site's requests to itself failed): nothing to queue.
+            return (int) ($map['paused'] ?? 0) > time() ? array() : null;
+        }
+        return $entry[0] >= 0 ? array_values(array_filter((array) ($map['sets'][$entry[0]] ?? array()), 'is_string')) : array();
+    }
+
+    /**
+     * One address in the checked addresses: "|key:set:hour", where set is
+     * the index of its skip set (-1: none) and hour when it was checked.
+     *
+     * @param array  $map FRONT_PAGES.
+     * @param string $key Address key.
+     * @return array{0: int, 1: int}|null
+     */
+    public static function page_entry(array $map, $key) {
+        $pages = (string) ($map['pages'] ?? '');
+        $at    = '' !== $key ? strpos($pages, '|' . $key . ':') : false;
+        if (false === $at) {
+            return null;
+        }
+        $end   = strpos($pages, '|', $at + 1);
+        $parts = explode(':', false === $end ? substr($pages, $at + 1) : substr($pages, $at + 1, $end - $at - 1));
+        return 3 === count($parts) ? array((int) $parts[1], (int) $parts[2]) : null;
+    }
+
+    /** Queue this page for a check (start_front()), once it rendered. */
+    public static function queue_page() {
+        if (null === self::$queue || 200 !== http_response_code() || !did_action('wp_footer') || (function_exists('is_404') && is_404())) {
+            return;
+        }
+        self::queue_address(self::$queue['key'], self::$queue['path'], self::$queue['kind']);
+    }
+
+    /**
+     * Queue an address for a check and schedule the check.
+     *
+     * @param string $key  Address key.
+     * @param string $path Path and arguments (front_address()).
+     * @param string $kind Page kind.
+     */
+    public static function queue_address($key, $path, $kind) {
+        $queue = get_option(self::FRONT_QUEUE, array());
+        $queue = is_array($queue) ? $queue : array();
+        if (!isset($queue[$key])) {
+            if (count($queue) >= self::QUEUE_MAX) {
+                return;
+            }
+            $queue[$key] = array('path' => (string) $path, 'kind' => (string) $kind, 'time' => time());
+            update_option(self::FRONT_QUEUE, $queue, false);
+        }
+        if (!wp_next_scheduled(self::VERIFY_HOOK)) {
+            wp_schedule_single_event(time() + 30, self::VERIFY_HOOK);
+        }
+    }
+
+    /**
+     * On a check's render, note the plugins that write to the database,
+     * send requests or mail: a page view they keep a record of (view
+     * counters, logs, analytics) is never skipped for the same HTML.
+     */
+    private static function watch_effects() {
+        self::$effects = array();
+        add_filter('query', array(__CLASS__, 'note_write'), PHP_INT_MAX);
+        add_filter('pre_http_request', array(__CLASS__, 'note_send'), PHP_INT_MIN);
+        add_filter('pre_wp_mail', array(__CLASS__, 'note_send'), PHP_INT_MIN);
+        // Before WordPress flushes the page (priority 1), so it is saved
+        // before the check has its answer.
+        add_action('shutdown', array(__CLASS__, 'report_effects'), PHP_INT_MIN);
+    }
+
+    /**
+     * A query that changes the database: note whose it is. Transients are
+     * caches, not records.
+     *
+     * @param string $query SQL.
+     * @return string
+     */
+    public static function note_write($query) {
+        if (is_string($query) && preg_match('/^\s*(?:INSERT|UPDATE|DELETE|REPLACE|ALTER|CREATE|DROP|TRUNCATE|RENAME)\b/i', $query)
+            && false === strpos($query, '_transient_')) {
+            self::note_caller();
+        }
+        return $query;
+    }
+
+    /**
+     * A request or mail about to be sent: note whose it is.
+     *
+     * @param mixed $pre The filtered value, unchanged.
+     * @return mixed
+     */
+    public static function note_send($pre) {
+        self::note_caller();
+        return $pre;
+    }
+
+    /** Note the innermost active plugin in the call stack, other than SEO Pro Stack. */
+    private static function note_caller() {
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- names the plugin behind a write, on a check's render only.
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+            $plugin = isset($frame['file']) ? self::plugin_for_file((string) $frame['file']) : '';
+            if ('' !== $plugin) {
+                if ($plugin !== self::$self) {
+                    self::$effects[$plugin] = true;
+                }
+                return;
+            }
+        }
+    }
+
+    /** Save what this check's render noted, for the check to read. */
+    public static function report_effects() {
+        remove_filter('query', array(__CLASS__, 'note_write'), PHP_INT_MAX);
+        $effects = array_keys(self::$effects);
+        sort($effects);
+        update_option(self::FRONT_VERIFY_SEEN, array('n' => self::$verify['n'], 'effects' => $effects), false);
     }
 
     /**
@@ -1788,6 +2074,9 @@ final class SEOProStack_Plugin_Loader {
     public static function flag_screen($plugin = '') {
         if ('filter' !== self::$mode || self::$flagged || '' === self::$screen) {
             return;
+        }
+        if ('trial' === self::$verify['mode']) {
+            return; // A check's trial that fails only shows that the kind needs those plugins.
         }
         self::$flagged = true;
         if ('front' === self::$screen) {
