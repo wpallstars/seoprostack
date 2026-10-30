@@ -247,13 +247,21 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * for changed suggested privacy policy text, which admin screens and
      * AJAX flip back and forth, the update and licence caches of plugins
      * using EDD Software Licensing's updater, and Freemius's API cache.
+     * Seen in sites' records of why pages learned again, hourly or on
+     * admin views (GitHub issue #1055): when SEO Pro Analytics last
+     * checked its alerts and the alerts, MainWP Child's request IDs, AI
+     * Engine's settings backups, Admin Columns Pro's update check, Tutor
+     * LMS's last call time, and Rank Math's IndexNow log, sitemap file
+     * list and notices.
      */
     const RECORD_OPTIONS = array('_fcrm_last_', '_fc_last_', 'rsssl_csp_header_test_status',
         'rsssl_csp_header_test_status_', 'rsssl_admin_notices', 'rsssl_plusone_count',
         'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_', 'html-regression-track-admin-assets',
         'stellarwp_uplink_update_status_', 'burst_installed_integrations',
         'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.',
-        'litespeed.purge.', 'litespeed.optimize.timestamp_purge_css', '_wp_suggested_policy_text_has_changed', 'edd_sl_', 'edd_api_request_', 'fs_api_cache');
+        'litespeed.purge.', 'litespeed.optimize.timestamp_purge_css', '_wp_suggested_policy_text_has_changed', 'edd_sl_', 'edd_api_request_', 'fs_api_cache',
+        'seoproanalytics_alerts', 'seoproanalytics_alerts_checked', 'mainwp_child_request_id_', 'mwai_settings_backup_',
+        'acp_periodic_update_', 'tutor_cd_last_call_time', 'rank_math_indexnow_log', 'rank_math_sitemap_cache_files', 'rank_math_notifications');
 
     /**
      * Post fields WordPress keeps about editing, not content: the lock
@@ -1645,8 +1653,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (wp_next_scheduled(SEOProStack_Plugin_Loader::VERIFY_HOOK)) {
             return;
         }
-        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
-        if (is_array($queue) && $queue) {
+        if (SEOProStack_Plugin_Loader::fresh_queue()) {
             SEOProStack_Plugin_Loader::schedule_verify();
         }
     }

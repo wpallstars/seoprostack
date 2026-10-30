@@ -88,9 +88,7 @@ final class SEOProStack_Front_Verify {
      */
     public static function run() {
         $start = microtime(true);
-        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_QUEUE, 'options');
-        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
-        if (!is_array($queue) || !$queue) {
+        if (!SEOProStack_Plugin_Loader::fresh_queue()) {
             SEOProStack_Plugin_Loader::clear_verify(); // Nothing waits, even while learning again.
             return;
         }
@@ -138,9 +136,8 @@ final class SEOProStack_Front_Verify {
      * @return array{key: string, path: string, kind: string}|null
      */
     private static function take() {
-        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_QUEUE, 'options');
-        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
-        if (!is_array($queue) || !$queue) {
+        $queue = SEOProStack_Plugin_Loader::fresh_queue();
+        if (!$queue) {
             return null;
         }
         $key  = (string) array_key_first($queue);
