@@ -136,7 +136,10 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         if (!is_array($titles)) {
             return;
         }
-        $previous = json_decode((string) SEOProStack_Settings::get('rank_math_identity_previous'), true);
+        // Text settings strip percent escapes; encode exact URLs before saving.
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes JSON data only, never executable code; preserves percent escapes through text sanitization.
+        $saved = base64_decode((string) SEOProStack_Settings::get('rank_math_identity_previous'), true);
+        $previous = $saved ? json_decode($saved, true) : array();
         $previous = is_array($previous) ? $previous : array();
         $logo = absint(get_theme_mod('custom_logo', 0));
         if (!$logo || 'image/png' !== get_post_mime_type($logo)) {
@@ -174,7 +177,8 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         }
         // Runs at shutdown; Rank Math reads the new options on the next request.
         update_option('rank-math-options-titles', $titles);
-        SEOProStack_Settings::set('rank_math_identity_previous', (string) wp_json_encode($previous));
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Stores JSON data only, preserving exact URLs through the text field sanitizer.
+        SEOProStack_Settings::set('rank_math_identity_previous', base64_encode((string) wp_json_encode($previous)));
     }
 
     /**
