@@ -819,6 +819,27 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (self::$lock || self::$client_processed || !is_array($metadata)) {
             return $metadata;
         }
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            return $metadata;
+        }
+        try {
+            wp_cache_delete($attachment_id, 'post_meta');
+            return self::after_generate_locked($metadata, $attachment_id, $context);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Check and update generation ownership under the shared media lease.
+     *
+     * @param array $metadata Metadata.
+     * @param int $attachment_id ID.
+     * @param string $context Generation context.
+     * @return array
+     */
+    private static function after_generate_locked($metadata, $attachment_id, $context) {
         $record = self::record($attachment_id);
         if (!empty($record['remark_pending'])) {
             // An interrupted refresh owns intermediate files, not a replacement.

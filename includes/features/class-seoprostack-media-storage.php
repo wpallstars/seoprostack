@@ -2243,13 +2243,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             )));
             foreach ($ids as $id) {
                 $before = $id;
+                $watermark = SEOProStack_Watermark_Images::record($id);
+                if (!empty($watermark['remark_pending'])) {
+                    continue;
+                }
                 $job = get_option(self::JOB . 'retry_original_' . $id);
                 if (is_array($job) && ($job['signature'] ?? '') === $signature && ($job['next'] ?? 0) > time() && self::needs_original_only($id, (array) get_post_meta($id, self::META, true))) {
                     continue;
                 }
                 $waiting[] = $id;
             }
-            // Page past cooling originals so they cannot starve older uploads.
+            // Page past cooling originals and unfinished refreshes so they
+            // cannot starve older uploads, without publishing clean sizes.
         } while (count($waiting) < $limit && count($ids) === $remaining);
         return $waiting;
     }
