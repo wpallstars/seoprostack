@@ -9473,11 +9473,12 @@ html.sps-dark .wu-tgl-ios:checked + .wu-tgl-btn::after {
  * tables, steps, template selection...) are light mockups, white beside the
  * description and in the large picture shown on hover (#wu-image-preview,
  * added to <body>, in a .wp-ui-primary frame). Inverted, hue turned back as
- * for loading GIFs, they read as dark ones; site template and theme
- * screenshots share the hover picture and keep their colours.
+ * for loading GIFs, they read as dark ones; at 88% their white lands near the
+ * surface colour, not black. Site template and theme screenshots share the
+ * hover picture and keep their colours.
  */
 html.sps-dark :is(img.wu-image-preview, #wu-image-preview img)[src*="/checkout-forms/"] {
-	filter: invert(1) hue-rotate(180deg);
+	filter: invert(0.88) hue-rotate(180deg);
 }
 
 html.sps-dark #wu-image-preview {
