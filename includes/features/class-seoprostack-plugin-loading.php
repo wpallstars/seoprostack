@@ -410,6 +410,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 add_action($hook, array(__CLASS__, 'post_meta_changed'), 10, 3);
             }
             add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'verify_front'), 10, 0);
+            // Any request's stale task list must not drop the checks (GitHub issue #1055).
+            add_filter('pre_update_option_cron', array('SEOProStack_Plugin_Loader', 'keep_in_cron'), 10, 2);
             if (wp_doing_cron()) {
                 add_action('wp_loaded', array(__CLASS__, 'keep_verify'));
             }
@@ -1651,7 +1653,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** The checks' task ran with the feature off: stop it. */
     public static function stop_verify() {
-        wp_clear_scheduled_hook(SEOProStack_Plugin_Loader::VERIFY_HOOK);
+        SEOProStack_Plugin_Loader::clear_verify();
     }
 
     /** The bounded query kinds whose templates and global parts are learned. */

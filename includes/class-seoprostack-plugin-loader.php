@@ -440,6 +440,9 @@ final class SEOProStack_Plugin_Loader {
     /** @var array{key: string, path: string, kind: string}|null This page, to queue for a check at shutdown. */
     private static $queue = null;
 
+    /** @var bool Put the checks' task back into a task list saved without it (keep_in_cron()). */
+    private static $keep_verify = true;
+
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
      * never filtered), 'learning' (not learned yet, or learned again),
@@ -1036,11 +1039,71 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         if ($next) {
-            wp_clear_scheduled_hook(self::VERIFY_HOOK); // A single event from 1.3.108 to 1.3.110.
+            self::clear_verify(); // A single event from 1.3.108 to 1.3.110.
         }
         // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every three minutes (VERIFY_INTERVAL), only while addresses wait to be checked.
         add_filter('cron_schedules', array(__CLASS__, 'verify_schedule'));
         wp_schedule_event(time() + 30, self::VERIFY_SCHEDULE, self::VERIFY_HOOK);
+        self::$keep_verify = true;
+    }
+
+    /**
+     * Clear the checks' task: the queue is empty, the feature is off or
+     * SEO Pro Stack is deactivated. keep_in_cron() then leaves it out for
+     * the rest of this request, until schedule_verify().
+     */
+    public static function clear_verify() {
+        self::$keep_verify = false;
+        wp_clear_scheduled_hook(self::VERIFY_HOOK);
+    }
+
+    /**
+     * Before the task list is saved (pre_update_option_cron): when addresses
+     * wait and the list lacks the checks' task, put it back. Each request
+     * that runs scheduled tasks keeps the list it read when it started and
+     * saves that copy after each task; where WP-Cron runs from WP-CLI or a
+     * run takes most of a minute, every task a page view added meanwhile
+     * was lost before it was due, so no address was checked (GitHub issue
+     * #1055). It keeps the time in the list this request read, if it has
+     * the task, or schedules it in 30 seconds.
+     *
+     * @param mixed $value     Task list being saved.
+     * @param mixed $old_value Task list this request read.
+     * @return mixed
+     */
+    public static function keep_in_cron($value, $old_value) {
+        if (!self::$keep_verify || !is_array($value) || null !== self::cron_time($value)) {
+            return $value;
+        }
+        $queue = get_option(self::FRONT_QUEUE, array());
+        if (!is_array($queue) || !$queue) {
+            return $value;
+        }
+        $time = is_array($old_value) ? self::cron_time($old_value) : null;
+        $time = $time ?? time() + 30;
+        // WordPress keys an event by md5(serialize($args)); this one has none.
+        $value[$time][self::VERIFY_HOOK]['40cd750bba9870f18aada2478b24840a'] = array(
+            'schedule' => self::VERIFY_SCHEDULE,
+            'args'     => array(),
+            'interval' => self::VERIFY_INTERVAL,
+        );
+        uksort($value, 'strnatcasecmp'); // As wp_schedule_event() keeps it.
+        return $value;
+    }
+
+    /**
+     * When the checks' task runs in a task list, if it is there.
+     *
+     * @param array $cron Task list (the cron option).
+     * @return int|null
+     */
+    private static function cron_time(array $cron) {
+        foreach ($cron as $time => $hooks) {
+            if (is_int($time) && is_array($hooks) && !empty($hooks[self::VERIFY_HOOK])) {
+                return $time;
+            }
+        }
+        return null;
     }
 
     /**

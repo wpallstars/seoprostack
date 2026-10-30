@@ -88,7 +88,13 @@ final class SEOProStack_Front_Verify {
      */
     public static function run() {
         $start = microtime(true);
-        $map   = get_option(SEOProStack_Plugin_Loader::FRONT_PAGES, array());
+        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_QUEUE, 'options');
+        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
+        if (!is_array($queue) || !$queue) {
+            SEOProStack_Plugin_Loader::clear_verify(); // Nothing waits, even while learning again.
+            return;
+        }
+        $map = get_option(SEOProStack_Plugin_Loader::FRONT_PAGES, array());
         $pause = is_array($map) ? (int) ($map['paused'] ?? 0) : 0;
         if ($pause > time()) {
             return;
@@ -103,7 +109,7 @@ final class SEOProStack_Front_Verify {
             }
             $item = self::take();
             if (null === $item) {
-                wp_clear_scheduled_hook(SEOProStack_Plugin_Loader::VERIFY_HOOK); // Visitors schedule it again.
+                SEOProStack_Plugin_Loader::clear_verify(); // Visitors schedule it again.
                 return;
             }
             $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
