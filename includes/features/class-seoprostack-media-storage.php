@@ -276,7 +276,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $names = is_array($files) ? $files : (is_dir($dir) ? scandir($dir) : array());
         $names = is_array($names) ? $names : array();
         $folder = ltrim(substr($dir, strlen($root['dir'])), '/');
-        foreach (self::stored_records() as $values) {
+        // Core tests only names beginning with the stem (GH#1064): read just
+        // the inventories the name index lists for it, not the whole library.
+        $stem = self::numbering_stem((string) $filename);
+        $records = '' !== $stem ? self::stem_records($folder, $stem) : null;
+        foreach (null !== $records ? $records : self::stored_records() as $values) {
             foreach (array(self::META, self::REMOVED) as $meta_key) {
                 foreach ($values[$meta_key]['files'] ?? array() as $info) {
                     $relative = $info['relative'] ?? '';
@@ -294,7 +298,98 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
             }
         }
+        if ('' !== $stem) {
+            $length = strlen($stem);
+            $names = array_filter($names, static function ($name) use ($stem, $length) {
+                return 0 === strncasecmp((string) $name, $stem, $length);
+            });
+        }
         return array_values(array_unique($names));
+    }
+
+    /**
+     * The part of a file name every name wp_unique_filename() tests begins
+     * with: the name without its extension or a trailing "-N" number.
+     * _wp_check_existing_file_names() matches "{name}-(size|scaled|rotated){ext}"
+     * case-insensitively, and numbering only changes that "-N". Names that
+     * do not begin with it never change the result.
+     *
+     * @param string $filename Candidate file name.
+     * @return string Lower-case stem, or '' when there is none.
+     */
+    private static function numbering_stem($filename) {
+        $stem = (string) preg_replace('/-\d+$/', '', pathinfo(wp_basename($filename), PATHINFO_FILENAME));
+        return strtolower($stem);
+    }
+
+    /**
+     * Name-index claims of stored files: for each file, every prefix of its
+     * name (without the extension) that ends before a hyphen, and the whole
+     * name, in lower case, within its folder. Every name core tests for a
+     * stem continues with "-" after it, so it is indexed under that stem.
+     *
+     * @param array $files Stored files by key.
+     * @return string[] Hashes (hex).
+     */
+    private static function name_hashes($files) {
+        $hashes = array();
+        foreach ($files as $info) {
+            $relative = is_array($info) ? (string) ($info['relative'] ?? '') : '';
+            if ('' === $relative || !self::safe_relative($relative)) {
+                continue;
+            }
+            $folder = '.' === dirname($relative) ? '' : dirname($relative);
+            $stem = strtolower(pathinfo(wp_basename($relative), PATHINFO_FILENAME));
+            if ('' === $stem) {
+                continue;
+            }
+            $hashes[self::name_hash($folder, $stem)] = true;
+            for ($at = strpos($stem, '-'); false !== $at; $at = strpos($stem, '-', $at + 1)) {
+                if ($at > 0) {
+                    $hashes[self::name_hash($folder, substr($stem, 0, $at))] = true;
+                }
+            }
+        }
+        return array_keys($hashes);
+    }
+
+    /**
+     * One name-index claim (see name_hashes()).
+     *
+     * @param string $folder Folder relative to the uploads root ('' for the root).
+     * @param string $stem Lower-case name prefix.
+     * @return string 32 hex characters.
+     */
+    private static function name_hash($folder, $stem) {
+        return self::claim_hash('n:' . $folder . "\n" . $stem);
+    }
+
+    /**
+     * The inventories that may hold a name beginning with the stem in the
+     * folder, from the complete claim index; null when the index cannot
+     * answer, so the caller reads every inventory as before.
+     *
+     * @param string $folder Folder relative to the uploads root.
+     * @param string $stem Lower-case stem (numbering_stem()).
+     * @return array<int,array>|null Inventories by attachment ID.
+     */
+    private static function stem_records($folder, $stem) {
+        global $wpdb;
+        $table = self::claims_table(true);
+        if ('' === $table) {
+            return null;
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- primary-key lookup in the plugin's own table.
+        $ids = $wpdb->get_col($wpdb->prepare('SELECT DISTINCT post_id FROM %i WHERE claim = UNHEX(%s)', $table, self::name_hash($folder, $stem)));
+        if ($wpdb->last_error) {
+            self::claims_failed();
+            return null;
+        }
+        $records = array();
+        foreach (array_chunk(array_map('intval', $ids), 100) as $chunk) {
+            $records += self::handover_records($chunk);
+        }
+        return $records;
     }
 
     /**
@@ -517,7 +612,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $hashes = array();
         foreach ($records as $record) {
             if (is_array($record) && !empty($record['files']) && is_array($record['files'])) {
-                $hashes = array_merge($hashes, self::claim_hashes($record['files'], (string) ($record['signature'] ?? ''), true));
+                $hashes = array_merge($hashes, self::claim_hashes($record['files'], (string) ($record['signature'] ?? ''), true), self::name_hashes($record['files']));
             }
         }
         foreach (array_chunk(array_unique($hashes), 200) as $chunk) {
