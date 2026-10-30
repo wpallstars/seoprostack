@@ -9468,6 +9468,29 @@ html.sps-dark .wu-tgl-ios:checked + .wu-tgl-btn::after {
 	background: #fff;
 }
 
+/*
+ * Its checkout field templates' previews (assets/img/checkout-forms/: pricing
+ * tables, steps, template selection...) are light mockups, white beside the
+ * description and in the large picture shown on hover (#wu-image-preview,
+ * added to <body>, in a .wp-ui-primary frame). Inverted, hue turned back as
+ * for loading GIFs, they read as dark ones; site template and theme
+ * screenshots share the hover picture and keep their colours.
+ */
+html.sps-dark :is(img.wu-image-preview, #wu-image-preview img)[src*="/checkout-forms/"] {
+	filter: invert(1) hue-rotate(180deg);
+}
+
+html.sps-dark #wu-image-preview {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border: 1px solid var(--sps-ui-border);
+	box-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+}
+
+html.sps-dark #wu-image-preview img {
+	background: var(--sps-ui-canvas);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
