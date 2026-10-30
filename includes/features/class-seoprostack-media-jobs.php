@@ -59,9 +59,15 @@ class SEOProStack_Media_Jobs {
             foreach ($kinds as $kind) {
                 $name = self::PREFIX . $kind;
                 $job = get_option($name, array());
+                if ($job) {
+                    $job['failed'] = self::failure_count($kind);
+                }
                 if ('start' === $op) {
                     if (!$job || 'done' === $job['state']) {
                         $job = array('state' => 'waiting', 'before' => PHP_INT_MAX, 'done' => 0, 'failed' => 0, 'phase' => 'scan', 'pass' => 0, 'retry_cursor' => '', 'inflight' => 0, 'tries' => 0, 'recent' => array(), 'started' => time(), 'destination' => SEOProStack_Media_Storage::config()['signature']);
+                        $latest = get_posts(array('post_type' => 'attachment', 'post_status' => 'inherit', 'numberposts' => 1, 'fields' => 'ids', 'orderby' => 'ID', 'order' => 'DESC', 'no_found_rows' => true));
+                        $job['before'] = $latest ? (int) $latest[0] + 1 : 1;
+                        $job['originals_destination'] = SEOProStack_Media_Storage::config()['originals_bucket'];
                         if ('remark' === $kind) {
                             $context = SEOProStack_Watermark_Images::remark_context();
                             if (is_wp_error($context)) {
@@ -110,10 +116,14 @@ class SEOProStack_Media_Jobs {
             }
             try {
                 // Re-read after acquiring the lease: start/stop uses it too.
+                wp_cache_delete($name, 'options');
                 $job = get_option($name, array());
                 if ($job && 'waiting' === $job['state']) {
-                    self::turn($kind, $job);
-                    update_option($name, $job, false);
+                    $start = microtime(true);
+                    for ($part = 0; $part < 6 && 'waiting' === $job['state'] && microtime(true) - $start < 20; ++$part) {
+                        self::turn($kind, $job);
+                        update_option($name, $job, false);
+                    }
                 }
             } finally {
                 SEOProStack_Media_Storage::release($lease);
@@ -131,9 +141,15 @@ class SEOProStack_Media_Jobs {
      */
     private static function turn($kind, &$job) {
         $prefix = self::PREFIX . $kind . '_failed_';
+        $job['failed'] = self::failure_count($kind);
         if ($job['destination'] !== SEOProStack_Media_Storage::config()['signature']) {
             $job['state'] = 'failed';
             $job['error'] = 'Storage destination changed; resume only under the original connection.';
+            return;
+        }
+        if ($job['originals_destination'] !== SEOProStack_Media_Storage::config()['originals_bucket']) {
+            $job['state'] = 'failed';
+            $job['error'] = 'Private originals destination changed; restore the original connection before resuming.';
             return;
         }
         $id = (int) $job['inflight'];
@@ -147,24 +163,26 @@ class SEOProStack_Media_Jobs {
         }
         ++$job['tries'];
         update_option(self::PREFIX . $kind, $job, false);
+        if (get_option(self::PREFIX . $kind) !== $job) {
+            $job['state'] = 'failed';
+            $job['error'] = 'Cannot save the media journal; no files were changed.';
+            return;
+        }
         $result = $job['tries'] > 3 ? new WP_Error('media_interrupted', 'Repeatedly interrupted operation.') : self::step($kind, $id, $job);
-        $failure = get_option($prefix . $id, false);
         if (is_wp_error($result)) {
-            if (false === $failure) {
-                ++$job['failed'];
-            }
             // Save the refusal before advancing; retries are separate options,
             // not an unbounded array in the journal or an autoloaded option.
             update_option($prefix . $id, $id, false);
             $job['error'] = $result->get_error_message();
         } else {
-            if (false !== $failure) {
-                delete_option($prefix . $id);
-                --$job['failed'];
-            }
+            delete_option($prefix . $id);
             ++$job['done'];
         }
-        $job['recent'][] = is_wp_error($result) ? 1 : 0;
+        // The indexed refusal rows are authoritative even if PHP died between
+        // changing one and committing this journal. Counters never go negative.
+        $job['failed'] = self::failure_count($kind);
+        $specific = array('watermark_never', 'watermark_no_original', 'watermark_small', 'watermark_changed', 'watermark_original_changed', 'watermark_incomplete', 'storage_original_read');
+        $job['recent'][] = is_wp_error($result) && !in_array($result->get_error_code(), $specific, true) ? 1 : 0;
         $job['recent'] = array_slice($job['recent'], -20);
         $job['inflight'] = 0;
         if ('scan' === $job['phase']) {
@@ -177,6 +195,21 @@ class SEOProStack_Media_Jobs {
             $job['state'] = 'failed';
             $job['error'] = 'Systematic failure (18 of the last 20 operations); ' . ($job['error'] ?? '');
         }
+        if (is_wp_error($result) && in_array($result->get_error_code(), array('storage_off', 'storage_originals_config', 'watermark_off'), true)) {
+            $job['state'] = 'failed';
+        }
+    }
+
+    /**
+     * Count the indexed refusal queue, not a separately committed counter.
+     *
+     * @param string $kind Kind.
+     * @return int
+     */
+    private static function failure_count($kind) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own queue's option_name index, never attachment metadata.
+        return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(self::PREFIX . $kind . '_failed_') . '%'));
     }
 
     /**
@@ -190,8 +223,9 @@ class SEOProStack_Media_Jobs {
     private static function next_id($kind, &$job, $prefix) {
         global $wpdb;
         if ('scan' === $job['phase']) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- descending primary-key cursor; metadata is checked one attachment at a time.
-            $id = (int) $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE ID < %d AND post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID DESC LIMIT 1", $job['before'], $wpdb->esc_like('image/') . '%'));
+            $meta = 'adopt' === $kind ? SEOProStack_Media_Storage::META : SEOProStack_Watermark_Images::META;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- descending primary-key cursor; existence uses the post_id index, never meta-value sorting.
+            $id = (int) $wpdb->get_var($wpdb->prepare("SELECT p.ID FROM {$wpdb->posts} p WHERE p.ID < %d AND p.post_type = 'attachment' AND EXISTS (SELECT 1 FROM {$wpdb->postmeta} m WHERE m.post_id = p.ID AND m.meta_key = %s) ORDER BY p.ID DESC LIMIT 1", $job['before'], $meta));
             if ($id) {
                 return $id;
             }
@@ -223,6 +257,11 @@ class SEOProStack_Media_Jobs {
             return true;
         }
         if ('remark' === $kind) {
+            $uploads = wp_get_upload_dir();
+            $free = disk_free_space($uploads['basedir']);
+            if (false === $free || $free < 128 * MB_IN_BYTES) {
+                return new WP_Error('media_disk', 'Re-marking requires at least 128 MiB free in uploads; local copies were kept.');
+            }
             $result = SEOProStack_Watermark_Images::remark_step($id, $job);
             if (true !== $result) {
                 return is_wp_error($result) ? $result : true;

@@ -1414,6 +1414,14 @@ For **Cloudflare R2**, create a bucket, connect a custom domain for public readi
 - A picture whose upload is running counts as waiting (`status`, the card and its Media Library label, "Waiting to upload."), never as failed or uploaded: each attempt records its retry job first, so a run that dies part-way leaves it waiting and that job uploads it later; `upload --retry-failed` requeues one whose job was lost. It is marked failed, with the error, only when the attempt ends in a failure (a refused PUT, a restore that fails, a shared path).
 - CLI: `wp seoprostack media-storage status`, `test`, `upload [--limit=<n>] [--retry-failed]`, or `restore [--attachment=<id>] [--all]`, plus the handover commands below. Upload is bounded (default ten attachments), then cron continues; `--retry-failed` retries failed uploads and looks again at local copies kept after a failed check. Upload and test refuse while off or unconfigured. Removing the plugin removes records and jobs, **not objects in the bucket**.
 
+#### Resumable media jobs
+
+- `wp seoprostack media-jobs start remark` refreshes already marked pictures from their verified kept originals, newest first. It freezes the current mark and a cutoff of its attachment's post date plus 60 seconds. New records use their mark time (`marked_at`); older records fall back to `mtime`, the kept backup's modified time, then the picture's post date. Pictures newer than the cutoff and unmarked pictures are left alone. WebP/AVIF copies are remade when that feature is on, then the picture is uploaded and verified local copies are removed when removal is on.
+- `wp seoprostack media-jobs start adopt` continues bucket adoption using the existing inventory checks, including SHA-256 verification, without restoring removed files. `wp seoprostack media-jobs start originals` drains kept originals to the configured private bucket without restoring public media. Its existing size, memory, digest and safe-removal limits still apply.
+- `wp seoprostack media-jobs status [remark|adopt|originals]` reports the journal's state (`waiting`, `done`, `failed`, or `stopped`), cursor, in-flight picture, completed operations, outstanding failures and last error. `stop <kind>` stops between leased turns; if a turn holds the lease, repeat after it finishes. `start <kind>` resumes a stopped or failed job, including its refusal queue. Starting a completed job begins a new scan.
+- WP-Cron does the work: at most six pictures per turn, with a 20-second allowance checked between pictures. An individual image or storage operation can finish beyond that allowance. The next event is scheduled before work, so killed PHP resumes its in-flight picture after the shared five-minute lease expires. Refusals retry at the end in up to three passes; repeated interruptions also have a limit. A rolling window of 18 service/processing failures in 20 operations stops the job, not a short burst or ordinary per-picture refusals. Re-marking pauses work below 128 MiB free disk space; recover space and start it again.
+- Existing watermark actions and storage uploads share the lease. An incomplete refresh keeps its original and a persistent upload barrier even after stopping the job. Resolve its recorded failure and resume; stopping does not authorize publishing unmarked intermediate sizes. Changing the mark or storage destination does not silently change the job's scope: restore the job's original settings before resuming. Local-file restoration keeps its reserved turn before maintenance. The non-autoloaded journals and refusal options use `seoprostack_storage_job_media_*`, and reuse the storage cron hook; uninstall removes them without contacting the bucket.
+
 #### Private kept originals
 
 Set `SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET` to a **separate private bucket** to move Watermark pictures' kept unmarked originals off this server too. It uses the same endpoint, region and credentials, which need read, write and delete access to both buckets. **Disable every form of public access on the originals bucket: no r2.dev URL, no custom domain, and no public bucket policy.** The plugin cannot detect public access. A random folder name is not access control; a public originals bucket exposes what the watermark protects. The public media bucket is refused as the originals bucket.
@@ -2235,6 +2243,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: resumable `wp seoprostack media-jobs start|status|stop remark|adopt|originals`, with durable cursors, bounded tail retries and shared watermark/upload exclusion (GitHub issue #1069).
 
 ### 1.3.118
 

@@ -919,6 +919,25 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *                               "small" when nothing was large enough.
      */
     public static function mark_attachment($attachment_id, array $metadata) {
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            return new WP_Error('watermark_busy', 'A media batch is running; retry watermarking later.');
+        }
+        try {
+            return self::mark_locked($attachment_id, $metadata);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Mark files under the shared storage/watermark lease.
+     *
+     * @param int $attachment_id ID.
+     * @param array $metadata Metadata.
+     * @return array|string|WP_Error
+     */
+    private static function mark_locked($attachment_id, array $metadata) {
         $attachment_id = (int) $attachment_id;
         $why_not       = self::unmarkable($attachment_id);
         if ($why_not) {
@@ -983,22 +1002,12 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             if ($first) {
                 self::delete_backup($record);
             } elseif ($refresh && !$errors) {
-                // A clean picture that no longer fits the mark is finished,
-                // not an interrupted refresh to restore again on every run.
-                $deleted = self::delete_backup($record);
-                if (is_wp_error($deleted)) {
-                    unset($record['remark_pending'], $record['refresh_paths']);
-                    $record['files'] = array(wp_basename($file) => (int) filesize($file));
-                    $record['original_delete_failed'] = true;
-                    update_post_meta($attachment_id, self::META, $record);
-                } else {
-                    delete_post_meta($attachment_id, self::META);
-                }
-                delete_transient('dirsize_cache');
-                do_action('seoprostack_media_files_changed', $attachment_id);
-                if (is_wp_error($deleted)) {
-                    return $deleted;
-                }
+                // Retain ownership and the upload barrier when new settings
+                // cannot mark the restored picture. Never publish clean sizes
+                // or delete the only kept original merely because it is small.
+                $record['remark_pending'] = true;
+                update_post_meta($attachment_id, self::META, $record);
+                return new WP_Error('watermark_small', 'The restored picture is too small for this mark.');
             }
             return $errors ? $errors[0] : 'small';
         }
@@ -1100,6 +1109,24 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string|WP_Error added, small or marked (marked, nothing kept).
      */
     public static function add($attachment_id) {
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            return new WP_Error('watermark_busy', 'A media batch is running; retry watermarking later.');
+        }
+        try {
+            return self::add_locked($attachment_id);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Re-mark implementation under the shared lease.
+     *
+     * @param int $attachment_id ID.
+     * @return string|WP_Error
+     */
+    private static function add_locked($attachment_id) {
         $attachment_id = (int) $attachment_id;
         // Before a marked picture's mark comes off to be made again: "Never
         // watermark" leaves the picture as it is (Remove watermark unmarks).
@@ -1138,6 +1165,25 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string|WP_Error removed or unmarked.
      */
     public static function remove($attachment_id, $keep_original = false) {
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            return new WP_Error('watermark_busy', 'A media batch is running; retry watermarking later.');
+        }
+        try {
+            return self::remove_locked($attachment_id, $keep_original);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Restore implementation under the shared lease.
+     *
+     * @param int $attachment_id ID.
+     * @param bool $keep_original Keep recovery ownership.
+     * @return string|WP_Error
+     */
+    private static function remove_locked($attachment_id, $keep_original) {
         $attachment_id = (int) $attachment_id;
         $record        = self::record($attachment_id);
         if (!$record) {

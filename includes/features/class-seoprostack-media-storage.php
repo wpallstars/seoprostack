@@ -71,6 +71,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $maps = array();
     /** Original leases held until the reader finishes this request. @var array<string,string> */
     private static $original_leases = array();
+    /** Nested watermark/storage calls share one request-owned batch lease. @var array<string,array{value:string,depth:int}> */
+    private static $batch_leases = array();
     /** Attachments whose local files this batch deleted: their posts' cached pages are purged. @var array<int,true> */
     private static $purge = array();
 
@@ -2370,12 +2372,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return int Upload attempts.
      */
     public static function run_batch($limit = 10) {
-        if (SEOProStack_Media_Jobs::run_batch()) {
-            return 0;
-        }
         $ready = self::ready();
         // Switched off, the batch only brings removed files back.
         if (!$ready && !self::restoring() && !self::original_jobs_due()) {
+            SEOProStack_Media_Jobs::run_batch();
             return 0;
         }
         self::schedule(60);
@@ -2399,6 +2399,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
             self::local_copies($start, $limit, (int) (self::BUDGET / 2));
+            if (SEOProStack_Media_Jobs::run_batch()) {
+                return 0;
+            }
             if (self::original_jobs_due()) {
                 self::original_jobs($limit, $start);
             }
@@ -3141,6 +3144,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     public static function lease($name = self::LOCK) {
         global $wpdb;
+        $key = get_current_blog_id() . ':' . $name;
+        if (self::LOCK === $name && isset(self::$batch_leases[$key])) {
+            ++self::$batch_leases[$key]['depth'];
+            return self::$batch_leases[$key]['value'];
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read past the options cache: the lease changes under it.
         $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name));
         if ('' !== $held && (int) strtok($held, ' ') < time()) {
@@ -3148,7 +3156,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $value = (time() + 300) . ' ' . wp_generate_uuid4();
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- an atomic insert is the lease; the options API cannot do it.
-        return $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $value)) ? $value : '';
+        $inserted = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $value));
+        if ($inserted && self::LOCK === $name) {
+            self::$batch_leases[$key] = array('value' => $value, 'depth' => 1);
+        }
+        return $inserted ? $value : '';
     }
 
     /**
@@ -3159,6 +3171,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     public static function release($value, $name = self::LOCK) {
         global $wpdb;
+        $key = get_current_blog_id() . ':' . $name;
+        if (isset(self::$batch_leases[$key]) && self::$batch_leases[$key]['value'] === $value) {
+            if (--self::$batch_leases[$key]['depth'] > 0) {
+                return;
+            }
+            unset(self::$batch_leases[$key]);
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-delete; the lease row is never cached (see lease()).
         $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", $name, $value));
     }
@@ -3936,6 +3955,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether all eligible files were copied.
      */
     public static function upload_attachment($id, $start = null) {
+        $lease = self::lease();
+        if (!$lease) {
+            return false;
+        }
+        try {
+            return self::upload_locked($id, $start);
+        } finally {
+            self::release($lease);
+        }
+    }
+
+    /**
+     * Upload implementation under the shared storage/watermark lease.
+     *
+     * @param int $id Attachment ID.
+     * @param float|null $start Batch start.
+     * @return bool
+     */
+    private static function upload_locked($id, $start) {
         global $wpdb;
         // A killed re-mark may leave clean intermediate sizes on disk. Never
         // publish them, even after its batch lease expires or the job stops.
