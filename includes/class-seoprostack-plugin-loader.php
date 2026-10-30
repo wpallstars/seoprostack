@@ -930,8 +930,12 @@ final class SEOProStack_Plugin_Loader {
         }
         $query = array();
         parse_str((string) wp_parse_url($uri, PHP_URL_QUERY), $query);
+        if (isset($query['s'])) {
+            // Anyone can make up search words: each would be a new address to check.
+            return array('key' => '', 'path' => '');
+        }
         $keep = array();
-        foreach (array('cpage', 'p', 'page', 'page_id', 'paged', 's') as $name) {
+        foreach (array('cpage', 'p', 'page', 'page_id', 'paged') as $name) {
             if (isset($query[$name])) {
                 if (!is_scalar($query[$name])) {
                     return array('key' => '', 'path' => '');
