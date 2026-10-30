@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.117-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.118-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.117
+Version: 1.3.118
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2230,9 +2230,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### 1.3.117
+### 1.3.118
 
 - New, off by default: **Fluent Support email by IMAP** (Plugins tab). Support email becomes Fluent Support tickets and replies without Fluent’s hosted email relay or its licence check: every five minutes the support mailbox is read over IMAP, and each new email goes to Fluent Support Pro’s own email-to-ticket code. Emails stay in the mailbox; attachments are named on the ticket. The password goes in `wp-config.php` as `SEOPROSTACK_HELPDESK_IMAP_PASSWORD`. New `wp seoprostack helpdesk-mail fetch|status`.
+
+### 1.3.117
+
 - Fix: **Media in cloud storage** no longer reads every stored picture's record to name each upload. With local copies removed, each new file name took 0.3 seconds with 1,400 stored pictures and over 7 seconds with 19,000, several times a picture, so bulk imports slowed as the library grew. It now reads only the records whose names can clash, from its index; until the index is rebuilt after an update, it reads them all as before (GitHub issue #1064).
 
 ### 1.3.116
