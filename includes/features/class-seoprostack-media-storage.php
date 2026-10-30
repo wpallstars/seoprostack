@@ -3858,6 +3858,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::restore_for_upload($id)) {
             return false;
         }
+        // files() takes only the WebP and AVIF copies their record lists:
+        // others would stay on the server, never used. Once they are
+        // recorded, queue this picture again (the next batch uploads it with
+        // them); queueing also cancels this attempt's retry job.
+        if (class_exists('SEOProStack_Nextgen_Images') && SEOProStack_Nextgen_Images::record_unlisted($id)) {
+            self::queue($id);
+            return false;
+        }
         $record = array('signature' => $config['signature'], 'url' => $config['url'], 'files' => array(), 'state' => 'failed', 'attempts' => $attempt, 'skipped' => 0);
         if (isset($old['collision_source'])) {
             $record['collision_source'] = $old['collision_source'];

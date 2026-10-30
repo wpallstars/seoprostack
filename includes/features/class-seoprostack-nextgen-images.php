@@ -51,6 +51,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     /** Post meta: formats an attachment was converted for. Missing or different = waiting. */
     const DONE = '_seoprostack_nextgen_done';
 
+    /** Post meta: changes with every metadata save, so a conversion that read older sizes is not recorded. */
+    const GENERATION = '_seoprostack_nextgen_generation';
+
     /** WP-Cron hook for background batches. */
     const HOOK = 'seoprostack_nextgen_batch';
 
@@ -413,6 +416,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      *                        (0 = not smaller, -1 = failed), sources => [name => bytes].
      *                        A skipped attachment's record says why instead:
      *                        skipped => not_image or missing (no file).
+     *                        nextgen_changed: its sizes or file changed while
+     *                        the copies were made; it waits to be converted again.
      */
     public static function convert_attachment($attachment_id, $force = false) {
         $attachment_id = (int) $attachment_id;
@@ -422,6 +427,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (is_wp_error($restored)) {
             return $restored;
         }
+        // Read before the sizes, from the database: WordPress saves the
+        // metadata after each size it makes, so another request may still be
+        // adding sizes (a new upload, a regeneration, a watermark refresh).
+        wp_cache_delete($attachment_id, 'post_meta');
+        $generation    = (string) get_post_meta($attachment_id, self::GENERATION, true);
         $file          = get_attached_file($attachment_id);
         $types         = self::source_types();
         $previous      = get_post_meta($attachment_id, self::META, true);
@@ -450,7 +460,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 ? isset($previous['quality'][$format]) && $previous['quality'][$format] !== $record['quality'][$format]
                 : true);
         }
-        foreach (self::file_names($file, wp_get_attachment_metadata($attachment_id)) as $name) {
+        $names = self::file_names($file, wp_get_attachment_metadata($attachment_id));
+        foreach ($names as $name) {
             $path = $dir . '/' . $name;
             $type = wp_check_filetype($name);
             if (!is_file($path) || !in_array($type['type'], $types, true) || self::is_animated($path, $type['type'])) {
@@ -471,10 +482,83 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 $record['files'][$name][$format] = self::convert_file($path, $format, $force || $redo[$format]);
             }
         }
+        if (!self::unchanged($attachment_id, $generation, $file, $names)) {
+            // A record of older sizes would hide the newer ones' copies from
+            // Media in cloud storage, which uploads only listed copies: they
+            // would stay on the server, never used. Leave it waiting; the
+            // next conversion keeps the copies made here (they are up to
+            // date) and lists every size.
+            delete_post_meta($attachment_id, self::DONE);
+            if (self::enabled()) {
+                self::schedule(5);
+            }
+            return new WP_Error('nextgen_changed', __('The picture changed while its copies were made, so it is converted again.', 'seoprostack'));
+        }
         update_post_meta($attachment_id, self::META, $record);
         update_post_meta($attachment_id, self::DONE, $signature);
         do_action('seoprostack_media_files_changed', $attachment_id);
         return $record;
+    }
+
+    /**
+     * Whether an attachment is as it was when its conversion began: no
+     * metadata save since (each one changes the generation), the same file,
+     * and the same sizes. Read from the database, not this request's cache.
+     *
+     * @param int      $attachment_id Attachment ID.
+     * @param string   $generation    Generation read before the sizes.
+     * @param string   $file          Attached file then.
+     * @param string[] $names         File names converted.
+     * @return bool
+     */
+    private static function unchanged($attachment_id, $generation, $file, $names) {
+        wp_cache_delete($attachment_id, 'post_meta');
+        return (string) get_post_meta($attachment_id, self::GENERATION, true) === $generation
+            && get_attached_file($attachment_id) === $file
+            && self::file_names($file, wp_get_attachment_metadata($attachment_id)) === $names;
+    }
+
+    /**
+     * Convert a converted picture again when up-to-date copies of its files
+     * are on the server but its record does not list them: the record of a
+     * conversion that read the sizes while they were being made (before
+     * 1.3.115), or one from an older version that kept none. Media in cloud
+     * storage uploads only listed copies, so these would stay on the server,
+     * never used. Converting keeps them (they are up to date) and lists every
+     * size; it then signals that the files changed. Its files must be local.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return bool Whether it was converted (its record changed).
+     */
+    public static function record_unlisted($attachment_id) {
+        $attachment_id = (int) $attachment_id;
+        $formats       = self::formats();
+        $types         = self::source_types();
+        $file          = get_attached_file($attachment_id);
+        if (!$formats || !self::enabled() || !$file || !in_array(get_post_mime_type($attachment_id), $types, true) || get_post_meta($attachment_id, self::DONE, true) !== self::signature()) {
+            return false;
+        }
+        $record = get_post_meta($attachment_id, self::META, true);
+        $listed = is_array($record) && isset($record['files']) && is_array($record['files']) ? $record['files'] : array();
+        $dir    = dirname($file);
+        clearstatcache();
+        foreach (self::file_names($file, wp_get_attachment_metadata($attachment_id)) as $name) {
+            $path = $dir . '/' . $name;
+            $type = wp_check_filetype($name);
+            if (!in_array($type['type'], $types, true) || !is_file($path)) {
+                continue;
+            }
+            foreach ($formats as $format => $mime) {
+                $copy = $path . '.' . $format;
+                // Only what a conversion lists: not an animated picture's file
+                // (never converted) nor a Media Library item of its own.
+                if ($mime === $type['type'] || isset($listed[$name][$format]) || !is_file($copy) || filemtime($copy) < filemtime($path) || self::is_animated($path, $type['type']) || self::is_attachment_file($copy)) {
+                    continue;
+                }
+                return !is_wp_error(self::convert_attachment($attachment_id));
+            }
+        }
+        return false;
     }
 
     /**
@@ -690,6 +774,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!is_array($data) || !in_array(get_post_mime_type($attachment_id), array('image/jpeg', 'image/png', 'image/webp'), true)) {
             return $data;
         }
+        // A conversion running elsewhere read the sizes before this save:
+        // convert_attachment() sees the change and does not record it. Its
+        // size check covers a conversion that starts between here and the
+        // save, which follows this filter.
+        update_post_meta($attachment_id, self::GENERATION, wp_generate_uuid4());
         $file = get_attached_file($attachment_id);
         if (!$file) {
             return $data;
@@ -816,8 +905,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         }
         set_transient(self::LOCK, 1, self::BUDGET + 60);
         $start = microtime(true);
+        // Pictures that changed while they were converted wait for the next
+        // batch: their sizes may still be being made.
+        $deferred = array();
         do {
-            $ids = self::waiting(10);
+            $ids = array_diff(self::waiting(10 + count($deferred)), $deferred);
             foreach ($ids as $id) {
                 if (!self::more_time($start, self::BUDGET)) {
                     break 2;
@@ -829,7 +921,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 $record['incomplete'] = true;
                 update_post_meta($id, self::META, $record);
                 update_post_meta($id, self::DONE, self::signature());
-                self::convert_attachment($id);
+                $result = self::convert_attachment($id);
+                if (is_wp_error($result) && 'nextgen_changed' === $result->get_error_code()) {
+                    $deferred[] = $id;
+                }
             }
         } while ($ids);
         delete_transient(self::LOCK);
@@ -2053,10 +2148,21 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             delete_metadata('post', 0, self::DONE, '', true);
         }
         $counts = array('converted' => 0, 'failed' => 0);
-        while ($ids = self::waiting(50)) {
+        // Pictures that stay waiting after an error (removed files that could
+        // not be brought back, or sizes that changed while converting) are
+        // tried once a run, so the loop ends; a later run tries them again.
+        $passed = array();
+        while ($ids = array_diff(self::waiting(50 + count($passed)), $passed)) {
             foreach ($ids as $id) {
                 $record = self::convert_attachment($id, $force);
                 if (is_wp_error($record)) {
+                    // A skipped picture is marked done and does not come back.
+                    if ('nextgen_not_image' !== $record->get_error_code()) {
+                        $passed[] = $id;
+                    }
+                    if ('nextgen_changed' === $record->get_error_code()) {
+                        WP_CLI::warning(sprintf('%d: %s', $id, $record->get_error_message()));
+                    }
                     continue;
                 }
                 $counts['converted']++;
