@@ -155,6 +155,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: Site Health warns about split object caches across web, cron and WP-CLI (#1072).
+
 = 1.3.118 =
 * New (off): Fluent Support email by IMAP, without a hosted relay (#1066).
 * New: Rank Math identity sync and copied-site health repairs (#1068).
