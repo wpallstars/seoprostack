@@ -932,6 +932,12 @@ Off by default and only runs while Rank Math is active. Choose public post types
 
 On each chosen post type’s list, a warning appears when more than 20% of its published posts have Rank Math’s pillar flag. Pillars should be a few cornerstone pages, not almost every post. Select the posts that should not be pillars and choose **Remove Rank Math pillar status** in Bulk actions. Only selected posts you can edit are changed; keywords are kept. Pillar status is never added or removed automatically.
 
+**Keep Rank Math’s site identity in sync** is separately opt-in. It takes the site name from Settings → General, the PNG custom logo from Site Identity (or a PNG site icon), and **Default social image** here (falling back to that logo). It fills Rank Math’s organisation/website names, logo and Open Graph fallback, and follows subsequent name, logo, icon, theme and social-image changes. Existing choices are preserved unless empty, already equal to Site Identity when enabled, or still equal to the last synced value. Image URLs and IDs are kept together. It does not change Rank Math’s Person/Organization choice or per-page images/schema. Last synced values stay in this site’s own settings and are removed on uninstall. Switching either sync or Rank Math defaults off stops syncing.
+
+The Rank Math preset sets Pages’ Schema Type to None: Rank Math still emits WebPage, without adding Article by default. Apply it explicitly on the Plugins screen or with `wp seoprostack presets apply seo-by-rank-math`; reset/undo use the existing preset backup. Existing per-page schema is untouched.
+
+**Copied-site repairs:** `wp --url=<url> seoprostack health --dry-run` (also the default without a flag) reports stale Kadence/WPTT `downloaded_font_files` cache paths and missing tables for active Rank Math 404 Monitor, Redirections, Link Counter and Analytics modules. `--repair` rebases font-cache entries to existing files under this site’s `wp-content/fonts`, or drops stale cache entries so the font loader can download them again; it never deletes font files or follows copied paths. Unrecognized paths are reported for manual review. The shared font cache on multisite is reported as `not_run` and never rewritten. Missing tables are created through Rank Math’s own schema routines and checked again; modules, connections, schedules and existing data are not reset, and lost table data cannot be restored. Use a database backup before repairs. JSON output and `--fail-on` include both checks; `--repair` and `--dry-run` are mutually exclusive.
+
 ### 410 Gone for removed pages (Links)
 
 Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
@@ -2232,6 +2238,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### 1.3.118
 
+- New: opt-in Rank Math Site Identity sync, WebPage-only Page defaults in its preset, and explicit copied-site font-cache and Rank Math table repairs in `wp seoprostack health` (GitHub issue #1068).
 - New, off by default: **Fluent Support email by IMAP** (Plugins tab). Support email becomes Fluent Support tickets and replies without Fluent’s hosted email relay or its licence check: every five minutes the support mailbox is read over IMAP, and each new email goes to Fluent Support Pro’s own email-to-ticket code. Emails stay in the mailbox; attachments are named on the ticket. The password goes in `wp-config.php` as `SEOPROSTACK_HELPDESK_IMAP_PASSWORD`. New `wp seoprostack helpdesk-mail fetch|status`.
 
 ### 1.3.117

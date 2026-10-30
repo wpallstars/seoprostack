@@ -70,7 +70,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Links and speed =
 
-* **Rank Math defaults**: keywords from titles and pillar warnings.
+* **Rank Math defaults**: keywords, pillar warnings and opt-in site identity sync.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
@@ -101,7 +101,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 = External services =
 
 * **Your IMAP server** (opt-in): reads support email over SSL or STARTTLS, certificate checked.
-* **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
@@ -111,7 +111,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy](https://www.screenshotmachine.com/privacypolicy.php).
-* **Wikipedia** (*.wikipedia.org): previews load in the visitor’s browser when opened. [Privacy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
+* **Wikipedia** (*.wikipedia.org): previews load in the browser when opened. [Privacy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
 * **Linked websites**: opt-in cached health checks send public addresses without queries or visitor data; their policies apply. Local click totals last 90 days, without cookies or visitor IDs.
 * **GitHub** (github.com, api.github.com), GitHub builds: release checks twice daily; no site data. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
@@ -125,7 +125,7 @@ Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-tem
 
 == Installation ==
 
-Install from Plugins → Add New and activate. Set features in Settings → SEO Pro Stack.
+Install from Plugins → Add New and activate.
 
 == Frequently Asked Questions ==
 
@@ -156,6 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.118 =
-* New, off by default: Fluent Support email by IMAP, support email to tickets without a hosted relay.
+* New (off): Fluent Support email by IMAP, without a hosted relay (#1066).
+* New: Rank Math identity sync and copied-site health repairs (#1068).
 
 Older: `changelog.txt`.

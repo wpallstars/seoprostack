@@ -69,6 +69,8 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'rank_math_identity'));
+        add_filter('rank_math/schema/add_global_entities', array(__CLASS__, 'rank_math_page_entities'), 5);
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets-cli.php';
@@ -82,6 +84,29 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         }
         add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle'));
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+    }
+
+    /** @param string $slug Plugin whose preset was changed. */
+    public static function rank_math_identity($slug) {
+        if ('seo-by-rank-math' === $slug) {
+            SEOProStack_Rank_Math_Defaults::queue_identity();
+        }
+    }
+
+    /** Keep WebPage when the Page preset removes the default Article.
+     *
+     * Rank Math's None setting otherwise suppresses global entities too.
+     * Run before site-specific filters so they can still suppress output.
+     *
+     * @param mixed $can_add Rank Math's global-entity decision.
+     * @return mixed
+     */
+    public static function rank_math_page_entities($can_add) {
+        if ($can_add || !is_page() || metadata_exists('post', get_queried_object_id(), 'rank_math_rich_snippet')) {
+            return $can_add;
+        }
+        $titles = get_option('rank-math-options-titles', array());
+        return is_array($titles) && isset($titles['pt_page_default_rich_snippet']) && 'off' === $titles['pt_page_default_rich_snippet'] ? true : $can_add;
     }
 
     /**
