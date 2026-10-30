@@ -74,12 +74,38 @@
 		});
 	}
 
+	/** Social preview pictures' shape (1200 by 630 pixels). */
+	var WIDE = 1.91;
+
+	/**
+	 * Width over height of the picture's frame, as render_block() works it
+	 * out; 0 fills the card's height.
+	 */
+	function ratioOf(a, media) {
+		var shape = a.imageShape || 'auto';
+		if (shape === 'fill') {
+			return 0;
+		}
+		if (shape === 'square' || (shape === 'auto' && a.imageKind === 'icon')) {
+			return 1;
+		}
+		var details = media && media.media_details;
+		if (shape === 'wide' || !details || !details.width || !details.height) {
+			return WIDE;
+		}
+		return Math.max(1, Math.min(2, details.width / details.height));
+	}
+
 	function Card(props) {
 		var a = props.attributes;
 		var position = a.mediaPosition || 'right';
 		var hasImage = position !== 'none' && props.imageSrc;
+		var mediaProps = { className: 'wp-block-seoprostack-link-card__media' };
+		if (props.ratio) {
+			mediaProps.style = { '--sps-link-card-ratio': String(Math.round(props.ratio * 1000) / 1000) };
+		}
 		return el('span', { className: 'wp-block-seoprostack-link-card__link' },
-			hasImage ? el('span', { className: 'wp-block-seoprostack-link-card__media' }, el('img', { src: props.imageSrc, alt: '' })) : null,
+			hasImage ? el('span', mediaProps, el('img', { src: props.imageSrc, alt: '' })) : null,
 			el('span', { className: 'wp-block-seoprostack-link-card__body' },
 				el('span', { className: 'wp-block-seoprostack-link-card__title' }, a.title || a.url),
 				a.description ? el('span', { className: 'wp-block-seoprostack-link-card__description' }, a.description) : null,
@@ -88,10 +114,13 @@
 		);
 	}
 
-	/** The wrapper class render_block() sets: where the picture goes. */
+	/** The wrapper classes render_block() sets: where the picture goes, its shape and kind. */
 	function mediaClass(a, imageSrc) {
 		var position = a.mediaPosition || 'right';
-		return 'is-media-' + (position !== 'none' && imageSrc ? position : 'none');
+		if (position === 'none' || !imageSrc) {
+			return 'is-media-none';
+		}
+		return 'is-media-' + position + ' is-shape-' + (a.imageShape || 'auto') + (a.imageKind === 'icon' ? ' is-image-icon' : '');
 	}
 
 	function Edit(props) {
@@ -111,17 +140,12 @@
 		var setError = errorState[1];
 		var tried = useRef(false);
 
-		var imageSrc = data.useSelect(function (select) {
-			if (!a.imageId) {
-				return '';
-			}
-			var media = select('core').getMedia(a.imageId);
-			if (!media) {
-				return '';
-			}
-			var sizes = media.media_details && media.media_details.sizes;
-			return sizes && sizes.medium ? sizes.medium.source_url : media.source_url;
+		var media = data.useSelect(function (select) {
+			// getMedia() is deprecated since WordPress 6.9; this is the same record.
+			return a.imageId ? select('core').getEntityRecord('postType', 'attachment', a.imageId) : null;
 		}, [a.imageId]);
+		var sizes = media && media.media_details && media.media_details.sizes;
+		var imageSrc = media ? (sizes && sizes.medium ? sizes.medium.source_url : media.source_url) : '';
 		var blockProps = useBlockProps({ className: mediaClass(a, imageSrc) });
 
 		function fetchImage(image, page) {
@@ -130,10 +154,33 @@
 			}
 			setBusy(__('Copying the picture to your Media Library…', 'seoprostack'));
 			return copyImage(image, page).then(function (res) {
-				set({ imageId: res.id || 0 });
+				set({ imageId: res.id || 0, imageKind: 'page' });
 			}, function (err) {
 				setError(err && err.message ? err.message : __('The picture could not be copied.', 'seoprostack'));
 			});
+		}
+
+		/* The site's icon, when it is large enough. Quiet: no notice when there is none. */
+		function fetchIcon(page, quiet) {
+			if (!validUrl(page) || !cfg.canUpload) {
+				return Promise.resolve();
+			}
+			setBusy(__('Looking for the site’s icon…', 'seoprostack'));
+			return apiFetch({
+				path: '/seoprostack/v1/link-card-icon',
+				method: 'POST',
+				data: { page: page, post: currentPostId() }
+			}).then(function (res) {
+				set({ imageId: res.id || 0, imageKind: 'icon' });
+			}, function (err) {
+				if (!quiet) {
+					setError(err && err.message ? err.message : __('The site’s icon could not be copied.', 'seoprostack'));
+				}
+			});
+		}
+
+		function done() {
+			setBusy('');
 		}
 
 		/* A converted Bookmark Card brings its picture's address: copy it once. */
@@ -163,10 +210,12 @@
 					description: decode(res && res.description),
 					siteName: hostOf(address),
 					imageSource: image,
-					imageId: 0
+					imageId: 0,
+					imageKind: 'page'
 				});
 				tried.current = true;
-				return fetchImage(image, address);
+				// No picture on the page: the site's icon, if it is large enough.
+				return image ? fetchImage(image, address) : fetchIcon(address, true);
 			}, function (err) {
 				setError((err && err.message ? err.message + ' ' : '') + __('Fill in the title and description in the block settings.', 'seoprostack'));
 				set({ siteName: hostOf(address) });
@@ -195,7 +244,23 @@
 					help: __('Beside the text when the card is wide enough.', 'seoprostack'),
 					onChange: function (v) { set({ mediaPosition: v }); }
 				}),
-				a.imageSource && !a.imageId && cfg.canUpload ? el(Button, { variant: 'secondary', disabled: !!busy, onClick: function () { fetchImage(a.imageSource, a.url).then(function () { setBusy(''); }); } }, __('Copy the picture', 'seoprostack')) : null
+				el(SelectControl, {
+					label: __('Picture shape', 'seoprostack'),
+					value: a.imageShape || 'auto',
+					options: [
+						{ value: 'auto', label: __('Its own shape', 'seoprostack') },
+						{ value: 'wide', label: __('Wide, as in social previews', 'seoprostack') },
+						{ value: 'square', label: __('Square', 'seoprostack') },
+						{ value: 'fill', label: __('Fill the card’s height', 'seoprostack') }
+					],
+					help: __('Pictures show whole, at the same height in every card. Fill the card’s height crops them.', 'seoprostack'),
+					onChange: function (v) { set({ imageShape: v }); }
+				}),
+				cfg.canUpload ? el('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 8 } },
+					a.imageSource && !a.imageId ? el(Button, { variant: 'secondary', disabled: !!busy, onClick: function () { fetchImage(a.imageSource, a.url).then(done); } }, __('Copy the picture', 'seoprostack')) : null,
+					a.imageSource && a.imageId && a.imageKind === 'icon' ? el(Button, { variant: 'secondary', disabled: !!busy, onClick: function () { setError(''); fetchImage(a.imageSource, a.url).then(done); } }, __('Use the page’s picture', 'seoprostack')) : null,
+					a.imageKind !== 'icon' || !a.imageId ? el(Button, { variant: 'secondary', disabled: !!busy || !validUrl(a.url), onClick: function () { setError(''); fetchIcon(a.url, false).then(done); } }, __('Use the site’s icon', 'seoprostack')) : null
+				) : null
 			),
 			el(PanelBody, { title: __('Link', 'seoprostack'), initialOpen: false },
 				el(ToggleControl, { label: __('Open in a new tab', 'seoprostack'), checked: !!a.newTab, onChange: function (v) { set({ newTab: v }); } }),
@@ -236,7 +301,7 @@
 			),
 			el('div', blockProps,
 				notices,
-				el(Card, { attributes: a, imageSrc: imageSrc })
+				el(Card, { attributes: a, imageSrc: imageSrc, ratio: ratioOf(a, media) })
 			)
 		);
 	}

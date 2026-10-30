@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.104
+Stable tag: 1.3.105
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -113,7 +113,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 * **Linked websites**: opt-in cached health checks send public addresses without queries or visitor data; their policies apply. Local click totals last 90 days, without cookies or visitor IDs.
 * **GitHub** (github.com, api.github.com), GitHub builds: release checks twice daily; no site data. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other addresses: Copy linked images and Link cards download pictures; iFrames load pages. Short-link counts use a year-long `sps_link_` cookie per link, holding “1”; totals only, no IPs. No other data is sent.
+Other addresses: Copy linked images and Link cards download pictures and site icons; iFrames load pages. Short-link counts use a year-long `sps_link_` cookie per link, holding “1”; totals only, no IPs. No other data is sent.
 
 = Built with AI =
 
@@ -154,12 +154,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* New: Kadence author box fields keep Occupation and profile links on the profile screen after Kadence Starter Templates is deactivated (#1042).
-* Fix: Dark mode covers Fluent Security's two-factor card on the profile screen (#1042).
 * New: the Plugins screen recommends deactivating and deleting Performant Translations on WordPress 6.5 or later, which does most of its job, and Categories to Tags Converter Importer, whose job Term tools does. Term tools' Move to taxonomy keeps the default category in place (#1043).
 
-= 1.3.104 =
-* New: On a network, Network Admin's menu is organised too, with Ultimate Multisite, then a Developers menu, and Tidy the dashboard lays out the network Dashboard (#1035).
-* Fix: Load plugins only where needed keeps what pages learned when LiteSpeed Cache purges (#1037).
+= 1.3.105 =
+* Better: Link cards show pictures whole and can use site icons (#1036).
+* New: Kadence author box fields on profiles (#1042).
+* Fix: Dark mode covers Fluent Security's two-factor card (#1042).
 
 Older: `changelog.txt`.
