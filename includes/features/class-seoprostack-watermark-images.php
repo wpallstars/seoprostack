@@ -1341,7 +1341,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return $signature;
         }
         $post = get_post($mark['id']);
-        return array('mark_signature' => $signature, 'cutoff' => $post ? (int) strtotime($post->post_date_gmt . ' UTC') + 60 : time());
+        return array('mark_signature' => $signature, 'remark_token' => wp_generate_uuid4(), 'cutoff' => $post ? (int) strtotime($post->post_date_gmt . ' UTC') + 60 : time());
     }
 
     /**
@@ -1371,7 +1371,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $post = get_post($id);
         $stamp = (int) ($record['marked_at'] ?? $record['mtime'] ?? ($backup && is_file($backup) ? filemtime($backup) : ($post ? strtotime($post->post_date_gmt . ' UTC') : 0)));
         $current = ($record['signature'] ?? '') === $job['mark_signature'] && empty($record['remark_pending']);
-        if ($current && $stamp < $job['started']) {
+        if ($current && ($record['remark_job'] ?? '') !== $job['remark_token']) {
             return false;
         }
         if (!$current && empty($record['remark_pending']) && $stamp > $job['cutoff']) {
@@ -1380,6 +1380,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$current) {
             if (empty($record['backup'])) {
                 return new WP_Error('watermark_no_original', 'No kept original; the old mark was retained.');
+            }
+            // Distinguish a completed mark awaiting its upload from pictures
+            // already current before this job, even within the same second.
+            $record['remark_job'] = $job['remark_token'];
+            update_post_meta($id, self::META, $record);
+            if (get_post_meta($id, self::META, true) !== $record) {
+                return new WP_Error('watermark_record', 'Cannot save refresh ownership; no files were changed.');
             }
             $result = self::add($id);
             if (is_wp_error($result)) {
