@@ -1005,10 +1005,15 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         unset($record['remark_pending'], $record['refresh_paths']);
         if ($errors) {
             unset($record['signature']);
+            if ($refresh) {
+                $record['remark_pending'] = true;
+                $record['refresh_paths'] = array(_wp_relative_upload_path($file));
+            }
         } elseif ($first || $refresh) {
             // Merely observing already-marked files must not make an old mark
             // appear current (for example during browser finalization).
             $record['signature'] = $signature;
+            $record['marked_at'] = time();
         }
         update_post_meta($attachment_id, self::META, $record);
 
@@ -1270,6 +1275,82 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         $record['backup'] = isset($record['backup']) ? (string) $record['backup'] : '';
         return $record;
+    }
+
+    /**
+     * Freeze the mark identity and icon-date cutoff for a background refresh.
+     *
+     * @return array|WP_Error
+     */
+    public static function remark_context() {
+        if (!self::enabled()) {
+            return new WP_Error('watermark_off', 'Watermark pictures is off.');
+        }
+        $mark = self::mark();
+        if (is_wp_error($mark)) {
+            return $mark;
+        }
+        $signature = self::mark_signature($mark);
+        if (is_wp_error($signature)) {
+            return $signature;
+        }
+        $post = get_post($mark['id']);
+        return array('mark_signature' => $signature, 'cutoff' => $post ? (int) strtotime($post->post_date_gmt . ' UTC') + 60 : time());
+    }
+
+    /**
+     * Refresh only pre-change marked pictures, then remake format copies.
+     * Existing recovery records own any intermediate unmarked files.
+     *
+     * @param int $id Attachment ID.
+     * @param array $job Frozen context.
+     * @return bool|WP_Error True needs uploading; false is outside the plan.
+     */
+    public static function remark_step($id, $job) {
+        $context = self::remark_context();
+        if (is_wp_error($context)) {
+            return $context;
+        }
+        if ($context['mark_signature'] !== $job['mark_signature']) {
+            return new WP_Error('watermark_changed', 'The watermark changed during the job; restore its original settings before resuming.');
+        }
+        $record = self::record($id);
+        if (!$record) {
+            return false;
+        }
+        if (self::skipped($id)) {
+            return new WP_Error('watermark_never', 'Never watermark is set; the old mark was retained.');
+        }
+        $backup = self::backup_path($record);
+        $post = get_post($id);
+        $stamp = (int) ($record['marked_at'] ?? $record['mtime'] ?? ($backup && is_file($backup) ? filemtime($backup) : ($post ? strtotime($post->post_date_gmt . ' UTC') : 0)));
+        $current = ($record['signature'] ?? '') === $job['mark_signature'] && empty($record['remark_pending']);
+        if ($current && $stamp < $job['started']) {
+            return false;
+        }
+        if (!$current && empty($record['remark_pending']) && $stamp > $job['cutoff']) {
+            return false;
+        }
+        if (!$current) {
+            if (empty($record['backup'])) {
+                return new WP_Error('watermark_no_original', 'No kept original; the old mark was retained.');
+            }
+            $result = self::add($id);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            $record = self::record($id);
+            if (!$record || !empty($record['remark_pending']) || ($record['signature'] ?? '') !== $job['mark_signature']) {
+                return new WP_Error('watermark_incomplete', 'The picture could not be fully re-marked.');
+            }
+        }
+        if (SEOProStack_Nextgen_Images::enabled()) {
+            $converted = SEOProStack_Nextgen_Images::convert_attachment($id, true);
+            if (is_wp_error($converted)) {
+                return $converted;
+            }
+        }
+        return true;
     }
 
     /**
