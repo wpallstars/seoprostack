@@ -944,7 +944,7 @@ final class SEOProStack_Plugin_Loader {
             }
         }
         $path .= $keep ? '?' . http_build_query($keep, '', '&', PHP_QUERY_RFC3986) : '';
-        return array('key' => substr(md5($path), 0, 12), 'path' => $path);
+        return array('key' => substr(hash('sha256', $path), 0, 12), 'path' => $path);
     }
 
     /**
