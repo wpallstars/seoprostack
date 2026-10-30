@@ -172,10 +172,8 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
                 $previous[$key] = $value;
             }
         }
-        if (update_option('rank-math-options-titles', $titles) && is_callable(array('RankMath\\Helper', 'get_settings'))) {
-            // Rank Math caches settings in its request-local container.
-            rank_math()->settings->reset();
-        }
+        // Runs at shutdown; Rank Math reads the new options on the next request.
+        update_option('rank-math-options-titles', $titles);
         SEOProStack_Settings::set('rank_math_identity_previous', (string) wp_json_encode($previous));
     }
 

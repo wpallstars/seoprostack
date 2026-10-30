@@ -182,20 +182,11 @@ class SEOProStack_Health_CLI {
             }
             if ($repair && $missing) {
                 if (is_callable(array('RankMath\\Installer', 'create_tables'))) {
-                    RankMath\Installer::create_tables(array_values(array_diff($modules, array('analytics'))));
+                    call_user_func(array('RankMath\\Installer', 'create_tables'), array_values(array_diff($modules, array('analytics'))));
                 }
                 if (isset($modules['analytics'])) {
                     foreach (array('Objects', 'Console', 'Inspections') as $workflow) {
-                        $class = 'RankMath\\Analytics\\Workflow\\' . $workflow;
-                        if (class_exists($class) && method_exists($class, 'create_tables')) {
-                            // Constructors start data jobs. Invoke only the native
-                            // schema routine, which needs no constructor state.
-                            $reflection = new ReflectionClass($class);
-                            $method = $reflection->getMethod('create_tables');
-                            if ($method->isPublic() && 0 === $method->getNumberOfRequiredParameters()) {
-                                $method->invoke($reflection->newInstanceWithoutConstructor());
-                            }
-                        }
+                        self::create_analytics_table('RankMath\\Analytics\\Workflow\\' . $workflow);
                     }
                 }
                 $missing = array_values(array_filter($missing, static function ($name) {
@@ -209,6 +200,20 @@ class SEOProStack_Health_CLI {
             'description' => $missing ? 'Missing tables for active modules: ' . implode(', ', $missing) . '.' : 'No missing tables for supported active Rank Math modules.',
             'actions' => $missing ? 'Run wp seoprostack health --repair. Only Rank Math’s own table creation routines are used; no modules are enabled and lost data cannot be recovered.' : '',
         ));
+    }
+
+    /** @param string $class Native Analytics schema provider. */
+    private static function create_analytics_table($class) {
+        if (!class_exists($class) || !method_exists($class, 'create_tables')) {
+            return;
+        }
+        // Constructors start data jobs. Invoke only the native schema routine,
+        // which needs no constructor state in the supported Rank Math version.
+        $reflection = new ReflectionClass($class);
+        $method = $reflection->getMethod('create_tables');
+        if ($method->isPublic() && 0 === $method->getNumberOfRequiredParameters()) {
+            $method->invoke($reflection->newInstanceWithoutConstructor());
+        }
     }
 
     /** @param string $name Known Rank Math table suffix. @return bool */
