@@ -258,6 +258,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         // never outlive or outdate their pictures. Both only check files.
         add_filter('wp_delete_file', array(__CLASS__, 'delete_copies'));
         add_filter('wp_update_attachment_metadata', array(__CLASS__, 'metadata_updated'), 20, 2);
+        add_action('added_post_meta', array(__CLASS__, 'metadata_committed'), 10, 3);
+        add_action('updated_post_meta', array(__CLASS__, 'metadata_committed'), 10, 3);
         if (is_admin()) {
             // Also when switched off, to take this site out of the rules
             // however the switch was turned off.
@@ -775,9 +777,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             return $data;
         }
         // A conversion running elsewhere read the sizes before this save:
-        // convert_attachment() sees the change and does not record it. Its
-        // size check covers a conversion that starts between here and the
-        // save, which follows this filter.
+        // convert_attachment() sees the change and does not record it. One
+        // that starts between here and the save, which follows this filter,
+        // is caught by its size check or, when it ends before the save, by
+        // metadata_committed().
         update_post_meta($attachment_id, self::GENERATION, wp_generate_uuid4());
         $file = get_attached_file($attachment_id);
         if (!$file) {
@@ -803,6 +806,26 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             self::schedule(5);
         }
         return $data;
+    }
+
+    /**
+     * The saved metadata is in the database: change the generation and clear
+     * the converted mark again. A conversion that read the sizes before the
+     * save and ended before it, after metadata_updated(), recorded them and
+     * marked the picture converted; it now waits for the next conversion.
+     *
+     * @param int    $meta_id       Meta row ID.
+     * @param int    $attachment_id Attachment ID.
+     * @param string $key           Meta key.
+     */
+    public static function metadata_committed($meta_id, $attachment_id, $key) {
+        if ('_wp_attachment_metadata' !== $key || !in_array(get_post_mime_type($attachment_id), array('image/jpeg', 'image/png', 'image/webp'), true)) {
+            return;
+        }
+        update_post_meta($attachment_id, self::GENERATION, wp_generate_uuid4());
+        if ('' !== (string) get_post_meta($attachment_id, self::DONE, true)) {
+            delete_post_meta($attachment_id, self::DONE);
+        }
     }
 
     /* --------------------------------------------------------------------- */
