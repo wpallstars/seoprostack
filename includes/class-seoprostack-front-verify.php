@@ -221,6 +221,7 @@ final class SEOProStack_Front_Verify {
         $rest    = array_values(array_diff($propose, $hint, (array) ($stats['needed'] ?? array())));
         $groups  = array_values(array_filter(array($hint, $rest)));
         $tried   = array();
+        $passed  = null;
         $trials  = 0;
         $first   = '';
         while ($groups && $trials < self::TRIALS && SEOProStack_Feature::more_time($start, self::BUDGET)) {
@@ -232,7 +233,8 @@ final class SEOProStack_Front_Verify {
             $failed = isset($trial['error']);
             $note   = $failed ? $trial['error'] : '';
             if (!$failed && self::matches($base, $trial, $url, $check, $note)) {
-                $tried = $check['skip']; // Each later trial skips these too.
+                $tried  = $check['skip']; // Each later trial skips these too.
+                $passed = $trial;
                 continue;
             }
             if (!empty($base['unstable'])) {
@@ -246,7 +248,10 @@ final class SEOProStack_Front_Verify {
                 $result['needed'][] = $group[0];
             }
         }
-        $result['skip']   = array_values(array_diff($tried, $base['effects']));
+        // Only what the last passing trial did skip: a plugin another
+        // loading plugin needs loads anyway (front_skipped()), and leaving
+        // it out gives the same set.
+        $result['skip']   = $passed ? array_values(array_diff(array_intersect($tried, $passed['skipped']), $base['skipped'], $base['effects'])) : array();
         $result['result'] = $result['skip'] ? 'verified' : ($propose ? 'differs' : 'none');
         $result['note']   = $result['skip'] ? '' : $first;
         return $result;
