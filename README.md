@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.105-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.106-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.105
+Version: 1.3.106
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2197,7 +2197,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.106
 
 - New: the Plugins screen recommends deactivating and deleting plugins whose job WordPress now does: Performant Translations, on WordPress 6.5 or later. While it is active, the note under its row says it now only converts the translation files of plugins and themes that do not get them from WordPress.org (or that it is no longer needed, on a site in English (United States) with no other languages installed), with a Deactivate link; once inactive, a Delete link. Add others with the `seoprostack_core_plugins` filter (GitHub issue #1043).
 - New: **Term tools** replaces Categories to Tags Converter Importer: **Move to taxonomy** turns categories into tags and tags into categories. The Plugins screen recommends deactivating and deleting it, naming its post format conversion while the theme supports post formats. Like other replaced plugins, Term tools waits while it is active.
