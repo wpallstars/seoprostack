@@ -107,11 +107,16 @@ class SEOProStack_Helpdesk_Imap_Connection {
      * UIDs after one.
      *
      * @param int $last UID.
-     * @return int[]
+     * @return int[]|WP_Error An error when the server did not answer, so the
+     *                        run does not move past emails it never saw.
      */
     public function after($last) {
+        $found = imap_fetch_overview($this->imap, ($last + 1) . ':*', FT_UID);
+        if (!is_array($found)) {
+            return new WP_Error('helpdesk_imap_list', self::error(__('Could not list new emails.', 'seoprostack')));
+        }
         $uids = array();
-        foreach ((array) imap_fetch_overview($this->imap, ($last + 1) . ':*', FT_UID) as $item) {
+        foreach ($found as $item) {
             // "N:*" also answers with the newest email when none is newer.
             if (isset($item->uid) && (int) $item->uid > $last) {
                 $uids[] = (int) $item->uid;

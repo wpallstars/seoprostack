@@ -47,7 +47,7 @@ class SEOProStack_Helpdesk_Imap_Message {
 
         return array(
             'subject'     => SEOProStack_Helpdesk_Imap_Mime::decode_header((string) $fields['subject']),
-            'body_text'   => substr(self::content($mime->read()), 0, SEOProStack_Helpdesk_Imap::MAX_TEXT),
+            'body_text'   => self::cut(self::content($mime->read())),
             'messageId'   => $message,
             'inReplyTo'   => (string) $fields['in_reply_to'],
             'references'  => (string) $fields['references'],
@@ -130,10 +130,29 @@ class SEOProStack_Helpdesk_Imap_Message {
      * @return string
      */
     private static function clean_html($html) {
-        $html = (string) preg_replace('#<(head|style|script|title)\b[^>]*>.*?</\1\s*>#is', '', $html);
+        // On a PCRE limit (a long or unclosed style block) keep the HTML
+        // rather than lose the whole ticket text.
+        $clean = preg_replace('#<(head|style|script|title)\b[^>]*>.*?</\1\s*>#is', '', $html);
+        $html  = null === $clean ? $html : $clean;
         if (preg_match('#<body\b[^>]*>(.*)</body\s*>#is', $html, $match)) {
             $html = $match[1];
         }
         return trim($html);
+    }
+
+    /**
+     * The ticket text cut to MAX_TEXT bytes without splitting a character.
+     *
+     * @param string $text UTF-8 text.
+     * @return string
+     */
+    private static function cut($text) {
+        if (strlen($text) <= SEOProStack_Helpdesk_Imap::MAX_TEXT) {
+            return $text;
+        }
+        if (function_exists('mb_strcut')) {
+            return mb_strcut($text, 0, SEOProStack_Helpdesk_Imap::MAX_TEXT, 'UTF-8');
+        }
+        return wp_check_invalid_utf8(substr($text, 0, SEOProStack_Helpdesk_Imap::MAX_TEXT), true);
     }
 }

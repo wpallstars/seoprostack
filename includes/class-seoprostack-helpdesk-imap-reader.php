@@ -85,6 +85,9 @@ class SEOProStack_Helpdesk_Imap_Reader {
             }
             $state  = self::state();
             $uids   = self::new_uids($conn, $state, $status['validity'], $status['next']);
+            if (is_wp_error($uids)) {
+                return $uids;
+            }
             $counts = self::read_uids($conn, $uids, $box, $state, $status['validity'], $start);
             self::advance($state, $uids, $status);
             self::save_state($state);
@@ -103,7 +106,7 @@ class SEOProStack_Helpdesk_Imap_Reader {
      * @param array                                $state    Stored state.
      * @param int                                  $validity UIDVALIDITY.
      * @param int                                  $next     UIDNEXT.
-     * @return int[]
+     * @return int[]|WP_Error
      */
     private static function new_uids($conn, array &$state, $validity, $next) {
         $state += array('validity' => 0, 'last_uid' => 0);
@@ -113,6 +116,9 @@ class SEOProStack_Helpdesk_Imap_Reader {
         } else {
             $last = (int) $state['last_uid'];
             $uids = $last + 1 < $next ? $conn->after($last) : array();
+        }
+        if (is_wp_error($uids)) {
+            return $uids;
         }
         sort($uids);
         return array_slice(array_unique($uids), 0, SEOProStack_Helpdesk_Imap::BATCH);
