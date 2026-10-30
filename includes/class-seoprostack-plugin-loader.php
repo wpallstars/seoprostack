@@ -117,6 +117,19 @@ final class SEOProStack_Plugin_Loader {
     /** Scheduled task that checks the queued addresses. */
     const VERIFY_HOOK = 'seoprostack_front_verify';
 
+    /**
+     * It repeats (VERIFY_SCHEDULE, every VERIFY_INTERVAL seconds) while
+     * addresses wait. A single event that a page view added was lost when
+     * a scheduled run that had read the task list earlier saved it back
+     * after its own tasks, which on a site whose runs take most of a minute
+     * was nearly always (GitHub issue #1055); each run reschedules a
+     * repeating task before it starts it.
+     */
+    const VERIFY_SCHEDULE = 'seoprostack_front_verify';
+
+    /** Seconds between the checks' scheduled runs. */
+    const VERIFY_INTERVAL = 180;
+
     /** Seconds a check holds for at most, even when nothing changed. */
     const PAGES_MAX_AGE = WEEK_IN_SECONDS;
 
@@ -1013,9 +1026,38 @@ final class SEOProStack_Plugin_Loader {
         // Even with the queue full: a run that stopped when the site's
         // pages learned again leaves it full and nothing scheduled, and
         // checks then never started again (GitHub issue #1039).
-        if (!wp_next_scheduled(self::VERIFY_HOOK)) {
-            wp_schedule_single_event(time() + 30, self::VERIFY_HOOK);
+        self::schedule_verify();
+    }
+
+    /** Schedule the checks' repeating task, unless it is (GitHub issue #1055). */
+    public static function schedule_verify() {
+        $next = wp_get_scheduled_event(self::VERIFY_HOOK);
+        if ($next && self::VERIFY_SCHEDULE === $next->schedule) {
+            return;
         }
+        if ($next) {
+            wp_clear_scheduled_hook(self::VERIFY_HOOK); // A single event from 1.3.108 to 1.3.110.
+        }
+        // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every three minutes (VERIFY_INTERVAL), only while addresses wait to be checked.
+        add_filter('cron_schedules', array(__CLASS__, 'verify_schedule'));
+        wp_schedule_event(time() + 30, self::VERIFY_SCHEDULE, self::VERIFY_HOOK);
+    }
+
+    /**
+     * The checks' interval (cron_schedules). WordPress needs it known when
+     * the task is scheduled and when a run reschedules it.
+     *
+     * @param array $schedules Intervals by name.
+     * @return array
+     */
+    public static function verify_schedule($schedules) {
+        $schedules = is_array($schedules) ? $schedules : array();
+        // Not translated: this filter can run before translations load.
+        $schedules[self::VERIFY_SCHEDULE] = array(
+            'interval' => self::VERIFY_INTERVAL,
+            'display'  => 'SEO Pro Stack: every three minutes while addresses wait to be checked',
+        );
+        return $schedules;
     }
 
     /**

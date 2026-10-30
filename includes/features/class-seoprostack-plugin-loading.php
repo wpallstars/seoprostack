@@ -399,6 +399,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // deactivation change the fingerprint by themselves).
         add_action('upgrader_process_complete', array(__CLASS__, 'forget'));
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
+        // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every three minutes (VERIFY_INTERVAL), only while addresses wait to be checked.
+        add_filter('cron_schedules', array('SEOProStack_Plugin_Loader', 'verify_schedule'));
         // A route must not keep an old decision after its content or layout changes.
         if (self::enabled() && SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
             foreach (array('save_post', 'deleted_post', 'edited_term', 'delete_term', 'switch_theme', 'set_object_terms') as $hook) {
@@ -408,6 +410,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 add_action($hook, array(__CLASS__, 'post_meta_changed'), 10, 3);
             }
             add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'verify_front'), 10, 0);
+            if (wp_doing_cron()) {
+                add_action('wp_loaded', array(__CLASS__, 'keep_verify'));
+            }
+        } else {
+            // The checks' task repeats: it stops with the feature.
+            add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'stop_verify'), 10, 0);
         }
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
@@ -760,6 +768,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             self::remove_file();
         }
         self::forget();
+        self::stop_verify();
     }
 
     /**
@@ -1622,6 +1631,27 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-front-verify.php';
         SEOProStack_Front_Verify::run();
+    }
+
+    /**
+     * On a scheduled run, schedule the checks if addresses wait and they
+     * are not. The run keeps the task list it read when it started and
+     * saves it back after its tasks, so a task a page view added meanwhile
+     * is lost; one this run adds is in its own list (GitHub issue #1055).
+     */
+    public static function keep_verify() {
+        if (wp_next_scheduled(SEOProStack_Plugin_Loader::VERIFY_HOOK)) {
+            return;
+        }
+        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
+        if (is_array($queue) && $queue) {
+            SEOProStack_Plugin_Loader::schedule_verify();
+        }
+    }
+
+    /** The checks' task ran with the feature off: stop it. */
+    public static function stop_verify() {
+        wp_clear_scheduled_hook(SEOProStack_Plugin_Loader::VERIFY_HOOK);
     }
 
     /** The bounded query kinds whose templates and global parts are learned. */

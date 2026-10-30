@@ -81,18 +81,20 @@ final class SEOProStack_Front_Verify {
     /** Render counter, so each address is new to caches. */
     private static $count = 0;
 
-    /** Check queued addresses until the run's time is up. */
+    /**
+     * Check queued addresses until the run's time is up. The task repeats
+     * (SEOProStack_Plugin_Loader::schedule_verify()) until the queue is
+     * empty: paused, busy or learning again, a run just waits for the next.
+     */
     public static function run() {
         $start = microtime(true);
         $map   = get_option(SEOProStack_Plugin_Loader::FRONT_PAGES, array());
         $pause = is_array($map) ? (int) ($map['paused'] ?? 0) : 0;
         if ($pause > time()) {
-            wp_schedule_single_event($pause, SEOProStack_Plugin_Loader::VERIFY_HOOK);
             return;
         }
         $busy = get_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, array());
         if (is_array($busy) && (int) ($busy['expires'] ?? 0) > time()) {
-            wp_schedule_single_event(time() + 2 * MINUTE_IN_SECONDS, SEOProStack_Plugin_Loader::VERIFY_HOOK);
             return; // One check at a time.
         }
         while (SEOProStack_Feature::more_time($start, self::RUN_BUDGET)) {
@@ -101,6 +103,7 @@ final class SEOProStack_Front_Verify {
             }
             $item = self::take();
             if (null === $item) {
+                wp_clear_scheduled_hook(SEOProStack_Plugin_Loader::VERIFY_HOOK); // Visitors schedule it again.
                 return;
             }
             $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
@@ -117,13 +120,8 @@ final class SEOProStack_Front_Verify {
             $result = self::check($item, $kind, $map);
             SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_VERIFY);
             if (self::save($item, $result, $revision, (string) $front['active'])) {
-                wp_schedule_single_event(time() + HOUR_IN_SECONDS, SEOProStack_Plugin_Loader::VERIFY_HOOK);
-                return; // Paused.
+                return; // Paused for an hour.
             }
-        }
-        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
-        if (is_array($queue) && $queue && !wp_next_scheduled(SEOProStack_Plugin_Loader::VERIFY_HOOK)) {
-            wp_schedule_single_event(time() + MINUTE_IN_SECONDS, SEOProStack_Plugin_Loader::VERIFY_HOOK);
         }
     }
 
