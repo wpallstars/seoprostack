@@ -396,7 +396,8 @@ final class SEOProStack_Front_Verify {
         $found = array();
         foreach (self::HEADERS as $name) {
             $value = wp_remote_retrieve_header($response, $name);
-            $found[$name] = is_array($value) ? implode("\n", $value) : (string) $value;
+            $value = is_array($value) ? implode("\n", $value) : (string) $value;
+            $found[$name] = 'expires' === $name ? self::expires($value, wp_remote_retrieve_header($response, 'date')) : $value;
         }
         $cookies = array();
         foreach (wp_remote_retrieve_cookies($response) as $cookie) {
@@ -407,6 +408,28 @@ final class SEOProStack_Front_Verify {
         $skipped = array_values(array_filter(array_map('rawurldecode', explode(',', (string) ($match[2] ?? '')))));
         sort($skipped);
         return array('html' => $html, 'headers' => $found, 'skipped' => $skipped, 'effects' => $effects);
+    }
+
+    /**
+     * An Expires header as minutes from the response's Date: caches and
+     * plugins send the time of the response plus a lifetime, so the date
+     * itself is new on every render (GitHub issue #1039).
+     *
+     * @param string       $expires Expires header.
+     * @param string|array $date    Date header.
+     * @return string
+     */
+    private static function expires($expires, $date) {
+        $at   = '' !== $expires ? strtotime($expires) : false;
+        $date = is_array($date) ? (string) reset($date) : (string) $date;
+        $now  = '' !== $date ? strtotime($date) : false;
+        if (false === $at) {
+            return $expires; // Not a date ("0", "-1"): as sent.
+        }
+        $delta = $at - (false === $now ? time() : $now);
+        // Expired, or within half a minute of the response: "now" (the two
+        // clocks are read a moment apart).
+        return $delta < MINUTE_IN_SECONDS / 2 ? 'now' : '+' . (int) round($delta / MINUTE_IN_SECONDS) . 'm';
     }
 
     /**
@@ -440,6 +463,13 @@ final class SEOProStack_Front_Verify {
      * @return string|null Null when it could not be read.
      */
     private static function normalise($html) {
+        // Cloudflare's Rocket Loader marks each script and inline handler
+        // with a new token on every response (type="TOKEN-text/javascript",
+        // data-cf-modified-TOKEN-), named in its own data-cf-settings: on a
+        // page with many scripts, too many words changed to compare it.
+        if (preg_match('/\sdata-cf-settings=["\']([0-9a-f]{16,40})-/', $html, $rocket)) {
+            $html = str_replace($rocket[1] . '-', '', $html);
+        }
         $patterns = array(
             '/<!--.*?-->/s'                                                                => '',
             '/([?&](?:#038;|amp;)?ver=)[^"\'&\s<>]*/'                                      => '$1',

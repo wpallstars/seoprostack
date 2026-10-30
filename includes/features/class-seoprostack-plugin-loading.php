@@ -263,6 +263,15 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     const RECORD_META = array('_edit_lock', '_edit_last');
 
     /**
+     * Fields SEO Pro Stack keeps about files and links as it works through
+     * them in the background (media storage, next-gen images, the link
+     * index): where a file is, not what a page needs. A media storage pass
+     * writes them for thousands of attachments, from WP-CLI too, and each
+     * write made the site's pages learn again (GitHub issue #1039).
+     */
+    const RECORD_META_PREFIXES = array('_seoprostack_storage', '_seoprostack_nextgen', '_seoprostack_link_scan', '_seoprostack_link_map');
+
+    /**
      * Site pages forgotten in this request: 0 not yet, 1 once, 2 changed
      * again since, so forgotten again at shutdown.
      *
@@ -1974,8 +1983,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * @param string    $meta_key  Meta key.
      */
     public static function post_meta_changed($meta_id, $object_id = 0, $meta_key = '') {
-        if (in_array((string) $meta_key, self::RECORD_META, true) || self::record_request()) {
+        $meta_key = (string) $meta_key;
+        if (in_array($meta_key, self::RECORD_META, true) || self::record_request()) {
             return;
+        }
+        foreach (self::RECORD_META_PREFIXES as $prefix) {
+            if (0 === strpos($meta_key, $prefix)) {
+                return;
+            }
         }
         self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $meta_key);
         self::forget_front();
