@@ -69,6 +69,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'rank_math_identity'));
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets-cli.php';
@@ -82,6 +83,13 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         }
         add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle'));
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+    }
+
+    /** @param string $slug Plugin whose preset was changed. */
+    public static function rank_math_identity($slug) {
+        if ('seo-by-rank-math' === $slug) {
+            SEOProStack_Rank_Math_Defaults::queue_identity();
+        }
     }
 
     /**
