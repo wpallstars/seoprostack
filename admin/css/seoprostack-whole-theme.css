@@ -354,23 +354,24 @@ html.sps-dark #contextual-help-columns {
 /*
  * WordPress's own :focus rules still win, so the focus ring stays. Pop-ups
  * added to <body> are listed too: WordPress components' modals (plugins'
- * React dialogs), jQuery UI date pickers, and Admin Columns' inline editor
- * and modals (bulk editing). The Customizer (.wp-customizer)
+ * React dialogs), jQuery UI date pickers, Admin Columns' inline editor
+ * and modals (bulk editing), and Ultimate Multisite's modals (#WUB_window:
+ * Edit Field, Send Invoice...). The Customizer (.wp-customizer)
  * has no #wpbody; its preview is a frame of its own, so this reaches only
  * its controls. Fields in the block editor's canvas keep the theme's look
  * (see Headings).
  */
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap, .ui-datepicker, .ac-edit-popper, .ac-modal)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], [id="WUB_window"], #sps-notices-wrap, .ui-datepicker, .ac-edit-popper, .ac-modal)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ac-edit-popper, .ac-modal)) :is(input, textarea):where(:not(.editor-styles-wrapper *))::placeholder {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="WUB_window"], .ac-edit-popper, .ac-modal)) :is(input, textarea):where(:not(.editor-styles-wrapper *))::placeholder {
 	color: var(--sps-ui-subtle);
 }
 
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="WUB_window"], .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-subtle);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
@@ -381,7 +382,7 @@ html.sps-dark #contextual-help-columns {
  * selects whose plugin clears WordPress's arrow and draws its own icon
  * (Tutor LMS's course status), where it would repeat across the field.
  */
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input, :where(.tutor-form-select-with-icon select)):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="WUB_window"], .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input, :where(.tutor-form-select-with-icon select)):where(:not(.editor-styles-wrapper *)) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -407,7 +408,7 @@ html.sps-dark .wp-core-ui select:is(:disabled, .disabled):where(:not(.editor-sty
 	text-shadow: none;
 }
 
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="WUB_window"], #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]):where(:not(.editor-styles-wrapper *)) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
@@ -2249,6 +2250,61 @@ html.sps-dark .ts-dropdown {
 html.sps-dark .ts-dropdown :is(.active, .create:hover) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-raised);
+}
+
+/*
+ * Selectize (Ultimate Multisite's product, customer and membership pickers):
+ * picked items are white on bright blue (#1da7ee, a #0073bb line), so a
+ * multiple pick reads as one highlighted run of text; they take Select2's
+ * chips. The item picked with the keyboard keeps the accent.
+ */
+html.sps-dark .selectize-control .selectize-input {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+	box-shadow: none;
+}
+
+html.sps-dark .selectize-control.multi .selectize-input > div {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .selectize-control.multi .selectize-input > div.active {
+	color: #fff;
+	background: var(--sps-ui-primary);
+	border-color: var(--sps-ui-primary);
+}
+
+html.sps-dark .selectize-dropdown {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .selectize-dropdown .active {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/*
+ * ApexCharts (Ultimate Multisite's dashboard and others): grid lines and
+ * axes are #e0e0e0 and their labels #373d3f, set as SVG attributes, so the
+ * grid glares and the labels fade into the dark ground. The series keep
+ * their colours.
+ */
+html.sps-dark .apexcharts-canvas :is(.apexcharts-gridline, .apexcharts-xaxis-tick, .apexcharts-yaxis-tick, .apexcharts-xaxis line, .apexcharts-yaxis line) {
+	stroke: var(--sps-ui-border);
+}
+
+html.sps-dark .apexcharts-canvas :is(.apexcharts-xaxis-label, .apexcharts-yaxis-label, .apexcharts-xaxis-title-text, .apexcharts-yaxis-title-text, .apexcharts-title-text, .apexcharts-subtitle-text) {
+	fill: var(--sps-ui-muted);
+}
+
+/* The legend's names: #373d3f, set inline. */
+html.sps-dark .apexcharts-canvas .apexcharts-legend-text {
+	color: var(--sps-ui-muted) !important;
 }
 
 /* WordPress's colour picker: the button's #f6f7f7 label and Iris's #fff panel; the swatch and colours stay. */
@@ -9387,6 +9443,29 @@ html.sps-dark #wpbody .fls2fa__details summary {
 
 html.sps-dark #wpbody .fls2fa--js .fls2fa-modal.is-open {
 	background: rgb(0 0 0 / 65%);
+}
+
+/*
+ * Ultimate Multisite: the dark fallback copies its stylesheets; this adds
+ * what the copy gets wrong. Its switches paint the track and knob the same
+ * #fbfbfb, which both turn dark, so the knob is lost when off and dark on
+ * the accent when on. They take WordPress components' toggle: a field-dark
+ * track with a light grey knob when off, a white knob on the accent when on.
+ * Its modals' fields: Fields above (#WUB_window). Its pickers: Selectize, its
+ * charts: ApexCharts (Searchable dropdowns).
+ */
+html.sps-dark .wu-tgl-ios:not(:checked) + .wu-tgl-btn {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wu-tgl-ios + .wu-tgl-btn::after {
+	background: var(--sps-ui-muted);
+	box-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+}
+
+html.sps-dark .wu-tgl-ios:checked + .wu-tgl-btn::after {
+	background: #fff;
 }
 
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
