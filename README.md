@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.105-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.106-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.105
+Version: 1.3.106
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1027,6 +1027,31 @@ hidden element.
 - Links that open a modal get `aria-haspopup="dialog"` and `aria-controls`.
 - One small script (`assets/modal-links.js`) in the footer of front-end pages.
   Nothing is stored and pages are not rewritten.
+
+### Links skip redirects (Links)
+
+On by default. When a page is renamed or moved, Rank Math â†’ Redirections keeps
+its old address working with a 301, but links in posts, block widgets and
+menus still point at the old address, so every visit and crawl takes an extra
+step. With this on, such links point straight at the page the redirect ends
+at when a page is shown, following one redirect to the next (up to five).
+What you saved in the editor is not changed.
+
+- Only active, exact-match, permanent (301 and 308) redirections from one
+  address of this site to another of its pages count. A temporary redirect
+  keeps the old address as the one to link to, and a redirect to another site
+  (such as a `/go/` affiliate link) is left as it is, so its clicks still go
+  through it. Links with a query string are left alone.
+- The fragment of a link is kept: `/old-page/#prices` becomes
+  `/new-page/#prices`.
+- The redirections are read once (one query, at most 500) and kept for ten
+  minutes in a transient, then read again; also when Rank Math adds one for a
+  changed slug or deletes one. A request on which Rank Math is not loaded skips
+  nothing and stores nothing. Pages with no link to an old address are not
+  parsed.
+- Developers can add redirects another plugin keeps with the
+  `seoprostack_redirect_links` filter: old path (without slashes, relative to
+  the site's home) => the address it goes to on this site.
 
 ### Internal linking tools (Links)
 
@@ -2172,11 +2197,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.106
 
 - New: the Plugins screen recommends deactivating and deleting plugins whose job WordPress now does: Performant Translations, on WordPress 6.5 or later. While it is active, the note under its row says it now only converts the translation files of plugins and themes that do not get them from WordPress.org (or that it is no longer needed, on a site in English (United States) with no other languages installed), with a Deactivate link; once inactive, a Delete link. Add others with the `seoprostack_core_plugins` filter (GitHub issue #1043).
 - New: **Term tools** replaces Categories to Tags Converter Importer: **Move to taxonomy** turns categories into tags and tags into categories. The Plugins screen recommends deactivating and deleting it, naming its post format conversion while the theme supports post formats. Like other replaced plugins, Term tools waits while it is active.
 - Fix: **Move to taxonomy** leaves the taxonomy's default term (the default category) where it is and says so, as new posts get it; it moved before, leaving the default category pointing at a tag. A term that stays, such as one whose slug the other taxonomy uses, no longer keeps a parent that moved, and `seoprostack_terms_moved` gets only the terms that moved.
+- New, on by default: **Links skip redirects** (Links tab). Links in posts, block widgets and menus to an old address that Rank Math permanently redirects to another page of the site point straight at that page, so visitors and search engines skip the 301. Saved content, temporary redirects and redirects to other sites are left as they are (GitHub issue #1046).
 
 ### 1.3.105
 
