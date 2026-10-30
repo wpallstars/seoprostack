@@ -155,7 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.118 =
-* New, off by default: Fluent Support email by IMAP turns support email into Fluent Support tickets with Fluent Support Pro's own code, without its hosted relay or licence check.
-* Fix (1.3.117): Media in cloud storage no longer reads every stored picture's record to name each upload, which took seconds a picture on large libraries (#1064).
+* New, off by default: Fluent Support email by IMAP, support email to tickets without a hosted relay.
 
 Older: `changelog.txt`.
