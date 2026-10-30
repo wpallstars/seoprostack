@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.117
+Stable tag: 1.3.118
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -15,7 +15,7 @@ One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with
 
 Faster admin, easier publishing and safer logins.
 
-Free and open source. Details: the plugin's Read Me tab.
+Free and open source; details in its Read Me tab.
 
 Safe features start on in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait for deactivation.
 
@@ -77,6 +77,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Internal linking tools** (off): suggestions, undo and Link Whisper checks.
 * **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics** and faster Kadence Blocks editing.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
+* **Fluent Support email by IMAP** (off): support email becomes tickets without a hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
@@ -89,7 +90,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 * **Plugin presets** and **starter data**: opt-in settings and Fluent data, with undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
-* **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within normal time limits, still using CPU.
+* **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within time limits, using CPU.
 * **Agency**: order flow, client dashboard and examples.
 * **Recommended**: themes, plugins, hosting and tools.
 
@@ -99,17 +100,18 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 = External services =
 
-* **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
-* **Gravatar** (secure.gravatar.com): the server fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
+* **Your IMAP server** (opt-in): reads support email over SSL or STARTTLS, certificate checked.
+* **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
-* **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
-* **Google Analytics** (www.googletagmanager.com): with an ID, gtag.js sends visitors' page views to Google; not logged-in users.
+* **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
+* **Google Analytics** (www.googletagmanager.com): with an ID, gtag.js sends visitors' page views; not logged-in users.
 * **Screenshot services**: opted-in server requests send page addresses, not visitor data.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
-* **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
-* **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
-* **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
-* **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
+* **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy](https://microlink.io/privacy).
+* **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy](https://apiflash.com/privacy_policy).
+* **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy](https://www.screenshotmachine.com/privacypolicy.php).
+* **Wikipedia** (*.wikipedia.org): previews load in the browser when opened. [Privacy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
 * **Linked websites**: opt-in cached health checks send public addresses without queries or visitor data; their policies apply. Local click totals last 90 days, without cookies or visitor IDs.
 * **GitHub** (github.com, api.github.com), GitHub builds: release checks twice daily; no site data. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
@@ -123,7 +125,7 @@ Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-tem
 
 == Installation ==
 
-Install from Plugins → Add New and activate. Set features in Settings → SEO Pro Stack.
+Install from Plugins → Add New and activate.
 
 == Frequently Asked Questions ==
 
@@ -153,10 +155,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: Rank Math identity sync, WebPage preset and copied-site health repairs (#1068).
-
-= 1.3.117 =
-* Fix: Media in cloud storage names uploads without scanning every record (#1064).
+= 1.3.118 =
+* New (off): Fluent Support email by IMAP, without a hosted relay (#1066).
+* New: Rank Math identity sync and copied-site health repairs (#1068).
 
 Older: `changelog.txt`.

@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.117-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.118-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.117
+Version: 1.3.118
 
 <!-- github-only:start -->
 ## Screenshots
@@ -92,7 +92,7 @@ A new install starts with the features that are safe on every site switched on, 
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Editors use the business plugins, Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen, Avatars without Gravatar and Kadence author box fields (nothing changes without the Kadence theme).
 
-Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID), File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address) and Known vulnerabilities from Wordfence Intelligence (an API key, and a shared folder for sites sharing one). Watermark pictures (Media) changes uploaded pictures, so it is off too.
+Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Fluent Support email by IMAP (a mailbox and its password), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID), File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address) and Known vulnerabilities from Wordfence Intelligence (an API key, and a shared folder for sites sharing one). Watermark pictures (Media) changes uploaded pictures, so it is off too.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -1922,6 +1922,18 @@ Fluent Forms Pro and Fluent Boards Pro save their options while their files load
 
 Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, written when something changes, “last seen” at most once a minute), one day’s answers in `seoprostack_lc_*` transients and “Ask me again” in the `seoprostack_licence_later` user meta, all removed on uninstall. Request forms, which can hold licence keys, are never stored; a hash tells answers apart. Tested on WordPress 6.2 and 7.1 with PHP 7.4, with a stand-in licence server and with Kadence Blocks 3.7.12, Kadence Blocks Pro 2.8.19.1 and Kadence Pro 1.2.5. Kadence makes three licence checks (Kadence Pro on its settings screen and in the block editor, Kadence Blocks’ StellarWP account check in the block editor), each when its own cache runs out; all three are caught, Once a day answers repeats from the kept answer, and Never sends nothing, with no PHP messages. Kadence does not cache a failed check, so while one is held it tries again on the next block editor load (held at once, no wait), and with `WP_DEBUG` on Kadence Blocks writes each failure to the debug log, licence key included, as it does whenever its server cannot be reached.
 
+### Fluent Support email by IMAP (Plugins)
+
+Off by default. Fluent Support Pro turns support email into tickets through Fluent’s hosted email relay, which gives each business inbox a forwarding address and pushes every email to the site, and only for a site with an active licence. The code that makes the ticket runs on the site, in Fluent Support Pro’s own GPL code (`ByMailHandler::processPayload()`, which the relay’s push calls). With this on, SEO Pro Stack reads the site’s own support mailbox over IMAP and hands each new email to that code, so tickets need no relay, no forwarding address and no licence check.
+
+- **Settings:** the IMAP server (`mail.example.com:993` for SSL, the default, or `:143` for STARTTLS; the certificate is always checked), the user name (usually the address) and, optionally, the Fluent Support business inbox ID (0: the email inbox whose address is the user name, else the default inbox). The password goes in `wp-config.php`, never in the database: `define( 'SEOPROSTACK_HELPDESK_IMAP_PASSWORD', '…' );` (or the `seoprostack_helpdesk_imap_password` filter).
+- **What is read:** every five minutes (WP-Cron), emails that arrived since the last one read, by IMAP UID, up to 25 a run within 20 seconds. On the first run, and when the server rebuilds the mailbox (a new UIDVALIDITY), emails from the last day. The mailbox is only read: emails stay where they are, read or unread, so people can keep using it in their email app.
+- **What Fluent Support does with them:** what it does with relayed email. Replies join their ticket, out-of-office replies and bounces open none, and an email read twice makes one ticket. Fluent Support Pro’s `fluent_support_pro/email_piping_raw_data` filter runs as for the relay. HTML emails keep their formatting without their styles and scripts; plain text becomes paragraphs.
+- **Attachments** stay in the mailbox: the ticket ends with their names.
+- **Problems:** an email Fluent Support refuses (such as one with no valid sender) is passed over. One that stops a run with an error is tried in the next two runs, then passed over. The card shows the last run (new tickets, replies, emails passed over or refused) and anything missing: PHP’s `imap` extension, Fluent Support Pro, the settings, the password or a business inbox.
+
+`wp seoprostack helpdesk-mail fetch` reads the mailbox now; `wp seoprostack helpdesk-mail status` shows where reading got to and the last 20 runs. Stored: the mailbox’s UIDVALIDITY, the last UID read and the last 20 runs’ counts in `seoprostack_helpdesk_imap_state` (not autoloaded, no addresses or message text), and `seoprostack_helpdesk_imap_lock` while a run is under way; both, and the `seoprostack_helpdesk_imap` event, are removed on uninstall. Tested with Fluent Support and Fluent Support Pro 2.4.7 against a Cloudron mail server.
+
 ### Fixes for other plugins (Plugins)
 
 On by default. Works around bugs in other plugins that slow the site down or leave it broken, through those plugins’ own hooks. No other plugin’s settings are changed, so turning this off brings each bug back as it was (a file already deleted stays deleted). The one fix that writes a file is the LiteSpeed block in `.htaccess`, which is removed when this is turned off or SEO Pro Stack is deactivated. Turn it off if a fix causes a problem.
@@ -2224,9 +2236,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.118
 
 - New: opt-in Rank Math Site Identity sync, WebPage-only Page defaults in its preset, and explicit copied-site font-cache and Rank Math table repairs in `wp seoprostack health` (GitHub issue #1068).
+- New, off by default: **Fluent Support email by IMAP** (Plugins tab). Support email becomes Fluent Support tickets and replies without Fluent’s hosted email relay or its licence check: every five minutes the support mailbox is read over IMAP, and each new email goes to Fluent Support Pro’s own email-to-ticket code. Emails stay in the mailbox; attachments are named on the ticket. The password goes in `wp-config.php` as `SEOPROSTACK_HELPDESK_IMAP_PASSWORD`. New `wp seoprostack helpdesk-mail fetch|status`.
 
 ### 1.3.117
 

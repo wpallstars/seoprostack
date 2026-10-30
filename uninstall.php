@@ -153,6 +153,11 @@ function seoprostack_uninstall_site() {
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
+    // Fluent Support email by IMAP: where reading got to, its log and lock.
+    // The emails stay in the mailbox and the tickets in Fluent Support.
+    $options[] = 'seoprostack_helpdesk_imap_state';
+    $options[] = 'seoprostack_helpdesk_imap_lock';
+    wp_unschedule_hook('seoprostack_helpdesk_imap');
     // Calls to other sites: counts, choices and the record of choices.
     $options[] = 'seoprostack_outbound_calls';
     $options[] = 'seoprostack_outbound_blocks';

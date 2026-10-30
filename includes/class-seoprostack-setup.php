@@ -133,6 +133,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Added_Keys',
         'SEOProStack_Database_Charset',
         'SEOProStack_Licence_Calls',
+        'SEOProStack_Helpdesk_Imap',
         'SEOProStack_Plugin_Fixes',
         // After Plugin fixes, so its last pre_http_request filter counts their answers as not sent.
         'SEOProStack_Outbound_Calls',
