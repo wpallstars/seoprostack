@@ -1076,7 +1076,7 @@ final class SEOProStack_Plugin_Loader {
             return $value;
         }
         $queue = get_option(self::FRONT_QUEUE, array());
-        if (!is_array($queue) || !$queue) {
+        if ((!is_array($queue) || !$queue) && !self::fresh_queue()) {
             return $value;
         }
         $time = is_array($old_value) ? self::cron_time($old_value) : null;
@@ -1089,6 +1089,23 @@ final class SEOProStack_Plugin_Loader {
         );
         uksort($value, 'strnatcasecmp'); // As wp_schedule_event() keeps it.
         return $value;
+    }
+
+    /**
+     * The queue as saved now. A request that runs scheduled tasks for most
+     * of a minute keeps the copy, or the "no such option", that a
+     * persistent object cache gave it when it started, so a queue page
+     * views filled since looked empty: the checks stopped, or were left out
+     * of a saved task list (GitHub issue #1055).
+     *
+     * @return array<string,mixed>
+     */
+    public static function fresh_queue() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the cached copy can be minutes old in a long scheduled run.
+        $raw   = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::FRONT_QUEUE));
+        $queue = null === $raw ? array() : maybe_unserialize($raw);
+        return is_array($queue) ? $queue : array();
     }
 
     /**
