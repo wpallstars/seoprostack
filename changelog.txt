@@ -2,6 +2,10 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.115 =
+* Fix: WebP and AVIF images records a conversion only when the picture is unchanged at the end (GitHub issue #1061). WordPress saves an attachment's metadata after each size it makes, so a conversion running beside an upload, a size regeneration or a watermark refresh read only the sizes made so far, then wrote that record (_seoprostack_nextgen) and marked the picture converted after metadata_updated() had cleared the mark. Media in cloud storage uploads only listed copies, so the other sizes' copies stayed on the server, never sent: on sites removing local files during a bulk import, a storage drain never finished. metadata_updated() now changes post meta _seoprostack_nextgen_generation on every save; convert_attachment() reads it before the sizes and, when it, the file or the file names differ at the end, leaves the picture waiting and returns nextgen_changed. The next conversion keeps the copies made and lists every size. Background batches and wp seoprostack convert-images pass over a picture that stays waiting after an error once per run, so they no longer repeat it until their time runs out.
+* Fix: Media in cloud storage converts a converted picture again before collecting its files when up-to-date WebP or AVIF copies next to them are missing from its record (SEOProStack_Nextgen_Images::record_unlisted()), from before this fix or from an older version, and uploads it with them in the next batch.
+
 = 1.3.114 =
 * Fix: Load plugins only where needed treats options named {identifier}_batch_{md5}, the queued work of the WP Background Processing library that WooCommerce and many plugins use, as records (record_write(), GitHub issue #1055). With 1.3.113 the busy single site checked addresses on schedule, until WooCommerce's privacy cleanup saved wp_1_wc_privacy_cleanup_batch_* through AJAX and the site's pages learned again, mid-run.
 

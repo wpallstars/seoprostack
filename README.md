@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.114-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.115-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.114
+Version: 1.3.115
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1361,6 +1361,7 @@ Saves a smaller WebP and AVIF copy of every JPEG and PNG picture in the Media Li
 
 - Pictures are converted in the background with WP-Cron, newest first, 20 seconds at a time: new uploads, edited and replaced pictures, and every existing picture. The settings panel shows progress; the attachment details show each copy’s size. Batches also stop in time for PHP’s time limit, which covers every WP-Cron job run in the same request, and restart it where the host allows; one batch runs at a time.
 - A copy is only kept when it is smaller than the original. Animated WebP and PNG pictures are left alone. Pictures are turned upright.
+- A picture whose sizes or file change while it is converted is not recorded: WordPress saves a picture's details after each size it makes, so a conversion running beside an upload, a size regeneration or a watermark refresh could read only the first sizes. Each save changes post meta `_seoprostack_nextgen_generation`; a conversion that sees a change, or different sizes, when it finishes leaves the picture waiting, and the next one keeps the copies made (they are up to date) and lists every size. Before 1.3.115 such a picture was marked converted with some sizes missing from its record, so their copies were never sent, nor uploaded by [Media in cloud storage](#media-in-cloud-storage-media).
 - Quality: WebP 90 and AVIF 70 by default (80 and 60 in 0.10.1 and earlier; saved settings are kept). Each picture records the quality its copies were made with (post meta `_seoprostack_nextgen`), so changing a quality, or **Quality by picture size**, converts the copies of that format again in the background; copies of the other format are passed over. Copies made by 0.10.1 and earlier are made again once, because WordPress’s own default quality (86 for WebP, 82 for AVIF) replaced the setting when the format changed on save; the setting is now applied through `wp_editor_set_quality`. PNG conversion can be turned off.
 - **Quality by picture size** (on by default) raises the quality for small sizes, where flaws show, and lowers it for large ones, which are usually shown smaller than they are: +15 below 200 pixels on the longest side, −10 from 800, −20 from 2,000, kept between 10 and 100. With the defaults, WebP thumbnails get 100 and 2,400-pixel originals 70.
 - AVIF needs WordPress 6.5 or later and an image library that can write it; the setting says whether this server can. Without it only WebP copies are made.
@@ -1394,6 +1395,7 @@ For **Cloudflare R2**, create a bucket, connect a custom domain for public readi
 
 - Copies the attached picture, WordPress's kept `original_image`, generated sizes, and registered `.webp` and `.avif` copies made by **WebP and AVIF images**. An uploaded WebP copy is preferred for the image address; **Copies at their own addresses** adds a bucket AVIF source in `<picture>` tags, with each copy's own `?v=` version. Bucket URLs do not use the local server's `Accept` rewrite rules. Unmarked watermark backups never enter this public bucket. Watermark batches finish before storage batches begin.
 - Inventories made before AVIF uploads are queued again automatically. Removed files are restored before collecting the copies; unchanged confirmed objects are reused, not deleted.
+- Up-to-date `.webp` and `.avif` copies next to a picture's files that its WebP and AVIF record does not list (a record from before 1.3.115 that missed sizes, or none from an older version) would stay on the server, never used. Before collecting a converted picture's files, the upload converts it again, which keeps those copies and lists them, and queues the picture for the next batch, which uploads it with them.
 - Each object key mirrors its path below the main uploads folder, including `sites/{id}` on multisite. Requests use path-style S3 REST and Signature Version 4 with the real payload hash. No SDK is needed.
 - New, edited, regenerated, replaced, watermarked and converted images are queued. A completed attachment records its files in `_seoprostack_storage`; unchanged files are not sent again. Oversized files stay local: single PUTs are limited to 16 MiB, or a quarter of available PHP memory after a 16 MiB reserve, whichever is smaller. Other media types stay local.
 - Upload eligibility stays fixed for each group, so transport memory use cannot drop successful uploads from its inventory. If a group runs out of its time budget with no other failure, it retries after one minute without counting a failed attempt or reporting a new error; successful files stay confirmed. Real failures keep the normal retry back-off.
@@ -2214,6 +2216,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.115
+
+- Fix: **WebP and AVIF images** no longer records a picture's copies while its sizes are still being made. WordPress saves a picture's details after each size, so a conversion running beside an upload, a size regeneration or a watermark refresh could mark it converted with later sizes missing from its record, and their copies were never sent nor uploaded by **Media in cloud storage**. Such a picture now waits for the next conversion, which lists every size (GitHub issue #1061).
+- Fix: **Media in cloud storage** lists up-to-date WebP and AVIF copies missing from a picture's record before uploading it, so they are uploaded too.
 
 ### 1.3.114
 
