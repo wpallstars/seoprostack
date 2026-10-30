@@ -70,7 +70,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Links and speed =
 
-* **Rank Math defaults**: keywords from titles and pillar warnings.
+* **Rank Math defaults**: keywords, pillar warnings and opt-in site identity sync.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
@@ -154,9 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* New: opt-in Rank Math identity sync, Page schema preset and copied-site health repairs with --repair (#1068).
+* New: Rank Math identity sync, WebPage preset and copied-site health repairs (#1068).
 
 = 1.3.117 =
-* Fix: Media in cloud storage no longer reads every stored picture's record to name each upload, which took seconds a picture on large libraries (#1064).
+* Fix: Media in cloud storage names uploads without scanning every record (#1064).
 
 Older: `changelog.txt`.
