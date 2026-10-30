@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: opt-in Rank Math identity sync, Page schema preset and copied-site health repairs with --repair (#1068).
+
 = 1.3.117 =
 * Fix: Media in cloud storage no longer reads every stored picture's record to name each upload, which took seconds a picture on large libraries (#1064).
 

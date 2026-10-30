@@ -139,10 +139,10 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         $previous = json_decode((string) SEOProStack_Settings::get('rank_math_identity_previous'), true);
         $previous = is_array($previous) ? $previous : array();
         $logo = absint(get_theme_mod('custom_logo', 0));
-        if ('image/png' !== get_post_mime_type($logo)) {
+        if (!$logo || 'image/png' !== get_post_mime_type($logo)) {
             $logo = absint(get_option('site_icon', 0));
         }
-        if ('image/png' !== get_post_mime_type($logo)) {
+        if (!$logo || 'image/png' !== get_post_mime_type($logo)) {
             $logo = 0;
         }
         $social = absint(SEOProStack_Settings::get('rank_math_social_image'));
@@ -157,7 +157,8 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
             $can_sync = true;
             foreach (array($key, $key . '_id') as $field) {
                 $current = isset($titles[$field]) ? (string) $titles[$field] : '';
-                $can_sync = $can_sync && (isset($previous[$field]) ? $current === (string) $previous[$field] : in_array($current, array('', '0'), true));
+                $target = $field === $key ? (string) $url : (string) ($url ? $id : 0);
+                $can_sync = $can_sync && (isset($previous[$field]) ? $current === (string) $previous[$field] : in_array($current, array('', '0', $target), true));
             }
             if ($can_sync) {
                 $wanted[$key] = $url ? $url : '';
@@ -166,7 +167,7 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         }
         foreach ($wanted as $key => $value) {
             $current = isset($titles[$key]) ? (string) $titles[$key] : '';
-            if (isset($previous[$key]) ? $current === (string) $previous[$key] : in_array($current, array('', '0'), true)) {
+            if (isset($previous[$key]) ? $current === (string) $previous[$key] : in_array($current, array('', '0', (string) $value), true)) {
                 $titles[$key] = $value;
                 $previous[$key] = $value;
             }
