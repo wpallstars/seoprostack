@@ -16,10 +16,11 @@ parameters:
 				- constant.notFound
 			message: '#(WP_CLI|Fluent[A-Za-z]*\\|fluentcrm_|fluentCrm|Freemius|WC_[A-Za-z_]+|KADENCE_[A-Z_]+|Kadence\\|LiteSpeed\\|WPO_Page_Cache)#'
 		# The same plugins' methods, checked with method_exists() before use.
+		# PHPStan shortens long class names in the message ('FluentSupportPro…').
 		-
 			identifiers:
 				- function.impossibleType
-			message: '#method_exists\(\) with ''(Fluent[A-Za-z]*\\|Freemius|LiteSpeed\\|WPO_Page_Cache)#'
+			message: '#method_exists\(\) with ''(Fluent[A-Za-z]*(\\|…)|Freemius|LiteSpeed\\|WPO_Page_Cache)#'
 		# The stubs describe the newest WordPress. This checks for a method
 		# WordPress 7.0 added, so older versions keep their own check.
 		-

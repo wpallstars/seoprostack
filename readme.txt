@@ -77,6 +77,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Internal linking tools** (off): suggestions, undo and Link Whisper checks.
 * **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics** and faster Kadence Blocks editing.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
+* **Fluent Support email by IMAP** (off): support email becomes tickets without a hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
