@@ -821,6 +821,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         $lease = SEOProStack_Media_Storage::lease();
         if (!$lease) {
+            // Another media turn must not make a new upload silently miss its
+            // mark. The existing watermark worker retries after that lease.
+            if (self::enabled() && SEOProStack_Settings::get('watermark_images_new') && !self::record($attachment_id) && ('create' === $context || self::$finalizing)) {
+                self::queue('add', array((int) $attachment_id));
+            }
             return $metadata;
         }
         try {
