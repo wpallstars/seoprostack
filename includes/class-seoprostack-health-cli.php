@@ -1,6 +1,6 @@
 <?php
 /**
- * Read-only Site Health audit for the site selected by WP-CLI's --url.
+ * Site Health audit and opt-in copied-site repairs for WP-CLI's --url.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -61,6 +61,12 @@ class SEOProStack_Health_CLI {
      *
      * ## OPTIONS
      *
+     * [--dry-run]
+     * : Report only (the default); cannot be combined with --repair.
+     *
+     * [--repair]
+     * : Repair copied font paths and missing active Rank Math module tables.
+     *
      * [--format=<format>]
      * : Output format.
      * ---
@@ -87,12 +93,169 @@ class SEOProStack_Health_CLI {
         if (!in_array($format, array('table', 'json'), true) || !in_array($fail, array('', 'critical', 'recommended'), true)) {
             WP_CLI::error('Use --format=table|json and --fail-on=critical|recommended.');
         }
+        $repair = isset($assoc_args['repair']);
+        if ($repair && isset($assoc_args['dry-run'])) {
+            WP_CLI::error('Use either --dry-run or --repair, not both.');
+        }
+        if ($repair) {
+            global $wp_object_cache;
+            if ($wp_object_cache instanceof SEOProStack_Health_Cache) {
+                // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore the original backend only for explicitly requested repairs.
+                $wp_object_cache = $wp_object_cache->backend();
+            }
+        }
         if (!class_exists('WP_Site_Health')) {
             require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
         }
         $rows = self::results();
+        $rows[] = self::font_paths($repair);
+        $rows[] = self::rank_math_tables($repair);
         SEOProStack_Health_Output::render($format, $rows, SEOProStack_Health_Output::records());
         WP_CLI::halt(self::failed($rows, $fail) ? 1 : 0);
+    }
+
+    /** @param bool $repair Whether to repair. @return array */
+    private static function font_paths($repair) {
+        if (is_multisite()) {
+            return SEOProStack_Health_Output::row('seoprostack_copied_font_paths', array(
+                'status' => 'not_run',
+                'label' => 'Copied-site font paths',
+                'description' => 'The font cache is network-wide; no shared paths were changed.',
+            ));
+        }
+        $stored = get_site_option('downloaded_font_files', array());
+        list($updated, $changed, $unresolved) = self::font_changes(is_array($stored) ? $stored : array());
+        if ($repair && $changed) {
+            update_site_option('downloaded_font_files', $updated);
+            if (get_site_option('downloaded_font_files') !== $updated) {
+                $unresolved += $changed;
+            }
+        }
+        return self::font_result($changed, $unresolved, $repair);
+    }
+
+    /** @param array $stored Font cache. @return array */
+    private static function font_changes(array $stored) {
+        $changed = 0;
+        $unresolved = 0;
+        $root = trailingslashit(wp_normalize_path(WP_CONTENT_DIR)) . 'fonts/';
+        foreach ($stored as $url => $path) {
+            if (!is_string($path) || 0 === strpos(wp_normalize_path($path), $root)) {
+                continue;
+            }
+            $local = self::local_font_path($path, $root);
+            if (false === $local) {
+                $unresolved++;
+                continue;
+            }
+            if (null === $local) {
+                // Drop only this cache entry; Kadence downloads the font again.
+                unset($stored[$url]);
+            } else {
+                $stored[$url] = $local;
+            }
+            $changed++;
+        }
+        return array($stored, $changed, $unresolved);
+    }
+
+    /** @param string $path Copied path. @param string $root Local font root. @return string|false|null */
+    private static function local_font_path($path, $root) {
+        $position = strrpos(wp_normalize_path($path), '/fonts/');
+        $relative = false === $position ? '' : substr(wp_normalize_path($path), $position + 7);
+        // Never follow a copied path outside the current site's font cache.
+        if ('' === $relative || 0 !== validate_file($relative)) {
+            return false;
+        }
+        $local = $root . $relative;
+        $real = realpath($local);
+        return false !== $real && 0 === strpos(wp_normalize_path($real), $root) && is_file($real) ? $local : null;
+    }
+
+    /** @param int $changed Copied entries. @param int $unresolved Unsafe or unsaved entries. @param bool $repair Repair mode. @return array */
+    private static function font_result($changed, $unresolved, $repair) {
+        return SEOProStack_Health_Output::row('seoprostack_copied_font_paths', array(
+            'status' => $unresolved || ($changed && !$repair) ? 'recommended' : 'good',
+            'label' => 'Copied-site font paths',
+            'description' => sprintf('%d copied font cache paths %s; %d unrecognized or unsaved entries left unchanged.', $changed, $repair ? 'repaired' : 'found', $unresolved),
+            'actions' => $changed && !$repair ? 'Run wp seoprostack health --repair to rebase local files or discard stale cache entries. No font files are deleted.' : '',
+        ));
+    }
+
+    /** @param bool $repair Whether to repair. @return array */
+    private static function rank_math_tables($repair) {
+        $missing = array();
+        if (did_action('rank_math/loaded')) {
+            $missing = self::missing_rank_math_tables();
+            if ($repair && $missing) {
+                self::repair_rank_math_tables(array_values(array_unique($missing)));
+                $missing = self::missing_rank_math_tables();
+            }
+        }
+        $names = array_keys($missing);
+        return SEOProStack_Health_Output::row('seoprostack_rank_math_tables', array(
+            'status' => $missing ? 'recommended' : 'good',
+            'label' => 'Rank Math module tables',
+            'description' => $missing ? 'Missing tables for active modules: ' . implode(', ', $names) . '.' : 'No missing tables for supported active Rank Math modules.',
+            'actions' => $missing ? 'Run wp seoprostack health --repair. Only Rank Math’s own table creation routines are used; no modules are enabled and lost data cannot be recovered.' : '',
+        ));
+    }
+
+    /** Missing known tables, mapped to their active module. @return array<string,string> */
+    private static function missing_rank_math_tables() {
+        $missing = array();
+        $active = (array) get_option('rank_math_modules', array());
+        $tables = array(
+            '404-monitor' => array('404_logs'),
+            'redirections' => array('redirections', 'redirections_cache'),
+            'link-counter' => array('internal_links', 'internal_meta'),
+            'analytics' => array('analytics_objects', 'analytics_gsc', 'analytics_inspections'),
+        );
+        foreach ($tables as $module => $names) {
+            if (!in_array($module, $active, true)) {
+                continue;
+            }
+            foreach ($names as $name) {
+                if (!self::rank_math_table_exists($name)) {
+                    $missing[$name] = $module;
+                }
+            }
+        }
+        return $missing;
+    }
+
+    /** @param string[] $modules Active modules with missing tables. */
+    private static function repair_rank_math_tables(array $modules) {
+        if (is_callable(array('RankMath\\Installer', 'create_tables'))) {
+            call_user_func(array('RankMath\\Installer', 'create_tables'), array_values(array_diff($modules, array('analytics'))));
+        }
+        if (in_array('analytics', $modules, true)) {
+            foreach (array('Objects', 'Console', 'Inspections') as $workflow) {
+                self::create_analytics_table('RankMath\\Analytics\\Workflow\\' . $workflow);
+            }
+        }
+    }
+
+    /** @param string $class Native Analytics schema provider. */
+    private static function create_analytics_table($class) {
+        if (!class_exists($class) || !method_exists($class, 'create_tables')) {
+            return;
+        }
+        // Constructors start data jobs. Invoke only the native schema routine,
+        // which needs no constructor state in the supported Rank Math version.
+        $reflection = new ReflectionClass($class);
+        $method = $reflection->getMethod('create_tables');
+        if ($method->isPublic() && 0 === $method->getNumberOfRequiredParameters()) {
+            $method->invoke($reflection->newInstanceWithoutConstructor());
+        }
+    }
+
+    /** @param string $name Known Rank Math table suffix. @return bool */
+    private static function rank_math_table_exists($name) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'rank_math_' . $name;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Explicit CLI schema inspection must see tables just created, never a cached result.
+        return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
     }
 
     /** Run the registered plugin tests, never core or other plugins' tests. @return array */
@@ -150,6 +313,11 @@ class SEOProStack_Health_Cache {
     /** @param object $reader Existing site's cache. */
     public function __construct($reader) {
         $this->reader = $reader;
+    }
+
+    /** Original backend, restored only for explicit repairs. @return object */
+    public function backend() {
+        return $this->reader;
     }
 
     /** @param string $method Cache operation. @param array $args Arguments. @return mixed */

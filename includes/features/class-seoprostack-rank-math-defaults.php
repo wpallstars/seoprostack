@@ -50,6 +50,28 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
                 'label'       => __('Set an empty focus keyword from the title', 'seoprostack'),
                 'description' => __('Lowercase the title and strip tags. Existing keywords are kept, even when the title changes.', 'seoprostack'),
             ),
+            'rank_math_identity_sync' => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'network'     => false,
+                'label'       => __('Keep Rank Math’s site identity in sync', 'seoprostack'),
+                'description' => __('Use the site name and PNG logo (or site icon) for schema, and the social image below for sharing. Fills empty settings and updates only values previously synced here; keeps your own Rank Math choices.', 'seoprostack'),
+            ),
+            'rank_math_social_image' => array(
+                'type'        => 'media',
+                'default'     => 0,
+                'parent'      => self::KEY,
+                'label'       => __('Default social image', 'seoprostack'),
+                'description' => __('Used when a page has no sharing image. Falls back to the site’s PNG logo or icon.', 'seoprostack'),
+            ),
+            'rank_math_identity_previous' => array(
+                'type'    => 'text',
+                'default' => '',
+                'parent'  => self::KEY,
+                'hidden'  => true,
+                'network' => false,
+            ),
         );
     }
 
@@ -70,6 +92,8 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
 
     /** Register hooks only when Rank Math is loaded on this request. */
     public static function boot() {
+        // Settings hooks must also catch the request that first enables sync.
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'identity_settings'), 10, 2);
         // Rank Math defines its version even when its runtime requirements fail.
         if (!self::enabled() || !did_action('rank_math/loaded')) {
             return;
@@ -80,6 +104,81 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         // Rank Math's block editor saves its metadata in a separate request.
         add_filter('rest_request_after_callbacks', array(__CLASS__, 'after_rank_math_rest'), 100, 3);
         add_action('current_screen', array(__CLASS__, 'screen'));
+        foreach (array('blogname', 'site_icon', 'theme_mods_' . get_option('stylesheet')) as $option) {
+            add_action('update_option_' . $option, array(__CLASS__, 'queue_identity'));
+            add_action('add_option_' . $option, array(__CLASS__, 'queue_identity'));
+            add_action('delete_option_' . $option, array(__CLASS__, 'queue_identity'));
+        }
+        add_action('after_switch_theme', array(__CLASS__, 'queue_identity'));
+    }
+
+    /** @param array $old Previous settings. @param array $new Current settings. */
+    public static function identity_settings($old, $new) {
+        foreach (array(self::KEY, 'rank_math_identity_sync', 'rank_math_social_image') as $key) {
+            if (($old[$key] ?? null) !== ($new[$key] ?? null)) {
+                self::queue_identity();
+                break;
+            }
+        }
+    }
+
+    /** Wait until all option saves (and their settings locks) have finished. */
+    public static function queue_identity() {
+        add_action('shutdown', array(__CLASS__, 'sync_identity'));
+    }
+
+    /** Sync only empty, unclaimed fields or fields still equal to our last write. */
+    public static function sync_identity() {
+        if (!self::enabled() || !SEOProStack_Settings::get('rank_math_identity_sync') || !did_action('rank_math/loaded')) {
+            return;
+        }
+        $titles = get_option('rank-math-options-titles', array());
+        if (!is_array($titles)) {
+            return;
+        }
+        // Text settings strip percent escapes; encode exact URLs before saving.
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes JSON data only, never executable code; preserves percent escapes through text sanitization.
+        $saved = base64_decode((string) SEOProStack_Settings::get('rank_math_identity_previous'), true);
+        $previous = $saved ? json_decode($saved, true) : array();
+        $previous = is_array($previous) ? $previous : array();
+        $logo = absint(get_theme_mod('custom_logo', 0));
+        if (!$logo || 'image/png' !== get_post_mime_type($logo)) {
+            $logo = absint(get_option('site_icon', 0));
+        }
+        if (!$logo || 'image/png' !== get_post_mime_type($logo)) {
+            $logo = 0;
+        }
+        $social = absint(SEOProStack_Settings::get('rank_math_social_image'));
+        $social = $social && wp_attachment_is_image($social) ? $social : $logo;
+        $wanted = array(
+            'knowledgegraph_name' => wp_strip_all_tags((string) get_option('blogname')),
+            'website_name' => wp_strip_all_tags((string) get_option('blogname')),
+        );
+        // Image URL and attachment ID are a pair: never replace half an override.
+        foreach (array('knowledgegraph_logo' => $logo, 'open_graph_image' => $social) as $key => $id) {
+            $url = $id ? wp_get_attachment_url($id) : '';
+            $can_sync = true;
+            foreach (array($key, $key . '_id') as $field) {
+                $current = isset($titles[$field]) ? (string) $titles[$field] : '';
+                $target = $field === $key ? (string) $url : (string) ($url ? $id : 0);
+                $can_sync = $can_sync && (isset($previous[$field]) ? $current === (string) $previous[$field] : in_array($current, array('', '0', $target), true));
+            }
+            if ($can_sync) {
+                $wanted[$key] = $url ? $url : '';
+                $wanted[$key . '_id'] = $url ? $id : 0;
+            }
+        }
+        foreach ($wanted as $key => $value) {
+            $current = isset($titles[$key]) ? (string) $titles[$key] : '';
+            if (isset($previous[$key]) ? $current === (string) $previous[$key] : in_array($current, array('', '0', (string) $value), true)) {
+                $titles[$key] = $value;
+                $previous[$key] = $value;
+            }
+        }
+        // Runs at shutdown; Rank Math reads the new options on the next request.
+        update_option('rank-math-options-titles', $titles);
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Stores JSON data only, preserving exact URLs through the text field sanitizer.
+        SEOProStack_Settings::set('rank_math_identity_previous', base64_encode((string) wp_json_encode($previous)));
     }
 
     /**

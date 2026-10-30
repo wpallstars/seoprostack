@@ -1,7 +1,7 @@
 {
     "name": "Rank Math SEO",
-    "tested": "1.0.279",
-    "updated": "2026-10-04",
+    "tested": "1.0.280",
+    "updated": "2026-10-30",
     "notes": "Hides the Frontend Stats Bar below the admin bar for logged-in visitors, and keeps 24 months of Analytics (Search Console) data: Rank Math keeps twice the Analytics Database days so it can compare periods, so 365 days stores 730, enough for a year-on-year comparison. Rank Math's plan limits how many days a site may keep (rank_math/analytics/max_days_allowed: 90 without Rank Math Pro, 180 on Pro, 365 on Business); the preset sets no more than the site's limit and the Apply preset dialog says when it is lower. Rank Math's own daily Analytics job deletes older data, so no schedule changes. Analytics and all other modules stay as the owner chose them. Module switches, email report schedules, rewrite-related settings and Usage Tracking are left out: their save paths manage schedules, rewrite rules or the tracking service. The dashboard widget depends on active modules rather than a separate display preference, and the admin bar menu has no separate on/off setting in this version.",
     "limits": {
         "rank-math-options-general.console_caching_control": {
@@ -13,15 +13,30 @@
         "rank-math-options-general": {
             "analytics_stats": "off",
             "console_caching_control": "365"
+        },
+        "rank-math-options-titles": {
+            "pt_page_default_rich_snippet": "off"
         }
     },
     "defaults": {
         "rank-math-options-general": {
             "analytics_stats": "on",
             "console_caching_control": "90"
+        },
+        "rank-math-options-titles": {
+            "pt_page_default_rich_snippet": "article"
         }
     },
     "settings": {
+        "rank-math-options-titles.pt_page_default_rich_snippet": {
+            "label": "Schema Type (Pages)",
+            "description": "Keep Rank Math’s WebPage schema without adding Article schema to ordinary pages. Existing per-page schema stays unchanged.",
+            "values": {
+                "off": "None (WebPage only)",
+                "article": "Article",
+                "null": "Article (not set)"
+            }
+        },
         "rank-math-options-general.analytics_stats": {
             "label": "Frontend Stats Bar",
             "description": "Shows Analytics Stats on the front end just below the admin bar.",
