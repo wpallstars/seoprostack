@@ -153,23 +153,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     const FRONT_PAGE_SUFFIXES = array('_template', '_template_hierarchy');
 
     /**
-     * Hooks that change each post's own output: its content, blocks,
-     * shortcodes, title, classes, image tags, embeds or template (with the
-     * template suffixes above). A plugin on one is never skipped because
-     * one page of a kind rendered the same without it (front_propose()).
-     */
-    const FRONT_CONTENT_HOOKS = array(
-        'the_content', 'the_excerpt', 'get_the_excerpt', 'wp_trim_excerpt', 'the_title', 'the_post', 'post_class',
-        'render_block', 'pre_render_block', 'render_block_data', 'render_block_context', 'do_shortcode_tag',
-        'pre_do_shortcode_tag', 'shortcode_atts', 'embed_oembed_html', 'oembed_result', 'oembed_dataparse',
-        'post_thumbnail_html', 'wp_content_img_tag', 'wp_get_attachment_image_attributes', 'img_caption_shortcode',
-        'wp_video_shortcode', 'wp_audio_shortcode', 'template_include',
-    );
-
-    /** Scheduled check of which plugins a page kind renders the same without. */
-    const VERIFY_HOOK = 'seoprostack_front_verify';
-
-    /**
      * Core functions a plugin may replace (wp-includes/pluggable.php). A
      * plugin that does always loads on the site: without it, core's own
      * version would run (another way to send email, check passwords or log in).
@@ -415,7 +398,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             foreach (array('added_post_meta', 'updated_post_meta', 'deleted_post_meta') as $hook) {
                 add_action($hook, array(__CLASS__, 'post_meta_changed'), 10, 3);
             }
-            add_action(self::VERIFY_HOOK, array(__CLASS__, 'verify_front'));
+            add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'verify_front'), 10, 0);
         }
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
@@ -775,6 +758,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     public static function forget() {
         update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, wp_generate_uuid4(), true);
+        if (false !== get_option(SEOProStack_Plugin_Loader::FRONT_PAGES)) {
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_PAGES);
+        }
         delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         delete_option(SEOProStack_Plugin_Loader::FRONT_FAILED);
         if (false !== get_option(SEOProStack_Plugin_Loader::MAP)) {
@@ -1019,39 +1005,41 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * What the checks found for each kind of page: how many more plugins it
-     * skips because it rendered the same without them, or why it skips none.
+     * What the checks of single addresses found: how many were checked,
+     * how many skip more plugins and how many more on average, what waits,
+     * and why checks are paused.
      *
      * @param array $front What was learned on the site.
      */
     private static function verify_status(array $front) {
-        $items = array();
-        foreach ((array) ($front['kinds'] ?? array()) as $key => $kind) {
-            if (!is_array($kind) || empty($kind['propose'])) {
-                continue;
-            }
-            $result = (string) ($kind['verify']['result'] ?? '');
-            if ('' === $result) {
-                $text = __('not checked yet', 'seoprostack');
-            } elseif (!empty($kind['verified'])) {
-                $count = count((array) $kind['verified']);
-                /* translators: %s: number of plugins */
-                $text = sprintf(_n('skips %s more plugin: the page rendered the same without it', 'skips %s more plugins: the page rendered the same without them', $count, 'seoprostack'), number_format_i18n($count));
-            } elseif ('unstable' === $result) {
-                $text = __('skips no more: the page changes on every render', 'seoprostack');
-            } elseif ('differs' === $result) {
-                $text = __('skips no more: the page changed without them', 'seoprostack');
-            } else {
-                $text = __('skips no more: the site could not render the page for the check', 'seoprostack');
-            }
-            $items[] = '<li>' . esc_html($key . ': ' . $text) . '</li>';
+        $proposes = false;
+        foreach ((array) ($front['kinds'] ?? array()) as $kind) {
+            $proposes = $proposes || (is_array($kind) && !empty($kind['propose']));
         }
-        if (!$items) {
+        if (!$proposes) {
             return;
         }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-front-verify.php';
+        $summary = SEOProStack_Front_Verify::summary();
         echo '<div class="sps-panel-note"><p>';
-        esc_html_e('After a kind of page is learned, a scheduled task renders it again without the plugins that add to pages but did nothing it needs, and keeps skipping only those it rendered exactly the same without:', 'seoprostack');
-        echo '</p><ul>' . implode('', $items) . '</ul></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- each item escaped above.
+        esc_html_e('Plugins that add something to pages load on every page of their kind. Each address visitors open is then checked once in the background: a scheduled task renders it without those plugins, and the address skips only those it rendered exactly the same without, and that keep no record of page views. Saving content or settings checks again.', 'seoprostack');
+        echo '</p><p>';
+        echo esc_html(sprintf(
+            /* translators: 1: addresses checked, 2: addresses that skip more plugins, 3: average number of plugins, 4: addresses waiting */
+            __('Checked: %1$s addresses; %2$s skip more plugins (%3$s on average); %4$s waiting.', 'seoprostack'),
+            number_format_i18n($summary['checked']),
+            number_format_i18n($summary['skipping']),
+            number_format_i18n($summary['average'], 1),
+            number_format_i18n($summary['queued'])
+        ));
+        if ($summary['paused']) {
+            echo ' ' . esc_html(sprintf(
+                /* translators: %s: time */
+                __('Paused until %s: the site could not load its own pages for the check.', 'seoprostack'),
+                wp_date((string) get_option('time_format'), $summary['paused'])
+            ));
+        }
+        echo '</p></div>';
     }
 
     /**
@@ -1515,12 +1503,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 if (!empty($kinds[$key]['needs']) && !$state['relearn']) {
                     $needs = array_values(array_unique(array_merge((array) $kinds[$key]['needs'], $needs)));
                 }
-                // Learning again drops what a check verified: it checks again.
                 $kinds[$key] = array('needs' => $needs, 'learned' => time(), 'inert' => (array) ($kinds[$key]['inert'] ?? array()));
                 $propose = self::front_propose($notes, $needs);
-                $url = self::front_url();
-                if ($propose && '' !== $url) {
-                    $kinds[$key] += array('propose' => $propose, 'url' => $url, 'id' => is_singular() ? (int) get_queried_object_id() : 0);
+                if ($propose) {
+                    $kinds[$key]['propose'] = $propose;
                 }
                 $learned_kind = true;
             }
@@ -1585,45 +1571,29 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         }
         if ($learned_kind && !empty($kinds[$key]['propose'])) {
-            // Same hook and kind within ten minutes: WordPress keeps one.
-            wp_schedule_single_event(time() + MINUTE_IN_SECONDS, self::VERIFY_HOOK, array($key));
+            // The page that learned its kind is the first to check.
+            $address = SEOProStack_Plugin_Loader::front_address();
+            if ('' !== $address['key']) {
+                SEOProStack_Plugin_Loader::queue_address($address['key'], $address['path'], $key);
+            }
         }
     }
 
     /**
-     * Plugins a page kind may also skip if a check shows the page renders
-     * the same without them (SEOProStack_Front_Verify): plugins that add to
-     * pages or extend one that does, but not those the kind needs, those
-     * that always load, check logins or change each post's own output, and
-     * not those filtering the whole page through an output buffer.
-     *
-     * Plugins that change each post's content, blocks, shortcodes, title,
-     * template or embeds can change one post of a kind and not another, so
-     * one page rendering the same says nothing about them.
+     * Plugins an address of a page kind may also skip if a check shows it
+     * renders the same without them (SEOProStack_Front_Verify): plugins
+     * that add to pages or extend one that does, but not those the kind
+     * needs, those that always load or check logins, nor those kept for the
+     * site. Each address is checked by itself, so plugins that change each
+     * post's content or filter the whole page are proposed too: a page they
+     * change renders differently without them and keeps them.
      *
      * @param array<string,string[]> $notes What each plugin adds to the site.
      * @param string[]               $needs What the kind was learned to need.
      * @return string[]
      */
     private static function front_propose(array $notes, array $needs) {
-        global $wp_filter;
-        $self = plugin_basename(SEOPROSTACK_FILE);
-        $keep = array_merge($needs, array($self), (array) SEOProStack_Settings::get(SEOProStack_Plugin_Loader::KEEP_KEY));
-        foreach ((array) $wp_filter as $name => $hook) {
-            if (!is_string($name) || !($hook instanceof WP_Hook) || !self::front_content_hook($name)) {
-                continue;
-            }
-            foreach ($hook->callbacks as $callbacks) {
-                foreach ($callbacks as $callback) {
-                    $keep[] = SEOProStack_Plugin_Loader::plugin_for_callback($callback['function']);
-                }
-            }
-        }
-        $buffers = self::buffer_owners();
-        if (false === $buffers) {
-            return array(); // An output buffer nobody can be named for may rewrite any page.
-        }
-        $keep = array_merge($keep, $buffers);
+        $keep = array_merge($needs, array(plugin_basename(SEOPROSTACK_FILE)), (array) SEOProStack_Settings::get(SEOProStack_Plugin_Loader::KEEP_KEY));
         $propose = array();
         foreach ($notes as $file => $list) {
             $list = (array) $list;
@@ -1636,103 +1606,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return $propose;
     }
 
-    /**
-     * Whether a hook changes each post's own output.
-     *
-     * @param string $name Hook name.
-     * @return bool
-     */
-    private static function front_content_hook($name) {
-        if (in_array($name, self::FRONT_CONTENT_HOOKS, true)) {
-            return true;
-        }
-        foreach (array('render_block_', 'shortcode_atts_') as $prefix) {
-            if (0 === strpos($name, $prefix)) {
-                return true;
-            }
-        }
-        foreach (self::FRONT_PAGE_SUFFIXES as $suffix) {
-            if (strlen($name) > strlen($suffix) && substr($name, -strlen($suffix)) === $suffix) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Plugins with an output buffer open now (at shutdown, before WordPress
-     * flushes them), or false when one cannot be named: a closure, or code
-     * outside the plugins.
-     *
-     * @return string[]|false
-     */
-    private static function buffer_owners() {
-        $owners   = array();
-        $handlers = ob_list_handlers();
-        if (!is_array($handlers)) {
-            return false;
-        }
-        foreach ($handlers as $handler) {
-            if ('default output handler' === $handler || in_array($handler, array('ob_gzhandler', 'zlib output compression', 'mb_output_handler', 'URL-Rewriter'), true)) {
-                continue;
-            }
-            $parts = explode('::', (string) $handler, 2);
-            try {
-                if (2 === count($parts) && 'Closure' !== $parts[0] && method_exists($parts[0], $parts[1])) {
-                    $file = (string) (new ReflectionMethod($parts[0], $parts[1]))->getFileName();
-                } elseif (1 === count($parts) && function_exists($parts[0])) {
-                    $file = (string) (new ReflectionFunction($parts[0]))->getFileName();
-                } else {
-                    return false;
-                }
-            } catch (ReflectionException $e) {
-                return false;
-            }
-            $plugin = '' !== $file ? SEOProStack_Plugin_Loader::plugin_for_file($file) : '';
-            if ('' === $plugin) {
-                if (0 === strpos(wp_normalize_path($file), wp_normalize_path(ABSPATH . WPINC))) {
-                    continue; // WordPress's own.
-                }
-                return false;
-            }
-            $owners[] = $plugin;
-        }
-        return $owners;
-    }
-
-    /**
-     * This page's address, for a check to render again: the site's own
-     * address (not the Host header) and its path, with only arguments that
-     * choose what the page shows.
-     *
-     * @return string
-     */
-    private static function front_url() {
-        $uri  = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only the path is kept, as WordPress routed it.
-        $home = wp_parse_url(home_url('/'));
-        $path = (string) wp_parse_url($uri, PHP_URL_PATH);
-        if ('' === $path || '/' !== $path[0] || strlen($uri) > 2048 || !is_array($home) || empty($home['host']) || empty($home['scheme'])) {
-            return '';
-        }
-        $query = array();
-        wp_parse_str((string) wp_parse_url($uri, PHP_URL_QUERY), $query);
-        $query = array_intersect_key($query, array_flip(array('s', 'paged', 'page', 'cpage', 'p', 'page_id')));
-        $url = $home['scheme'] . '://' . $home['host'] . (isset($home['port']) ? ':' . (int) $home['port'] : '') . $path;
-        return $query ? add_query_arg(array_map('rawurlencode', array_filter($query, 'is_scalar')), $url) : $url;
-    }
-
-    /**
-     * Check which plugins a page kind renders the same without (scheduled
-     * when the kind is learned).
-     *
-     * @param string $key Page kind.
-     */
-    public static function verify_front($key) {
-        if (!is_string($key) || !self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
+    /** Check the addresses visitors opened that might skip more plugins (scheduled). */
+    public static function verify_front() {
+        if (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
             return;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-front-verify.php';
-        SEOProStack_Front_Verify::run($key);
+        SEOProStack_Front_Verify::run();
     }
 
     /** The bounded query kinds whose templates and global parts are learned. */
@@ -2292,6 +2172,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     public static function forget_front_now() {
         $revision = wp_generate_uuid4();
         update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, $revision, true);
+        // Checks of single addresses hold for one revision.
+        if (false !== get_option(SEOProStack_Plugin_Loader::FRONT_PAGES)) {
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_PAGES);
+        }
         // Not a stale cached copy of a map that is already gone (GitHub issue #476).
         wp_cache_delete(SEOProStack_Plugin_Loader::FRONT, 'options');
         $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());

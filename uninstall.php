@@ -97,6 +97,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_front_forgets';
     $options[] = 'seoprostack_plugin_front_code';
     $options[] = 'seoprostack_plugin_front_verify';
+    $options[] = 'seoprostack_plugin_front_verify_seen';
+    $options[] = 'seoprostack_plugin_front_pages';
+    $options[] = 'seoprostack_plugin_front_queue';
     $options[] = 'seoprostack_plugin_learned_by';
     $options[] = 'seoprostack_plugin_updates_full';
     // Correct update counts: updates counted with every plugin loaded.

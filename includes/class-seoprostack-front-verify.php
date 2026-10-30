@@ -1,26 +1,38 @@
 <?php
 /**
- * Check which plugins a kind of page renders the same without.
+ * Check which more plugins each address renders exactly the same without.
  *
  * Part of Load plugins only where needed. Most plugins add something to
- * pages (wp_head, scripts, body classes), so learning keeps them on every
- * page of the site, even where what they add is nothing. When a page kind
- * is learned, SEOProStack_Plugin_Loading::front_propose() lists the plugins
- * it might also skip, and a scheduled task renders the learned page through
- * the site's own address:
+ * pages (wp_head, scripts, body classes, blocks), so learning keeps them on
+ * every page of their kind, even where what they add is nothing. A sample
+ * page cannot show that other pages of the kind need them no more: a form
+ * block on one page, a widget on another (GitHub issue #1039). So each
+ * address is checked by itself.
  *
- * - twice as it is served now ("base"), to see that the page renders the
- *   same each time;
- * - then without the listed plugins ("trial"), halving the list when the
- *   page changes, a few times at most.
+ * A visitor's page whose kind lists plugins it might also skip
+ * (SEOProStack_Plugin_Loading::front_propose()) and that has not been
+ * checked is queued (SEOProStack_Plugin_Loader::queue_address()). A
+ * scheduled task renders each queued address through the site's own
+ * address:
+ *
+ * - as it is served now ("base");
+ * - without some of the listed plugins ("trial"): first those other
+ *   addresses of the kind rendered the same without, then the rest,
+ *   halving a group when the page changes;
+ * - a second time as served, only when a trial differs, to tell words that
+ *   change on every render (random IDs) from a real difference.
  *
  * Each render carries a one-time token (SEOProStack_Plugin_Loader::
- * verify_request()), is kept out of page caches, and says in a header which
- * plugins it skipped. Only plugins whose absence left the status, the
- * headers that matter and the HTML the same are saved for the kind, and a
- * post of the same type is then checked too. Pages of that kind skip them
- * until anything makes the site's pages learn again. A site whose requests
- * to itself fail, time out or are answered by a cache skips nothing more.
+ * verify_request()), is kept out of page caches, says in a header which
+ * plugins it skipped and reports which plugins wrote to the database, sent
+ * a request or mail while it rendered. Plugins that do are never skipped
+ * (a view counter or log keeps a record of each page view), and a trial
+ * whose plugins do something the page as served did not fails. Only
+ * plugins whose absence left the status, the headers that matter and the
+ * HTML the same are saved for the address. That address skips them while
+ * the content revision and the plugin set stay the same, for a week at
+ * most, after which it is checked again. A site whose requests to itself
+ * fail pauses checks for an hour and skips nothing more.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -28,7 +40,7 @@
  * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
  *
  * @package SEOProStack
- * @since 1.3.104
+ * @since 1.3.106
  */
 
 if (!defined('ABSPATH')) {
@@ -37,17 +49,26 @@ if (!defined('ABSPATH')) {
 
 final class SEOProStack_Front_Verify {
 
-    /** Trial renders per check: the whole list, then halves. */
-    const TRIALS = 6;
+    /** Trial renders per address at most. */
+    const TRIALS = 16;
 
     /** Seconds one render may take. */
     const TIMEOUT = 15;
 
-    /** Seconds after which a check starts no more renders. */
+    /** Seconds after which a check of one address starts no more renders. */
     const BUDGET = 60;
+
+    /** Seconds after which a scheduled run starts no more addresses. */
+    const RUN_BUDGET = 50;
 
     /** Most words that may change on each render (random IDs) for a page to be compared. */
     const VOLATILE = 50;
+
+    /** Most addresses kept; the oldest checks go first. */
+    const MAX_PAGES = 5000;
+
+    /** Failed checks in a row (the site's requests to itself) that pause checking. */
+    const FAILURES = 5;
 
     /** Response headers that must be the same, lower case. */
     const HEADERS = array(
@@ -60,145 +81,239 @@ final class SEOProStack_Front_Verify {
     /** Render counter, so each address is new to caches. */
     private static $count = 0;
 
-    /**
-     * Check one page kind, once per learning.
-     *
-     * @param string $key Page kind, such as "single:post".
-     */
-    public static function run($key) {
-        if (!SEOProStack_Plugin_Loader::front_current()) {
-            return;
-        }
-        $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
-        $kind  = $front['kinds'][$key] ?? null;
-        if (!is_array($kind) || empty($kind['propose']) || empty($kind['url']) || isset($kind['verify'])) {
-            return;
-        }
-        $learned = (int) ($kind['learned'] ?? 0);
-        if (!self::local((string) $kind['url'])) {
-            self::save($key, $learned, array('skip' => array(), 'result' => 'address', 'note' => '', 'pages' => 0));
+    /** Check queued addresses until the run's time is up. */
+    public static function run() {
+        $start = microtime(true);
+        $map   = get_option(SEOProStack_Plugin_Loader::FRONT_PAGES, array());
+        $pause = is_array($map) ? (int) ($map['paused'] ?? 0) : 0;
+        if ($pause > time()) {
+            wp_schedule_single_event($pause, SEOProStack_Plugin_Loader::VERIFY_HOOK);
             return;
         }
         $busy = get_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, array());
         if (is_array($busy) && (int) ($busy['expires'] ?? 0) > time()) {
-            wp_schedule_single_event(time() + 2 * MINUTE_IN_SECONDS, SEOProStack_Plugin_Loading::VERIFY_HOOK, array($key));
+            wp_schedule_single_event(time() + 2 * MINUTE_IN_SECONDS, SEOProStack_Plugin_Loader::VERIFY_HOOK);
             return; // One check at a time.
         }
-        $check = array(
-            'token'   => wp_generate_password(32, false, false),
-            'kind'    => $key,
-            'skip'    => array(),
-            'expires' => time() + self::BUDGET + 5 * self::TIMEOUT,
-        );
-        update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
-        $result = self::check($key, $kind, $check);
-        SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_VERIFY);
-        self::save($key, $learned, $result);
-        self::next();
+        while (SEOProStack_Feature::more_time($start, self::RUN_BUDGET)) {
+            if (!SEOProStack_Plugin_Loader::front_current()) {
+                return; // Learned again: visitors queue what they open.
+            }
+            $item = self::take();
+            if (null === $item) {
+                return;
+            }
+            $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+            $kind  = $front['kinds'][$item['kind']] ?? null;
+            if (!is_array($kind) || empty($kind['propose'])) {
+                continue;
+            }
+            $revision = (string) get_option(SEOProStack_Plugin_Loader::FRONT_REVISION, '');
+            $map      = self::map($revision, (string) $front['active']);
+            $entry    = SEOProStack_Plugin_Loader::page_entry($map, $item['key']);
+            if (null !== $entry && $entry[1] * HOUR_IN_SECONDS >= time() - SEOProStack_Plugin_Loader::PAGES_MAX_AGE) {
+                continue; // Checked meanwhile.
+            }
+            $result = self::check($item, $kind, $map);
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_VERIFY);
+            if (self::save($item, $result, $revision, (string) $front['active'])) {
+                wp_schedule_single_event(time() + HOUR_IN_SECONDS, SEOProStack_Plugin_Loader::VERIFY_HOOK);
+                return; // Paused.
+            }
+        }
+        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
+        if (is_array($queue) && $queue && !wp_next_scheduled(SEOProStack_Plugin_Loader::VERIFY_HOOK)) {
+            wp_schedule_single_event(time() + MINUTE_IN_SECONDS, SEOProStack_Plugin_Loader::VERIFY_HOOK);
+        }
     }
 
     /**
-     * Render the page as served, then without the proposed plugins.
+     * Take the oldest queued address off the queue. One that stops a run
+     * (time limit, fatal error) is queued again by its next visitor.
      *
-     * @param string $key   Page kind.
-     * @param array  $kind  What was learned for it.
-     * @param array  $check The check under way (token, kind, skip, expires).
-     * @return array{skip: string[], result: string, note: string, pages: int}
+     * @return array{key: string, path: string, kind: string}|null
      */
-    private static function check($key, array $kind, array $check) {
-        $start = microtime(true);
-        $url   = (string) $kind['url'];
-        $note  = '';
-        $base  = self::baseline($url, $check, $note);
-        if (!is_array($base)) {
-            return array('skip' => array(), 'result' => $base, 'note' => $note, 'pages' => 0);
+    private static function take() {
+        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_QUEUE, 'options');
+        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
+        if (!is_array($queue) || !$queue) {
+            return null;
+        }
+        $key  = (string) array_key_first($queue);
+        $item = $queue[$key];
+        unset($queue[$key]);
+        if ($queue) {
+            update_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, $queue, false);
+        } else {
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT_QUEUE);
+        }
+        if (!is_array($item) || !preg_match('/^[0-9a-f]{12}$/', $key) || empty($item['path']) || empty($item['kind'])
+            || !is_string($item['path']) || !is_string($item['kind']) || '/' !== $item['path'][0]) {
+            return self::take();
+        }
+        return array('key' => $key, 'path' => $item['path'], 'kind' => $item['kind']);
+    }
+
+    /**
+     * The checked addresses for this revision and plugin set; a new list
+     * when either changed.
+     *
+     * @param string $revision Content revision.
+     * @param string $active   Plugin set fingerprint.
+     * @return array
+     */
+    private static function map($revision, $active) {
+        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_PAGES, 'options');
+        $map = get_option(SEOProStack_Plugin_Loader::FRONT_PAGES, array());
+        if (is_array($map) && ($map['revision'] ?? null) === $revision && ($map['active'] ?? null) === $active) {
+            return $map;
+        }
+        return array(
+            'revision' => $revision,
+            'active'   => $active,
+            'sets'     => array(),
+            'pages'    => '',
+            'kinds'    => array(),
+            'failures' => is_array($map) ? (int) ($map['failures'] ?? 0) : 0,
+            'paused'   => 0,
+        );
+    }
+
+    /**
+     * Render one address as served, then without plugins its kind might
+     * also skip.
+     *
+     * @param array $item Queued address: key, path, kind.
+     * @param array $kind What was learned for its kind.
+     * @param array $map  The checked addresses (map()).
+     * @return array{skip: string[], result: string, note: string, needed: string[], retry: bool}
+     */
+    private static function check(array $item, array $kind, array $map) {
+        $start  = microtime(true);
+        $result = array('skip' => array(), 'result' => 'failed', 'note' => '', 'needed' => array(), 'retry' => false);
+        $url    = self::address((string) $item['path']);
+        if ('' === $url) {
+            $result['note'] = 'address';
+            return $result;
+        }
+        $check = array(
+            'token'   => wp_generate_password(32, false, false),
+            'key'     => $item['key'],
+            'kind'    => $item['kind'],
+            'skip'    => array(),
+            'expires' => time() + self::BUDGET + 2 * self::TIMEOUT,
+        );
+        update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
+        $base = self::render($url, 'base', $check);
+        if (isset($base['error'])) {
+            $result['note']  = $base['error'];
+            $result['retry'] = $base['retry'];
+            return $result;
         }
 
-        $groups = array(array_values((array) $kind['propose']));
-        $tried  = array();
-        $passed = null;
-        $trials = 0;
-        $first  = '';
+        // Plugins that wrote, sent or mailed while the page rendered keep
+        // a record of the view: never skipped.
+        $propose = array_values(array_diff((array) $kind['propose'], $base['effects'], $base['skipped']));
+        $stats   = (array) ($map['kinds'][$item['kind']] ?? array());
+        $hint    = isset($stats['hint']) ? array_values(array_intersect((array) ($map['sets'][(int) $stats['hint']] ?? array()), $propose)) : array();
+        // Plugins this kind needed on other addresses are not tried again:
+        // fewer renders, and never a reason to skip.
+        $rest    = array_values(array_diff($propose, $hint, (array) ($stats['needed'] ?? array())));
+        $groups  = array_values(array_filter(array($hint, $rest)));
+        $tried   = array();
+        $trials  = 0;
+        $first   = '';
         while ($groups && $trials < self::TRIALS && SEOProStack_Feature::more_time($start, self::BUDGET)) {
             $group = array_shift($groups);
             $check['skip'] = array_values(array_unique(array_merge($tried, $group)));
             update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
             $trial = self::render($url, 'trial', $check);
             $trials++;
-            if (is_array($trial) && self::same($base, $trial, $note)) {
-                $tried  = $check['skip'];
-                $passed = $trial; // Each pass renders everything that passed before, together.
+            $failed = isset($trial['error']);
+            $note   = $failed ? $trial['error'] : '';
+            if (!$failed && self::matches($base, $trial, $url, $check, $note)) {
+                $tried = $check['skip']; // Each later trial skips these too.
                 continue;
             }
-            $first = '' !== $first ? $first : (is_array($trial) ? $note : $trial);
+            if (!empty($base['unstable'])) {
+                return array('skip' => array(), 'result' => 'unstable', 'note' => $base['unstable'], 'needed' => array(), 'retry' => false);
+            }
+            $first = '' !== $first ? $first : $note;
             if (count($group) > 1) {
                 $half = (int) ceil(count($group) / 2);
                 array_unshift($groups, array_slice($group, 0, $half), array_slice($group, $half));
+            } elseif (!$failed) {
+                $result['needed'][] = $group[0];
             }
         }
-        $skip = $passed ? array_values(array_diff($passed['skipped'], $base['skipped'])) : array();
-        if (!$skip) {
-            return array('skip' => array(), 'result' => 'differs', 'note' => $first, 'pages' => 1);
-        }
-
-        // One page is one sample: a post of the same type must agree.
-        $pages = 1;
-        if (0 === strpos($key, 'single:') && SEOProStack_Feature::more_time($start, self::BUDGET)) {
-            $check['skip'] = $tried;
-            update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
-            foreach (self::other_posts(substr($key, 7), (int) ($kind['id'] ?? 0)) as $other) {
-                $other_base = self::baseline($other, $check, $note);
-                if ('failed' === $other_base) {
-                    continue; // Not a page this kind serves (its own template or content), or it failed as served.
-                }
-                $other_trial = is_array($other_base) ? self::render($other, 'trial', $check) : $other_base;
-                if (!is_array($other_base) || !is_array($other_trial) || !self::same($other_base, $other_trial, $note)) {
-                    return array('skip' => array(), 'result' => 'differs', 'note' => is_array($other_trial) ? $note : $other_trial, 'pages' => 2);
-                }
-                $pages = 2;
-                break;
-            }
-        }
-        return array('skip' => $skip, 'result' => 'verified', 'note' => '', 'pages' => $pages);
+        $result['skip']   = array_values(array_diff($tried, $base['effects']));
+        $result['result'] = $result['skip'] ? 'verified' : ($propose ? 'differs' : 'none');
+        $result['note']   = $result['skip'] ? '' : $first;
+        return $result;
     }
 
     /**
-     * A page rendered as served, twice: the first render, with the words
-     * that changed between the two (random IDs a plugin makes on each
-     * render), which a trial may change too.
+     * Whether a trial rendered the same as the page as served and did
+     * nothing it did not. When it differs, the page is rendered once more
+     * as served: words that change on every render then do not count.
      *
-     * @param string $url   Page address.
+     * @param array  $base  The render as served; gains 'volatile', or 'unstable' when it cannot be compared.
+     * @param array  $trial The trial.
+     * @param string $url   Address.
      * @param array  $check The check under way.
-     * @param string $note  Set to why there is none.
-     * @return array|string The render with 'volatile' positions, or 'failed' or 'unstable'.
+     * @param string $note  Set to the first difference.
+     * @return bool
      */
-    private static function baseline($url, array $check, &$note) {
-        $base = self::render($url, 'base', $check);
-        if (!is_array($base)) {
-            $note = $base;
-            return 'failed';
+    private static function matches(array &$base, array $trial, $url, array $check, &$note) {
+        if (self::within($base, $trial, $check, $note) && self::same($base, $trial, $note)) {
+            return true;
         }
-        $again = self::render($url, 'base', $check);
-        if (!is_array($again)) {
-            $note = $again;
-            return 'failed';
+        if (isset($base['volatile'])) {
+            return false;
         }
         $base['volatile'] = array();
-        if (self::same($base, $again, $note)) {
-            return $base;
+        $again = self::render($url, 'base', $check);
+        if (isset($again['error'])) {
+            return false;
+        }
+        $base['effects'] = array_values(array_unique(array_merge($base['effects'], $again['effects'])));
+        $diff = '';
+        if (self::same($base, $again, $diff)) {
+            return self::within($base, $trial, $check, $note) && self::same($base, $trial, $note);
         }
         $words = self::words($base['html']);
         $other = self::words($again['html']);
         if ($base['headers'] !== $again['headers'] || $base['skipped'] !== $again['skipped'] || count($words) !== count($other)) {
-            return 'unstable'; // Changes shape on each render: nothing can be compared.
+            $base['unstable'] = 'changes on each render: ' . $diff;
+            return false;
         }
         $volatile = array_keys(array_diff_assoc($words, $other));
         if (count($volatile) > self::VOLATILE) {
-            $note = sprintf('%d words change on each render', count($volatile));
-            return 'unstable';
+            $base['unstable'] = sprintf('%d words change on each render', count($volatile));
+            return false;
         }
         $base['volatile'] = array_fill_keys($volatile, true);
-        return $base;
+        return self::within($base, $trial, $check, $note) && self::same($base, $trial, $note);
+    }
+
+    /**
+     * Whether a trial skipped no plugin that keeps records and no plugin
+     * did anything the page as served did not.
+     *
+     * @param array  $base  The render as served.
+     * @param array  $trial The trial.
+     * @param array  $check The check under way.
+     * @param string $note  Set to why not.
+     * @return bool
+     */
+    private static function within(array $base, array $trial, array $check, &$note) {
+        $writers = array_intersect((array) $check['skip'], $base['effects']);
+        $more    = array_diff($trial['effects'], $base['effects']);
+        if ($writers || $more) {
+            $note = 'writes, requests or mail: ' . implode(', ', array_merge($writers, $more));
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -213,12 +328,28 @@ final class SEOProStack_Front_Verify {
     }
 
     /**
+     * The full address of a path on the site's own host.
+     *
+     * @param string $path Path and arguments.
+     * @return string
+     */
+    private static function address($path) {
+        $home = wp_parse_url(home_url('/'));
+        if (!is_array($home) || empty($home['host']) || empty($home['scheme']) || !in_array($home['scheme'], array('http', 'https'), true)
+            || '' === $path || '/' !== $path[0] || 0 === strpos($path, '//')) {
+            return '';
+        }
+        return $home['scheme'] . '://' . $home['host'] . (isset($home['port']) ? ':' . (int) $home['port'] : '') . $path;
+    }
+
+    /**
      * Render a page through the site's own address.
      *
      * @param string $url   Page address.
      * @param string $mode  'base' or 'trial'.
      * @param array  $check The check under way.
-     * @return array{html: string, headers: array<string,string>, skipped: string[]}|string What it rendered, or why not.
+     * @return array{html: string, headers: array<string,string>, skipped: string[], effects: string[]}|array{error: string, retry: bool}
+     *         What it rendered, or why not and whether the site's requests to itself failed.
      */
     private static function render($url, $mode, array $check) {
         self::$count++;
@@ -237,21 +368,25 @@ final class SEOProStack_Front_Verify {
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
         ));
         if (is_wp_error($response)) {
-            return substr($response->get_error_message(), 0, 200);
+            return array('error' => substr($response->get_error_message(), 0, 200), 'retry' => true);
         }
         $code = (int) wp_remote_retrieve_response_code($response);
         if (200 !== $code) {
-            return 'status ' . $code;
+            return array('error' => 'status ' . $code, 'retry' => false);
         }
         // Without the header, the page was not rendered as asked: a cache
-        // answered, or the loader did not see this kind of page.
+        // answered, or the loader did not see this address and kind.
         $said = wp_remote_retrieve_header($response, strtolower(SEOProStack_Plugin_Loader::VERIFY_HEADER));
         if (!is_string($said) || !preg_match('/^(base|trial)(?: (\S*))?$/', trim($said), $match) || $match[1] !== $mode) {
-            return 'not rendered as asked';
+            return array('error' => 'not rendered as asked', 'retry' => false);
+        }
+        $effects = self::effects(self::$count);
+        if (null === $effects) {
+            return array('error' => 'what the page did was not reported', 'retry' => true);
         }
         $html = self::normalise((string) wp_remote_retrieve_body($response));
         if (null === $html) {
-            return 'page too large to compare';
+            return array('error' => 'page too large to compare', 'retry' => false);
         }
         $found = array();
         foreach (self::HEADERS as $name) {
@@ -264,9 +399,32 @@ final class SEOProStack_Front_Verify {
         }
         sort($cookies);
         $found['set-cookie'] = implode(',', $cookies);
-        $skipped = array_filter(array_map('rawurldecode', explode(',', (string) ($match[2] ?? ''))));
+        $skipped = array_values(array_filter(array_map('rawurldecode', explode(',', (string) ($match[2] ?? '')))));
         sort($skipped);
-        return array('html' => $html, 'headers' => $found, 'skipped' => $skipped);
+        return array('html' => $html, 'headers' => $found, 'skipped' => $skipped, 'effects' => $effects);
+    }
+
+    /**
+     * The plugins that wrote, sent or mailed while a render ran, as it saved
+     * them before WordPress flushed the page (SEOProStack_Plugin_Loader::
+     * report_effects()); null when that render saved nothing.
+     *
+     * @param int $number The render's number.
+     * @return string[]|null
+     */
+    private static function effects($number) {
+        for ($try = 0; $try < 2; $try++) {
+            wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_VERIFY_SEEN, 'options');
+            wp_cache_delete('notoptions', 'options');
+            $seen = get_option(SEOProStack_Plugin_Loader::FRONT_VERIFY_SEEN, array());
+            if (is_array($seen) && (int) ($seen['n'] ?? 0) === $number) {
+                return array_values(array_filter((array) ($seen['effects'] ?? array()), 'is_string'));
+            }
+            if (0 === $try) {
+                sleep(1); // A plugin may end the response before the shutdown tasks.
+            }
+        }
+        return null;
     }
 
     /**
@@ -326,86 +484,139 @@ final class SEOProStack_Front_Verify {
     }
 
     /**
-     * Up to two other published posts of a type, most recently changed first.
+     * Save what a check found for an address, if the content and plugins
+     * did not change while it ran.
      *
-     * @param string $type Post type.
-     * @param int    $not  The post that was learned.
-     * @return string[] Addresses.
+     * @param array  $item     Queued address: key, path, kind.
+     * @param array  $result   What check() found.
+     * @param string $revision Content revision when it started.
+     * @param string $active   Plugin set fingerprint when it started.
+     * @return bool Whether checks are now paused.
      */
-    private static function other_posts($type, $not) {
-        $ids = get_posts(array(
-            'post_type'     => $type,
-            'post_status'   => 'publish',
-            'has_password'  => false,
-            'numberposts'   => 3,
-            'orderby'       => 'modified',
-            'order'         => 'DESC',
-            'fields'        => 'ids',
-            'no_found_rows' => true,
-        ));
-        $urls = array();
-        foreach ($ids as $id) {
-            if ((int) $id === $not || count($urls) >= 2) {
-                continue;
-            }
-            $url = get_permalink((int) $id);
-            if (is_string($url) && self::local($url)) {
-                $urls[] = $url;
-            }
-        }
-        return $urls;
-    }
-
-    /**
-     * Whether an address is on the site's own host.
-     *
-     * @param string $url Address.
-     * @return bool
-     */
-    private static function local($url) {
-        $host = wp_parse_url($url, PHP_URL_HOST);
-        return is_string($host) && '' !== $host && strtolower($host) === strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST))
-            && in_array(wp_parse_url($url, PHP_URL_SCHEME), array('http', 'https'), true);
-    }
-
-    /**
-     * Save the result for the kind, if it was not learned again meanwhile.
-     *
-     * @param string $key     Page kind.
-     * @param int    $learned When it was learned.
-     * @param array  $result  skip (plugins it renders the same without),
-     *                        result ('verified', 'differs', 'unstable',
-     *                        'failed' or 'address'), note (first difference
-     *                        or failure) and pages (how many were compared).
-     */
-    private static function save($key, $learned, array $result) {
-        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT, 'options');
+    private static function save(array $item, array $result, $revision, $active) {
+        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT_REVISION, 'options');
         wp_cache_delete('alloptions', 'options');
-        $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
-        if (!SEOProStack_Plugin_Loader::front_current() || !isset($front['kinds'][$key]) || !is_array($front['kinds'][$key])
-            || (int) ($front['kinds'][$key]['learned'] ?? 0) !== $learned) {
-            return;
+        if ((string) get_option(SEOProStack_Plugin_Loader::FRONT_REVISION, '') !== $revision || !SEOProStack_Plugin_Loader::front_current()) {
+            return false;
         }
-        $front['kinds'][$key]['verify'] = array(
+        $map = self::map($revision, $active);
+        $map['last'] = array(
             'time'   => time(),
             'result' => (string) $result['result'],
+            'skip'   => count($result['skip']),
             'note'   => wp_check_invalid_utf8(substr((string) $result['note'], 0, 200), true),
-            'pages'  => (int) ($result['pages'] ?? 0),
         );
-        if (!empty($result['skip'])) {
-            $front['kinds'][$key]['verified'] = array_values((array) $result['skip']);
+        if (!empty($result['retry'])) {
+            // The site could not render the page for the check: try later.
+            $map['failures'] = (int) ($map['failures'] ?? 0) + 1;
+            $paused = $map['failures'] >= self::FAILURES;
+            if ($paused) {
+                $map['paused']   = time() + HOUR_IN_SECONDS;
+                $map['failures'] = 0;
+            }
+            SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::FRONT_PAGES, $map, false);
+            return $paused;
         }
-        SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::FRONT, $front, true);
+        $map['failures'] = 0;
+        $map['paused']   = 0;
+        $set = -1;
+        if ($result['skip']) {
+            $skip = array_values(array_unique($result['skip']));
+            sort($skip);
+            $set = array_search($skip, (array) $map['sets'], true);
+            if (false === $set) {
+                $map['sets'][] = $skip;
+                $set = count($map['sets']) - 1;
+            }
+            $set = (int) $set;
+            $map['kinds'][$item['kind']]['hint'] = $set;
+        }
+        if ($result['needed']) {
+            $needed = array_merge((array) ($map['kinds'][$item['kind']]['needed'] ?? array()), $result['needed']);
+            $map['kinds'][$item['kind']]['needed'] = array_slice(array_values(array_unique($needed)), 0, 100);
+        }
+        $pages = (string) preg_replace('/\|' . $item['key'] . ':[^|]*/', '', (string) $map['pages']);
+        $pages .= '|' . $item['key'] . ':' . $set . ':' . intdiv(time(), HOUR_IN_SECONDS);
+        $over = substr_count($pages, '|') - self::MAX_PAGES;
+        if ($over > 0) {
+            $cut   = 0;
+            for ($i = 0; $i < $over; $i++) {
+                $cut = (int) strpos($pages, '|', $cut + 1);
+            }
+            $pages = substr($pages, $cut);
+        }
+        $map['pages'] = $pages;
+        SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::FRONT_PAGES, self::compact($map), false);
+        return false;
     }
 
-    /** Schedule the next learned kind that has not been checked. */
-    private static function next() {
-        $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
-        foreach ((array) ($front['kinds'] ?? array()) as $key => $kind) {
-            if (is_array($kind) && !empty($kind['propose']) && !isset($kind['verify'])) {
-                wp_schedule_single_event(time() + MINUTE_IN_SECONDS, SEOProStack_Plugin_Loading::VERIFY_HOOK, array((string) $key));
-                return;
+    /**
+     * Drop skip sets no address uses any more, once there are many.
+     *
+     * @param array $map The checked addresses.
+     * @return array
+     */
+    private static function compact(array $map) {
+        if (count((array) $map['sets']) <= 64) {
+            return $map;
+        }
+        preg_match_all('/:(-?\d+):\d+/', (string) $map['pages'], $used);
+        $keep = array();
+        $sets = array();
+        foreach (array_unique(array_map('intval', $used[1])) as $old) {
+            if ($old >= 0 && isset($map['sets'][$old])) {
+                $keep[$old] = count($sets);
+                $sets[]     = $map['sets'][$old];
             }
         }
+        $map['pages'] = (string) preg_replace_callback('/:(-?\d+):(\d+)/', function ($match) use ($keep) {
+            return ':' . ((int) $match[1] >= 0 && isset($keep[(int) $match[1]]) ? $keep[(int) $match[1]] : -1) . ':' . $match[2];
+        }, (string) $map['pages']);
+        $map['sets'] = $sets;
+        foreach ((array) $map['kinds'] as $kind => $stats) {
+            if (isset($stats['hint'])) {
+                if (isset($keep[(int) $stats['hint']])) {
+                    $map['kinds'][$kind]['hint'] = $keep[(int) $stats['hint']];
+                } else {
+                    unset($map['kinds'][$kind]['hint']);
+                }
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * What the checks found, for the settings screen.
+     *
+     * @return array{checked: int, skipping: int, average: float, queued: int, paused: int, last: array}
+     */
+    public static function summary() {
+        $map   = get_option(SEOProStack_Plugin_Loader::FRONT_PAGES, array());
+        $map   = is_array($map) ? $map : array();
+        $queue = get_option(SEOProStack_Plugin_Loader::FRONT_QUEUE, array());
+        $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+        $current = is_array($front) && ($map['revision'] ?? null) === (string) get_option(SEOProStack_Plugin_Loader::FRONT_REVISION, '')
+            && ($map['active'] ?? null) === ($front['active'] ?? false);
+        $checked  = 0;
+        $skipping = 0;
+        $total    = 0;
+        if ($current) {
+            preg_match_all('/:(-?\d+):\d+/', (string) ($map['pages'] ?? ''), $sets);
+            foreach ($sets[1] as $set) {
+                $checked++;
+                if ((int) $set >= 0) {
+                    $skipping++;
+                    $total += count((array) ($map['sets'][(int) $set] ?? array()));
+                }
+            }
+        }
+        return array(
+            'checked'  => $checked,
+            'skipping' => $skipping,
+            'average'  => $skipping ? round($total / $skipping, 1) : 0.0,
+            'queued'   => is_array($queue) ? count($queue) : 0,
+            'paused'   => (int) ($map['paused'] ?? 0) > time() ? (int) $map['paused'] : 0,
+            'last'     => (array) ($map['last'] ?? array()),
+        );
     }
 }
