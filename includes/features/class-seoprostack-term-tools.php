@@ -16,7 +16,10 @@
  * Old term archive addresses (from a merge, move or slug pattern) redirect with a 301 to
  * the term that took over, when they would otherwise be a 404.
  *
- * Replaces Term Management Tools, which has no settings.
+ * Replaces Term Management Tools, which has no settings, and Categories to
+ * Tags Converter Importer (Move to taxonomy), except its post format
+ * conversion. The taxonomy's default term never moves, as the importer
+ * keeps the default category.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -47,6 +50,9 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
     /** @var array<int,bool> Terms currently being updated by a pattern. */
     private static $applying = array();
 
+    /** WordPress.org's Categories to Tags Converter Importer. */
+    const CAT2TAG = 'wpcat2tag-importer';
+
     /** Query argument: show only unused terms. */
     const UNUSED = 'seoprostack_unused';
 
@@ -66,7 +72,10 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 'tab'         => 'content',
                 'label'       => __('Term tools', 'seoprostack'),
                 'description' => __('Merge categories or tags, move them to another taxonomy, set their parent or apply slug patterns from the Bulk actions menu, and list the unused ones to delete them. Old addresses of changed terms redirect to the new ones. Set slug prefixes and suffixes in Options.', 'seoprostack'),
-                'replaces'    => array('term-management-tools' => 'Term Management Tools'),
+                'replaces'    => array(
+                    'term-management-tools' => 'Term Management Tools',
+                    self::CAT2TAG           => 'Categories to Tags Converter Importer',
+                ),
                 // The slug pattern table is this feature's own panel.
                 'panel'       => true,
             ),
@@ -98,6 +107,10 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         // Settings remain editable even while the feature is switched off.
         add_action('seoprostack_setting_panel', array(__CLASS__, 'pattern_fields'), 10, 2);
         add_action('admin_post_seoprostack_term_patterns', array(__CLASS__, 'save_patterns'));
+        if (is_admin()) {
+            // Replacement advice is needed even while the tools wait or are off.
+            add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'extras'), 10, 2);
+        }
         if (!self::enabled()) {
             return;
         }
@@ -110,6 +123,23 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
             return;
         }
         add_action('template_redirect', array(__CLASS__, 'redirect_old'), 9);
+    }
+
+    /**
+     * What Categories to Tags Converter Importer does that these tools do
+     * not: converting categories and tags to and from post formats, offered
+     * while the theme supports post formats.
+     *
+     * @param string[] $extras Plain names.
+     * @param string   $slug   Plugin folder.
+     * @return string[]
+     */
+    public static function extras($extras, $slug) {
+        $extras = (array) $extras;
+        if (self::CAT2TAG === $slug && current_theme_supports('post-formats')) {
+            $extras[] = __('converting categories and tags to and from post formats', 'seoprostack');
+        }
+        return $extras;
     }
 
     /**
@@ -618,17 +648,38 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         $ids     = array_values(array_unique($ids));
         $moved   = 0;
         $skipped = 0;
+        $kept    = 0;
         $keep    = is_taxonomy_hierarchical($from) && is_taxonomy_hierarchical($to);
+        $default = self::default_term($from);
+        $moving  = array();
         foreach ($ids as $id) {
             $term = get_term($id, $from);
             if (!$term instanceof WP_Term) {
+                continue;
+            }
+            // New posts get the default term: it stays, as Categories to
+            // Tags Converter Importer keeps the default category.
+            if ($default && $default === (int) $term->term_id) {
+                ++$kept;
                 continue;
             }
             if (get_term_by('slug', $term->slug, $to)) {
                 ++$skipped;
                 continue;
             }
-            $parent = $keep && in_array((int) $term->parent, $ids, true) ? (int) $term->parent : 0;
+            $moving[(int) $term->term_id] = $term;
+        }
+        // A term that stays loses a parent that moves.
+        foreach ($ids as $id) {
+            $term = get_term($id, $from);
+            if ($term instanceof WP_Term && !isset($moving[(int) $term->term_id]) && isset($moving[(int) $term->parent])) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- same table write as the move below.
+                $wpdb->update($wpdb->term_taxonomy, array('parent' => 0), array('term_taxonomy_id' => $term->term_taxonomy_id));
+            }
+        }
+        foreach ($moving as $term) {
+            // Only a parent that moves too stays the parent.
+            $parent = $keep && isset($moving[(int) $term->parent]) ? (int) $term->parent : 0;
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- core has no API to change a term's taxonomy.
             $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $to, 'parent' => $parent), array('term_taxonomy_id' => $term->term_taxonomy_id));
             self::remember_old($term->term_id, array($from . ':' . $term->slug));
@@ -647,12 +698,23 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         /**
          * Terms were moved to another taxonomy.
          *
-         * @param int[]  $ids  Term IDs, with the terms below them.
+         * @param int[]  $ids  IDs of the terms moved, with the terms below them that moved.
          * @param string $to   New taxonomy.
          * @param string $from Old taxonomy.
          */
-        do_action('seoprostack_terms_moved', $ids, $to, $from);
-        return 'moved:' . $moved . ':' . $skipped;
+        do_action('seoprostack_terms_moved', array_keys($moving), $to, $from);
+        return 'moved:' . $moved . ':' . $skipped . ':' . $kept;
+    }
+
+    /**
+     * A taxonomy's default term, which new posts get: the default category,
+     * or the `default_term` a taxonomy was registered with.
+     *
+     * @param string $taxonomy Taxonomy.
+     * @return int Term ID, or 0.
+     */
+    private static function default_term($taxonomy) {
+        return (int) get_option('category' === $taxonomy ? 'default_category' : 'default_term_' . $taxonomy, 0);
     }
 
     /**
@@ -726,6 +788,10 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                     $class = 'notice-warning';
                     /* translators: %d: number of terms */
                     $text .= ' ' . sprintf(_n('%d was left where it was: the other taxonomy already has a term with its slug. Merge them first.', '%d were left where they were: the other taxonomy already has terms with their slugs. Merge them first.', (int) $parts[2], 'seoprostack'), (int) $parts[2]);
+                }
+                if (!empty($parts[3])) {
+                    $class = 'notice-warning';
+                    $text .= ' ' . __('The default term was left where it was, as new posts get it. Choose another default first (for categories, in Settings → Writing).', 'seoprostack');
                 }
                 break;
             case 'parent':

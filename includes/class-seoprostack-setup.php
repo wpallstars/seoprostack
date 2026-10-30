@@ -599,6 +599,7 @@ final class SEOProStack_Setup {
             'admin/includes/class-theme-manager.php',
             'admin/includes/class-agency-examples.php',
             'admin/includes/class-host-plugins.php',
+            'admin/includes/class-core-plugins.php',
             'includes/admin/class-seoprostack-admin-whole-theme.php',
             'includes/admin/class-seoprostack-dark-fallback.php',
         );
@@ -610,6 +611,7 @@ final class SEOProStack_Setup {
         SEOProStack_Plugin_Manager::init();
         SEOProStack_Agency_Examples::init();
         SEOProStack_Host_Plugins::init();
+        SEOProStack_Core_Plugins::init();
         SEOProStack_Admin_Whole_Theme::init();
         SEOProStack_Dark_Fallback::init();
 
