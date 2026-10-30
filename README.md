@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.115-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.116-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.115
+Version: 1.3.116
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1405,6 +1405,7 @@ For **Cloudflare R2**, create a bucket, connect a custom domain for public readi
 - Objects use `Content-Type` from the file extension and `Cache-Control: public, max-age=31536000, immutable`; `seoprostack_media_storage_cache_control` can change the cache policy. Only explicit tests and background workers contact the API, never visitors or a settings screen render.
 - Deleting an attachment or editing its sizes retains the old object inventory for explicit cleanup. Stored media are never deleted automatically, including legacy queued deletes when old constants are restored. The connection test deletes only its own temporary probe. Only `forget-previous --delete-objects` deletes archived media, and only from the previous destination after verification.
 - The settings card names missing constants, shows progress and the last safe error, and offers **Test connection**. Every test PUTs, HEADs and DELETEs a small probe; the card shows the answer for five minutes while the constants stay the same. Failed uploads retry after one, six and then 24 hours. One batch runs at a time. WP-Cron must be running.
+- A picture whose upload is running counts as waiting (`status`, the card and its Media Library label, "Waiting to upload."), never as failed or uploaded: each attempt records its retry job first, so a run that dies part-way leaves it waiting and that job uploads it later; `upload --retry-failed` requeues one whose job was lost. It is marked failed, with the error, only when the attempt ends in a failure (a refused PUT, a restore that fails, a shared path).
 - CLI: `wp seoprostack media-storage status`, `test`, `upload [--limit=<n>] [--retry-failed]`, or `restore [--attachment=<id>] [--all]`, plus the handover commands below. Upload is bounded (default ten attachments), then cron continues; `--retry-failed` retries failed uploads and looks again at local copies kept after a failed check. Upload and test refuse while off or unconfigured. Removing the plugin removes records and jobs, **not objects in the bucket**.
 
 #### Private kept originals
@@ -2216,6 +2217,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.116
+
+- Fix: **Media in cloud storage** counts a picture whose upload is running as waiting, not failed. Each attempt was saved as failed before it sent anything, so `status`, the settings card and the Media Library showed every picture in a running batch as failed, with no error. A picture is now marked failed, with the error, only when its attempt fails; one whose run stopped part-way stays waiting and is retried (GitHub issue #1022).
 
 ### 1.3.115
 
