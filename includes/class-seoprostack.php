@@ -64,6 +64,14 @@ final class SEOProStack {
             require_once SEOPROSTACK_DIR . 'includes/github-updater/load.php';
         }
 
+        // Shared problem reports: registers this copy; the newest copy on
+        // the site loads on after_setup_theme and lists this plugin, so a
+        // site's AI assistant can draft reports for an administrator to send.
+        if (is_readable(SEOPROSTACK_DIR . 'includes/wpallstars-reports/load.php')) {
+            require_once SEOPROSTACK_DIR . 'includes/wpallstars-reports/load.php';
+            add_filter('wpallstars_report_products', array(__CLASS__, 'report_product'));
+        }
+
         SEOProStack_Settings::init();
         SEOProStack_Setup::init();
         // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
@@ -83,6 +91,37 @@ final class SEOProStack {
      */
     private static function feature_file($class) {
         return SEOPROSTACK_DIR . 'includes/features/class-' . str_replace('_', '-', strtolower($class)) . '.php';
+    }
+
+    /**
+     * The plugin's folder name, which names it in problem reports.
+     *
+     * @return string
+     */
+    public static function slug() {
+        return dirname(plugin_basename(SEOPROSTACK_FILE));
+    }
+
+    /**
+     * List the plugin for problem reports (wpallstars_report_products):
+     * reports go where SEOProStack_Setup::header_links()['support'] points, a
+     * GitHub issues address (public) or mailto:address (private, by email).
+     *
+     * @param mixed $products Products.
+     * @return array
+     */
+    public static function report_product($products) {
+        $products = (array) $products;
+        $links    = SEOProStack_Setup::header_links();
+        if (!empty($links['support'])) {
+            $products[self::slug()] = array(
+                'name'    => 'SEO Pro Stack',
+                'type'    => 'plugin',
+                'version' => SEOPROSTACK_VERSION,
+                'support' => $links['support'],
+            );
+        }
+        return $products;
     }
 
     /**

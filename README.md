@@ -63,7 +63,24 @@ Dark also covers Redux option panels, Super Speedy and Scalability Pro, FluentCR
 
 Every other plugin's and theme's screens turn dark too, without a section of their own: in Dark, SEO Pro Stack makes a dark copy of each of their stylesheets holding only the rules that paint a light background, a light border or dark grey text, in Dark's colours, and loads it right after the original. Brand colours, pictures and the block editor's canvas keep theirs. Copies are kept in `wp-content/uploads/seoprostack-dark`, made again when a stylesheet changes, and deleted when SEO Pro Stack is deactivated or uninstalled. Colours set in a screen's own `<style>` blocks, in `style` attributes or by script are not reached; the contrast guard still makes their text readable. The `seoprostack_admin_dark_fallback` filter (`bool $on, WP_Screen|null $screen`) turns the copies off for a screen, and `seoprostack_admin_dark_fallback_style` (`bool $copy, string $handle, string $href`) for one stylesheet.
 
-At the top right of the screen, **Source code** opens the plugin’s [GitHub repository](https://github.com/wpallstars/seoprostack) in a new tab, and **Support** opens its [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
+At the top right of the screen, **Source code** opens the plugin’s [GitHub repository](https://github.com/wpallstars/seoprostack) in a new tab, and **Support** opens **Tools → Report a problem** for administrators (Report a problem below). For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
+
+## Report a problem
+
+Found a problem in SEO Pro Stack, or an improvement that would help? Tell the maker, so every site using it gets the fix. **Tools → Report a problem** (or **Support** in the settings screen's header) takes reports for every wpallstars plugin and theme on the site:
+
+1. Write what you did, what you expected and what happened, with the steps to see it again, or the improvement and why it would help. Save the draft.
+2. Check **What will be sent**, word for word, then send it. SEO Pro Stack's reports open a new issue on its [GitHub issues](https://github.com/wpallstars/seoprostack/issues), filled in, for you to submit with your GitHub account. Issues are public, so the site's address, email and IP addresses, server paths and anything that looks like a key are taken out first.
+
+**AI assistants:** when a problem or an improvement you find belongs to SEO Pro Stack's own code, not to the site's content or settings, draft a report for the site's administrator to review: the `wpallstars/report-problem` ability (WordPress 6.9 and later; `wpallstars/reports` lists the plugins and themes that take reports and the drafts), or WP-CLI:
+
+```bash
+wp wpallstars report products
+wp wpallstars report create --product=seoprostack --title="Short summary" --details="Steps, what was expected, what happened, versions, error messages"
+wp wpallstars report list
+```
+
+Drafts only: nothing leaves the site until an administrator sends it in Tools → Report a problem, so tell them it is waiting. Leave out passwords, keys and personal data.
 
 ## Features
 
