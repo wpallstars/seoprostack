@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.116-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.117-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.116
+Version: 1.3.117
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1445,7 +1445,7 @@ Set `SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET` to a **separate private bucket*
 
 Cloudflare buckets cannot be transferred between accounts. Copy, verify, adopt, then clean up. Keep the previous bucket public and intact until every site is verified, including each subsite on a network.
 
-Before `forget-previous`, run `wp seoprostack media-storage collisions`. It is read-only and lists shared stored paths and object keys, with the latest attachment as the presumed owner of the bytes. Legacy uploads could reuse names after local copies were removed. New uploads reserve inventory filenames and refuse conflicting destination writes. Run `collisions --repair` to give earlier attachments unique filenames: only local copies matching their recorded SHA-256 are copied and uploaded. Missing or mismatched originals are marked failed with a request to re-add the picture, and no longer count as pending handover records. Repair keeps the old inventory as evidence, never deletes bucket objects, and leaves the later attachment untouched. Check and re-add failed pictures before retiring the old bucket.
+Before `forget-previous`, run `wp seoprostack media-storage collisions`. It is read-only and lists shared stored paths and object keys, with the latest attachment as the presumed owner of the bytes. Legacy uploads could reuse names after local copies were removed. New uploads reserve inventory filenames and refuse conflicting destination writes; the reserved names come from the claim index (only records whose names begin with the new file's name), or from every record while the index is rebuilt after an update. Run `collisions --repair` to give earlier attachments unique filenames: only local copies matching their recorded SHA-256 are copied and uploaded. Missing or mismatched originals are marked failed with a request to re-add the picture, and no longer count as pending handover records. Repair keeps the old inventory as evidence, never deletes bucket objects, and leaves the later attachment untouched. Check and re-add failed pictures before retiring the old bucket.
 
 1. The client creates a bucket and a scoped Object Read & Write key. Set up public reading through a custom domain (production) or `r2.dev` (development). Run `wp seoprostack media-storage status` under the old constants once after upgrading so its non-secret destination description is recorded.
 2. Copy the objects with a provider tool, such as R2 Super Slurper or `rclone copy --checksum agency:bucket client:bucket`, keeping the same key prefix. Do not use a sync/delete operation. Keep the agency bucket unchanged.
@@ -2217,6 +2217,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.117
+
+- Fix: **Media in cloud storage** no longer reads every stored picture's record to name each upload. With local copies removed, each new file name took 0.3 seconds with 1,400 stored pictures and over 7 seconds with 19,000, several times a picture, so bulk imports slowed as the library grew. It now reads only the records whose names can clash, from its index; until the index is rebuilt after an update, it reads them all as before (GitHub issue #1064).
 
 ### 1.3.116
 
