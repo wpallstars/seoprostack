@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.113
+Stable tag: 1.3.114
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,7 +153,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.113 =
-* Fix: Load plugins only where needed keeps checking addresses with long scheduled runs and an object cache, or when plugins save records (#1055).
+= 1.3.114 =
+* Fix: Load plugins only where needed keeps what it learned when plugins queue background work (#1055).
 
 Older: `changelog.txt`.

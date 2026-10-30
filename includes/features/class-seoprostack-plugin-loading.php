@@ -2136,6 +2136,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 return true;
             }
         }
+        // Work queued by the WP Background Processing library, which
+        // WooCommerce (privacy cleanup, emails, updates) and many plugins use:
+        // {identifier}_batch_{md5}, cut to 64 characters, saved from any
+        // request (GitHub issue #1055).
+        if (preg_match('/_batch_[0-9a-f]{8,32}$/', $name)) {
+            return true;
+        }
         if (class_exists('SEOProStack_Hosting_Needs', false) && SEOProStack_Hosting_Needs::enabled()) {
             if (null === self::$frequent_writes) {
                 $writes                = SEOProStack_Hosting_Needs::frequent_writes();
