@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.110 =
+* Fix: Load plugins only where needed kept forgetting or never finishing its address checks on some sites (GitHub issue #1039). Changes to SEO Pro Stack's own background fields (RECORD_META_PREFIXES: _seoprostack_storage*, _seoprostack_nextgen*, _seoprostack_link_scan, _seoprostack_link_map) no longer forget the site's pages: a media storage pass writes them for thousands of attachments, from WP-CLI too, and each write made the pages learn again. queue_address() schedules seoprostack_front_verify even when the queue is full (50): a run that stopped because the pages learned again left a full queue and nothing scheduled, so checks never started again. SEOProStack_Front_Verify::normalise() drops Cloudflare Rocket Loader's per-response token (named in data-cf-settings, used in each script type and data-cf-modified- attribute), which made pages with many scripts unstable; the Expires header is compared as minutes after the response's Date ("now" when expired or within half a minute), not as a date that is new on every render.
+
 = 1.3.109 =
 * Fix: Dark mode in wp-admin covers Ultimate Multisite's checkout field template previews (admin/css/seoprostack-whole-theme.css). Its pricing table, steps, template selection, period selection and order summary templates show a light mockup from assets/img/checkout-forms/ beside their description (img.wu-image-preview) and larger on hover (#wu-image-preview, which wu_image_preview() adds to <body> in a .wp-ui-primary frame); both were white over the dark modal. Pictures from checkout-forms/ are inverted at 88% with the hue turned back (180deg), so their white lands near the surface colour and blue and green stay; the hover frame takes the surface, border and a shadow, and its picture's ground the canvas. Site template and theme screenshots use the same hover picture and keep their colours (GitHub issue #1051).
 

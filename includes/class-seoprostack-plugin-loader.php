@@ -1006,13 +1006,13 @@ final class SEOProStack_Plugin_Loader {
     public static function queue_address($key, $path, $kind) {
         $queue = get_option(self::FRONT_QUEUE, array());
         $queue = is_array($queue) ? $queue : array();
-        if (!isset($queue[$key])) {
-            if (count($queue) >= self::QUEUE_MAX) {
-                return;
-            }
+        if (!isset($queue[$key]) && count($queue) < self::QUEUE_MAX) {
             $queue[$key] = array('path' => (string) $path, 'kind' => (string) $kind, 'time' => time());
             update_option(self::FRONT_QUEUE, $queue, false);
         }
+        // Even with the queue full: a run that stopped when the site's
+        // pages learned again leaves it full and nothing scheduled, and
+        // checks then never started again (GitHub issue #1039).
         if (!wp_next_scheduled(self::VERIFY_HOOK)) {
             wp_schedule_single_event(time() + 30, self::VERIFY_HOOK);
         }
