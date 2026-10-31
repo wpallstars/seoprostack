@@ -3,8 +3,8 @@
 # run by hand: deploy-sites.sh streams it to bash on the host for a dry run,
 # and for --apply copies it with the zip to a private folder there first.
 #
-# Usage: bash deploy-remote.sh list  SLUG PARENT [SKIP]...
-#        bash deploy-remote.sh apply SLUG PARENT VERSION ZIP SHA256 BACKUPS [SKIP]...
+# Usage: bash deploy-remote.sh list  SLUG PARENT [--version=X.Y.Z] [--allow-downgrade] [SKIP]...
+#        bash deploy-remote.sh apply SLUG PARENT VERSION ZIP SHA256 BACKUPS [--allow-downgrade] [SKIP]...
 #
 # PARENT is a pattern for the WordPress folders (wp-config.php and the
 # plugin's main file inside); a leading ~/ is the home folder. Only installs
@@ -17,6 +17,12 @@
 # run for that fetch, and WARN purge failed that visitors may still get pages
 # pointing at the old CSS and JS. apply exits 1 on a failed site, a version
 # not reached or new log lines.
+#
+# apply holds a per-plugin lock on the host, ~/.SLUG-deploy/.lock (mkdir,
+# with an owner file: PID, tag, start time, parent), from before the first
+# install until it exits. While another run's lock is live it installs
+# nothing, names that run and exits 3; a lock whose run has gone is taken
+# over with a warning. list takes no lock and says when a run is active.
 #
 # Bash only, and no process substitution: /dev/fd is missing in some SSH
 # sessions. Never wp plugin update: on hosts with HTTP request limiters
@@ -36,7 +42,9 @@ WP_CLI="${DEPLOY_WP_CLI:-wp}"
 WEB_ERROR_LOG="${DEPLOY_WEB_ERROR_LOG:-}"
 SLUG=""
 FAILED=0
+ALLOW_DOWNGRADE=0
 RUN_STAMP=""
+LOCK_DIR=""
 FETCHES=0
 SKIPS=()
 LOG_FILES=()
@@ -266,7 +274,7 @@ active_guard() {
 # Discover log files before installation, then print the lines each one gained.
 log_files() {
 	local root="$1"
-	local wp_debug php_error path candidate existing duplicate
+	local wp_debug php_error path folder candidate existing duplicate
 	local candidates=()
 	local unique=()
 	wp_debug="$(wp_bare "$root" eval 'echo defined("WP_DEBUG_LOG") && is_string(WP_DEBUG_LOG) && !in_array(strtolower(WP_DEBUG_LOG), array("1", "true"), true) ? WP_DEBUG_LOG : (defined("WP_DEBUG_LOG") && WP_DEBUG_LOG ? WP_CONTENT_DIR . "/debug.log" : "");')" || return 1
@@ -280,9 +288,17 @@ log_files() {
 		else
 			path="$root/$WEB_ERROR_LOG"
 		fi
+		folder="$(dirname "$path")"
+		if [[ ! -d "$folder" ]]; then
+			say "deploy-remote: the web PHP log's folder does not exist: $folder"
+			return 1
+		fi
 		if [[ -e "$path" && ( ! -f "$path" || ! -r "$path" ) ]]; then
 			say "deploy-remote: web PHP log is not a readable regular file: $path"
 			return 1
+		fi
+		if [[ ! -e "$path" ]]; then
+			say "web PHP log $path: not there yet (counted if the install creates it)"
 		fi
 		candidates+=("$path")
 	fi
@@ -362,13 +378,42 @@ installs() {
 	return 0
 }
 
+# The host provides coreutils sort -V; equal versions may be reinstalled.
+# Return 2 on comparison failure, distinct from 1 (not newer).
+newer_than() {
+	local installed="$1"
+	local want="$2"
+	local sorted
+	[[ -n "$installed" && "$installed" != "$want" ]] || return 1
+	sorted="$(printf '%s\n%s\n' "$want" "$installed" | sort -V)" || return 2
+	[[ "${sorted##*$'\n'}" == "$installed" ]] || return 1
+	return 0
+}
+
 list_one() {
 	local root="$1"
 	local name="$2"
-	local version kind
+	local want="${3:-}"
+	local version kind note="" comparison=0
 	version="$(plugin_version "$root/wp-content/plugins/$SLUG/$SLUG.php")"
 	kind="$(wp_bare "$root" eval 'echo is_multisite() ? "multisite" : "single";')" || return 1
-	printf '%s\t%s\t%s\t%s\n' "$name" "${version:-?}" "${kind:-unknown}" "$root"
+	if [[ -n "$want" ]]; then
+		newer_than "$version" "$want" || comparison=$?
+		case "$comparison" in
+		0)
+			note="newer than tag; --apply will refuse"
+			[[ "$ALLOW_DOWNGRADE" -eq 0 ]] || note="newer than tag; downgrade allowed (--allow-downgrade)"
+			;;
+		1) ;;
+		*)
+			note="FAIL: cannot compare versions; --apply will refuse without --allow-downgrade"
+			FAILED=1
+			;;
+		esac
+	fi
+	printf '%s\t%s\t%s\t%s' "$name" "${version:-?}" "${kind:-unknown}" "$root"
+	[[ -z "$note" ]] || printf '\t%s' "$note"
+	printf '\n'
 	return 0
 }
 
@@ -532,8 +577,25 @@ apply_one() {
 	local plugins="$root/wp-content/plugins"
 	local main="$plugins/$SLUG/$SLUG.php"
 	local before after backup new_lines result="ok" warn="" index file current added
+	local comparison=0
 
 	before="$(plugin_version "$main")"
+	if [[ "$ALLOW_DOWNGRADE" -eq 0 ]]; then
+		newer_than "$before" "$want" || comparison=$?
+		case "$comparison" in
+		0)
+			printf '%s\tFAIL: has %s, newer than %s; not installed (--allow-downgrade to install anyway)\n' "$name" "$before" "$want"
+			FAILED=1
+			return 0
+			;;
+		1) ;;
+		*)
+			printf '%s\tFAIL: cannot compare versions; not installed\n' "$name"
+			FAILED=1
+			return 0
+			;;
+		esac
+	fi
 	backup="$backups/$SLUG-$name-${before:-unknown}.tar.gz"
 	if ! tar -czf "$backup" -C "$plugins" "$SLUG"; then
 		printf '%s\tFAIL: could not back up %s; not installed\n' "$name" "$plugins/$SLUG"
@@ -615,6 +677,140 @@ sha256_of() {
 	return 0
 }
 
+# The host's per-plugin deploy lock: ~/.SLUG-deploy/.lock, made with mkdir
+# (atomic everywhere, unlike flock, which shared hosts may lack), with an
+# owner file inside: pid, tag, started and parent, one key=value per line.
+lock_path() {
+	printf '%s/.%s-deploy/.lock' "$HOME" "$SLUG"
+	return 0
+}
+
+lock_field() {
+	local dir="$1"
+	local key="$2"
+	[[ -f "$dir/owner" ]] || return 0
+	awk -v k="$key" 'index($0, k "=") == 1 { print substr($0, length(k) + 2); exit }' "$dir/owner" 2>/dev/null
+	return 0
+}
+
+lock_holder() {
+	local dir="$1"
+	local tag started parent pid
+	tag="$(lock_field "$dir" tag)"
+	started="$(lock_field "$dir" started)"
+	parent="$(lock_field "$dir" parent)"
+	pid="$(lock_field "$dir" pid)"
+	printf 'tag %s, started %s, parent %s, PID %s' "${tag:-?}" "${started:-?}" "${parent:-?}" "${pid:-?}"
+	return 0
+}
+
+# Whether the lock's run is still going: its PID runs deploy-remote.sh (ps
+# also rules out a reused PID), or, without ps, kill -0 finds it. A lock
+# with no owner file yet is being taken: live for its first two minutes.
+lock_live() {
+	local dir="$1"
+	local pid args
+	pid="$(lock_field "$dir" pid)"
+	if [[ -z "$pid" ]]; then
+		[[ -n "$(find "$dir" -maxdepth 0 -mmin -2 2>/dev/null)" ]] || return 1
+		return 0
+	fi
+	[[ "$pid" =~ ^[0-9]+$ ]] || return 1
+	if command -v ps >/dev/null 2>&1; then
+		args="$(ps -p "$pid" -o args= 2>/dev/null)" || return 1
+		[[ "$args" == *deploy-remote* ]] || return 1
+		return 0
+	fi
+	kill -0 "$pid" 2>/dev/null || return 1
+	return 0
+}
+
+# Remove a stale lock only if it is still the one judged stale: move it
+# aside (atomic), then compare its PID. A lock another run took meanwhile
+# is put back.
+lock_break() {
+	local dir="$1"
+	local stale_pid="$2"
+	local moved="$dir.stale.$$"
+	mv "$dir" "$moved" 2>/dev/null || return 0
+	if [[ "$(lock_field "$moved" pid)" == "$stale_pid" ]]; then
+		rm -rf "$moved"
+		return 0
+	fi
+	if [[ ! -e "$dir" ]] && mv "$moved" "$dir" 2>/dev/null; then
+		return 0
+	fi
+	say "deploy-remote: WARN a lock taken during the takeover was moved to $moved; remove it once no deploy of $SLUG runs"
+	return 0
+}
+
+# Takes the lock for this apply run, or says who holds it. Returns 3 when
+# another run holds it, 2 when the lock cannot be made.
+lock_take() {
+	local tag="$1"
+	local parent="$2"
+	local dir pid tries=0
+	dir="$(lock_path)"
+	if ! mkdir -p "$(dirname "$dir")"; then
+		say "deploy-remote: cannot make $(dirname "$dir"); nothing installed"
+		return 2
+	fi
+	while [[ "$tries" -lt 3 ]]; do
+		tries=$((tries + 1))
+		if mkdir "$dir" 2>/dev/null; then
+			if ! printf 'pid=%s\ntag=%s\nstarted=%s\nparent=%s\n' "$$" "$tag" \
+				"$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(printf '%s' "$parent" | tr '\n' ' ')" >"$dir/owner" 2>/dev/null ||
+				[[ "$(lock_field "$dir" pid)" != "$$" ]]; then
+				say "deploy-remote: lost the deploy lock $dir while taking it; nothing installed"
+				return 3
+			fi
+			LOCK_DIR="$dir"
+			trap lock_release EXIT
+			trap 'exit 129' HUP
+			trap 'exit 130' INT
+			trap 'exit 143' TERM
+			return 0
+		fi
+		# Gone since mkdir failed: another run's takeover; try again.
+		[[ -d "$dir" ]] || continue
+		if lock_live "$dir"; then
+			say "deploy-remote: another deploy of $SLUG is running on this host ($(lock_holder "$dir")); nothing installed. Wait for it to finish, then run again."
+			return 3
+		fi
+		pid="$(lock_field "$dir" pid)"
+		say "deploy-remote: WARN taking over a stale deploy lock ($(lock_holder "$dir")): that run is no longer running"
+		lock_break "$dir" "$pid"
+	done
+	if [[ ! -d "$dir" ]]; then
+		say "deploy-remote: cannot make the deploy lock $dir; nothing installed"
+		return 2
+	fi
+	say "deploy-remote: could not take the deploy lock $dir after 3 tries; nothing installed"
+	return 3
+}
+
+# On exit: remove the lock, but only while it is still this run's.
+lock_release() {
+	if [[ -n "$LOCK_DIR" && "$(lock_field "$LOCK_DIR" pid)" == "$$" ]]; then
+		rm -rf "$LOCK_DIR"
+	fi
+	LOCK_DIR=""
+	return 0
+}
+
+# Dry run: say when an apply run is active; it takes no lock.
+lock_report() {
+	local dir
+	dir="$(lock_path)"
+	[[ -d "$dir" ]] || return 0
+	if lock_live "$dir"; then
+		say "A deploy of $SLUG is running on this host ($(lock_holder "$dir")); --apply stops until it ends."
+	else
+		say "A stale deploy lock of $SLUG is on this host ($(lock_holder "$dir")); --apply will take it over."
+	fi
+	return 0
+}
+
 main() {
 	local mode="${1:-}"
 	SLUG="${2:-}"
@@ -637,12 +833,20 @@ main() {
 			say "deploy-remote: list needs SLUG PARENT"
 			return 2
 		}
+		if [[ "${1:-}" == --version=* ]]; then
+			want="${1#--version=}"
+			shift
+		fi
 		;;
 	*)
 		say "deploy-remote: the first argument is list or apply"
 		return 2
 		;;
 	esac
+	if [[ "${1:-}" == --allow-downgrade ]]; then
+		ALLOW_DOWNGRADE=1
+		shift
+	fi
 	SKIPS=("$@")
 	if [[ ! "$SLUG" =~ ^[a-z0-9-]+$ ]]; then
 		say "deploy-remote: not a plugin slug: $SLUG"
@@ -667,6 +871,9 @@ main() {
 			say "deploy-remote: cannot make the backup folder $backups"
 			return 2
 		fi
+		lock_take "v$want" "$parent" || return $?
+	else
+		lock_report
 	fi
 
 	RUN_STAMP="$(date -u +%Y%m%d%H%M%S)-$$"
@@ -682,7 +889,7 @@ main() {
 		if [[ "$apply" -eq 1 ]]; then
 			apply_one "$root" "$name" "$want" "$zip" "$backups"
 		else
-			if ! list_one "$root" "$name"; then
+			if ! list_one "$root" "$name" "$want"; then
 				printf '%s\tFAIL: cannot read WordPress; no change made, no restore needed\n' "$name"
 				FAILED=1
 			fi

@@ -38,7 +38,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-final class WPAllStars_Reports {
+final class WPAllStars_Reports { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Shared across wpallstars products; see STANDARDS.md, Problem reports.
 
     /** Admin screen slug (Tools → Report a problem); wpallstars_report_url() uses it too. */
     const PAGE = 'wpallstars-report';
@@ -116,7 +116,7 @@ final class WPAllStars_Reports {
          *                                      name, type (plugin or theme), version and
          *                                      support (GitHub issues address or mailto:address).
          */
-        $listed   = apply_filters('wpallstars_report_products', array());
+        $listed   = apply_filters('wpallstars_report_products', array()); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Shared across wpallstars products; see STANDARDS.md, Problem reports.
         $products = array();
         foreach ((array) $listed as $slug => $product) {
             if (!is_string($slug) || !is_array($product)) {
@@ -768,7 +768,8 @@ final class WPAllStars_Reports {
         echo '<div class="wrap">';
         echo '<h1 class="wp-heading-inline">' . esc_html__('Report a problem', 'seoprostack') . '</h1>';
         if ('new' !== $id) {
-            echo ' <a class="page-title-action" href="' . esc_url(self::url('new', $product ? array('product' => $product) : array())) . '">' . esc_html__('New report', 'seoprostack') . '</a>';
+            $new_url = self::url('new', $product ? array('product' => $product) : array());
+            printf(' <a class="page-title-action" href="%1$s">%2$s</a>', esc_url($new_url), esc_html__('New report', 'seoprostack'));
         }
         echo '<hr class="wp-header-end">';
         self::render_done($done);
@@ -901,6 +902,7 @@ final class WPAllStars_Reports {
         $current  = $report ? $report['product'] : $product;
         $type     = $report ? $report['type'] : 'problem';
         $disabled = $sent ? ' disabled' : '';
+        $details  = $report ? (string) $report['details'] : '';
         ?>
         <p><a href="<?php echo esc_url(self::url()); ?>">&larr; <?php esc_html_e('All reports', 'seoprostack'); ?></a></p>
         <?php if ($report && 'assistant' === $report['source'] && !$sent) : ?>
@@ -938,7 +940,7 @@ final class WPAllStars_Reports {
                 <tr>
                     <th scope="row"><label for="wpallstars-report-details"><?php esc_html_e('Details', 'seoprostack'); ?></label></th>
                     <td>
-                        <textarea id="wpallstars-report-details" name="details" class="large-text code" rows="14" maxlength="<?php echo esc_attr((string) self::DETAILS_MAX); ?>" required<?php echo esc_attr($disabled); ?>><?php echo esc_textarea($report ? $report['details'] : ''); ?></textarea>
+                        <textarea id="wpallstars-report-details" name="details" class="large-text code" rows="14" maxlength="<?php echo esc_attr((string) self::DETAILS_MAX); ?>" required<?php echo esc_attr($disabled); ?>><?php printf('%s', esc_textarea($details)); ?></textarea>
                         <p class="description"><?php esc_html_e('What you did, what you expected and what happened, with the steps to see it again, or the improvement and why it would help. Leave out passwords and licence keys.', 'seoprostack'); ?></p>
                     </td>
                 </tr>
