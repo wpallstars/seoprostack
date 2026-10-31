@@ -2255,6 +2255,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Fix: **Load plugins only where needed** keeps learned pages when option writes leave the stored value unchanged at the end of the request, including temporary Kadence colour writes from WP-CLI (GitHub issue #1074).
 - Changed: shorter feature descriptions keep the WordPress.org readme below 9.5 KB, with room for release notes; headings, disclosures and release history stay (GitHub issue #1102).
 
 ### 1.3.127

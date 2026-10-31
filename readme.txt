@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Learned pages survive option writes that leave the value unchanged (#1074).
+
 = 1.3.127 =
 * Faster: Kadence icon picker opens at once; faster editor with Lasso Lite and EventON (#1100).
 
