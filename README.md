@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.120-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.121-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.120
+Version: 1.3.121
 
 <!-- github-only:start -->
 ## Screenshots
@@ -923,6 +923,7 @@ Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_li
 - Kadence’s Sync button always goes to the site and Kadence’s servers, and drops the kept copy.
 - Nothing is stored on the server; browsers without Cache Storage (sites not on HTTPS) still send each request once.
 - The library lays out all of its patterns at once (833 on the test site, a list about 70,000 px tall). Each pattern gets `content-visibility: auto`, so the browser lays out and draws only the ones on screen and the rest as they are scrolled to. Browsers without it ignore the rule.
+- Kadence's icon picker (Select Icon in its blocks' settings) draws all of its icons each time it opens: 5,482 on the test site, over 22,000 elements. Each icon set and each icon gets `content-visibility: auto` the same way, so the picker opened in 0.6 seconds instead of 1.35, and in dark mode in 0.9 seconds instead of 2.6 or more. Searching and choosing work as before.
 
 On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
 
@@ -1940,6 +1941,8 @@ Off by default. Fluent Support Pro turns support email into tickets through Flue
 
 On by default. Works around bugs in other plugins that slow the site down or leave it broken, through those plugins’ own hooks. No other plugin’s settings are changed, so turning this off brings each bug back as it was (a file already deleted stays deleted). The one fix that writes a file is the LiteSpeed block in `.htaccess`, which is removed when this is turned off or SEO Pro Stack is deactivated. Turn it off if a fix causes a problem.
 
+- **Hreflang Manager** (1.33): its block editor stylesheet gives every field `margin: 0 24px 8px` (`.components-base-control .components-base-control__field`), a rule meant only for its connections window, so the fields in every block's settings moved 24 px in from each side: Kadence's unit boxes (px beside Max Width, the unit beside Line Height) and switches stood apart from their fields. Outside that window (`.dahm-single-connection`) fields keep their own margins; inside it Hreflang Manager's layout is unchanged.
+- **Kadence Blocks' link field** (3.8.0 and 3.8.1, Text Wrap Link and other links): its Submit icon is sized to 16 px but has no `viewBox`, so only its top left showed beside the address, and WordPress's 40 px text fields made the address taller than the 38 px buttons beside it. The icon is scaled whole and the address is 38 px, level with the buttons.
 - **Image Copytrack** (1.2.4): its admin vendor script uses `regeneratorRuntime` without declaring the runtime as a dependency, so Add Plugins, View details and other screens can throw “regeneratorRuntime is not defined” when no other plugin supplies it first. Its registered vendor handle now depends on WordPress’s `regenerator-runtime`, so WordPress loads it first only where Copytrack’s script is used. No plugins are kept loaded just to provide it.
 - **Tutor LMS's admin body classes** (4.1.3): it adds `tutor-lms` without a leading space, joining the preceding plugin's class (`acf-browser-chrometutor-lms` with Secure Custom Fields), so neither plugin's styles match. Its own callback now receives a separating space, including after filters at the same priority. Nothing changes when Tutor is inactive or skipped.
 - **GOTMLS (Anti-Malware)** (4.23.90): its post types use `do_not_allow` to deny reading and editing, but WordPress also records that as a post-specific capability. The admin bar's Add New menu then logs “When checking for the read_post capability, you must always check it against a specific post” on every admin screen. That invalid mapping is removed whenever any plugin registers a post type, keeping `do_not_allow` denied without the notice. GOTMLS's posts still cannot be read or edited.
@@ -2238,6 +2241,12 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.121
+
+- Fix: Kadence Blocks’ block settings in dark mode. Colour circles such as Link Colour lose their dotted ring; the chosen HTML Tag and Text Alignment buttons lose their light frame, and the others are easier to read; the Select Icon arrow is light instead of black, and popover arrows lose their light outline (GitHub issue #1087).
+- Fix: **Fixes for other plugins** keeps block settings fields in place, in light and dark mode. Hreflang Manager’s editor stylesheet moved every field 24 px in from each side, so Kadence’s unit boxes (px beside Max Width, the unit beside Line Height) stood apart from their fields; and Kadence Blocks’ link fields (Text Wrap Link) show their whole Submit icon, level with the buttons beside them (GitHub issue #1087).
+- Faster: **Faster editor with Kadence Blocks** draws only the icons on screen in Kadence’s icon picker, which drew all 5,482 each time it opened: on the preview site it opened in 0.6 seconds instead of 1.35, and in dark mode in 0.9 seconds instead of 2.6 or more (GitHub issue #1087).
 
 ### 1.3.120
 
