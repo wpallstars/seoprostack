@@ -230,6 +230,20 @@
  * it throws "regeneratorRuntime is not defined". Its registered vendor
  * handle now depends on WordPress's regenerator-runtime too.
  *
+ * Hreflang Manager (checked with 1.33) loads a block editor stylesheet whose
+ * rule for its connections window, .components-base-control
+ * .components-base-control__field{margin:0 24px 8px}, is not limited to that
+ * window, so every field in every block's settings moved 24 px in from each
+ * side, with 8 px below: Kadence's unit boxes (px beside Max Width, the unit
+ * beside Line Height) and switches stood apart from their fields. Outside
+ * that window the fields keep their own margins (none in WordPress 7.1).
+ *
+ * Kadence Blocks' link field (Text Wrap Link and other links, checked with
+ * 3.8.0 and 3.8.1) sizes its Submit icon to 16 px, but that SVG has no
+ * viewBox, so only its top left showed beside the address; and WordPress's
+ * 40 px text fields made the address taller than the 38 px buttons beside
+ * it. The icon is scaled whole and the address is as tall as the buttons.
+ *
  * @package SEOProStack
  */
 
@@ -344,6 +358,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      */
     private static $kadence_theme_mods = array();
 
+    /** Hreflang Manager's block editor stylesheet handle. */
+    const HREFLANG_EDITOR_STYLE = 'dahm-editor-css';
+
     /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
     const CRONTROL_NOTICE = 'crontrol-status-notice';
 
@@ -382,7 +399,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -467,6 +484,35 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             add_action('admin_init', array(__CLASS__, 'burst_collation_stop'), PHP_INT_MAX);
             // After Copytrack registers its scripts at priority 10, before printing.
             add_action('admin_enqueue_scripts', array(__CLASS__, 'copytrack_runtime'), 100);
+            // Last, after Hreflang Manager and Kadence Blocks enqueue their styles.
+            add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_field_css'), PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Keep block settings fields in place: undo Hreflang Manager's field
+     * margins outside its connections window, and size Kadence Blocks' link
+     * field to its buttons with its whole Submit icon.
+     */
+    public static function editor_field_css() {
+        if (wp_style_is(self::HREFLANG_EDITOR_STYLE, 'enqueued')) {
+            // Its own window (.dahm-single-connection) keeps them; panel rows keep WordPress's inherited bottom margin.
+            wp_add_inline_style(
+                self::HREFLANG_EDITOR_STYLE,
+                '.components-base-control:not(.dahm-single-connection *) .components-base-control__field{margin-right:0;margin-left:0}'
+                . '.components-base-control:not(.dahm-single-connection *,.components-panel__row *) .components-base-control__field{margin-bottom:0}'
+            );
+        }
+        if (defined('KADENCE_BLOCKS_VERSION')) {
+            $handle = 'seoprostack-kadence-fields';
+            wp_register_style($handle, false, array(), SEOPROSTACK_VERSION);
+            wp_enqueue_style($handle);
+            // The icon is 24 px without a viewBox: drawn at 24 px, scaled to Kadence's 16 px.
+            wp_add_inline_style(
+                $handle,
+                '.kb-side-link-control .kb-side-link-control-inner-row .kb-search-url-input input{min-height:0;height:36px}'
+                . '.kb-side-link-control .kb-side-link-control-inner-row .kb-search-url-submit.components-button svg{width:24px;height:24px;margin:-4px;transform:scale(.6667)}'
+            );
         }
     }
 
