@@ -71,6 +71,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $maps = array();
     /** Original leases held until the reader finishes this request. @var array<string,string> */
     private static $original_leases = array();
+    /** Nested watermark/storage calls share one request-owned batch lease. @var array<string,array{value:string,depth:int}> */
+    private static $batch_leases = array();
     /** Attachments whose local files this batch deleted: their posts' cached pages are purged. @var array<int,true> */
     private static $purge = array();
 
@@ -1783,6 +1785,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
 
     /** Register local hooks even when off; remote work always checks ready(). */
     public static function boot() {
+        require_once __DIR__ . '/class-seoprostack-media-jobs.php';
+        SEOProStack_Media_Jobs::boot();
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'), 10, 2);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         add_action('admin_post_seoprostack_storage_test', array(__CLASS__, 'handle_test'));
@@ -2239,13 +2243,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             )));
             foreach ($ids as $id) {
                 $before = $id;
+                $watermark = SEOProStack_Watermark_Images::record($id);
+                if (!empty($watermark['remark_pending']) || SEOProStack_Watermark_Images::mark_queued($id)) {
+                    continue;
+                }
                 $job = get_option(self::JOB . 'retry_original_' . $id);
                 if (is_array($job) && ($job['signature'] ?? '') === $signature && ($job['next'] ?? 0) > time() && self::needs_original_only($id, (array) get_post_meta($id, self::META, true))) {
                     continue;
                 }
                 $waiting[] = $id;
             }
-            // Page past cooling originals so they cannot starve older uploads.
+            // Page past cooling originals and unfinished refreshes so they
+            // cannot starve older uploads, without publishing clean sizes.
         } while (count($waiting) < $limit && count($ids) === $remaining);
         return $waiting;
     }
@@ -2328,6 +2337,56 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * One media-job operation, called only while its runner holds our lease.
+     * Existing inventory, size, digest and destination checks remain authoritative.
+     *
+     * @param string $kind Job kind.
+     * @param int $id Attachment ID.
+     * @return true|string|WP_Error True when done, "skipped" when nothing was needed.
+     */
+    public static function media_job_step($kind, $id) {
+        if (!self::ready()) {
+            // A re-mark without cloud storage has nothing to upload.
+            return 'remark' === $kind ? true : new WP_Error('storage_off', 'Media in cloud storage is not ready.');
+        }
+        $start = microtime(true);
+        if ('adopt' === $kind) {
+            $result = self::handover_attachment($id, false, false, true, $start);
+            if ('skipped' === $result) {
+                return 'skipped';
+            }
+            return 'adopted' === $result ? true : new WP_Error('storage_adopt', sprintf('Adoption of attachment %d: %s.', $id, $result));
+        }
+        if ('originals' === $kind) {
+            if ('' === self::config()['originals_bucket'] || self::config()['originals_error']) {
+                return new WP_Error('storage_originals_config', 'Configure a separate private originals bucket first.');
+            }
+            // Most kept originals of a large library are drained already:
+            // those cost no request and do not use up the turn (GitHub issue #1069).
+            $record = SEOProStack_Watermark_Images::record($id);
+            if (empty($record['backup'])) {
+                return 'skipped';
+            }
+            if (!empty($record['remote'])) {
+                $path = self::kept_original_path($record);
+                if (!is_wp_error($path) && !is_file($path)) {
+                    return 'skipped';
+                }
+            }
+            return self::upload_original($id);
+        }
+        if (!self::upload_attachment($id, $start)) {
+            return new WP_Error('storage_upload', 'Upload is incomplete; the picture remains queued.');
+        }
+        if (self::removing()) {
+            $result = self::remove_local($id, microtime(true) + self::BUDGET);
+            self::purge_pages();
+            return $result;
+        }
+        return true;
+    }
+
+    /**
      * Run uploads and deletes off the page, waiting for watermark jobs.
      *
      * @param int $limit Most upload attempts.
@@ -2337,6 +2396,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $ready = self::ready();
         // Switched off, the batch only brings removed files back.
         if (!$ready && !self::restoring() && !self::original_jobs_due()) {
+            SEOProStack_Media_Jobs::run_batch();
             return 0;
         }
         self::schedule(60);
@@ -2360,6 +2420,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
             self::local_copies($start, $limit, (int) (self::BUDGET / 2));
+            if (SEOProStack_Media_Jobs::run_batch()) {
+                return 0;
+            }
             if (self::original_jobs_due()) {
                 self::original_jobs($limit, $start);
             }
@@ -3100,8 +3163,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param string $name Lock option name.
      * @return string The lease this batch holds; empty when another batch runs.
      */
-    private static function lease($name = self::LOCK) {
+    public static function lease($name = self::LOCK) {
         global $wpdb;
+        $key = get_current_blog_id() . ':' . $name;
+        if (self::LOCK === $name && isset(self::$batch_leases[$key])) {
+            ++self::$batch_leases[$key]['depth'];
+            return self::$batch_leases[$key]['value'];
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read past the options cache: the lease changes under it.
         $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name));
         if ('' !== $held && (int) strtok($held, ' ') < time()) {
@@ -3109,7 +3177,31 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $value = (time() + 300) . ' ' . wp_generate_uuid4();
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- an atomic insert is the lease; the options API cannot do it.
-        return $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $value)) ? $value : '';
+        $inserted = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $value));
+        if ($inserted && self::LOCK === $name) {
+            self::$batch_leases[$key] = array('value' => $value, 'depth' => 1);
+        }
+        return $inserted ? $value : '';
+    }
+
+    /**
+     * Take the batch lease, waiting for a running batch's bounded turn to
+     * end. WP-CLI and WP-Cron wait up to a minute; page requests a few
+     * seconds, so they never run into PHP's time limit.
+     *
+     * @return string The lease; empty when the wait ran out.
+     */
+    public static function lease_wait() {
+        $patience = (defined('WP_CLI') && WP_CLI) || wp_doing_cron() ? 60 : 5;
+        $until = microtime(true) + $patience;
+        do {
+            $lease = self::lease();
+            if ('' !== $lease) {
+                return $lease;
+            }
+            usleep(250000);
+        } while (microtime(true) < $until);
+        return '';
     }
 
     /**
@@ -3118,8 +3210,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param string $value Lease value.
      * @param string $name Lock option name.
      */
-    private static function release($value, $name = self::LOCK) {
+    public static function release($value, $name = self::LOCK) {
         global $wpdb;
+        $key = get_current_blog_id() . ':' . $name;
+        if (isset(self::$batch_leases[$key]) && self::$batch_leases[$key]['value'] === $value) {
+            if (--self::$batch_leases[$key]['depth'] > 0) {
+                return;
+            }
+            unset(self::$batch_leases[$key]);
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-delete; the lease row is never cached (see lease()).
         $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", $name, $value));
     }
@@ -3897,7 +3996,33 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether all eligible files were copied.
      */
     public static function upload_attachment($id, $start = null) {
+        $lease = self::lease();
+        if (!$lease) {
+            return false;
+        }
+        try {
+            return self::upload_locked($id, $start);
+        } finally {
+            self::release($lease);
+        }
+    }
+
+    /**
+     * Upload implementation under the shared storage/watermark lease.
+     *
+     * @param int $id Attachment ID.
+     * @param float|null $start Batch start.
+     * @return bool
+     */
+    private static function upload_locked($id, $start) {
         global $wpdb;
+        // A killed re-mark may leave clean intermediate sizes on disk. Never
+        // publish them, even after its batch lease expires or the job stops.
+        wp_cache_delete($id, 'post_meta');
+        $watermark = SEOProStack_Watermark_Images::record($id);
+        if (!empty($watermark['remark_pending']) || SEOProStack_Watermark_Images::mark_queued($id)) {
+            return false;
+        }
         $inventory = get_post_meta($id, self::META, true);
         if (is_array($inventory) && !empty($inventory['files']) && isset($inventory['signature']) && $inventory['signature'] !== self::config()['signature']) {
             // Only explicit adopt/migrate may replace an old inventory. Mark the

@@ -42,6 +42,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     const SKIP_META = '_seoprostack_watermark_skip';
 
+    /**
+     * Post meta: a new upload's mark was queued because a media batch held
+     * the lease. Media in cloud storage waits for it, so the batch cannot
+     * publish the clean files first.
+     */
+    const QUEUED_META = '_seoprostack_watermark_queued';
+
     /** Option: name of the folder in uploads that holds the originals. */
     const DIR_OPTION = 'seoprostack_watermark_dir';
 
@@ -819,6 +826,42 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (self::$lock || self::$client_processed || !is_array($metadata)) {
             return $metadata;
         }
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            // A media batch holds the lease: mark the new upload in the
+            // background (storage waits for that batch) rather than hold up
+            // the upload. A different batch running cannot take it, so mark it
+            // now, as before the lease: a new upload never goes unmarked.
+            if (!self::enabled() || !SEOProStack_Settings::get('watermark_images_new') || self::record($attachment_id) || ('create' !== $context && !self::$finalizing)) {
+                return $metadata;
+            }
+            // Barrier first: the running batch may reach this upload before
+            // the queued mark does.
+            update_post_meta((int) $attachment_id, self::QUEUED_META, time());
+            if (self::queue('add', array((int) $attachment_id))) {
+                return $metadata;
+            }
+            delete_post_meta((int) $attachment_id, self::QUEUED_META);
+            return self::after_generate_locked($metadata, $attachment_id, $context, true);
+        }
+        try {
+            wp_cache_delete($attachment_id, 'post_meta');
+            return self::after_generate_locked($metadata, $attachment_id, $context);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Check and update generation ownership under the shared media lease.
+     *
+     * @param array $metadata Metadata.
+     * @param int $attachment_id ID.
+     * @param string $context Generation context.
+     * @param bool $unleased Mark without the lease (a new upload no batch can take).
+     * @return array
+     */
+    private static function after_generate_locked($metadata, $attachment_id, $context, $unleased = false) {
         $record = self::record($attachment_id);
         if (!empty($record['remark_pending'])) {
             // An interrupted refresh owns intermediate files, not a replacement.
@@ -846,7 +889,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$record && (!SEOProStack_Settings::get('watermark_images_new') || ('create' !== $context && !self::$finalizing))) {
             return $metadata;
         }
-        $result = self::mark_attachment($attachment_id, $metadata);
+        $result = $unleased ? self::mark_locked($attachment_id, $metadata) : self::mark_attachment($attachment_id, $metadata);
         return is_array($result) ? $result : $metadata;
     }
 
@@ -919,6 +962,25 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *                               "small" when nothing was large enough.
      */
     public static function mark_attachment($attachment_id, array $metadata) {
+        $lease = SEOProStack_Media_Storage::lease_wait();
+        if (!$lease) {
+            return new WP_Error('watermark_busy', __('A media batch is running; retry watermarking later.', 'seoprostack'));
+        }
+        try {
+            return self::mark_locked($attachment_id, $metadata);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Mark files under the shared storage/watermark lease.
+     *
+     * @param int $attachment_id ID.
+     * @param array $metadata Metadata.
+     * @return array|string|WP_Error
+     */
+    private static function mark_locked($attachment_id, array $metadata) {
         $attachment_id = (int) $attachment_id;
         $why_not       = self::unmarkable($attachment_id);
         if ($why_not) {
@@ -983,32 +1045,27 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             if ($first) {
                 self::delete_backup($record);
             } elseif ($refresh && !$errors) {
-                // A clean picture that no longer fits the mark is finished,
-                // not an interrupted refresh to restore again on every run.
-                $deleted = self::delete_backup($record);
-                if (is_wp_error($deleted)) {
-                    unset($record['remark_pending'], $record['refresh_paths']);
-                    $record['files'] = array(wp_basename($file) => (int) filesize($file));
-                    $record['original_delete_failed'] = true;
-                    update_post_meta($attachment_id, self::META, $record);
-                } else {
-                    delete_post_meta($attachment_id, self::META);
-                }
-                delete_transient('dirsize_cache');
-                do_action('seoprostack_media_files_changed', $attachment_id);
-                if (is_wp_error($deleted)) {
-                    return $deleted;
-                }
+                // Retain ownership and the upload barrier when new settings
+                // cannot mark the restored picture. Never publish clean sizes
+                // or delete the only kept original merely because it is small.
+                $record['remark_pending'] = true;
+                update_post_meta($attachment_id, self::META, $record);
+                return new WP_Error('watermark_small', 'The restored picture is too small for this mark.');
             }
             return $errors ? $errors[0] : 'small';
         }
         unset($record['remark_pending'], $record['refresh_paths']);
         if ($errors) {
             unset($record['signature']);
+            if ($refresh) {
+                $record['remark_pending'] = true;
+                $record['refresh_paths'] = array(_wp_relative_upload_path($file));
+            }
         } elseif ($first || $refresh) {
             // Merely observing already-marked files must not make an old mark
             // appear current (for example during browser finalization).
             $record['signature'] = $signature;
+            $record['marked_at'] = time();
         }
         update_post_meta($attachment_id, self::META, $record);
 
@@ -1095,6 +1152,24 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string|WP_Error added, small or marked (marked, nothing kept).
      */
     public static function add($attachment_id) {
+        $lease = SEOProStack_Media_Storage::lease_wait();
+        if (!$lease) {
+            return new WP_Error('watermark_busy', __('A media batch is running; retry watermarking later.', 'seoprostack'));
+        }
+        try {
+            return self::add_locked($attachment_id);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Re-mark implementation under the shared lease.
+     *
+     * @param int $attachment_id ID.
+     * @return string|WP_Error
+     */
+    private static function add_locked($attachment_id) {
         $attachment_id = (int) $attachment_id;
         // Before a marked picture's mark comes off to be made again: "Never
         // watermark" leaves the picture as it is (Remove watermark unmarks).
@@ -1133,6 +1208,25 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string|WP_Error removed or unmarked.
      */
     public static function remove($attachment_id, $keep_original = false) {
+        $lease = SEOProStack_Media_Storage::lease_wait();
+        if (!$lease) {
+            return new WP_Error('watermark_busy', __('A media batch is running; retry watermarking later.', 'seoprostack'));
+        }
+        try {
+            return self::remove_locked($attachment_id, $keep_original);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * Restore implementation under the shared lease.
+     *
+     * @param int $attachment_id ID.
+     * @param bool $keep_original Keep recovery ownership.
+     * @return string|WP_Error
+     */
+    private static function remove_locked($attachment_id, $keep_original) {
         $attachment_id = (int) $attachment_id;
         $record        = self::record($attachment_id);
         if (!$record) {
@@ -1270,6 +1364,89 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         $record['backup'] = isset($record['backup']) ? (string) $record['backup'] : '';
         return $record;
+    }
+
+    /**
+     * Freeze the mark identity and icon-date cutoff for a background refresh.
+     *
+     * @return array|WP_Error
+     */
+    public static function remark_context() {
+        if (!self::enabled()) {
+            return new WP_Error('watermark_off', 'Watermark pictures is off.');
+        }
+        $mark = self::mark();
+        if (is_wp_error($mark)) {
+            return $mark;
+        }
+        $signature = self::mark_signature($mark);
+        if (is_wp_error($signature)) {
+            return $signature;
+        }
+        $post = get_post($mark['id']);
+        return array('mark_signature' => $signature, 'remark_token' => wp_generate_uuid4(), 'cutoff' => $post ? (int) strtotime($post->post_date_gmt . ' UTC') + 60 : time());
+    }
+
+    /**
+     * Refresh only pre-change marked pictures, then remake format copies.
+     * Existing recovery records own any intermediate unmarked files.
+     *
+     * @param int $id Attachment ID.
+     * @param array $job Frozen context.
+     * @return bool|WP_Error True needs uploading; false is outside the plan.
+     */
+    public static function remark_step($id, $job) {
+        $context = self::remark_context();
+        if (is_wp_error($context)) {
+            return $context;
+        }
+        if ($context['mark_signature'] !== $job['mark_signature']) {
+            return new WP_Error('watermark_mark_changed', 'The watermark changed during the job; restore its original settings before resuming.');
+        }
+        $record = self::record($id);
+        if (!$record) {
+            return false;
+        }
+        if (self::skipped($id)) {
+            return new WP_Error('watermark_never', 'Never watermark is set; the old mark was retained.');
+        }
+        $backup = self::backup_path($record);
+        $post = get_post($id);
+        $stamp = (int) ($record['marked_at'] ?? $record['mtime'] ?? ($backup && is_file($backup) ? filemtime($backup) : ($post ? strtotime($post->post_date_gmt . ' UTC') : 0)));
+        $current = ($record['signature'] ?? '') === $job['mark_signature'] && empty($record['remark_pending']);
+        if ($current && ($record['remark_job'] ?? '') !== $job['remark_token']) {
+            return false;
+        }
+        if (!$current && empty($record['remark_pending']) && $stamp > $job['cutoff']) {
+            return false;
+        }
+        if (!$current) {
+            if (empty($record['backup'])) {
+                return new WP_Error('watermark_no_original', 'No kept original; the old mark was retained.');
+            }
+            // Distinguish a completed mark awaiting its upload from pictures
+            // already current before this job, even within the same second.
+            $record['remark_job'] = $job['remark_token'];
+            update_post_meta($id, self::META, $record);
+            if (get_post_meta($id, self::META, true) !== $record) {
+                return new WP_Error('watermark_record', 'Cannot save refresh ownership; no files were changed.');
+            }
+            $result = self::add($id);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            $record = self::record($id);
+            if (!$record || !empty($record['remark_pending']) || ($record['signature'] ?? '') !== $job['mark_signature']) {
+                return new WP_Error('watermark_incomplete', 'The picture could not be fully re-marked.');
+            }
+        }
+        if (SEOProStack_Nextgen_Images::enabled()) {
+            $converted = SEOProStack_Nextgen_Images::convert_attachment($id, true);
+            if (is_wp_error($converted)) {
+                return $converted;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1644,8 +1821,15 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $counts['sps_wm_failed_ids'] = array();
         $error  = '';
         $ids    = array_values($ids);
-        foreach ($ids as $i => $id) {
-            if (!self::more_time($start, self::BUDGET)) {
+        // Held for the whole action, so its pictures are not failed one by
+        // one while a media batch runs: they wait for the background instead.
+        $lease  = SEOProStack_Media_Storage::lease_wait();
+        try {
+            foreach ($ids as $i => $id) {
+                if ($lease && self::more_time($start, self::BUDGET)) {
+                    $error = self::apply($id, $op, $counts, $error);
+                    continue;
+                }
                 // The rest are changed in the background, unless another
                 // batch is running.
                 $rest = array_slice($ids, $i);
@@ -1656,7 +1840,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 }
                 break;
             }
-            $error = self::apply($id, $op, $counts, $error);
+        } finally {
+            if ($lease) {
+                SEOProStack_Media_Storage::release($lease);
+            }
         }
         if ($error) {
             set_transient('seoprostack_watermark_error_' . get_current_user_id(), array('error' => $error, 'op' => $op, 'counts' => $counts), 5 * MINUTE_IN_SECONDS);
@@ -1725,6 +1912,26 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return array();
         }
         return $job;
+    }
+
+    /**
+     * Whether a new upload's queued mark is still to come, so its clean
+     * files must not be published yet. Only while a batch that can mark it
+     * runs: one stopped or ended leaves the picture as an unmarked upload.
+     *
+     * @param int $id Attachment ID.
+     * @return bool
+     */
+    public static function mark_queued($id) {
+        if (!get_post_meta((int) $id, self::QUEUED_META, true)) {
+            return false;
+        }
+        $job = self::job();
+        if ($job && empty($job['ended']) && 'remove' !== $job['op']) {
+            return true;
+        }
+        delete_post_meta((int) $id, self::QUEUED_META);
+        return false;
     }
 
     /**
@@ -1892,6 +2099,26 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             self::schedule(30);
             return;
         }
+        // One media lease for the whole part: a storage or media-jobs turn
+        // that holds it makes this part wait, never count pictures as failed.
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            self::schedule(30);
+            return;
+        }
+        try {
+            self::run_part($job);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * One bounded part of the batch, under the media lease.
+     *
+     * @param array $job The batch.
+     */
+    private static function run_part(array $job) {
         set_transient(self::LOCK, 1, self::BUDGET + 60);
         if ('remove' !== $job['op']) {
             $mark = self::enabled() ? self::mark() : new WP_Error('watermark_off', __('Watermark pictures was switched off.', 'seoprostack'));
@@ -1923,6 +2150,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $job['done']++;
             update_option(self::JOB, $job, false);
             $job['error'] = self::apply($id, $job['op'], $job['counts'], (string) $job['error']);
+            // Marked, left alone or failed (and listed to retry): storage may go on.
+            delete_post_meta($id, self::QUEUED_META);
             wp_cache_flush_runtime();
             // Stopped from the settings screen meanwhile.
             $now = get_option(self::JOB);

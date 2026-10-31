@@ -299,6 +299,7 @@ function seoprostack_uninstall_site() {
     // owner's pictures, so their folder (uploads/seoprostack-originals-*)
     // is kept; only the records linking them to pictures go.
     delete_post_meta_by_key('_seoprostack_watermark');
+    delete_post_meta_by_key('_seoprostack_watermark_queued');
     // Background batch of watermarks.
     wp_unschedule_hook('seoprostack_watermark_batch');
     delete_option('seoprostack_watermark_job');

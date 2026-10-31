@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.127
+Stable tag: 1.3.128
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,10 +151,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.128 =
+* New: resumable media jobs for watermark refresh, bucket adoption and kept originals (#1069).
 * Fix: Learned pages survive option writes that leave the value unchanged (#1074).
-
-= 1.3.127 =
-* Faster: Kadence icon picker opens at once; faster editor with Lasso Lite and EventON (#1100).
 
 Older: `changelog.txt`.
