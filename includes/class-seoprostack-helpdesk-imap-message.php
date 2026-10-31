@@ -26,9 +26,10 @@ class SEOProStack_Helpdesk_Imap_Message {
      * @param SEOProStack_Helpdesk_Imap_Connection $conn     Connection.
      * @param int                                  $uid      UID.
      * @param int                                  $validity UIDVALIDITY.
+     * @param object|null                          $box      MailBox model, whose address is never the customer.
      * @return array<string,mixed>|null
      */
-    public static function payload($conn, $uid, $validity) {
+    public static function payload($conn, $uid, $validity, $box = null) {
         $raw = $conn->header($uid);
         if ('' === $raw) {
             return null;
@@ -39,11 +40,17 @@ class SEOProStack_Helpdesk_Imap_Message {
             'in_reply_to' => '',
             'references'  => '',
             'from'        => array(),
+            'reply_to'    => array(),
             'to'          => array(),
             'cc'          => array(),
         );
         $message = trim((string) $fields['message_id']);
         $mime    = new SEOProStack_Helpdesk_Imap_Mime($conn, $uid);
+        $headers = self::header_map($raw);
+        $own     = array_filter(array(
+            strtolower(SEOProStack_Helpdesk_Imap_Config::user()),
+            $box && isset($box->email) ? strtolower(trim((string) $box->email)) : '',
+        ));
 
         return array(
             'subject'     => SEOProStack_Helpdesk_Imap_Mime::decode_header((string) $fields['subject']),
@@ -53,10 +60,10 @@ class SEOProStack_Helpdesk_Imap_Message {
             'references'  => (string) $fields['references'],
             'attachments' => array(),
             'isMarkDown'  => false,
-            'from'        => array('value' => self::addresses($fields['from'])),
+            'from'        => array('value' => self::sender($fields, $headers, $own)),
             'to'          => array('value' => self::addresses($fields['to'])),
             'cc'          => array('value' => self::addresses($fields['cc'])),
-            'headers'     => self::header_map($raw),
+            'headers'     => $headers,
             'mime'        => 'imap-' . substr(hash('sha256', $validity . ':' . $uid . ':' . $message), 0, 32),
         );
     }
@@ -78,6 +85,32 @@ class SEOProStack_Helpdesk_Imap_Message {
             )) . '</em></p>';
         }
         return $content;
+    }
+
+    /**
+     * Who the ticket is from: the one Reply-To address, when the email has
+     * one that is not this inbox's own, else From. A site's mail plugin
+     * usually sends from the site's own address (FluentSMTP's Force From
+     * Email, which Amazon SES needs) and keeps the person who wrote, such as
+     * a problem report's administrator, as Reply-To; replies then reach them.
+     * PHP fills reply_to from From when there is no Reply-To header, so the
+     * header itself is checked.
+     *
+     * @param array                $fields  Parsed header fields.
+     * @param array<string,string> $headers Header fields by lower-case name.
+     * @param string[]             $own     This inbox's addresses, lower case.
+     * @return array<int,array{name:string,address:string}>
+     */
+    private static function sender(array $fields, array $headers, array $own) {
+        $from = self::addresses($fields['from']);
+        if (!isset($headers['reply-to'])) {
+            return $from;
+        }
+        $reply = self::addresses($fields['reply_to']);
+        if (1 !== count($reply) || in_array(strtolower($reply[0]['address']), $own, true)) {
+            return $from;
+        }
+        return $reply;
     }
 
     /**

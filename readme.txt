@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.124
+Stable tag: 1.3.125
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -155,7 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.124 =
-* Faster Kadence icon picker; no Dev tab scrollbar (#1095).
+= 1.3.125 =
+* Fix: support tickets go to the Reply-To person (#1093).
 
 Older: `changelog.txt`.
