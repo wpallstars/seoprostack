@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.120-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.121-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.120
+Version: 1.3.121
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1929,12 +1929,13 @@ Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, wr
 Off by default. Fluent Support Pro turns support email into tickets through Fluent’s hosted email relay, which gives each business inbox a forwarding address and pushes every email to the site, and only for a site with an active licence. The code that makes the ticket runs on the site, in Fluent Support Pro’s own GPL code (`ByMailHandler::processPayload()`, which the relay’s push calls). With this on, SEO Pro Stack reads the site’s own support mailbox over IMAP and hands each new email to that code, so tickets need no relay, no forwarding address and no licence check.
 
 - **Settings:** the IMAP server (`mail.example.com:993` for SSL, the default, or `:143` for STARTTLS; the certificate is always checked), the user name (usually the address) and, optionally, the Fluent Support business inbox ID (0: the email inbox whose address is the user name, else the default inbox). The password goes in `wp-config.php`, never in the database: `define( 'SEOPROSTACK_HELPDESK_IMAP_PASSWORD', '…' );` (or the `seoprostack_helpdesk_imap_password` filter).
-- **What is read:** every five minutes (WP-Cron), emails that arrived since the last one read, by IMAP UID, up to 25 a run within 20 seconds. On the first run, and when the server rebuilds the mailbox (a new UIDVALIDITY), emails from the last day. The mailbox is only read: emails stay where they are, read or unread, so people can keep using it in their email app.
+- **What is read:** every five minutes (WP-Cron), emails that arrived since the last one read, by IMAP UID, up to 25 a run within 20 seconds. On the first run, and when the server rebuilds the mailbox (a new UIDVALIDITY), emails from the last day. The inbox is only read: emails stay where they are, read or unread, so people can keep using it in their email app.
 - **What Fluent Support does with them:** what it does with relayed email. Replies join their ticket, out-of-office replies and bounces open none, and an email read twice makes one ticket. Fluent Support Pro’s `fluent_support_pro/email_piping_raw_data` filter runs as for the relay. HTML emails keep their formatting without their styles and scripts; plain text becomes paragraphs.
 - **Attachments** stay in the mailbox: the ticket ends with their names.
+- **Sent folder** (on by default): your mail plugin sends Fluent Support’s email (FluentSMTP through Amazon SES, say), so no copy reaches the mailbox. Each email Fluent Support sends a customer from this inbox (new ticket, agent reply, closed, ticket made by an agent) is also saved, exactly as sent (addresses, text and attachments) and marked read, to the mailbox’s Sent folder once the request has answered: the **Sent folder** setting, or the first folder named Sent, Sent Items, Sent Messages or Sent Mail (never created). Only emails sent from the inbox’s address; notifications to agents, FluentCRM and other site email are not copied. A copy that cannot be saved waits (at most 20, 8 MB in all, in `seoprostack_helpdesk_imap_sent`, not autoloaded, which holds those emails until they are saved) and the five-minute run tries again; a copy the server refuses for a day is given up. Copies are saved at least once: one is saved twice only if that queue cannot be written.
 - **Problems:** an email Fluent Support refuses (such as one with no valid sender) is passed over. One that stops a run with an error is tried in the next two runs, then passed over. The card shows the last run (new tickets, replies, emails passed over or refused) and anything missing: PHP’s `imap` extension, Fluent Support Pro, the settings, the password or a business inbox.
 
-`wp seoprostack helpdesk-mail fetch` reads the mailbox now; `wp seoprostack helpdesk-mail status` shows where reading got to and the last 20 runs. Stored: the mailbox’s UIDVALIDITY, the last UID read and the last 20 runs’ counts in `seoprostack_helpdesk_imap_state` (not autoloaded, no addresses or message text), and `seoprostack_helpdesk_imap_lock` while a run is under way; both, and the `seoprostack_helpdesk_imap` event, are removed on uninstall. Tested with Fluent Support and Fluent Support Pro 2.4.7 against a Cloudron mail server.
+`wp seoprostack helpdesk-mail fetch` reads the mailbox now; `wp seoprostack helpdesk-mail status` shows where reading got to and the last 20 runs. Stored: the mailbox’s UIDVALIDITY, the last UID read and the last 20 runs’ counts in `seoprostack_helpdesk_imap_state` (not autoloaded, no addresses or message text), and `seoprostack_helpdesk_imap_lock` while a run is under way; these, `seoprostack_helpdesk_imap_sent` and the `seoprostack_helpdesk_imap` event are removed on uninstall. `status` also shows Sent folder copies saved, waiting and not kept, and the last problem. Tested with Fluent Support and Fluent Support Pro 2.4.7 against a Cloudron mail server.
 
 ### Fixes for other plugins (Plugins)
 
@@ -2241,11 +2242,15 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### 1.3.120
+### 1.3.121
 
 - Fix: Kadence Blocks’ block settings in dark mode. Colour circles such as Link Colour lose their dotted ring; the chosen HTML Tag and Text Alignment buttons lose their light frame, and the others are easier to read; the Select Icon arrow is light instead of black, and popover arrows lose their light outline (GitHub issue #1087).
 - Fix: **Fixes for other plugins** keeps block settings fields in place, in light and dark mode. Hreflang Manager’s editor stylesheet moved every field 24 px in from each side, so Kadence’s unit boxes (px beside Max Width, the unit beside Line Height) stood apart from their fields; and Kadence Blocks’ link fields (Text Wrap Link) show their whole Submit icon, level with the buttons beside them (GitHub issue #1087).
 - Faster: **Faster editor with Kadence Blocks** draws only the icons on screen in Kadence’s icon picker, which drew all 5,482 each time it opened: on the preview site it opened in 0.6 seconds instead of 1.35, and in dark mode in 0.9 seconds instead of 2.6 or more (GitHub issue #1087).
+
+### 1.3.120
+
+- New: **Fluent Support email by IMAP** saves each email Fluent Support sends a customer from its inbox (new ticket, reply, closed) to the mailbox’s Sent folder over IMAP, so the mailbox keeps the support record as an email app would. Sending is unchanged; agent notifications and other site email are not copied. On by default while the feature is on (GitHub issue #1084).
 
 ### 1.3.119
 
