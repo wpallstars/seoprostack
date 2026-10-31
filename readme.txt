@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.125
+Stable tag: 1.3.126
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,7 +49,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Duplicate posts**, **Staged new versions** and **Shareable preview links**.
 * **Pinned posts**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
 * **Tag clouds and related posts**: keeps TaxoPress and Tag Groups pages working.
-* **Custom fields to content**: ACF/SCF text to content and excerpts.
+* **Custom fields to content**: ACF/SCF text and terms to content and excerpts.
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Named lists and Saved panel**: Liked and own lists.
@@ -155,7 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.125 =
-* Fix: support tickets go to the Reply-To person (#1093).
+= 1.3.126 =
+* New: Custom fields to content adds chosen terms (#1097).
 
 Older: `changelog.txt`.
