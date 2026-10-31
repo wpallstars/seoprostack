@@ -188,7 +188,7 @@ class SEOProStack_Helpdesk_Imap_Reader {
      * @return string tickets, replies, skipped or failed.
      */
     private static function process($conn, $uid, $validity, $box) {
-        $data = SEOProStack_Helpdesk_Imap_Message::payload($conn, $uid, $validity);
+        $data = SEOProStack_Helpdesk_Imap_Message::payload($conn, $uid, $validity, $box);
         if (null === $data) {
             return 'skipped';
         }
