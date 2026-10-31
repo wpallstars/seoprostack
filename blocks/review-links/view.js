@@ -6,8 +6,8 @@
  * the links show for every rating.
  *
  * The values are read when the form is submitted, before Fluent Forms may
- * reset or hide it; the block shows on Fluent Forms' jQuery event
- * fluentform_submission_success on that form. Plain ES5, no build step.
+ * reset or hide it; the block shows on Fluent Forms' event
+ * fluentform_submission_success for that form. Plain ES5, no build step.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -82,11 +82,15 @@
 		}
 	}
 
+	// Form ID => when it was last shown: one submission sends two events.
+	var shownAt = {};
+
 	function done(form) {
 		var id = formIdOf(form);
-		if (!id) {
+		if (!id || (shownAt[id] && Date.now() - shownAt[id] < 1000)) {
 			return;
 		}
+		shownAt[id] = Date.now();
 		var values = sent[id] || { rating: '', comment: '' };
 		blocksFor(id).forEach(function (block) {
 			show(block, values);
@@ -155,10 +159,32 @@
 		}
 	}, true);
 
+	/** The form element from an event's data ({ form: element or jQuery }). */
+	function formOf(data) {
+		var form = data && data.form;
+		if (form && form.jquery) {
+			form = form[0];
+		}
+		return form && form.getAttribute ? form : null;
+	}
+
+	// Fluent Forms sends a DOM event on document (detail.form, the element)
+	// and a jQuery event on document.body ({ form: jQuery }). Its event on the
+	// form itself uses triggerHandler, so it never bubbles.
+	document.addEventListener('fluentform_submission_success', function (event) {
+		var form = formOf(event.detail);
+		if (form) {
+			done(form);
+		}
+	});
+
 	function listen() {
 		if (window.jQuery) {
-			window.jQuery(document).on('fluentform_submission_success', 'form', function () {
-				done(this);
+			window.jQuery(document.body).on('fluentform_submission_success', function (event, data) {
+				var form = formOf(data);
+				if (form) {
+					done(form);
+				}
 			});
 		}
 	}

@@ -11,7 +11,7 @@
 	display: grid;
 	gap: var(--global-kb-spacing-xs, 1rem);
 	padding: var(--global-kb-spacing-sm, 1.5rem);
-	border: 1px solid var(--global-palette7, rgba(127, 127, 127, 0.24));
+	border: 1px solid var(--global-palette7, rgb(127 127 127 / 24%));
 	border-radius: var(--global-kb-radius, 8px);
 	background: var(--global-palette9, transparent);
 	color: var(--global-palette4, inherit);
@@ -42,7 +42,7 @@
 /* A low rating: the follow-up leads; the links stay, more quietly. */
 .wp-block-seoprostack-review-links.is-low .wp-block-seoprostack-review-links__share {
 	padding-top: var(--global-kb-spacing-xs, 1rem);
-	border-top: 1px solid var(--global-palette7, rgba(127, 127, 127, 0.24));
+	border-top: 1px solid var(--global-palette7, rgb(127 127 127 / 24%));
 }
 
 .wp-block-seoprostack-review-links__ask,
@@ -92,12 +92,12 @@
 }
 
 .wp-block-seoprostack-review-links.is-low .wp-block-seoprostack-review-links__link {
-	border: 1px solid currentColor;
+	border: 1px solid currentcolor;
 	background: transparent;
 	color: var(--global-palette1, inherit);
 }
 
-@media (max-width: 599px) {
+@media (width < 600px) {
 	.wp-block-seoprostack-review-links__links {
 		flex-direction: column;
 	}
