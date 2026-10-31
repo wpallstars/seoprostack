@@ -21,7 +21,9 @@
  * A copy that cannot be saved waits in seoprostack_helpdesk_imap_sent (not
  * autoloaded; it holds the waiting emails, so addresses and text, until they
  * are saved) and the five-minute run tries again. At most QUEUE_MAX emails and
- * QUEUE_BYTES wait; others are counted as not kept.
+ * QUEUE_BYTES wait, and a copy the server refuses TRIES times is given up;
+ * these are counted as not kept. Copies are saved at least once: one is saved
+ * twice only if the queue cannot be written after it was taken.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -46,6 +48,9 @@ class SEOProStack_Helpdesk_Imap_Sent {
 
     /** Most bytes that wait, all emails together (one database row). */
     const QUEUE_BYTES = 8388608;
+
+    /** Times the server may refuse a copy before it is not kept: a day of runs. */
+    const TRIES = 288;
 
     /** Folder names looked for when none is set, in order. */
     const NAMES = array('Sent', 'Sent Items', 'Sent Messages', 'Sent Mail', 'INBOX.Sent', 'INBOX/Sent', '[Gmail]/Sent Mail');
@@ -96,7 +101,7 @@ class SEOProStack_Helpdesk_Imap_Sent {
             return $headers;
         }
         $ticket = is_array($info) && isset($info['ticket']) && is_object($info['ticket']) ? $info['ticket'] : null;
-        if ($ticket && isset($ticket->mailbox_id) && (int) $ticket->mailbox_id !== (int) $box->id) {
+        if (!$ticket || !isset($ticket->mailbox_id) || (int) $ticket->mailbox_id !== (int) $box->id) {
             return $headers;
         }
         self::$pending = strtolower(trim((string) $box->email));
@@ -147,19 +152,28 @@ class SEOProStack_Helpdesk_Imap_Sent {
     }
 
     /**
-     * The request ends: save this request's copies.
+     * The request ends: save this request's copies, after the response has
+     * gone, so a slow mailbox does not keep the browser waiting. This runs
+     * last on shutdown, after WordPress has flushed its output.
      */
     public static function flush() {
         $copies       = self::$copies;
         self::$copies = array();
-        if ($copies) {
-            self::record(self::save($copies));
+        if (!$copies) {
+            return;
         }
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            litespeed_finish_request();
+        }
+        self::record(self::save($copies));
     }
 
     /**
      * Try the waiting copies again. Run by the five-minute run. They leave
-     * the queue first, so a copy saved here is not saved twice.
+     * the queue before they are tried, so overlapping runs do not both save
+     * one; a copy is saved twice only if that queue write fails.
      */
     public static function retry() {
         $state = self::state();
@@ -174,7 +188,9 @@ class SEOProStack_Helpdesk_Imap_Sent {
 
     /**
      * Save copies to the Sent folder, oldest first, stopping at the first
-     * that fails.
+     * the server refuses. That one counts a try and goes behind the others,
+     * so it does not hold them up next time. A connection that fails counts
+     * no try: an outage keeps every copy waiting.
      *
      * @param array $copies Copies.
      * @return array{saved:int,left:array,error:string}
@@ -206,7 +222,10 @@ class SEOProStack_Helpdesk_Imap_Sent {
                 $copy  = $done['left'][0];
                 $saved = $conn->append($folder, (string) $copy['mime'], (int) $copy['time']);
                 if (is_wp_error($saved)) {
-                    $done['error'] = $saved->get_error_message();
+                    $done['error']   = $saved->get_error_message();
+                    $refused         = array_shift($done['left']);
+                    $refused['tries'] = 1 + (int) (isset($refused['tries']) ? $refused['tries'] : 0);
+                    $done['left'][]  = $refused;
                     break;
                 }
                 array_shift($done['left']);
@@ -265,8 +284,9 @@ class SEOProStack_Helpdesk_Imap_Sent {
             $bytes += strlen((string) $copy['mime']);
         }
         foreach ($done['left'] as $copy) {
-            $size = strlen((string) $copy['mime']);
-            if (count($state['waiting']) >= self::QUEUE_MAX || $bytes + $size > self::QUEUE_BYTES) {
+            $size  = strlen((string) $copy['mime']);
+            $tries = isset($copy['tries']) ? (int) $copy['tries'] : 0;
+            if ($tries >= self::TRIES || count($state['waiting']) >= self::QUEUE_MAX || $bytes + $size > self::QUEUE_BYTES) {
                 $state['dropped']++;
                 continue;
             }
