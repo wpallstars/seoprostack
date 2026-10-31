@@ -21,10 +21,10 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 * **Light, Dark or System**: per-person admin colours; dark copies in uploads/seoprostack-dark go on deactivation.
 * **Developer admins**: limit plugin, theme, admin and address changes.
-* **Organise the admin menu**: sections and role previews.
+* **Organise the admin menu** with role previews.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
 * **Quiet Freemius prompts**, **Quiet Appsero prompts** and **Quiet Imagify suggestions**.
-* **Dev tab in the block editor**: developer panels.
+* **Dev tab in the block editor**.
 * **Tidy admin screens**, **WooCommerce admin**, **Login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeats**, **Limit revisions** and **Lighter WooCommerce pages**.
 * **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
@@ -32,7 +32,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 * **Magic login links**: one-use, scanner-safe email links.
 * **Admin bar and dashboard access** by role; admins keep access.
-* **Editors use the business plugins**: WooCommerce, Rank Math, Tutor LMS, Fluent.
+* **Editors use the business plugins**.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 for new passwords (on).
 * **Email protection** (on): hides addresses from scrapers; needs JavaScript.
@@ -62,7 +62,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Media in cloud storage** (off): local restore; private watermark originals.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
-* **Website screenshots**: block and `[browser-shot]`.
+* **Website screenshots** block/shortcode.
 * **Avatars without Gravatar**: local pictures. **Kadence author box fields** on profiles.
 
 = Links and speed =
@@ -88,8 +88,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Plugin presets** and **starter data**: opt-in, with undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within time limits, using CPU.
-* **Agency**: orders and client dashboard.
-* **Recommended**: themes, plugins, hosting and tools.
+* **Agency** orders and client dashboard; **Recommended** themes, plugins, hosting and tools.
 
 = Affiliate disclosure =
 
