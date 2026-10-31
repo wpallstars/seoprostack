@@ -403,6 +403,42 @@
 		}
 	}
 
+	/** Placed by a script (inline left, right or transform), such as a dropdown or popover. */
+	function placed(el) {
+		var inline = el.style;
+		return !!(inline && (inline.left || inline.right || inline.inset || inline.insetInlineStart || inline.insetInlineEnd || inline.transform || inline.translate));
+	}
+
+	/**
+	 * Holds everything inside it: a popover, or an element a script moves
+	 * with a transform, which also carries its fixed contents (an inline
+	 * left or right alone does not, so those contents are still checked).
+	 */
+	function carries(el) {
+		var inline = el.style;
+		return !!((el.classList && el.classList.contains('components-popover')) || (inline && (inline.transform || inline.translate)));
+	}
+
+	/**
+	 * Elements in a changed part of the page, leaving out what is inside
+	 * a popover or a moved element: its contents move with it, and checking
+	 * each of them (a popover can hold thousands, such as Kadence's icon
+	 * picker) held up the popover as it opened.
+	 */
+	function each(root, fn) {
+		if (root !== document.body && carries(root)) {
+			return;
+		}
+		var walker = document.createTreeWalker(root, window.NodeFilter.SHOW_ELEMENT, {
+			acceptNode: function (el) {
+				return carries(el) ? window.NodeFilter.FILTER_REJECT : window.NodeFilter.FILTER_ACCEPT;
+			}
+		});
+		for (var el = walker.nextNode(); el; el = walker.nextNode()) {
+			fn(el);
+		}
+	}
+
 	function place(el, pause) {
 		var style = window.getComputedStyle(el);
 		var position = style.position;
@@ -413,8 +449,7 @@
 		if (el.closest('#adminmenumain, #wpadminbar') || el.classList.contains('interface-interface-skeleton')) {
 			return;
 		}
-		var inline = el.style;
-		if (inline.left || inline.right || inline.inset || inline.insetInlineStart || inline.insetInlineEnd || inline.transform || inline.translate) {
+		if (placed(el)) {
 			return;
 		}
 		var box = el.getBoundingClientRect();
@@ -495,13 +530,12 @@
 			if (root !== document.body) {
 				follow(root, item[1]);
 			}
-			var kids = root.getElementsByTagName('*');
-			if (!item[2] && kids.length > FOLLOW_LIMIT) {
+			if (!item[2] && root.getElementsByTagName('*').length > FOLLOW_LIMIT) {
 				return;
 			}
-			for (var i = 0; i < kids.length; i++) {
-				follow(kids[i], false);
-			}
+			each(root, function (el) {
+				follow(el, false);
+			});
 		});
 		// Changes made here are not news.
 		if (watcher) {

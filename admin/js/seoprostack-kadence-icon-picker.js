@@ -13,6 +13,10 @@
  * straight back, each committed at once (flushSync), so the set's icons stay
  * in place; the scroll position and folded sets are put back.
  *
+ * The picker also opens on the press of its button rather than the click
+ * (see the end), and shows at once rather than fading in (the style in
+ * SEOProStack_Kadence_Library::browser_cache()).
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -23,7 +27,8 @@
 	if (!window.wp || !wp.hooks || !window.WeakMap) {
 		return;
 	}
-	var FIRST = 150;
+	// About as many as fill the picker's view (five to a row).
+	var FIRST = 50;
 	var MORE = 300;
 	var NEAR = 800;
 	var POPOVER = '.kadence-icon-picker-pop-selection';
@@ -209,6 +214,52 @@
 		if (!queued && target && target.closest && target.closest(POPOVER)) {
 			queued = true;
 			window.requestAnimationFrame(check);
+		}
+	}, true);
+
+	/*
+	 * Open on the press, as a select list does. Kadence opens the picker
+	 * 100 ms after the click (its toggle waits, debounced), and the click
+	 * comes only when the button is let go; the press starts that wait
+	 * instead, and the click that follows is dropped so it does not close
+	 * the picker again. Mouse only: a touch may be the start of a scroll.
+	 * Keys (Enter, Space) still open it through the click.
+	 */
+	var pressed = null;
+	document.addEventListener('pointerdown', function (event) {
+		pressed = null;
+		if (event.pointerType !== 'mouse' || event.button !== 0 || !event.target || !event.target.closest) {
+			return;
+		}
+		var toggle = event.target.closest('.kadence-icon-picker-selection-toggle');
+		if (!toggle || toggle.disabled || document.querySelector(POPOVER)) {
+			return;
+		}
+		pressed = toggle;
+		toggle.click();
+	}, true);
+	// Let go elsewhere, or the press was cancelled: no click on the toggle
+	// follows, so a later Enter on it must not be dropped.
+	document.addEventListener('pointerup', function (event) {
+		if (pressed && event.pointerType === 'mouse' && !(event.target && pressed.contains(event.target))) {
+			pressed = null;
+		}
+	}, true);
+	document.addEventListener('pointercancel', function (event) {
+		if (event.pointerType === 'mouse') {
+			pressed = null;
+		}
+	}, true);
+	document.addEventListener('click', function (event) {
+		// Not the click sent above, which opens the picker.
+		if (!event.isTrusted) {
+			return;
+		}
+		var toggle = pressed;
+		pressed = null;
+		if (toggle && event.target && toggle.contains(event.target)) {
+			event.stopPropagation();
+			event.preventDefault();
 		}
 	}, true);
 })();
