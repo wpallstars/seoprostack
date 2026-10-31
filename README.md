@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.131-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.132-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.131
+Version: 1.3.132
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2274,6 +2274,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Developers: all 82 starter core files match WP Plugin Starter 1.0.49. `deploy-sites.sh --apply` refuses an installed version it cannot read without `--allow-downgrade`, and only one run at a time takes over a stale lock (GitHub issue #1117).
+
+### 1.3.132
+
+- Fix: dark mode for other plugins’ payment logos on WooCommerce → Settings → Payments (Afterpay, Affirm, SEPA, Revolut, PayPal and others from Payment Plugins): many were dark marks on the dark row, and now sit on light tiles, with their brand colours unchanged (GitHub issue #1115).
 
 ### 1.3.131
 

@@ -5629,6 +5629,23 @@ html.sps-dark .woocommerce-list__item-after__actions__arrow:is(:hover, :focus) s
 	fill: var(--sps-ui-text);
 }
 
+/*
+ * Payment providers' logos from other plugins (Payment Plugins' Afterpay,
+ * Affirm, SEPA, Revolut, PayPal and others) are brand marks on nothing,
+ * many dark, drawn at 40px wide on the dark row. WooCommerce's own icons
+ * (its assets/images) are 40px tiles with their own ground and are left
+ * alone. The others sit on a light tile, as card logos do, at one size,
+ * so the brand colours stay as they are.
+ */
+html.sps-dark .settings-payment-gateways__list .woocommerce-list__item-before img:not([src*="/woocommerce/assets/images/"]) {
+	box-sizing: border-box;
+	height: 28px;
+	padding: 4px 5px;
+	border-radius: 4px;
+	background-color: #fff;
+	object-fit: contain;
+}
+
 html.sps-dark .components-country-select-control__menu {
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
