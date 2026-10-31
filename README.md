@@ -2253,6 +2253,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Load plugins only where needed** keeps learned pages when option writes leave the stored value unchanged at the end of the request, including temporary Kadence colour writes from WP-CLI (GitHub issue #1074).
+
 ### 1.3.127
 
 - Faster: **Faster editor with Kadence Blocks** opens Kadenceâ€™s icon picker on the press of the mouse button, draws the first 50 icons of each set and shows it at once instead of fading in. On the preview site in dark mode, from the press to the picker in place: 0.2 seconds, instead of 1.25 in 1.3.126 (GitHub issue #1100).

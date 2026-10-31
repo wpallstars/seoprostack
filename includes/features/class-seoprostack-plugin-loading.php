@@ -296,6 +296,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $forget_cause = null;
 
     /**
+     * First stored value fingerprint and write hook, by site and option.
+     * Keep hashes, not copies of potentially large plugin settings.
+     *
+     * @var array<int,array<string,array{hash:string,hook:string}>>
+     */
+    private static $option_starts = array();
+
+    /**
      * Settings.
      *
      * @return array
@@ -427,9 +435,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             // The checks' task repeats: it stops with the feature.
             add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'stop_verify'), 10, 0);
         }
-        add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
-        add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
-        add_action('deleted_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        // Capture before the write: deleted_option no longer has the old value.
+        add_action('update_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        add_action('add_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        add_action('delete_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('seoprostack_settings_changed', array(__CLASS__, 'network_changed'), 10, 0);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         if (is_multisite()) {
@@ -1978,7 +1987,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return $changed;
     }
 
-    /** Forget page ownership when settings used before plugins load change. */
+    /** Check page ownership after settings used before plugins load are written. */
     public static function front_option_changed($name) {
         if ('seoprostack_options' !== $name && (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY))) {
             return;
@@ -1995,8 +2004,55 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 SEOProStack_Plugin_Loader::HISTORY), true)) {
             return;
         }
-        self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $name);
-        self::forget_front();
+        // Network-enforced settings do not write this site's option. Keep
+        // their explicit invalidation rather than comparing an unchanged value.
+        if ('seoprostack_settings_changed' === current_filter()) {
+            self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $name);
+            self::forget_front();
+            return;
+        }
+        $site = get_current_blog_id();
+        if (!isset(self::$option_starts[$site][$name])) {
+            self::$option_starts[$site][$name] = array('hash' => self::option_hash($name), 'hook' => (string) current_filter());
+            add_action('shutdown', array(__CLASS__, 'forget_changed_options'), PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Fingerprint an option as WordPress stores it, distinguishing absence
+     * from an empty value but not scalar types lost on a database round trip.
+     *
+     * @param string $name Option name.
+     * @return string
+     */
+    private static function option_hash($name) {
+        $missing = new stdClass();
+        $value = get_option($name, $missing);
+        return hash('sha256', $missing === $value ? 'missing' : 'value:' . (string) maybe_serialize($value));
+    }
+
+    /** Forget only for net option changes, after other shutdown writers. */
+    public static function forget_changed_options() {
+        $starts = self::$option_starts;
+        self::$option_starts = array();
+        foreach ($starts as $site => $options) {
+            $switched = get_current_blog_id() !== $site;
+            if ($switched) {
+                switch_to_blog($site);
+            }
+            foreach ($options as $name => $start) {
+                if (self::option_hash($name) !== $start['hash']) {
+                    self::$forget_cause = array('hook' => $start['hook'], 'key' => $name);
+                    // A different site may already have forgotten in this request.
+                    self::$front_forgotten = 0;
+                    self::forget_front();
+                    break;
+                }
+            }
+            if ($switched) {
+                restore_current_blog();
+            }
+        }
     }
 
     /**
