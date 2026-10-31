@@ -183,7 +183,7 @@
 		}
 	}
 
-	/** Near the end of a set that has more icons, draw more of it. */
+	/** Near the end of a set that has more icons, draw more of it; not of a set scrolled past. */
 	function check() {
 		queued = false;
 		var pop = session();
@@ -191,11 +191,12 @@
 		if (!scroller) {
 			return;
 		}
-		var bottom = scroller.getBoundingClientRect().bottom + NEAR;
+		var view = scroller.getBoundingClientRect();
 		var list = panels(pop);
 		for (var i = 0; i < list.length; i++) {
 			var label = text(list[i].querySelector('.components-panel__body-title'));
-			if (more[label] && list[i].classList.contains('is-opened') && list[i].getBoundingClientRect().bottom < bottom) {
+			var end = list[i].getBoundingClientRect().bottom;
+			if (more[label] && list[i].classList.contains('is-opened') && end > view.top && end < view.bottom + NEAR) {
 				limits[label] = (limits[label] || FIRST) + MORE;
 				redraw(pop, label);
 				return;

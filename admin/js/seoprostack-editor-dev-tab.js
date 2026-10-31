@@ -225,14 +225,17 @@
             button = makeButton(tabs.model);
             tabs.list.appendChild(button);
             watchTabs(tabs.list);
-            // Tabs change width as fonts load and the sidebar is resized.
+            // Tabs change width as fonts load and the sidebar is resized;
+            // only when the tab is placed, so observing never loops.
             if (window.ResizeObserver) {
                 if (!resized) {
                     resized = new window.ResizeObserver(schedule);
                 }
                 resized.disconnect();
                 resized.observe(tabs.list);
-                resized.observe(button);
+                tabs.list.querySelectorAll('[role="tab"]').forEach(function (tab) {
+                    resized.observe(tab);
+                });
             }
         }
     }
