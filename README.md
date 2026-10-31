@@ -2271,6 +2271,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: all 82 starter core files match WP Plugin Starter `main` after 1.0.48. CI runs the release build and smoke tests when a commit is pushed as the pull request is marked ready for review, `deploy-sites.sh --apply` holds a per-plugin lock and refuses downgrades without `--allow-downgrade`, and the shared problem reports are 1.0.4 (GitHub issue #1108).
+
 ### 1.3.130
 
 - Faster: **Faster Kadence icon picker** (Speed) is its own setting, on by default, so Kadenceâ€™s icon picker opens at once on every site. It was part of **Faster editor with Kadence Blocks**, which sites set up before that was on by default still have off, so their picker drew all 5,482 icons each time: on one such live site, 3.8 seconds from the press to the picker in place, and 0.15 seconds with this (GitHub issue #1109).

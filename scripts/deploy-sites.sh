@@ -19,6 +19,7 @@
 #                      each is a multisite network, and change nothing (the
 #                      default).
 #   --apply            Install the release on each of them.
+#   --allow-downgrade  Allow installing a release older than the installed version.
 #
 # The zip ({slug}-X.Y.Z.zip) is downloaded with gh and must match the
 # asset's SHA-256 on GitHub and, when the release has one, its provenance
@@ -39,6 +40,15 @@
 # log lines; networks add sites=PASSED/TOTAL. Exits 1 on a failed site, a
 # version not reached or new log lines, with the restore command. Host names,
 # folders and backups stay out of the repository: they are only arguments.
+#
+# --apply holds a lock per plugin on the host (~/.{slug}-deploy/.lock, made
+# with mkdir, so no flock is needed) from before the first install to the
+# end, so two runs, even with different --parent, never install over each
+# other. While another run holds it, --apply installs nothing, names that
+# run (tag, start time, parent, PID) and exits 3: wait for it, then run
+# again. A lock left by a run that is no longer running (killed with
+# kill -9, or the host restarted) is taken over with a warning. The dry run
+# takes no lock and says when a run is active.
 #
 # Needs gh (signed in to read a private repository), ssh, and bash, WP-CLI,
 # tar and curl on the host. aidevops users can use wp-fleet-helper.sh instead
@@ -68,6 +78,7 @@ PARENT='~/domains/*/public_html'
 WP_CLI="wp"
 WEB_ERROR_LOG=""
 APPLY=0
+DOWNGRADE_ARGS=()
 SKIPS=()
 TMP_DIR=""
 ZIP=""
@@ -126,6 +137,7 @@ parse_args() {
 		case "$arg" in
 		--host | --tag | --parent | --skip | --wp-cli | --web-error-log)
 			[[ $# -ge 2 ]] || die "$arg needs a value"
+			[[ "$value" != -* ]] || die "$arg needs a value, not an option: $value"
 			case "$arg" in
 			--host) HOST="$value" ;;
 			--tag) TAG="$value" ;;
@@ -139,6 +151,7 @@ parse_args() {
 			;;
 		--apply) APPLY=1 ;;
 		--dry-run) APPLY=0 ;;
+		--allow-downgrade) DOWNGRADE_ARGS=(--allow-downgrade) ;;
 		-h | --help)
 			usage
 			exit 0
@@ -194,7 +207,7 @@ download_zip() {
 
 dry_run() {
 	local command
-	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" bash -s -- list "$SLUG" "$PARENT" ${SKIPS[@]+"${SKIPS[@]}"})"
+	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" bash -s -- list "$SLUG" "$PARENT" "--version=$VERSION" ${DOWNGRADE_ARGS[@]+"${DOWNGRADE_ARGS[@]}"} ${SKIPS[@]+"${SKIPS[@]}"})"
 	printf '\nInstalls of %s on %s (name, version, kind, folder):\n' "$SLUG" "$HOST"
 	remote "$command" <"$REMOTE_PART" || die "the dry run on $HOST failed"
 	printf '\nDry run: nothing changed. Run again with --apply to install %s.\n' "$TAG"
@@ -216,8 +229,12 @@ apply() {
 	remote "chmod 600 $(remote_words "$dir/$SLUG-$VERSION.zip" "$dir/deploy-remote.sh")" || die "cannot set the files' mode on $HOST"
 	printf '\nInstalling %s on %s (folder %s):\n' "$TAG" "$HOST" "$dir"
 	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" "DEPLOY_WEB_ERROR_LOG=$WEB_ERROR_LOG" bash "$dir/deploy-remote.sh" apply "$SLUG" "$PARENT" \
-		"$VERSION" "$dir/$SLUG-$VERSION.zip" "$SHA" "$dir/backups" ${SKIPS[@]+"${SKIPS[@]}"})"
+		"$VERSION" "$dir/$SLUG-$VERSION.zip" "$SHA" "$dir/backups" ${DOWNGRADE_ARGS[@]+"${DOWNGRADE_ARGS[@]}"} ${SKIPS[@]+"${SKIPS[@]}"})"
 	remote "$command" || status=$?
+	if [[ "$status" -eq 3 ]]; then
+		printf '\nAnother deploy of %s is running on %s (named above), so nothing was installed. Wait for it to finish, then run again.\n' "$SLUG" "$HOST" >&2
+		exit 3
+	fi
 	if [[ "$status" -ne 0 ]]; then
 		printf '\nDeploy of %s on %s failed (exit %s): see the FAIL lines and their restore commands above.\n' "$TAG" "$HOST" "$status"
 		return 1
