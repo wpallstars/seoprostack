@@ -7,7 +7,9 @@
  *
  * The values are read when the form is submitted, before Fluent Forms may
  * reset or hide it; the block shows on Fluent Forms' event
- * fluentform_submission_success for that form. Plain ES5, no build step.
+ * fluentform_submission_success for that form. A ?rating=N in the address
+ * (the rating field's name) ticks that rating, so each star in a feedback
+ * email can link to the page. Plain ES5 apart from URLSearchParams, no build step.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -178,7 +180,29 @@
 		}
 	});
 
+	/**
+	 * A link such as /feedback/?rating=5 (a star in a feedback email) ticks
+	 * that rating on the block's form. A click, so Fluent Forms' stars light.
+	 */
+	function preselect() {
+		var params = new URLSearchParams(window.location.search);
+		Array.prototype.forEach.call(document.querySelectorAll('.' + NAME + '[data-form]'), function (block) {
+			var name = block.getAttribute('data-rating') || 'rating';
+			var wanted = params.get(name);
+			var form = document.querySelector('form[data-form_id="' + block.getAttribute('data-form') + '"]');
+			if (!wanted || !form) {
+				return;
+			}
+			Array.prototype.forEach.call(form.querySelectorAll('input[type="radio"][name="' + name + '"]'), function (input) {
+				if (input.value === wanted && !input.checked) {
+					input.click();
+				}
+			});
+		});
+	}
+
 	function listen() {
+		preselect();
 		if (window.jQuery) {
 			window.jQuery(document.body).on('fluentform_submission_success', function (event, data) {
 				var form = formOf(data);

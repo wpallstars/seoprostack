@@ -2245,7 +2245,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### 1.3.122
 
-- New: **Review links** block, for a feedback page under [Fluent Forms by key](#fluent-forms-by-key-content). Hidden until its form is sent, then it thanks the visitor, shows their comment with a **Copy review** button and offers the site's Google, Facebook and Trustpilot review short links that have a real target. The links show for every rating, as Google's and Trustpilot's rules require; a low rating gets a "we'll be in touch" first (GitHub issue #1088).
+- New: **Review links** block, for a feedback page under [Fluent Forms by key](#fluent-forms-by-key-content). Hidden until its form is sent, then it thanks the visitor, shows their comment with a **Copy review** button and offers the site's Google, Facebook and Trustpilot review short links that have a real target. The links show for every rating, as Google's and Trustpilot's rules require; a low rating gets a "we'll be in touch" first. A link such as `/feedback/?rating=5`, a star in a feedback email, ticks that rating on the form (GitHub issue #1088).
 - New: a Fluent Support ticket from a Fluent form whose feed names no business inbox (a contact or feedback form copied from a template) goes to the default inbox, so agents see it (GitHub issue #1088).
 
 ### 1.3.121
