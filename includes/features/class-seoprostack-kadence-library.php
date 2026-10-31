@@ -17,7 +17,9 @@
  * editor page asked the site for the whole library again (twice). The
  * editor script keeps Kadence's answers in the browser until Kadence's copy
  * changes (see admin/js/seoprostack-kadence-library.js), and a style lets
- * the browser skip drawing patterns that are off screen.
+ * the browser skip drawing patterns, and the icon picker's icons, that are
+ * off screen. The icon picker draws the first icons of each set, and more
+ * as you scroll or search (admin/js/seoprostack-kadence-icon-picker.js).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -48,7 +50,7 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Faster editor with Kadence Blocks', 'seoprostack'),
-                'description' => __('Kadence Blocks puts its whole design library into every editor page, often more than 10 MB. This loads the library when you open it instead, and keeps it in your browser until Kadence updates it, so the editor and the library open faster. Nothing changes if Kadence Blocks is not active.', 'seoprostack'),
+                'description' => __('Kadence Blocks puts its whole design library into every editor page, often more than 10 MB. This loads the library when you open it instead, and keeps it in your browser until Kadence updates it, so the editor and the library open faster. Its icon picker draws the first icons of each set, and more as you scroll or search, so it opens faster too. Nothing changes if Kadence Blocks is not active.', 'seoprostack'),
             ),
         );
     }
@@ -67,7 +69,7 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
 
     /**
      * Keep Kadence's design library answers in the browser, and let the
-     * browser skip drawing patterns that are off screen.
+     * browser skip drawing patterns and icons that are off screen.
      *
      * The token names the kept copy. It changes when Kadence's files change
      * (a download or Sync rewrites them), with Kadence Blocks' and Kadence
@@ -95,9 +97,22 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
         // content-visibility ignore this.
         wp_register_style('seoprostack-kadence-library', false, array(), $ver);
         wp_enqueue_style('seoprostack-kadence-library');
+        // Kadence's icon picker drew its 5,000 or so icons (over 20,000
+        // elements) each time it opened. The picker script has it draw the
+        // first 50 of each set, and more as you scroll or search, and open
+        // on the press of its button; the icons it draws are skipped the
+        // same way until they are on screen, and the picker shows at once
+        // instead of fading in (WordPress's popover fades its opacity in;
+        // the slide stays, as it carries the position).
+        $picker = 'admin/js/seoprostack-kadence-icon-picker.js';
+        $pver   = file_exists(SEOPROSTACK_DIR . $picker) ? (string) filemtime(SEOPROSTACK_DIR . $picker) : SEOPROSTACK_VERSION;
+        wp_enqueue_script('seoprostack-kadence-icon-picker', SEOPROSTACK_URL . $picker, array('wp-hooks', 'wp-element'), $pver, false);
         wp_add_inline_style(
             'seoprostack-kadence-library',
             '.kb-css-masonry_column>.block-editor-block-patterns-list__list-item{content-visibility:auto;contain-intrinsic-size:auto 320px}'
+            . '.kadence-icon-picker-pop-selection .kadence-icon-picker-content>.components-panel__body{content-visibility:auto;contain-intrinsic-width:0px;contain-intrinsic-height:auto 1200px}'
+            . '.kadence-icon-picker-pop-selection .kadence-icon-picker-link{content-visibility:auto;contain-intrinsic-size:auto 60px}'
+            . '.components-popover.kadence-icon-picker-pop-selection{opacity:1!important}'
         );
     }
 

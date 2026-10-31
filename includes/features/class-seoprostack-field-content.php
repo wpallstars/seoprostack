@@ -57,7 +57,7 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
         // keys on any setting save. Losing a skip list could expose private text
         // when the owner enables that type again later.
         foreach (is_array($stored) ? array_keys($stored) : array() as $key) {
-            if (preg_match('/^field_content_(.+)_(fields|skip|excerpt|format)$/', (string) $key, $matches)) {
+            if (preg_match('/^field_content_(.+)_(fields|skip|excerpt|format|terms)$/', (string) $key, $matches)) {
                 $types[] = $matches[1];
             }
         }
@@ -91,6 +91,16 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
                     'label' => __('Content format', 'seoprostack'),
                     'options' => array('labels' => __('Label and value paragraphs', 'seoprostack'), 'values' => __('Values only', 'seoprostack')),
                 ),
+                'terms' => array(
+                    'type' => 'multi',
+                    'default' => array(),
+                    'label' => __('Terms', 'seoprostack'),
+                    'description' => __('Adds the post’s terms in these taxonomies after the fields, one paragraph per taxonomy, so search and SEO analysis read them too.', 'seoprostack'),
+                    // Taxonomies register at init, after the schema is built.
+                    'options' => static function () use ($type) {
+                        return self::taxonomy_options($type);
+                    },
+                ),
             );
             foreach ($fields as $key => $field) {
                 $field['parent'] = self::KEY;
@@ -116,12 +126,35 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
         return $options;
     }
 
+    /**
+     * Public taxonomies of a post type.
+     *
+     * @param string $type Post type.
+     * @return array<string,string>
+     */
+    public static function taxonomy_options($type) {
+        $options = array();
+        foreach (get_object_taxonomies((string) $type, 'objects') as $taxonomy) {
+            if ($taxonomy->public && 'post_format' !== $taxonomy->name) {
+                $options[$taxonomy->name] = $taxonomy->labels->name;
+            }
+        }
+        return $options;
+    }
+
     /** Register after ACF's save_post callback, not save_post_{type}. */
     public static function boot() {
         if (!self::enabled()) {
             return;
         }
         add_action('save_post', array(__CLASS__, 'save'), 99);
+        // The block editor saves terms after save_post, so sync again once
+        // its REST request has saved them.
+        foreach ((array) SEOProStack_Settings::get('field_content_types') as $type) {
+            if (is_string($type) && '' !== $type) {
+                add_action('rest_after_insert_' . $type, array(__CLASS__, 'rest_saved'));
+            }
+        }
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('seoprostack fields sync', array(__CLASS__, 'cli'));
         }
@@ -136,6 +169,46 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
         if (!self::$syncing && !(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
             self::sync($post_id);
         }
+    }
+
+    /**
+     * Sync after a REST save has stored the post's terms.
+     *
+     * @param WP_Post $post Saved post.
+     */
+    public static function rest_saved($post) {
+        if ($post instanceof WP_Post) {
+            self::save($post->ID);
+        }
+    }
+
+    /**
+     * The chosen taxonomies' term names, one part per taxonomy.
+     *
+     * @param WP_Post $post   Post.
+     * @param bool    $labels Add the taxonomy name before its terms.
+     * @return string[]
+     */
+    private static function term_parts($post, $labels) {
+        $parts = array();
+        $chosen = (array) SEOProStack_Settings::get('field_content_' . $post->post_type . '_terms');
+        foreach (self::taxonomy_options($post->post_type) as $taxonomy => $name) {
+            if (!in_array($taxonomy, $chosen, true)) {
+                continue;
+            }
+            $terms = wp_get_post_terms($post->ID, $taxonomy, array('fields' => 'names'));
+            if (is_wp_error($terms) || !$terms) {
+                continue;
+            }
+            // Term names are stored escaped (&amp;): decode, then escape once.
+            $names = array();
+            foreach ($terms as $term) {
+                $names[] = html_entity_decode((string) $term, ENT_QUOTES, 'UTF-8');
+            }
+            $list = esc_html(implode(', ', $names));
+            $parts[] = ($labels ? '<p><strong>' . esc_html($name) . "</strong></p>\n" : '') . '<p>' . $list . "</p>\n";
+        }
+        return $parts;
     }
 
     /**
@@ -179,6 +252,7 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
             $label = isset($field['label']) ? (string) $field['label'] : (string) $field['name'];
             $parts[] = ($labels ? '<p><strong>' . esc_html($label) . "</strong></p>\n" : '') . wpautop($value);
         }
+        $parts = array_merge($parts, self::term_parts($post, $labels));
         $content = implode("\n", $parts);
         // Keeping an excerpt differs from explicitly replacing it with empty text.
         $hash = md5($content . "\0" . ('' !== $source ? "excerpt\0" . $excerpt : 'keep_excerpt')); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.

@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.118
+Stable tag: 1.3.127
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,7 +49,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Duplicate posts**, **Staged new versions** and **Shareable preview links**.
 * **Pinned posts**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
 * **Tag clouds and related posts**: keeps TaxoPress and Tag Groups pages working.
-* **Custom fields to content**: ACF/SCF text to content and excerpts.
+* **Custom fields to content**: ACF/SCF text and terms to content and excerpts.
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Named lists and Saved panel**: Liked and own lists.
@@ -75,7 +75,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
 * **Internal linking tools** (off): suggestions, undo and Link Whisper checks.
-* **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics** and faster Kadence Blocks editing.
+* **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): support email becomes tickets without a hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
@@ -100,7 +100,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 = External services =
 
-* **Your IMAP server** (opt-in): reads support email over SSL or STARTTLS, certificate checked.
+* **Your IMAP server** (opt-in): reads support email; saves whole sent ticket emails (up to 20 retried); SSL/STARTTLS, verified. Its policies apply.
 * **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
@@ -158,8 +158,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = Unreleased =
 * New: resumable media jobs for watermark refresh, bucket adoption and kept originals (#1069).
 
-= 1.3.118 =
-* New (off): Fluent Support email by IMAP, without a hosted relay (#1066).
-* New: Rank Math identity sync and copied-site health repairs (#1068).
+= 1.3.127 =
+* Faster: Kadence icon picker opens at once; faster editor with Lasso Lite and EventON (#1100).
 
 Older: `changelog.txt`.

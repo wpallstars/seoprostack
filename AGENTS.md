@@ -75,6 +75,7 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   site permanently redirects to another of its own pages, which ends there.
   Avatars stay self-hosted with Show Avatars on, and Copy pictures from
   Gravatar is on (#945): only the server asks Gravatar, once per author.
+  Leave out Rank Math's stats bar is on (#1090): the owner never uses it.
   Features that need choices about the site first, or change its content
   (Watermark pictures), people or other plugins' settings, stay off. A
   changed default reaches new installs

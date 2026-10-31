@@ -1,0 +1,109 @@
+/**
+ * seoprostack/review-links: Kadence's palette and spacing variables, with
+ * plain fallbacks; buttons take the theme's button style.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
+ */
+.wp-block-seoprostack-review-links {
+	display: grid;
+	gap: var(--global-kb-spacing-xs, 1rem);
+	padding: var(--global-kb-spacing-sm, 1.5rem);
+	border: 1px solid var(--global-palette7, rgb(127 127 127 / 24%));
+	border-radius: var(--global-kb-radius, 8px);
+	background: var(--global-palette9, transparent);
+	color: var(--global-palette4, inherit);
+}
+
+.wp-block-seoprostack-review-links[hidden],
+.wp-block-seoprostack-review-links [hidden] {
+	display: none;
+}
+
+.wp-block-seoprostack-review-links:focus {
+	outline: none;
+}
+
+.wp-block-seoprostack-review-links__thanks {
+	margin: 0;
+	color: var(--global-palette3, inherit);
+	font-size: var(--global-kb-font-size-md, 1.25rem);
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+.wp-block-seoprostack-review-links__share {
+	display: grid;
+	gap: var(--global-kb-spacing-xs, 1rem);
+}
+
+/* A low rating: the follow-up leads; the links stay, more quietly. */
+.wp-block-seoprostack-review-links.is-low .wp-block-seoprostack-review-links__share {
+	padding-top: var(--global-kb-spacing-xs, 1rem);
+	border-top: 1px solid var(--global-palette7, rgb(127 127 127 / 24%));
+}
+
+.wp-block-seoprostack-review-links__ask,
+.wp-block-seoprostack-review-links__copy-row {
+	margin: 0;
+}
+
+.wp-block-seoprostack-review-links__review {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.wp-block-seoprostack-review-links__label {
+	color: var(--global-palette3, inherit);
+	font-weight: 600;
+}
+
+.wp-block-seoprostack-review-links__text {
+	width: 100%;
+	box-sizing: border-box;
+	resize: vertical;
+}
+
+.wp-block-seoprostack-review-links__copy-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem var(--global-kb-spacing-xs, 1rem);
+}
+
+.wp-block-seoprostack-review-links__copied {
+	color: var(--global-palette5, inherit);
+	font-size: var(--global-kb-font-size-sm, 0.9rem);
+}
+
+.wp-block-seoprostack-review-links__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem var(--global-kb-spacing-xs, 1rem);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wp-block-seoprostack-review-links__links li {
+	margin: 0;
+}
+
+.wp-block-seoprostack-review-links.is-low .wp-block-seoprostack-review-links__link {
+	border: 1px solid currentcolor;
+	background: transparent;
+	color: var(--global-palette1, inherit);
+}
+
+@media (width < 600px) {
+	.wp-block-seoprostack-review-links__links {
+		flex-direction: column;
+	}
+
+	.wp-block-seoprostack-review-links__link {
+		display: block;
+		text-align: center;
+	}
+}

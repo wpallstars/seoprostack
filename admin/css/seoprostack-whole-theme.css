@@ -1472,6 +1472,11 @@ html.sps-dark .components-popover__arrow .components-popover__triangle {
 	fill: var(--sps-ui-surface);
 }
 
+/* The arrow's outline (#ccc) showed as a light triangle. */
+html.sps-dark .components-popover__arrow .components-popover__triangle-border {
+	stroke: var(--sps-ui-border);
+}
+
 html.sps-dark .components-modal__screen-overlay {
 	background-color: rgb(0 0 0 / 60%);
 }
@@ -2412,6 +2417,11 @@ html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle:hov
 	background: var(--sps-ui-hover);
 }
 
+/* Its arrow's SVG has no fill, so it drew black on the dark box. */
+html.sps-dark .kadence-icon-picker-selection-arrow svg {
+	fill: currentcolor;
+}
+
 /* Kadence Blocks: the icon picker's popover (search bar #fff, icons on #f5f5f5, Add Custom SVG #fff with a #f5f5f5 dashed line). */
 html.sps-dark .kadence-icon-picker-search {
 	background-color: var(--sps-ui-surface);
@@ -2530,6 +2540,33 @@ html.sps-dark .kadence-border-control .kadence-single-border-control-wrap .kaden
 /* Kadence Blocks: the empty colour circle beside Colour (#fff) and the lists its pickers open (#1e1e1e text, #f0f0f0 hover and choice). */
 html.sps-dark .kadence-pop-color-icon-indicate .kadence-pop-color-indicate:not([style*="background"]) {
 	background: var(--sps-ui-canvas);
+}
+
+/*
+ * The checks behind a colour that can be see-through (#ddd) reach under the
+ * button's 1px edge, outside the circle, and showed as a dotted ring. Keep
+ * them behind the circle.
+ */
+html.sps-dark .kadence-pop-color-icon-indicate.kadence-has-alpha {
+	background-clip: padding-box;
+}
+
+/*
+ * Kadence Blocks: HTML Tag and Text Alignment buttons (#4a5568, the chosen
+ * one white on the scheme colour, drawn by its ::before). The pressed-button
+ * fill above showed around that colour as a light frame.
+ */
+html.sps-dark :is(.kb-tag-level-control, .kb-responsive-align-control-inner) .components-toolbar .components-button {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.kb-tag-level-control, .kb-responsive-align-control-inner) .components-toolbar .components-button:hover:not(.is-pressed, :disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.kb-tag-level-control, .kb-responsive-align-control-inner) .components-toolbar .components-button.is-pressed:not(:disabled, [aria-disabled="true"]) {
+	color: #fff;
+	background: transparent;
 }
 
 html.sps-dark :is(.kb-color-control__item.components-button, .kadence-token-field__item.components-button, .kadence-token-field__reset.components-button) {

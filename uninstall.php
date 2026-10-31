@@ -116,6 +116,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_writes';
     $options[] = 'seoprostack_hosting_object_cache';
     $options[] = 'seoprostack_hosting_object_cache_lock';
+    $options[] = 'seoprostack_hosting_cache_web';
+    $options[] = 'seoprostack_hosting_cache_cron';
+    $options[] = 'seoprostack_hosting_cache_cli';
     $options[] = 'seoprostack_hosting_opcache';
     // Plugin sizes: the last Measure page time. Its token and each page's
     // findings are seoprostack_cost_* transients, removed with the others below.
@@ -157,6 +160,8 @@ function seoprostack_uninstall_site() {
     // The emails stay in the mailbox and the tickets in Fluent Support.
     $options[] = 'seoprostack_helpdesk_imap_state';
     $options[] = 'seoprostack_helpdesk_imap_lock';
+    // Sent folder copies not yet saved, and their counts.
+    $options[] = 'seoprostack_helpdesk_imap_sent';
     wp_unschedule_hook('seoprostack_helpdesk_imap');
     // Calls to other sites: counts, choices and the record of choices.
     $options[] = 'seoprostack_outbound_calls';

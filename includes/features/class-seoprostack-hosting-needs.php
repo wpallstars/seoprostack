@@ -74,6 +74,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Non-autoloaded daily object-cache facts and a cross-request probe. */
     const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
 
+    /** Non-autoloaded observations, one row per web, cron or CLI runtime. */
+    const CACHE_RUNTIME = 'seoprostack_hosting_cache_';
+
     /** Non-autoloaded hourly web-PHP OPcache snapshot, without script paths. */
     const OPCACHE = 'seoprostack_hosting_opcache';
 
@@ -167,6 +170,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         }
         // Started earlier by the must-use file of Load plugins only where needed.
         SEOProStack_Option_Writes::watch();
+        add_action('wp_loaded', array(__CLASS__, 'record_cache_runtime'));
         add_action('shutdown', array(__CLASS__, 'record'), PHP_INT_MAX);
         // Site Health also runs its tests from cron, outside wp-admin.
         add_filter('site_status_tests', array(__CLASS__, 'tests'));
@@ -779,6 +783,105 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         } finally {
             delete_option($lock);
         }
+    }
+
+    /**
+     * Read all three rows without trusting the cache being diagnosed.
+     * Separate rows prevent one runtime overwriting another's observation.
+     *
+     * @return array<string,array> Recent observations by runtime.
+     */
+    private static function cache_runtimes() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- A split cache cannot supply current observations; three indexed option names only.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN (%s, %s, %s)",
+            self::CACHE_RUNTIME . 'web',
+            self::CACHE_RUNTIME . 'cron',
+            self::CACHE_RUNTIME . 'cli'
+        ), ARRAY_A);
+        $observations = array();
+        foreach ((array) $rows as $row) {
+            $value = maybe_unserialize($row['option_value']);
+            if (is_array($value) && isset($value['using'], $value['class'], $value['checked'])
+                && is_bool($value['using']) && is_string($value['class']) && is_int($value['checked'])
+                && $value['checked'] <= time() && $value['checked'] >= time() - self::DAYS * DAY_IN_SECONDS) {
+                $observations[substr($row['option_name'], strlen(self::CACHE_RUNTIME))] = $value;
+            }
+        }
+        return $observations;
+    }
+
+    /** Record actual cache use, hourly or immediately when it changes. */
+    public static function record_cache_runtime() {
+        if (wp_installing() || (class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing())) {
+            return;
+        }
+        $cli = defined('WP_CLI') && WP_CLI;
+        $cron = wp_doing_cron() || ($cli && 'cron' === (WP_CLI::get_runner()->arguments[0] ?? ''));
+        if (!$cli && !$cron && in_array(PHP_SAPI, array('cli', 'phpdbg'), true)) {
+            return; // A local PHP bootstrap is not evidence of the web runtime.
+        }
+        global $wp_object_cache;
+        $kind = $cron ? 'cron' : ($cli ? 'cli' : 'web');
+        $value = array(
+            'using'   => (bool) wp_using_ext_object_cache(),
+            'class'   => is_object($wp_object_cache) ? get_class($wp_object_cache) : '',
+            'checked' => time(),
+        );
+        $stored = self::cache_runtimes();
+        $before = $stored[$kind] ?? array();
+        if (isset($before['using'], $before['class'], $before['checked']) && $before['using'] === $value['using']
+            && $before['class'] === $value['class'] && $before['checked'] > time() - HOUR_IN_SECONDS) {
+            return;
+        }
+        $name = self::CACHE_RUNTIME . $kind;
+        // update_option() must not mistake a stale cached value for the new one.
+        wp_cache_delete($name, 'options');
+        wp_cache_delete('notoptions', 'options');
+        update_option($name, $value, false);
+    }
+
+    /**
+     * Site Health: different runtimes must invalidate the same cache.
+     * No settings, drop-ins or cache contents are changed by this test.
+     *
+     * @return array
+     */
+    public static function test_cache_runtimes() {
+        $stored = self::cache_runtimes();
+        $split = false;
+        $details = array();
+        $labels = array('web' => __('Web requests', 'seoprostack'), 'cron' => __('Scheduled tasks', 'seoprostack'), 'cli' => 'WP-CLI');
+        foreach ($stored as $kind => $value) {
+            $details[] = sprintf(
+                /* translators: 1: request kind, 2: cache state, 3: cache class. */
+                __('%1$s: %2$s (%3$s).', 'seoprostack'),
+                $labels[$kind],
+                $value['using'] ? __('persistent cache', 'seoprostack') : __('no persistent cache', 'seoprostack'),
+                $value['class']
+            );
+            foreach ($stored as $other) {
+                if ($value['using'] !== $other['using'] || ($value['using'] && $value['class'] !== $other['class'])) {
+                    $split = true;
+                }
+            }
+        }
+        $enough = count($stored) >= 2;
+        // Site Health's web UI accepts only good, recommended or critical.
+        // As with our other tests, CLI audits can distinguish missing readings.
+        $status = !$enough && '' === self::live_sapi() ? 'not_run' : 'good';
+        return array(
+            'label'       => $split ? __('Request types use different object caches', 'seoprostack')
+                : ($enough ? __('Request types agree on object cache use', 'seoprostack') : __('Object cache comparison is waiting for more request types', 'seoprostack')),
+            'status'      => $split ? 'recommended' : $status,
+            'badge'       => array('label' => __('Performance', 'seoprostack'), 'color' => 'blue'),
+            'description' => '<p>' . esc_html($split
+                ? __('Scheduled tasks, WP-CLI and web requests do not all use the same persistent object cache. Changes made without that cache do not invalidate it, so other requests can read old settings and an old scheduled task list.', 'seoprostack')
+                : __('This comparison uses request types seen in the last 7 days. Open a page and let scheduled tasks or a WP-CLI command run to collect missing readings.', 'seoprostack')) . '</p><p>' . esc_html(implode(' ', $details)) . '</p>',
+            'actions'     => $split ? '<p>' . esc_html__('Ask your host to turn off the object-cache.php drop-in, or give web PHP, scheduled tasks and WP-CLI the same PHP extensions and object cache configuration. Clear old cache entries through the cache provider after fixing it. SEO Pro Stack does not change or flush the cache.', 'seoprostack') . '</p>' : '',
+            'test'        => 'seoprostack_cache_runtimes',
+        );
     }
 
     /**
@@ -2756,6 +2859,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @return array
      */
     public static function tests($tests) {
+        $tests['direct']['seoprostack_cache_runtimes'] = array(
+            'label' => __('Object cache across request types', 'seoprostack'),
+            'test'  => array(__CLASS__, 'test_cache_runtimes'),
+        );
         // WordPress 7.0 and later test whether OPcache is on; then this
         // only adds its size check, and leaves "off" to core.
         $core_checks_on = method_exists('WP_Site_Health', 'get_test_opcode_cache');
