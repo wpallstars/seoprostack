@@ -13,11 +13,15 @@
  *
  * Every five minutes (WP-Cron, or `wp seoprostack helpdesk-mail fetch`) it
  * reads emails that arrived since the last one it read, by IMAP UID, up to 25
- * a run. The mailbox is only read: emails stay where they are, read or
+ * a run. The inbox is only read: emails stay where they are, read or
  * unread. On the first run, emails from the last day are read. Fluent
  * Support's own checks still apply: replies join their ticket, out-of-office
  * replies and bounces open none, an email read twice makes one ticket.
  * Attachments stay in the mailbox; the ticket names them.
+ *
+ * Fluent Support's emails to customers from that inbox go out through the
+ * site's mail plugin as before; a copy of each is saved to the mailbox's Sent
+ * folder (on by default, includes/class-seoprostack-helpdesk-imap-sent.php).
  *
  * The password is read from SEOPROSTACK_HELPDESK_IMAP_PASSWORD in
  * wp-config.php (or the seoprostack_helpdesk_imap_password filter), never
@@ -50,6 +54,10 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
     const HOST_KEY    = 'helpdesk_imap_host';
     const USER_KEY    = 'helpdesk_imap_user';
     const MAILBOX_KEY = 'helpdesk_imap_mailbox';
+    const SENT_KEY    = 'helpdesk_imap_sent';
+
+    /** Sent folder's name; empty: found by name. */
+    const SENT_FOLDER_KEY = 'helpdesk_imap_sent_folder';
 
     /** Constant holding the mailbox password. */
     const PASSWORD = 'SEOPROSTACK_HELPDESK_IMAP_PASSWORD';
@@ -118,6 +126,20 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
                 'label'       => __('Fluent Support mailbox ID', 'seoprostack'),
                 'description' => __('The business inbox new tickets go to. 0: the email inbox with the user name as its address, else the default inbox.', 'seoprostack'),
             ),
+            self::SENT_KEY        => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'label'       => __('Save sent ticket emails to the Sent folder', 'seoprostack'),
+                'description' => __('Your mail plugin sends Fluent Support’s email, so no copy reaches the mailbox. With this on, each email Fluent Support sends a customer from this inbox (new ticket, reply, closed) is also saved to the mailbox’s Sent folder over IMAP, as your email app would. Notifications to agents and other site email are not.', 'seoprostack'),
+            ),
+            self::SENT_FOLDER_KEY => array(
+                'type'        => 'text',
+                'default'     => '',
+                'parent'      => self::KEY,
+                'label'       => __('Sent folder', 'seoprostack'),
+                'description' => __('Leave empty to use the folder named Sent (or Sent Items, Sent Messages, Sent Mail). It is never created.', 'seoprostack'),
+            ),
         );
     }
 
@@ -140,6 +162,11 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
         // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every five minutes (INTERVAL), only while this is on.
         add_filter('cron_schedules', array(__CLASS__, 'schedules'));
         add_action(self::HOOK, array(__CLASS__, 'run'));
+        if (SEOProStack_Settings::get(self::SENT_KEY)) {
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-helpdesk-imap-config.php';
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-helpdesk-imap-sent.php';
+            SEOProStack_Helpdesk_Imap_Sent::boot();
+        }
     }
 
     /**
@@ -151,6 +178,7 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-helpdesk-imap-mime.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-helpdesk-imap-message.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-helpdesk-imap-reader.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-helpdesk-imap-sent.php';
     }
 
     /* ------------------------------------------------------------------
@@ -203,12 +231,16 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
     }
 
     /**
-     * Read new email into Fluent Support. Run by WP-Cron.
+     * Read new email into Fluent Support, then save sent copies that are
+     * waiting. Run by WP-Cron.
      */
     public static function run() {
         if (self::enabled()) {
             self::load();
             SEOProStack_Helpdesk_Imap_Reader::fetch();
+            if (SEOProStack_Settings::get(self::SENT_KEY)) {
+                SEOProStack_Helpdesk_Imap_Sent::retry();
+            }
         }
     }
 
@@ -236,6 +268,9 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
             echo '<p>' . esc_html(self::describe($last)) . '</p>';
         } elseif (!$missing) {
             echo '<p>' . esc_html__('Ready. The mailbox is read within five minutes of switching this on.', 'seoprostack') . '</p>';
+        }
+        if (SEOProStack_Settings::get(self::SENT_KEY)) {
+            echo '<p>' . esc_html(SEOProStack_Helpdesk_Imap_Sent::describe()) . '</p>';
         }
         echo '</div>';
     }
@@ -323,6 +358,9 @@ class SEOProStack_Helpdesk_Imap extends SEOProStack_Feature {
         WP_CLI::log(sprintf(__('Mailbox %1$d, read up to UID %2$d.', 'seoprostack'), (int) $state['validity'], (int) $state['last_uid']));
         foreach ((array) $state['log'] as $run) {
             WP_CLI::log(self::describe((array) $run));
+        }
+        if (SEOProStack_Settings::get(self::SENT_KEY)) {
+            WP_CLI::log(SEOProStack_Helpdesk_Imap_Sent::describe());
         }
     }
 }
