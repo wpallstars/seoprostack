@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.121-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.122-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.121
+Version: 1.3.122
 
 <!-- github-only:start -->
 ## Screenshots
@@ -87,7 +87,7 @@ Drafts only: nothing leaves the site until an administrator sends it in Tools �
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
 - **Security:** Email protection, Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
-- **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
+- **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages, Faster editor with Kadence Blocks and Leave out Rank Math’s stats bar (the last three do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Editors use the business plugins, Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen, Avatars without Gravatar and Kadence author box fields (nothing changes without the Kadence theme).
@@ -800,7 +800,7 @@ WordPress keeps every revision of every post. This keeps the newest few (10 by d
 
 On by default; it changes nothing until you click. Below the Speed tab’s settings, a plan from this site’s own size and plugins: which of SEO Pro Stack’s speed and server settings to turn on, why for this site, and what each costs, with the reason when one is not recommended here.
 
-- Recommended when turned off here: the features on by default because they are safe on any site (Load plugins only where needed, Load pages before the click, Image loading, Remove WordPress extras, Fewer Heartbeat requests, Clean the database weekly; Lighter WooCommerce pages with WooCommerce, Faster editor with Kadence Blocks with Kadence Blocks, Load large settings only where they are used on single sites).
+- Recommended when turned off here: the features on by default because they are safe on any site (Load plugins only where needed, Load pages before the click, Image loading, Remove WordPress extras, Fewer Heartbeat requests, Clean the database weekly; Lighter WooCommerce pages with WooCommerce, Faster editor with Kadence Blocks with Kadence Blocks, Leave out Rank Math’s stats bar with Rank Math, Load large settings only where they are used on single sites).
 - Recommended from the site’s size, using the database’s own row estimates: **Remember admin counts** from about 100,000 comments or posts-table entries without a persistent object cache; **Faster page counts on long lists** from about 50,000 posts-table entries; **Count terms and comments in the background** from 1,000 products or about 100,000 category and tag links; **Add database keys** from about 500,000 custom field rows (it then offers the keys under **Tools → Add database keys**, each added only on click there).
 - Not in the plan, as they need your choices: Delay scripts until interaction and Delayed Google Analytics.
 - **Turn on** changes one setting, exactly as its switch would. **Undo** puts it back while it is still as the plan left it. The last 50 changes are kept in the `seoprostack_speed_plan` option (not autoloaded), removed on uninstall. Only people who may change SEO Pro Stack’s settings see the plan.
@@ -926,6 +926,13 @@ Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_li
 - Kadence's icon picker (Select Icon in its blocks' settings) draws all of its icons each time it opens: 5,482 on the test site, over 22,000 elements. Each icon set and each icon gets `content-visibility: auto` the same way, so the picker opened in 0.6 seconds instead of 1.35, and in dark mode in 0.9 seconds instead of 2.6 or more. Searching and choosing work as before.
 
 On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
+
+### Leave out Rank Math’s stats bar (Speed)
+
+Rank Math’s **Frontend Stats Bar** (Rank Math → General Settings → Analytics, on by default once Search Console is connected) sits below the admin bar on every post and page for people who may see Analytics. It loads a React script with WordPress’s components library (`rank-math-analytics-stats`, and `rank-math-analytics-pro-stats` with Rank Math Pro), then asks the site’s REST API for the page’s stats. Folding it away with its own button only remembers that for you: everything still loads on every page. **On by default** (owner’s choice); switch it off to get the bar back.
+
+- Uses Rank Math’s own `rank_math/analytics/frontend_stats` filter, and dequeues the bar’s scripts and styles, as Rank Math sets them up before SEO Pro Stack’s features start. Checked with Rank Math 1.0.280 and Rank Math Pro 3.0.124.
+- Rank Math’s settings are not changed (the Rank Math preset can still turn its own switch off), and Rank Math → Analytics keeps every stat. Nothing changes without Rank Math, or for visitors who are not logged in.
 
 ### Rank Math defaults (Links)
 
@@ -2241,6 +2248,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.122
+
+- New, on by default: **Leave out Rank Math’s stats bar** (Speed tab). Rank Math’s Frontend Stats Bar below the admin bar no longer loads its scripts and asks the server for the page’s Analytics on every post and page you open while logged in; folding it away in Rank Math only hid it. Rank Math’s settings are not changed, and Rank Math → Analytics keeps the stats; switch it off to get the bar back (GitHub issue #1090).
 
 ### 1.3.121
 

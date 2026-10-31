@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.121
+Stable tag: 1.3.122
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -75,7 +75,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short addresses for custom post types**.
 * **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
 * **Internal linking tools** (off): suggestions, undo and Link Whisper checks.
-* **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics** and faster Kadence Blocks editing.
+* **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): support email becomes tickets without a hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
@@ -155,7 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.121 =
-* Fix: Kadence dark mode, Hreflang Manager margins, faster icon picker (#1087).
+= 1.3.122 =
+* New, on by default: Leave out Rank Math's stats bar (#1090).
 
 Older: `changelog.txt`.
