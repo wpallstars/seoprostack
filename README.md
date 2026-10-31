@@ -2273,6 +2273,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Change: TranslatePress Pro's links in Pro Plugins and Free Plugins carry the developer's referral ID in GitHub builds; the WordPress.org build's links stay plain (GitHub issue #1120).
+- Change: Free Plugins' note under tools for occasional use now says to deactivate them when not using them and activate them only to look into a problem or work on maintenance (GitHub issue #1120).
 - Developers: all 82 starter core files match WP Plugin Starter 1.0.49. `deploy-sites.sh --apply` refuses an installed version it cannot read without `--allow-downgrade`, and only one run at a time takes over a stale lock (GitHub issue #1117).
 
 ### 1.3.132
