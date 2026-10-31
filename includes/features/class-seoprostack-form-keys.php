@@ -26,6 +26,10 @@
  * Every submission of a keyed form fires seoprostack_form_submitted with the
  * key, so other plugins (a CRM hand-off) follow forms by key, not by ID.
  *
+ * The Review links block (seoprostack/review-links), after a keyed feedback
+ * form, shows the visitor's comment to copy and the site's review short
+ * links once the form is sent (SEOProStack_Review_Links).
+ *
  * Keys are stored and found by SEOProStack_Form_Key_Store and managed with
  * WP-CLI by SEOProStack_Form_Keys_CLI.
  *
@@ -45,6 +49,7 @@ if (!defined('ABSPATH')) {
 require_once dirname(__DIR__) . '/class-seoprostack-form-key-store.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-modal.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-policy-links.php';
+require_once dirname(__DIR__) . '/class-seoprostack-review-links.php';
 
 class SEOProStack_Form_Keys extends SEOProStack_Feature {
 
@@ -112,6 +117,7 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
         add_action('wp_enqueue_scripts', array(__CLASS__, 'assets'), 20);
         add_action('enqueue_block_assets', array(__CLASS__, 'assets'));
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_data'));
+        add_action('enqueue_block_editor_assets', array('SEOProStack_Review_Links', 'editor_data'));
         if (defined('WP_CLI') && WP_CLI) {
             require_once dirname(__DIR__) . '/class-seoprostack-form-keys-cli.php';
             WP_CLI::add_command('seoprostack form-keys', 'SEOProStack_Form_Keys_CLI');
@@ -134,6 +140,7 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
         register_block_type(SEOPROSTACK_DIR . 'blocks/form-modal', array('render_callback' => array('SEOProStack_Form_Modal', 'render_block')));
         add_shortcode('seoprostack_form', array(__CLASS__, 'shortcode'));
         add_shortcode('seoprostack_form_modal', array('SEOProStack_Form_Modal', 'shortcode'));
+        SEOProStack_Review_Links::register();
     }
 
     /**

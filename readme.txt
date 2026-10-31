@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.121
+Stable tag: 1.3.122
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -155,7 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.121 =
-* Fix: Kadence dark mode, Hreflang Manager margins, faster icon picker (#1087).
+= 1.3.122 =
+* New: Review links block for feedback pages: the comment to copy and the site's review links after a keyed form is sent, for every rating (#1088).
 
 Older: `changelog.txt`.

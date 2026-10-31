@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.121-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.122-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.121
+Version: 1.3.122
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1278,6 +1278,7 @@ Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing co
 - In a form modal, a press that starts in the panel and ends on the dark overlay (a drag out of a field, or a tap while a searchable list closes) no longer closes it; an opened searchable list scrolls into view and takes room in the panel instead of being cut off; and Tab stays on the visible fields of a multi-step form instead of leaving through its hidden later steps.
 - The panel and modal start with a plain look in Kadence's palette, which a theme's own rules for `.seoprostack-form-panel`, `.seoprostack-form-modal`, `.seoprostack-form-modal-title` and `.seoprostack-form-modal-intro` override. Editors see a short notice where a form is missing; visitors see nothing.
 - Every submission of a keyed form fires `seoprostack_form_submitted` (key, data, form, entry ID), so other plugins, such as a CRM hand-off, follow forms by key.
+- **Review links block** (`seoprostack/review-links`), for a feedback page: put it after a Form by key block whose form has a rating field (`rating`) and a comment field (`comment`; both names can be changed in the block settings). It stays hidden until that form is sent, then thanks the visitor, shows their comment in a box with **Copy review**, and offers buttons to the site's review short links (`/googlereview/`, `/facebookreview/`, `/trustpilotreview/` from [Short links](#short-links-links)) whose target has been set, so clicks are counted. The links show for every rating: asking only happy customers for public reviews breaks Google's and Trustpilot's rules. A rating of 4 or 5 (**High rating from**) leads with the copy box and "Would you share this where others can find it?"; a lower one first says "We'll be in touch to put things right", with the links below. The form itself sends every rating wherever its notifications go. With Short links off, or no target set, only the thanks shows. The wording can be changed in the block settings.
 - **Policy links in forms open a new tab** (on by default, under this setting): links inside a Fluent form to the privacy policy (Settings → Privacy's page), `privacy-policy`, `cookie-policy` or the terms (`terms`, `terms-and-conditions`, `terms-of-service`, `terms-of-use`) open in a new tab, so reading them never loses what the visitor typed. They get `rel="noopener"`, the `seoprostack-new-tab` class for a theme's arrow and "(opens in a new tab)" for screen readers; links already opening a new tab are left alone. The `seoprostack_form_policy_paths` filter changes the paths.
 
 ### Kadence query filters scroll to results (Content)
@@ -2241,6 +2242,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.122
+
+- New: **Review links** block, for a feedback page under [Fluent Forms by key](#fluent-forms-by-key-content). Hidden until its form is sent, then it thanks the visitor, shows their comment with a **Copy review** button and offers the site's Google, Facebook and Trustpilot review short links that have a real target. The links show for every rating, as Google's and Trustpilot's rules require; a low rating gets a "we'll be in touch" first (GitHub issue #1088).
 
 ### 1.3.121
 
