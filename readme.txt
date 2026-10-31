@@ -156,6 +156,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.124 =
-* Faster: Kadence's icon picker draws icons as you scroll or search; Dev tab no longer scrolls sideways (#1095).
+* Faster Kadence icon picker; no Dev tab scrollbar (#1095).
 
 Older: `changelog.txt`.

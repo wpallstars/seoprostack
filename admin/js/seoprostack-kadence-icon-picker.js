@@ -56,14 +56,17 @@
 					var kept = fn.call(self, this[i], i, this);
 					out.push(kept);
 					// The picker returns the name of each icon it keeps.
-					if (kept !== undefined && ++shown >= max) {
-						more[label] = i + 1 < this.length;
-						return out;
+					if (kept !== undefined) {
+						shown++;
+						if (shown >= max) {
+							more[label] = i + 1 < this.length;
+							return out;
+						}
 					}
 				}
 				more[label] = false;
 				return out;
-			},
+			}
 		});
 		return list;
 	}
