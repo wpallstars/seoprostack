@@ -13,85 +13,82 @@ One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with
 
 == Description ==
 
-Faster admin, easier publishing and safer logins.
-
-Free and open source; details in its Read Me tab.
+Free and open source: faster admin, easier publishing, safer logins. Details in the Read Me tab.
 
 Safe features start on in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait for deactivation.
 
 = A calmer, faster admin =
 
 * **Light, Dark or System**: per-person admin colours; dark copies in uploads/seoprostack-dark go on deactivation.
-* **Developer admins**: choose who manages plugins, themes, admins and site addresses.
-* **Organise the admin menu**: sections, role previews and contributor menus.
+* **Developer admins**: limit plugin, theme, admin and address changes.
+* **Organise the admin menu**: sections and role previews.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
-* **Quiet Freemius prompts**, **Quiet Appsero prompts** and **Quiet Imagify suggestions**: fewer nags.
-* **Dev tab in the block editor**: developer-only plugin panels.
+* **Quiet Freemius prompts**, **Quiet Appsero prompts** and **Quiet Imagify suggestions**.
+* **Dev tab in the block editor**: developer panels.
 * **Tidy admin screens**, **WooCommerce admin**, **Login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeats**, **Limit revisions** and **Lighter WooCommerce pages**.
 * **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
 = Safer logins and access =
 
-* **Magic login links**: one-time email links, safe from link scanners.
-* **Admin bar and dashboard access**: restrict by role; admins keep access.
+* **Magic login links**: one-use, scanner-safe email links.
+* **Admin bar and dashboard access** by role; admins keep access.
 * **Editors use the business plugins**: WooCommerce, Rank Math, Tutor LMS, Fluent.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
-* **Minimum password length**: 12 characters for new passwords, on by default.
-* **Email protection** (on): hides addresses from HTML scrapers; needs JavaScript.
-* **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
-* **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
-* **HTTPS check**: certificate, TLS and HSTS in Site Health.
-* **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
+* **Minimum password length**: 12 for new passwords (on).
+* **Email protection** (on): hides addresses from scrapers; needs JavaScript.
+* **Known vulnerabilities**: WPVulnerability or opt-in Wordfence feed.
+* **File and account integrity checks** and **HTTPS check** in Site Health.
+* **Maintenance mode**: 503 page, revocable 24-hour bypass links.
 
 = Writing and publishing =
 
-* **Publishing queue**: undated posts take the next free slot.
+* **Publishing queue**: schedule undated posts.
 * **Duplicate posts**, **Staged new versions** and **Shareable preview links**.
 * **Pinned posts**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
-* **Tag clouds and related posts**: keeps TaxoPress and Tag Groups pages working.
-* **Custom fields to content**: ACF/SCF text and terms to content and excerpts.
-* **Restrict content** by membership or role. **Menu item visibility** by login or role.
+* **Tag clouds and related posts** (TaxoPress/Tag Groups compatible).
+* **Custom fields to content**: ACF/SCF text and terms, including excerpts.
+* **Restrict content** by membership/role. **Menu item visibility** by login/role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Named lists and Saved panel**: Liked and own lists.
+* **Named lists and Saved panel**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
-* **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
-* **Kadence colour check**: moves hard-to-read Customizer colours to the palette, with Restore.
-* **Fluent Forms by key**: blocks place a form by key, in a panel or modal.
+* **WP Grid Builder colours** in Kadence dark mode.
+* **Kadence colour check**: fixes Customizer contrast, with Restore.
+* **Fluent Forms by key**: form, panel and modal blocks.
 
 = Media =
 
-* **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
-* **WebP and AVIF images**: smaller files at the same address.
-* **Media in cloud storage** (off): remove and restore local copies; private bucket for watermark originals.
+* **Copy linked images to Media Library** on save; **Paste into the Media Library**.
+* **WebP and AVIF images** at unchanged addresses.
+* **Media in cloud storage** (off): local restore; private watermark originals.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
-* **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally. **Kadence author box fields** stay on profiles.
+* **Website screenshots**: block and `[browser-shot]`.
+* **Avatars without Gravatar**: local pictures. **Kadence author box fields** on profiles.
 
 = Links and speed =
 
-* **Rank Math defaults**: keywords, pillar warnings and opt-in site identity sync.
+* **Rank Math defaults**: keywords, pillars, opt-in identity sync.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
-* **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
-* **Internal linking tools** (off): suggestions, undo and Link Whisper checks.
+* **External link icons**: script-free. **Modal links** open drawers and modals.
+* **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
-* **Fluent Support email by IMAP** (off): support email becomes tickets without a hosted relay.
-* **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
+* **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
+* **Clean the database weekly**: spam, bin, expired data and tasks.
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
-* **Faster page counts on long lists** (off): exact page numbers.
-* **Database key cleanup** with restore SQL. **Add database keys** (off): faster lookups.
-* **Database character set**: opt-in utf8mb4 conversion for emoji.
-* **Load plugins only where needed**: learns from anonymous requests.
+* **Faster page counts on long lists** (off).
+* **Database key cleanup** with restore SQL. **Add database keys** (off).
+* **Database character set**: opt-in utf8mb4 for emoji.
+* **Load plugins only where needed**.
 
 = Plugins and set-up =
 
-* **Plugin presets** and **starter data**: opt-in settings and Fluent data, with undo.
+* **Plugin presets** and **starter data**: opt-in, with undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within time limits, using CPU.
-* **Agency**: order flow, client dashboard and examples.
+* **Agency**: orders and client dashboard.
 * **Recommended**: themes, plugins, hosting and tools.
 
 = Affiliate disclosure =
