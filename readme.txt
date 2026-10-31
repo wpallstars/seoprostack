@@ -156,7 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.120 =
-* Fix: Kadence block settings in dark mode, and fields moved by Hreflang Manager (#1087).
-* Faster: Kadence's icon picker opens two to three times faster (#1087).
+* Fix: Kadence settings in dark mode; Hreflang Manager field margins (#1087).
+* Faster: Kadence's icon picker opens 2-3x faster (#1087).
 
 Older: `changelog.txt`.
