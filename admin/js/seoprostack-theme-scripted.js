@@ -191,7 +191,13 @@
 			return at;
 		};
 	}
-	// The libraries' tags, as they add them to the <head>.
+	/*
+	 * The libraries' tags, as they add them to the <head>. styled-components
+	 * may write rules as text instead (its text mode, as in AI Engine's
+	 * build): each text it adds makes the browser read the tag again into a
+	 * new sheet with the light colours, so changes inside the tags are
+	 * watched too, and the new sheet is recoloured before it is drawn.
+	 */
 	function scan() {
 		var tags = document.head.querySelectorAll(TAGS);
 		for (var i = 0; i < tags.length; i++) {
@@ -199,5 +205,5 @@
 		}
 	}
 	scan();
-	new MutationObserver(scan).observe(document.head, { childList: true });
+	new MutationObserver(scan).observe(document.head, { childList: true, subtree: true, characterData: true });
 }());

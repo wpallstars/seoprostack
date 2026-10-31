@@ -5601,7 +5601,7 @@ html.sps-dark .settings-payment-gateways__header-select-container--indicator::be
 }
 
 /* Payments' icons with no fill (black): the providers' drag handles, the offline row's arrow and Business location's chevron. */
-html.sps-dark :is(.sortable-container .drag-handle svg, .woocommerce-list__item-after__actions__arrow svg, .settings-payment-gateways__header-select-container .components-country-select-control__button-icon) {
+html.sps-dark :is(.sortable-container .drag-handle svg, .woocommerce-list__item-after__actions__arrow svg, .settings-payment-gateways__header-select-container :is(.components-custom-select-control__button-icon, .components-country-select-control__button-icon)) {
 	fill: var(--sps-ui-muted);
 }
 
