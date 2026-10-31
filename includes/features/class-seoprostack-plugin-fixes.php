@@ -108,7 +108,10 @@
  * footer (as "Email support@… for assistance." did on agency sites). Its
  * branding_global_footer callback is removed on the front end; the same
  * text set as "Dashboard footer" still shows in the admin footer, and
- * MainWP's saved settings are left alone.
+ * MainWP's saved settings are left alone. Its Contact Support form puts the
+ * client's address only in From, which a mail plugin sending from the site's
+ * own address replaces; the email also gets it as Reply-To, so replies and
+ * help-desk tickets reach the client.
  *
  * Kadence Pro 1.2.5 moved its libraries (PSR interfaces, StellarWP, DI52,
  * LiquidWeb Harbor) into vendor-prefixed/ under new names but kept the old
@@ -432,7 +435,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -475,6 +478,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('http_api_debug', array(__CLASS__, 'cg_note_failure'), 10, 5);
         // Before MainWP Child's callback, which uses priority 15.
         add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
+        add_filter('mainwp_child_contact_support_mail_headers', array(__CLASS__, 'mainwp_support_reply_to'), 10, 3);
         // Before WP Crontrol's status notice, which uses priority 20.
         add_action('crontrol/tab-header', array(__CLASS__, 'crontrol_status'), 19);
         // Around Kadence Blocks' design token filter, which uses priority 10.
@@ -828,6 +832,33 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 }
             }
         }
+    }
+
+    /**
+     * Give MainWP Child's Contact Support email the client's address as
+     * Reply-To. MainWP sets only From, which a mail plugin that sends from
+     * the site's own address (FluentSMTP's Force From Email) replaces, so a
+     * reply, or a ticket a help desk makes from the email, would go to the
+     * site instead of the client.
+     *
+     * @param mixed $headers Headers, a string with CRLF line ends.
+     * @param mixed $email   The support address it is sent to.
+     * @param mixed $from    The address the client entered.
+     * @return mixed
+     */
+    public static function mainwp_support_reply_to($headers, $email = '', $from = '') {
+        if (!is_string($headers) || preg_match('/^reply-to:/im', $headers)) {
+            return $headers;
+        }
+        $address = sanitize_email((string) $from);
+        if (!is_email($address)) {
+            $user    = wp_get_current_user();
+            $address = $user->exists() ? sanitize_email((string) $user->user_email) : '';
+        }
+        if (!is_email($address) || strtolower($address) === strtolower(trim((string) $email))) {
+            return $headers;
+        }
+        return $headers . 'Reply-To: ' . $address . "\r\n";
     }
 
     /**
