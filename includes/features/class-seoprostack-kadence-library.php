@@ -99,9 +99,11 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
         wp_enqueue_style('seoprostack-kadence-library');
         // Kadence's icon picker drew its 5,000 or so icons (over 20,000
         // elements) each time it opened. The picker script has it draw the
-        // first 150 of each set, and more as you scroll or search; the icons
-        // it draws are skipped the same way until they are on screen. On a
-        // test site in dark mode it opens in 0.25 s instead of 0.85 s.
+        // first 50 of each set, and more as you scroll or search, and open
+        // on the press of its button; the icons it draws are skipped the
+        // same way until they are on screen, and the picker shows at once
+        // instead of fading in (WordPress's popover fades its opacity in;
+        // the slide stays, as it carries the position).
         $picker = 'admin/js/seoprostack-kadence-icon-picker.js';
         $pver   = file_exists(SEOPROSTACK_DIR . $picker) ? (string) filemtime(SEOPROSTACK_DIR . $picker) : SEOPROSTACK_VERSION;
         wp_enqueue_script('seoprostack-kadence-icon-picker', SEOPROSTACK_URL . $picker, array('wp-hooks', 'wp-element'), $pver, false);
@@ -110,6 +112,7 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
             '.kb-css-masonry_column>.block-editor-block-patterns-list__list-item{content-visibility:auto;contain-intrinsic-size:auto 320px}'
             . '.kadence-icon-picker-pop-selection .kadence-icon-picker-content>.components-panel__body{content-visibility:auto;contain-intrinsic-width:0px;contain-intrinsic-height:auto 1200px}'
             . '.kadence-icon-picker-pop-selection .kadence-icon-picker-link{content-visibility:auto;contain-intrinsic-size:auto 60px}'
+            . '.components-popover.kadence-icon-picker-pop-selection{opacity:1!important}'
         );
     }
 
