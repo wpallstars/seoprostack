@@ -2271,6 +2271,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Developers: all 82 starter core files match WP Plugin Starter 1.0.49. `deploy-sites.sh --apply` refuses an installed version it cannot read without `--allow-downgrade`, and only one run at a time takes over a stale lock (GitHub issue #1117).
+
 ### 1.3.132
 
 - Fix: dark mode for other plugins’ payment logos on WooCommerce → Settings → Payments (Afterpay, Affirm, SEPA, Revolut, PayPal and others from Payment Plugins): many were dark marks on the dark row, and now sit on light tiles, with their brand colours unchanged (GitHub issue #1115).
