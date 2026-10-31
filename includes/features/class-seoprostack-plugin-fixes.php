@@ -193,6 +193,17 @@
  * stays. A read from elsewhere is told by its colour. Reads of the active
  * palette keep the token colours.
  *
+ * Kadence Blocks 3.8's Style Library colours (checked with 3.8.1) stayed
+ * light in Kadence Pro's dark mode. Its design tokens are printed on :root
+ * with fixed colours: the nine palette primitives copy palette 1 to 9, and
+ * the semantic and preset tokens built on them resolve there too. Kadence
+ * Pro's dark mode changes the palette on the body only, so a heading given
+ * the Style Library's "Strongest" colour kept its black on a background that
+ * turned dark. On the dark body, the primitives now follow the body's
+ * palette, and the token declarations that read them are repeated there so
+ * they resolve against it. Light mode, other tokens, and token values a
+ * breakpoint changes are left as Kadence Blocks prints them.
+ *
  * Kadence Pro's dark mode (checked with 1.2.6) flashed twice. Its switch
  * swaps the body's color-switch-light/-dark class, so palette colours change
  * at once, but elements with a CSS transition (social icons, buttons, menu
@@ -311,6 +322,28 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Class on <html> while the palette changes: transitions are off. */
     const KADENCE_SWITCHING = 'seoprostack-palette-switching';
 
+    /** Kadence Blocks' style handle whose inline CSS holds the design tokens. */
+    const KADENCE_TOKENS_HANDLE = 'kadence-blocks-global-variables';
+
+    /** The selector Kadence Blocks prints its design tokens under. */
+    const KADENCE_TOKENS_SCOPE = ':root,:root:where(.kb-tokens)';
+
+    /**
+     * Kadence Blocks' palette primitives (its 3.8 design token declarations)
+     * and the Kadence palette slot each one stands for.
+     */
+    const KADENCE_TOKEN_SLOTS = array(
+        '--kb-token--primitive--color--brand--primary'   => 1,
+        '--kb-token--primitive--color--brand--secondary' => 2,
+        '--kb-token--primitive--color--neutral--900'     => 3,
+        '--kb-token--primitive--color--neutral--700'     => 4,
+        '--kb-token--primitive--color--neutral--600'     => 5,
+        '--kb-token--primitive--color--neutral--500'     => 6,
+        '--kb-token--primitive--color--neutral--100'     => 7,
+        '--kb-token--primitive--color--neutral--50'      => 8,
+        '--kb-token--primitive--color--neutral--0'       => 9,
+    );
+
     /**
      * The theme's colour for the palette slot being read, before Kadence
      * Blocks' filter: array(slot, colour), or null.
@@ -382,7 +415,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -915,10 +948,108 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     }
 
     /**
+     * Resolve Kadence Blocks' design token colours on the dark body, not the
+     * light root where Kadence Blocks declares them: each palette primitive
+     * becomes its palette variable, and every token declaration that reads
+     * one, directly or through other tokens, is repeated as it is so it
+     * resolves on the body. Shadows, and declarations a breakpoint changes,
+     * stay on :root (the latter with their @media rules).
+     *
+     * @return string
+     */
+    private static function kadence_token_css() {
+        if (!defined('KADENCE_BLOCKS_VERSION') || version_compare((string) KADENCE_BLOCKS_VERSION, self::KADENCE_TOKENS_FROM, '<')) {
+            return '';
+        }
+        $after = wp_styles()->get_data(self::KADENCE_TOKENS_HANDLE, 'after');
+        if (!is_array($after)) {
+            return '';
+        }
+        $css = implode('', array_filter($after, 'is_string'));
+        if (false === strpos($css, '--kb-token--primitive--color--')) {
+            return '';
+        }
+        $root = self::kadence_token_declarations($css);
+        $dark = array();
+        foreach (self::KADENCE_TOKEN_SLOTS as $name => $slot) {
+            if (isset($root[$name])) {
+                $dark[$name] = 'var(--global-palette' . $slot . ')';
+            }
+        }
+        if (!$dark) {
+            return '';
+        }
+        // Each pass adds the declarations that read one added before; tokens
+        // form no cycles, so this ends after as many passes as the chain is long.
+        do {
+            $added = false;
+            foreach ($root as $name => $value) {
+                // Shadows stay dark: palette 3 turns light in dark mode.
+                if (isset($dark[$name]) || false !== strpos($name, '--shadow') || !preg_match_all('/var\(\s*(--kb-token--[\w-]+)/', $value, $refs)) {
+                    continue;
+                }
+                foreach ($refs[1] as $ref) {
+                    if (isset($dark[$ref])) {
+                        $dark[$name] = $value;
+                        $added       = true;
+                        break;
+                    }
+                }
+            }
+        } while ($added);
+        $out = '';
+        foreach ($dark as $name => $value) {
+            $out .= $name . ':' . $value . ';';
+        }
+        return 'body.color-switch-dark{' . $out . '}';
+    }
+
+    /**
+     * Kadence Blocks' design token declarations on :root outside @media
+     * rules, name => value, without those a breakpoint redeclares or whose
+     * value could end the style.
+     *
+     * @param string $css Kadence Blocks' global variables CSS.
+     * @return array<string, string>
+     */
+    private static function kadence_token_declarations($css) {
+        $responsive = array();
+        // An @media rule holding rules: Kadence Blocks redeclares tokens per breakpoint this way.
+        if (preg_match_all('/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*\s*\}/', $css, $media)) {
+            foreach ($media[0] as $rule) {
+                if (preg_match_all('/(--kb-token--[\w-]+)\s*:/', $rule, $names)) {
+                    $responsive += array_fill_keys($names[1], true);
+                }
+            }
+            $css = str_replace($media[0], '', $css);
+        }
+        $root = array();
+        if (!preg_match_all('/' . preg_quote(self::KADENCE_TOKENS_SCOPE, '/') . '\s*\{([^{}]*)\}/', $css, $blocks)) {
+            return $root;
+        }
+        foreach ($blocks[1] as $block) {
+            foreach (explode(';', $block) as $declaration) {
+                $parts = explode(':', $declaration, 2);
+                $name  = trim($parts[0]);
+                if (2 !== count($parts) || 0 !== strpos($name, '--kb-token--') || isset($responsive[$name])) {
+                    continue;
+                }
+                $value = trim($parts[1]);
+                if ('' !== $value && !preg_match('/[<>{}]/', $value)) {
+                    $root[$name] = $value;
+                }
+            }
+        }
+        return $root;
+    }
+
+    /**
      * Print, first in the body, the style that turns CSS transitions off
      * while the palette changes (the switch-style toggle's knob keeps its
-     * slide), and the script that applies the visitor's saved palette before
-     * the page is drawn and holds transitions while the palette changes. The
+     * slide) and resolves palette-based colours on the dark body (secondary
+     * buttons, Kadence Blocks' design tokens), and the script that applies
+     * the visitor's saved palette before the page is drawn and holds
+     * transitions while the palette changes. The
      * script decides as Kadence Pro's own init does (its cookie, then the
      * system setting when Kadence follows it), so that init finds nothing
      * left to change. Kadence Pro prints its own stylesheet as it enqueues
@@ -936,6 +1067,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             // The knob keeps its slide only for visitors who allow motion.
             . '@media (prefers-reduced-motion:no-preference){' . $on . ' .kcps-style-switch button.kadence-color-palette-toggle::after{transition:transform .5s ease!important}}'
             . self::kadence_secondary_button_css()
+            . self::kadence_token_css()
         );
         wp_print_styles(self::KADENCE_SWITCHING);
         $script = <<<'JS'
