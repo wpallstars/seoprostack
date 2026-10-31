@@ -258,6 +258,19 @@
  * 40 px text fields made the address taller than the 38 px buttons beside
  * it. The icon is scaled whole and the address is as tall as the buttons.
  *
+ * Lasso Lite (Simple URLs, checked with 161) loads Font Awesome 5's SVG
+ * script on post editor screens, which turns every element with Font
+ * Awesome's class into an SVG. EventON's tooltips (checked with EventON Lite
+ * 2.5.10) have the class but no icon, so each becomes Font Awesome's
+ * "missing icon", with four endless SVG animations: 2,200 on the editor,
+ * hidden in EventON's shortcode window. The browser still ran them on every
+ * frame, so each frame took 40-80 ms and everything in the editor (opening
+ * Kadence's icon picker: 0.5 s of 1.25 s) waited for them. Their animations
+ * are removed after each Font Awesome pass; the icons stay, still. Font
+ * Awesome's real icons have no SVG animations, and its showMissingIcons
+ * option would not help: an element without an icon name gets the missing
+ * icon anyway.
+ *
  * @package SEOProStack
  */
 
@@ -435,7 +448,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -523,7 +536,27 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             add_action('admin_enqueue_scripts', array(__CLASS__, 'copytrack_runtime'), 100);
             // Last, after Hreflang Manager and Kadence Blocks enqueue their styles.
             add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_field_css'), PHP_INT_MAX);
+            // After Lasso Lite enqueues Font Awesome at priority 10.
+            add_action('admin_enqueue_scripts', array(__CLASS__, 'lasso_still_missing_icons'), 100);
         }
+    }
+
+    /**
+     * Stop the endless animations of Font Awesome's "missing icon", which
+     * Lasso Lite's Font Awesome draws for EventON's tooltips (see the file
+     * docblock): after each Font Awesome pass, which ends by adding its
+     * fontawesome-i2svg-complete class to the html element.
+     */
+    public static function lasso_still_missing_icons() {
+        $handle = 'surl-lasso-icons';
+        if (!wp_script_is($handle, 'enqueued')) {
+            return;
+        }
+        wp_add_inline_script(
+            $handle,
+            '(function(){var h=document.documentElement;function still(){var a=document.querySelectorAll("svg[data-fa-i2svg] animate");for(var i=0;i<a.length;i++){a[i].parentNode.removeChild(a[i]);}}'
+            . 'if(window.MutationObserver){new MutationObserver(function(){if(h.classList.contains("fontawesome-i2svg-complete")){still();}}).observe(h,{attributes:true,attributeFilter:["class"]});}})();'
+        );
     }
 
     /**
