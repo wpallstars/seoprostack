@@ -1,7 +1,8 @@
 <?php
 /**
  * Fluent Support email by IMAP: the connection to the support mailbox. It
- * only reads: emails are fetched with FT_PEEK, so none is marked read.
+ * reads with FT_PEEK, so no email is marked read; the only write is append(),
+ * which adds copies of sent emails to the Sent folder.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -155,6 +156,61 @@ class SEOProStack_Helpdesk_Imap_Connection {
      */
     public function section($uid, $section) {
         return (string) imap_fetchbody($this->imap, $uid, $section, FT_UID | FT_PEEK);
+    }
+
+    /**
+     * The server's folder names.
+     *
+     * @return string[]
+     */
+    public function folders() {
+        $server = $this->server();
+        $list   = imap_list($this->imap, $server, '*');
+        $names  = array();
+        foreach (is_array($list) ? $list : array() as $folder) {
+            $names[] = self::folder_name(substr((string) $folder, strlen($server)), false);
+        }
+        return $names;
+    }
+
+    /**
+     * Save a message to a folder, marked read, with the time it was sent.
+     *
+     * @param string $folder  Folder name.
+     * @param string $message Raw message.
+     * @param int    $time    When it was sent.
+     * @return true|WP_Error
+     */
+    public function append($folder, $message, $time) {
+        $message = (string) preg_replace('/\r?\n/', "\r\n", $message);
+        $date    = gmdate('d-M-Y H:i:s', $time ? $time : time()) . ' +0000';
+        if (!imap_append($this->imap, $this->server() . self::folder_name($folder, true), $message, '\\Seen', $date)) {
+            return new WP_Error('helpdesk_imap_append', self::error(__('Could not save the email to the Sent folder.', 'seoprostack')));
+        }
+        return true;
+    }
+
+    /**
+     * The server part of the reference, such as {mail.example.com:993/imap/ssl}.
+     *
+     * @return string
+     */
+    private function server() {
+        return substr($this->ref, 0, (int) strpos($this->ref, '}') + 1);
+    }
+
+    /**
+     * A folder name to or from IMAP's modified UTF-7.
+     *
+     * @param string $name   Name.
+     * @param bool   $encode True to encode, false to decode.
+     * @return string
+     */
+    private static function folder_name($name, $encode) {
+        if ($encode) {
+            return function_exists('imap_utf8_to_mutf7') ? (string) imap_utf8_to_mutf7($name) : (string) imap_utf7_encode($name);
+        }
+        return function_exists('imap_mutf7_to_utf8') ? (string) imap_mutf7_to_utf8($name) : (string) imap_utf7_decode($name);
     }
 
     /**

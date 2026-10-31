@@ -160,6 +160,8 @@ function seoprostack_uninstall_site() {
     // The emails stay in the mailbox and the tickets in Fluent Support.
     $options[] = 'seoprostack_helpdesk_imap_state';
     $options[] = 'seoprostack_helpdesk_imap_lock';
+    // Sent folder copies not yet saved, and their counts.
+    $options[] = 'seoprostack_helpdesk_imap_sent';
     wp_unschedule_hook('seoprostack_helpdesk_imap');
     // Calls to other sites: counts, choices and the record of choices.
     $options[] = 'seoprostack_outbound_calls';
