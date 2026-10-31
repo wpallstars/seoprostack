@@ -156,7 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.119 =
-* Fix: Kadence Blocks Style Library colours follow Kadence Pro's dark mode (#1083).
-* New: Site Health warns about split object caches across web, cron and WP-CLI (#1072).
+* Fix: Kadence Style Library colours follow dark mode (#1083).
+* New: Site Health warns about split object caches (#1072).
 
 Older: `changelog.txt`.
