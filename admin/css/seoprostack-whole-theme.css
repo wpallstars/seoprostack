@@ -1762,10 +1762,30 @@ html.sps-dark .components-panel__body-toggle.components-button .components-panel
 /*
  * Block icons in the inserter, the block card and the toolbar: core's
  * follow the text (#1e1e1e); Kadence's are filled with --kadence-color
- * (#0058b0, dark blue), made the lighter accent here.
+ * (#0058b0, dark blue), made the lighter accent here. Kadence Blocks'
+ * components.css sets that variable on every svg, so it is set on the svg
+ * too. Other Kadence icons have the blue as a fill or stroke attribute
+ * (#0058b0, #0057ae, #0159b0, #0073e6), so those shapes get the accent.
+ * Their white details (Row Layout's plus, Section's and Video Pop-up's
+ * cut-outs) sit on the blue, so they take the surface colour, which reads
+ * on the lighter accent. Not on an accent ground (a selected List View row,
+ * a pressed or primary button), where Kadence's icons follow the text.
  */
-html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block-card .block-editor-block-icon, .block-editor-block-toolbar .block-editor-block-icon, .block-editor-list-view-leaf .block-editor-block-icon, .block-editor-inserter__panel-header) {
+html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block-card .block-editor-block-icon, .block-editor-block-toolbar .block-editor-block-icon, .block-editor-list-view-leaf .block-editor-block-icon, .block-editor-inserter__panel-header) svg:not(:is(.is-selected, .is-pressed, .is-primary) svg) {
 	--kadence-color: var(--sps-ui-accent);
+	--kadence-color-white: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block-card .block-editor-block-icon, .block-editor-block-toolbar .block-editor-block-icon, .block-editor-list-view-leaf .block-editor-block-icon, .block-editor-inserter__panel-header) svg:not(:is(.is-selected, .is-pressed, .is-primary) svg) :is([fill="#0058b0" i], [fill="#0057ae" i], [fill="#0159b0" i], [fill="#0073e6" i]) {
+	fill: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block-card .block-editor-block-icon, .block-editor-block-toolbar .block-editor-block-icon, .block-editor-list-view-leaf .block-editor-block-icon, .block-editor-inserter__panel-header) svg:not(:is(.is-selected, .is-pressed, .is-primary) svg) :is([stroke="#0058b0" i], [stroke="#0057ae" i], [stroke="#0159b0" i], [stroke="#0073e6" i]) {
+	stroke: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block-card .block-editor-block-icon, .block-editor-block-toolbar .block-editor-block-icon, .block-editor-list-view-leaf .block-editor-block-icon, .block-editor-inserter__panel-header) svg:not(:is(.is-selected, .is-pressed, .is-primary) svg):has(:is([fill="#0058b0" i], [fill="#0057ae" i], [fill="#0159b0" i], [fill="#0073e6" i])) :is([fill="#fff" i], [fill="#ffffff" i]) {
+	fill: var(--sps-ui-surface);
 }
 
 html.sps-dark .block-editor-block-types-list__item-icon {
