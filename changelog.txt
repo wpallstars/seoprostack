@@ -2,7 +2,8 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.131 =
+* Fix: Dark mode for Kadence Blocks' block icons in the block editor (inserter, block card, block toolbar, List View): they stayed Kadence's dark blue (#0058b0) on the dark surface, about 2.3:1. The stylesheet set --kadence-color to the accent on the icons' containers, but Kadence Blocks' components.css sets it on every svg, so it is now set on the svg too; shapes with Kadence's blue as a fill or stroke attribute (#0058b0, #0057ae, #0159b0, #0073e6) take the accent, and the white details on them (--kadence-color-white, fill #fff) the surface colour. Not on an accent ground (a selected List View row, a pressed or primary button), where Kadence's icons follow the text (GitHub issue #1112).
 * Developers: all 82 starter core files match WP Plugin Starter main after 1.0.48. CI runs the release build and smoke tests when a commit is pushed as the pull request is marked ready for review: the lint job reads whether the pull request is still a draft when it ends (with a time limit on that request, starter GH#600), and draft and ready runs are in separate concurrency groups. scripts/deploy-sites.sh --apply holds a per-plugin lock on the SSH host, refuses to install over a newer version without --allow-downgrade, and refuses a --web-error-log in a folder that does not exist. The shared problem reports are 1.0.4 (escaped output values kept apart, line-scoped prefix-check annotations). .gitignore has an own block for this plugin's own ignore lines, and .github/workflows/sonarcloud.yml's sonarqube-scan-action v8.4.0 pin is now the starter's (GitHub issue #1108).
 
 = 1.3.130 =
