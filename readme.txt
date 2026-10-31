@@ -100,7 +100,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 = External services =
 
-* **Your IMAP server** (opt-in): reads support email and saves sent ticket emails to Sent, over SSL or STARTTLS, certificate checked.
+* **Your IMAP server** (opt-in): reads support email, saves sent copies; SSL or STARTTLS, certificate checked.
 * **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
