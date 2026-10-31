@@ -277,10 +277,11 @@ final class SEOProStack_Admin_Whole_Theme {
     }
 
     /**
-     * Whether Dark recolours the styles a screen's own script sets (Emotion,
-     * CSS in JS, under hashed class names the stylesheet cannot name; see
-     * admin/js/seoprostack-theme-scripted.js): Tutor LMS's screens, and its
-     * course builder (page=create-course), which the script draws whole.
+     * Whether Dark recolours the styles a screen's own script sets (CSS in
+     * JS, under hashed class names the stylesheet cannot name; see
+     * admin/js/seoprostack-theme-scripted.js): Tutor LMS's screens (Emotion),
+     * and its course builder (page=create-course), which the script draws
+     * whole; Meow Apps' screens (styled-components).
      *
      * @return bool
      */
@@ -288,15 +289,42 @@ final class SEOProStack_Admin_Whole_Theme {
         global $plugin_page;
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
         $tutor  = defined('TUTOR_VERSION') && is_string($plugin_page) && (0 === strpos($plugin_page, 'tutor') || 'create-course' === $plugin_page);
+        $meow   = is_string($plugin_page) && self::meow_screen($plugin_page);
         /**
          * Filter whether Dark mode recolours the styles an admin screen's
-         * own script sets (Emotion's): light grounds, dark grey text and
-         * light lines take the dark palette's colours.
+         * own script sets (Emotion's and styled-components'): light
+         * grounds, dark grey text and light lines take the dark palette's
+         * colours.
          *
-         * @param bool           $recolours Whether it does. Default true on Tutor LMS's screens.
+         * @param bool           $recolours Whether it does. Default true on Tutor LMS's and Meow Apps' screens.
          * @param WP_Screen|null $screen    The screen.
          */
-        return (bool) apply_filters('seoprostack_admin_dark_script_styles', $tutor, $screen);
+        return (bool) apply_filters('seoprostack_admin_dark_script_styles', $tutor || $meow, $screen);
+    }
+
+    /**
+     * Whether a plugin page is one of Meow Apps' (its dashboard, AI Engine,
+     * Media File Renamer and the others in its menu). Their panels, as the
+     * dashboard's cards and AI Engine's, are white by styled-components
+     * under hashed class names.
+     *
+     * @param string $page The plugin page (`page` query argument).
+     * @return bool
+     */
+    private static function meow_screen($page) {
+        global $submenu;
+        if ('meowapps-main-menu' === $page) {
+            return true;
+        }
+        if (!isset($submenu['meowapps-main-menu']) || !is_array($submenu['meowapps-main-menu'])) {
+            return false;
+        }
+        foreach ($submenu['meowapps-main-menu'] as $item) {
+            if (isset($item[2]) && $page === $item[2]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

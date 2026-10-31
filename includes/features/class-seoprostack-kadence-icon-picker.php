@@ -10,7 +10,7 @@
  * of its button; the icons it draws are skipped by the browser until they
  * are on screen, and the picker shows at once instead of fading in.
  *
- * Until 1.3.129 this came with Faster editor with Kadence Blocks, which
+ * Until 1.3.130 this came with Faster editor with Kadence Blocks, which
  * shipped off by default; sites set up before that turned on by default
  * kept it off, so their picker stayed slow. As its own setting, on by
  * default, it reaches every site.
@@ -21,7 +21,7 @@
  * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
  *
  * @package SEOProStack
- * @since 1.3.129
+ * @since 1.3.130
  */
 
 if (!defined('ABSPATH')) {

@@ -1,8 +1,9 @@
 /**
- * Dark mode for colours a screen's own script sets (Emotion, CSS in JS, as
- * on Tutor LMS's React screens; SEOProStack_Admin_Theme::script_styles()).
+ * Dark mode for colours a screen's own script sets (CSS in JS: Emotion, as
+ * on Tutor LMS's React screens, and styled-components, as on Meow Apps'
+ * screens; SEOProStack_Admin_Theme::script_styles()).
  *
- * Its rules use class names made from a hash of the styles (`css-1cg1ee4`),
+ * Its rules use class names made from a hash of the styles (`css-1cg1ee4`, `sc-cBooDE`),
  * new with each version, so the dark stylesheet cannot name them. Instead,
  * each rule is read as it is added, before anything uses it, and each light
  * ground, dark grey text and light line takes the dark palette's colour,
@@ -26,8 +27,8 @@
 	if (!window.MutationObserver || !window.WeakSet || !document.head) {
 		return;
 	}
-	// Emotion's style tags, but its global ones (resets).
-	var TAGS = 'style[data-emotion]:not([data-emotion$="-global"])';
+	// Emotion's style tags, but its global ones (resets), and styled-components' tag.
+	var TAGS = 'style[data-emotion]:not([data-emotion$="-global"]), style[data-styled]';
 	var LINES = ['border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color'];
 	var adopted = new WeakSet();
 	var shades = {};
@@ -159,9 +160,10 @@
 		}
 	}
 	/*
-	 * A style tag's rules, and each rule it is given later: Emotion adds them
-	 * one by one with insertRule() as components first draw, so they are
-	 * recoloured there, before the elements using them are on the screen.
+	 * A style tag's rules, and each rule it is given later: Emotion and
+	 * styled-components add them one by one with insertRule() as components
+	 * first draw, so they are recoloured there, before the elements using
+	 * them are on the screen.
 	 */
 	function adopt(tag) {
 		var sheet = tag.sheet;
@@ -189,7 +191,13 @@
 			return at;
 		};
 	}
-	// Emotion's tags, as it adds them to the <head>.
+	/*
+	 * The libraries' tags, as they add them to the <head>. styled-components
+	 * may write rules as text instead (its text mode, as in AI Engine's
+	 * build): each text it adds makes the browser read the tag again into a
+	 * new sheet with the light colours, so changes inside the tags are
+	 * watched too, and the new sheet is recoloured before it is drawn.
+	 */
 	function scan() {
 		var tags = document.head.querySelectorAll(TAGS);
 		for (var i = 0; i < tags.length; i++) {
@@ -197,5 +205,5 @@
 		}
 	}
 	scan();
-	new MutationObserver(scan).observe(document.head, { childList: true });
+	new MutationObserver(scan).observe(document.head, { childList: true, subtree: true, characterData: true });
 }());

@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.129-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.130-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.129
+Version: 1.3.130
 
 <!-- github-only:start -->
 ## Screenshots
@@ -935,7 +935,7 @@ Kadence’s icon picker (Select Icon in its blocks’ settings) drew all of its 
 - The picker opens on the press of the mouse button, as a select list does, rather than when it is let go (keys and touch open it as before), and shows at once instead of fading in.
 - Choosing an icon, folding a set and choosing one set work as before.
 
-From the press to the picker in place: on the preview site in dark mode, 1.25 seconds in 1.3.126 and 0.2 seconds in 1.3.127, with the Lasso Lite fix in [Fixes for other plugins](#fixes-for-other-plugins-plugins); on a live site with Kadence Blocks Pro and about 70 active plugins, 3.8 seconds without it and 0.15 seconds with it. Until 1.3.129 this was part of Faster editor with Kadence Blocks, which sites set up before it was on by default still have off.
+From the press to the picker in place: on the preview site in dark mode, 1.25 seconds in 1.3.126 and 0.2 seconds in 1.3.127, with the Lasso Lite fix in [Fixes for other plugins](#fixes-for-other-plugins-plugins); on a live site with Kadence Blocks Pro and about 70 active plugins, 3.8 seconds without it and 0.15 seconds with it. Until 1.3.130 this was part of Faster editor with Kadence Blocks, which sites set up before it was on by default still have off.
 
 ### Leave out Rank Math’s stats bar (Speed)
 
@@ -2271,9 +2271,14 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### 1.3.129
+### 1.3.130
 
 - Faster: **Faster Kadence icon picker** (Speed) is its own setting, on by default, so Kadence’s icon picker opens at once on every site. It was part of **Faster editor with Kadence Blocks**, which sites set up before that was on by default still have off, so their picker drew all 5,482 icons each time: on one such live site, 3.8 seconds from the press to the picker in place, and 0.15 seconds with this (GitHub issue #1109).
+
+### 1.3.129
+
+- Fix: dark mode for WooCommerce → Settings → Payments: the providers’ drag handles, the offline payments arrow and the Business location chevron were black on the dark background (GitHub issue #1105).
+- Fix: dark mode for Meow Apps’ new dashboards: the Meow Apps dashboard’s banner, plugin cards and panels, and AI Engine’s dashboard tiles and model cards, were white (GitHub issue #1106).
 
 ### 1.3.128
 

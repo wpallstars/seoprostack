@@ -3525,6 +3525,42 @@ html.sps-dark .mwai-magic-wand-dropdown a:hover {
 }
 
 /*
+ * The panels of Meow Apps' dashboard and AI Engine's dashboard are white by
+ * styled-components (hashed class names), recoloured by the head script
+ * (seoprostack-theme-scripted.js). It reads only flat colours, so the parts
+ * mixed with white are set here: AI Engine's model cards (a gradient from
+ * the provider's colour, or amber, to white, with labels mixed with
+ * #1f2937), and its orange warnings, too dark on the dark ground.
+ */
+html.sps-dark .neko-page .roles > .role {
+	border-color: color-mix(in oklab, var(--_brand) 35%, var(--sps-ui-border));
+	background: linear-gradient(135deg, color-mix(in oklab, var(--_brand) 16%, var(--sps-ui-raised)), var(--sps-ui-raised) 75%);
+}
+
+html.sps-dark .neko-page .roles > .role.warn {
+	border-color: rgb(217 119 6 / 55%);
+	background: linear-gradient(135deg, rgb(245 158 11 / 16%), var(--sps-ui-raised) 75%);
+}
+
+html.sps-dark .neko-page .roles > .role.empty {
+	border-color: var(--sps-ui-field-border);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .neko-page .role-kind {
+	color: color-mix(in oklab, var(--_brand) 65%, var(--sps-ui-text));
+}
+
+html.sps-dark .neko-page :is(.role.warn .role-provider, .pill-warn, .vis-alert, .vis-alert a, .vis-alert svg) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .neko-page .vis-alert {
+	background: #3a3016;
+	box-shadow: inset 0 0 0 1px #6b5413;
+}
+
+/*
  * Fluent Forms' screens (Element UI 2, white surfaces and #606266 text; it
  * has no dark mode of its own). Only its screens: the other Fluent plugins
  * use their own dark mode (the head script keeps it in step). Element's
@@ -5562,6 +5598,15 @@ html.sps-dark .settings-payment-gateways__header-select-container {
 
 html.sps-dark .settings-payment-gateways__header-select-container--indicator::before {
 	background-color: var(--sps-ui-border);
+}
+
+/* Payments' icons with no fill (black): the providers' drag handles, the offline row's arrow and Business location's chevron. */
+html.sps-dark :is(.sortable-container .drag-handle svg, .woocommerce-list__item-after__actions__arrow svg, .settings-payment-gateways__header-select-container :is(.components-custom-select-control__button-icon, .components-country-select-control__button-icon)) {
+	fill: var(--sps-ui-muted);
+}
+
+html.sps-dark .woocommerce-list__item-after__actions__arrow:is(:hover, :focus) svg {
+	fill: var(--sps-ui-text);
 }
 
 html.sps-dark .components-country-select-control__menu {
