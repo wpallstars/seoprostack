@@ -23,6 +23,7 @@
     var open = false;
     var queued = false;
     var button = null;
+    var resized = null;
 
     cfg.panels.forEach(function (panel) {
         if (panel.id) {
@@ -224,6 +225,15 @@
             button = makeButton(tabs.model);
             tabs.list.appendChild(button);
             watchTabs(tabs.list);
+            // Tabs change width as fonts load and the sidebar is resized.
+            if (window.ResizeObserver) {
+                if (!resized) {
+                    resized = new window.ResizeObserver(schedule);
+                }
+                resized.disconnect();
+                resized.observe(tabs.list);
+                resized.observe(button);
+            }
         }
     }
 
@@ -239,11 +249,19 @@
         }
     }
 
-    /** Move the tab line under Dev. */
+    /**
+     * Move the tab line under Dev, to the fraction of a pixel: whole pixels
+     * (offsetLeft, offsetWidth) could end it past the last tab, and the tab
+     * list then scrolled sideways, with a scrollbar under the tabs.
+     */
     function underline(list) {
-        list.style.setProperty('--sps-dev-left', String(button.offsetLeft));
-        list.style.setProperty('--sps-dev-width', String(button.offsetWidth));
-        list.style.setProperty('--sps-dev-right', String(list.offsetWidth - button.offsetLeft - button.offsetWidth));
+        var box = list.getBoundingClientRect();
+        var tab = button.getBoundingClientRect();
+        var left = Math.max(0, Math.ceil((tab.left - box.left + list.scrollLeft) * 100) / 100);
+        var end = Math.max(left, Math.floor((tab.right - box.left + list.scrollLeft) * 100) / 100);
+        list.style.setProperty('--sps-dev-left', String(left));
+        list.style.setProperty('--sps-dev-width', String(Math.round((end - left) * 100) / 100));
+        list.style.setProperty('--sps-dev-right', String(Math.max(0, Math.round((box.width - end) * 100) / 100)));
     }
 
     function render() {

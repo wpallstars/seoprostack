@@ -18,7 +18,8 @@
  * editor script keeps Kadence's answers in the browser until Kadence's copy
  * changes (see admin/js/seoprostack-kadence-library.js), and a style lets
  * the browser skip drawing patterns, and the icon picker's icons, that are
- * off screen.
+ * off screen. The icon picker draws the first icons of each set, and more
+ * as you scroll or search (admin/js/seoprostack-kadence-icon-picker.js).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -49,7 +50,7 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Faster editor with Kadence Blocks', 'seoprostack'),
-                'description' => __('Kadence Blocks puts its whole design library into every editor page, often more than 10 MB. This loads the library when you open it instead, and keeps it in your browser until Kadence updates it, so the editor and the library open faster. Its icon picker draws only the icons on screen, so it opens faster too. Nothing changes if Kadence Blocks is not active.', 'seoprostack'),
+                'description' => __('Kadence Blocks puts its whole design library into every editor page, often more than 10 MB. This loads the library when you open it instead, and keeps it in your browser until Kadence updates it, so the editor and the library open faster. Its icon picker draws the first icons of each set, and more as you scroll or search, so it opens faster too. Nothing changes if Kadence Blocks is not active.', 'seoprostack'),
             ),
         );
     }
@@ -96,11 +97,14 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
         // content-visibility ignore this.
         wp_register_style('seoprostack-kadence-library', false, array(), $ver);
         wp_enqueue_style('seoprostack-kadence-library');
-        // Kadence's icon picker draws its 5,000 or so icons (over 20,000
-        // elements) each time it opens; each icon set and each icon is
-        // skipped the same way until it is on screen: on a test site it
-        // opened in 0.6 s instead of 1.35 s, and in dark mode in 0.9 s
-        // instead of 2.6 s or more.
+        // Kadence's icon picker drew its 5,000 or so icons (over 20,000
+        // elements) each time it opened. The picker script has it draw the
+        // first 150 of each set, and more as you scroll or search; the icons
+        // it draws are skipped the same way until they are on screen. On a
+        // test site in dark mode it opens in 0.25 s instead of 0.85 s.
+        $picker = 'admin/js/seoprostack-kadence-icon-picker.js';
+        $pver   = file_exists(SEOPROSTACK_DIR . $picker) ? (string) filemtime(SEOPROSTACK_DIR . $picker) : SEOPROSTACK_VERSION;
+        wp_enqueue_script('seoprostack-kadence-icon-picker', SEOPROSTACK_URL . $picker, array('wp-hooks', 'wp-element'), $pver, false);
         wp_add_inline_style(
             'seoprostack-kadence-library',
             '.kb-css-masonry_column>.block-editor-block-patterns-list__list-item{content-visibility:auto;contain-intrinsic-size:auto 320px}'

@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.122-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.123-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.122
+Version: 1.3.123
 
 <!-- github-only:start -->
 ## Screenshots
@@ -923,7 +923,7 @@ Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_li
 - Kadence’s Sync button always goes to the site and Kadence’s servers, and drops the kept copy.
 - Nothing is stored on the server; browsers without Cache Storage (sites not on HTTPS) still send each request once.
 - The library lays out all of its patterns at once (833 on the test site, a list about 70,000 px tall). Each pattern gets `content-visibility: auto`, so the browser lays out and draws only the ones on screen and the rest as they are scrolled to. Browsers without it ignore the rule.
-- Kadence's icon picker (Select Icon in its blocks' settings) draws all of its icons each time it opens: 5,482 on the test site, over 22,000 elements. Each icon set and each icon gets `content-visibility: auto` the same way, so the picker opened in 0.6 seconds instead of 1.35, and in dark mode in 0.9 seconds instead of 2.6 or more. Searching and choosing work as before.
+- Kadence's icon picker (Select Icon in its blocks' settings) drew all of its icons each time it opened: 5,482 on the test site, over 22,000 elements. It now draws the first 150 icons of each set, and 300 more of a set each time you scroll near its end; searching goes through every icon and shows the first 150 matches of each set, with more as you scroll (`admin/js/seoprostack-kadence-icon-picker.js`, through Kadence's `kadence.icon_options_names` filter). The icons it draws get `content-visibility: auto` the same way, so the browser draws only those on screen. On the test site in dark mode the picker opens in 0.25 seconds instead of 0.85 (script 35 ms instead of 360, styles 95 ms instead of 370). Choosing an icon, folding a set and choosing one set work as before.
 
 On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
 
@@ -2248,6 +2248,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.123
+
+- Faster: **Faster editor with Kadence Blocks** has Kadence’s icon picker draw the first 150 icons of each set, and more as you scroll near a set’s end, instead of all 5,482 each time it opens. Search still goes through every icon. On the preview site in dark mode it opens in 0.25 seconds instead of 0.85 (GitHub issue #1095).
+- Fix: the block editor’s **Dev** tab no longer makes the Post, Block and Dev tabs scroll sideways, with a scrollbar under them: its tab line could end a fraction of a pixel past the last tab (GitHub issue #1095).
 
 ### 1.3.122
 
