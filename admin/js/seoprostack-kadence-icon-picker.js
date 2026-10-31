@@ -15,7 +15,7 @@
  *
  * The picker also opens on the press of its button rather than the click
  * (see the end), and shows at once rather than fading in (the style in
- * SEOProStack_Kadence_Library::browser_cache()).
+ * SEOProStack_Kadence_Icon_Picker::enqueue(), which loads this script).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn

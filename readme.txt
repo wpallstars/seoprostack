@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.129
+Stable tag: 1.3.130
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,7 +151,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.129 =
-* Fix: Dark mode for WooCommerce Payments' icons (#1105) and Meow Apps' dashboards (#1106).
+= 1.3.130 =
+* Faster: Faster Kadence icon picker is its own setting, on by default, so the picker opens at once on every site (#1109).
 
 Older: `changelog.txt`.
