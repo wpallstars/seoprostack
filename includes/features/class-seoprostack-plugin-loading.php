@@ -2019,16 +2019,19 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * Fingerprint an option as WordPress stores it, distinguishing absence
-     * from an empty value but not scalar types lost on a database round trip.
+     * Fingerprint an option's stored row, distinguishing absence from an
+     * empty value. Read the table, not get_option(): its pre_option_* and
+     * option_* filters (some from plugins skipped on other requests) can
+     * return the same value before and after a real change.
      *
      * @param string $name Option name.
      * @return string
      */
     private static function option_hash($name) {
-        $missing = new stdClass();
-        $value = get_option($name, $missing);
-        return hash('sha256', $missing === $value ? 'missing' : 'value:' . (string) maybe_serialize($value));
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- the stored row itself, past filters and caches; once per written option.
+        $value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name));
+        return hash('sha256', null === $value ? 'missing' : 'value:' . $value);
     }
 
     /** Forget only for net option changes, after other shutdown writers. */
