@@ -410,18 +410,28 @@
 	}
 
 	/**
+	 * Holds everything inside it: a popover, or an element a script moves
+	 * with a transform, which also carries its fixed contents (an inline
+	 * left or right alone does not, so those contents are still checked).
+	 */
+	function carries(el) {
+		var inline = el.style;
+		return !!((el.classList && el.classList.contains('components-popover')) || (inline && (inline.transform || inline.translate)));
+	}
+
+	/**
 	 * Elements in a changed part of the page, leaving out what is inside
-	 * an element a script places: its contents move with it, and checking
+	 * a popover or a moved element: its contents move with it, and checking
 	 * each of them (a popover can hold thousands, such as Kadence's icon
 	 * picker) held up the popover as it opened.
 	 */
 	function each(root, fn) {
-		if (root !== document.body && placed(root)) {
+		if (root !== document.body && carries(root)) {
 			return;
 		}
 		var walker = document.createTreeWalker(root, window.NodeFilter.SHOW_ELEMENT, {
 			acceptNode: function (el) {
-				return placed(el) ? window.NodeFilter.FILTER_REJECT : window.NodeFilter.FILTER_ACCEPT;
+				return carries(el) ? window.NodeFilter.FILTER_REJECT : window.NodeFilter.FILTER_ACCEPT;
 			}
 		});
 		for (var el = walker.nextNode(); el; el = walker.nextNode()) {

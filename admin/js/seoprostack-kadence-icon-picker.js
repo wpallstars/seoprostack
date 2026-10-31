@@ -238,6 +238,18 @@
 		pressed = toggle;
 		toggle.click();
 	}, true);
+	// Let go elsewhere, or the press was cancelled: no click on the toggle
+	// follows, so a later Enter on it must not be dropped.
+	document.addEventListener('pointerup', function (event) {
+		if (pressed && event.pointerType === 'mouse' && !(event.target && pressed.contains(event.target))) {
+			pressed = null;
+		}
+	}, true);
+	document.addEventListener('pointercancel', function (event) {
+		if (event.pointerType === 'mouse') {
+			pressed = null;
+		}
+	}, true);
 	document.addEventListener('click', function (event) {
 		// Not the click sent above, which opens the picker.
 		if (!event.isTrusted) {
