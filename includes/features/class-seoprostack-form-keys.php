@@ -24,7 +24,13 @@
  * them never loses what the visitor typed (SEOProStack_Form_Policy_Links).
  *
  * Every submission of a keyed form fires seoprostack_form_submitted with the
- * key, so other plugins (a CRM hand-off) follow forms by key, not by ID.
+ * key, so other plugins (a CRM hand-off) follow forms by key, not by ID. A
+ * Fluent Support ticket made with no business inbox (a copied form's feed
+ * cannot name one) goes to the default inbox.
+ *
+ * The Review links block (seoprostack/review-links), after a keyed feedback
+ * form, shows the visitor's comment to copy and the site's review short
+ * links once the form is sent (SEOProStack_Review_Links).
  *
  * Keys are stored and found by SEOProStack_Form_Key_Store and managed with
  * WP-CLI by SEOProStack_Form_Keys_CLI.
@@ -45,6 +51,7 @@ if (!defined('ABSPATH')) {
 require_once dirname(__DIR__) . '/class-seoprostack-form-key-store.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-modal.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-policy-links.php';
+require_once dirname(__DIR__) . '/class-seoprostack-review-links.php';
 
 class SEOProStack_Form_Keys extends SEOProStack_Feature {
 
@@ -108,10 +115,12 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
         }
         self::register();
         add_action('fluentform/submission_inserted', array(__CLASS__, 'submitted'), 20, 3);
+        add_filter('fluent_support/create_ticket_data', array(__CLASS__, 'default_inbox'), 5);
         add_filter('enqueue_empty_block_content_assets', array('SEOProStack_Form_Modal', 'keep_assets'), 10, 2);
         add_action('wp_enqueue_scripts', array(__CLASS__, 'assets'), 20);
         add_action('enqueue_block_assets', array(__CLASS__, 'assets'));
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_data'));
+        add_action('enqueue_block_editor_assets', array('SEOProStack_Review_Links', 'editor_data'));
         if (defined('WP_CLI') && WP_CLI) {
             require_once dirname(__DIR__) . '/class-seoprostack-form-keys-cli.php';
             WP_CLI::add_command('seoprostack form-keys', 'SEOProStack_Form_Keys_CLI');
@@ -134,6 +143,7 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
         register_block_type(SEOPROSTACK_DIR . 'blocks/form-modal', array('render_callback' => array('SEOProStack_Form_Modal', 'render_block')));
         add_shortcode('seoprostack_form', array(__CLASS__, 'shortcode'));
         add_shortcode('seoprostack_form_modal', array('SEOProStack_Form_Modal', 'shortcode'));
+        SEOProStack_Review_Links::register();
     }
 
     /**
@@ -254,6 +264,29 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
          * @param int    $entry_id Fluent Forms entry ID.
          */
         do_action('seoprostack_form_submitted', $key, $data, $form, (int) $entry_id);
+    }
+
+    /**
+     * A Fluent Support ticket with no business inbox goes to the default one.
+     *
+     * A form copied to another site (a template's contact or feedback form)
+     * can carry a Fluent Support feed, which names a business inbox by ID; IDs
+     * differ per site and the inbox exists only once Fluent Support is
+     * active, so such a feed leaves it empty. Fluent Support would then make
+     * a ticket in no inbox, which agents do not see.
+     *
+     * @param array $ticket Ticket data (fluent_support/create_ticket_data).
+     * @return array
+     */
+    public static function default_inbox($ticket) {
+        if (!is_array($ticket) || !empty($ticket['mailbox_id']) || !class_exists('FluentSupport\App\Services\Helper')) {
+            return $ticket;
+        }
+        $inbox = \FluentSupport\App\Services\Helper::getDefaultMailBox();
+        if ($inbox && !empty($inbox->id)) {
+            $ticket['mailbox_id'] = (int) $inbox->id;
+        }
+        return $ticket;
     }
 
     /**
