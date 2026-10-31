@@ -2271,6 +2271,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Developers: all 82 starter core files match WP Plugin Starter 1.0.49. `deploy-sites.sh --apply` refuses an installed version it cannot read without `--allow-downgrade`, and only one run at a time takes over a stale lock (GitHub issue #1117).
+
 ### 1.3.131
 
 - Fix: dark mode for Kadence Blocks’ block icons in the block editor (the inserter, block card, toolbar and List View): they stayed Kadence’s dark blue on the dark background and are now the lighter accent (GitHub issue #1112).
