@@ -27,8 +27,11 @@ their own (Fluent plugins, LiteSpeed Cache, Bit Social, WP Sheet Editor's
 spreadsheet) are not restyled: their mode is set to match from the head, so
 their own dark design shows (FluentCRM's white primary buttons included).
 Screens whose own script sets colours under hashed class names (Emotion, on
-Tutor LMS) are recoloured by `admin/js/seoprostack-theme-scripted.js` in the
-head (`seoprostack_admin_dark_script_styles`). Where a plugin dequeues other
+Tutor LMS; styled-components, on Meow Apps' dashboard, AI Engine and the
+other pages in the Meow Apps menu) are recoloured by
+`admin/js/seoprostack-theme-scripted.js` in the head
+(`seoprostack_admin_dark_script_styles`); it reads flat colours only, so
+gradients and `color-mix()` with white get hand-written rules. Where a plugin dequeues other
 stylesheets (Revive.so, at `admin_enqueue_scripts` 100), the theme
 stylesheet is enqueued again at `PHP_INT_MAX`, only when it was registered
 for Dark.
