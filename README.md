@@ -2239,6 +2239,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Fix: **Load plugins only where needed** keeps learned pages when option writes leave the stored value unchanged at the end of the request, including temporary Kadence colour writes from WP-CLI (GitHub issue #1074).
 - New: Site Health detects different persistent object cache use across web requests, scheduled tasks and WP-CLI, with advice for the host (GitHub issue #1072).
 
 ### 1.3.118

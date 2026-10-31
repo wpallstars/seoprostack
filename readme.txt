@@ -156,6 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Fix: Learned pages survive option writes that leave the value unchanged (#1074).
 * New: Site Health warns about split object caches across web, cron and WP-CLI (#1072).
 
 = 1.3.118 =
