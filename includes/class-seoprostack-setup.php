@@ -125,6 +125,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Autoload_Options',
         'SEOProStack_Woo_Light',
         'SEOProStack_Kadence_Library',
+        'SEOProStack_Rank_Math_Stats_Bar',
         'SEOProStack_Plugin_Loading',
         'SEOProStack_Plugin_Toggle',
         'SEOProStack_Plugin_Sizes',
