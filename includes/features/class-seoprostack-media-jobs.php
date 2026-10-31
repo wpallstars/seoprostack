@@ -62,6 +62,8 @@ class SEOProStack_Media_Jobs {
             WP_CLI::error('A media batch is running; repeat after its bounded turn.');
             return;
         }
+        // WP_CLI::error() exits, which skips finally: report after release.
+        $error = '';
         try {
             foreach ($kinds as $kind) {
                 $name = self::PREFIX . $kind;
@@ -78,8 +80,8 @@ class SEOProStack_Media_Jobs {
                         if ('remark' === $kind) {
                             $context = SEOProStack_Watermark_Images::remark_context();
                             if (is_wp_error($context)) {
-                                WP_CLI::error($context->get_error_message());
-                                return;
+                                $error = $context->get_error_message();
+                                break;
                             }
                             $job = array_merge($job, $context);
                         }
@@ -100,6 +102,9 @@ class SEOProStack_Media_Jobs {
             if ($lease) {
                 SEOProStack_Media_Storage::release($lease);
             }
+        }
+        if ('' !== $error) {
+            WP_CLI::error($error);
         }
     }
 
@@ -203,6 +208,14 @@ class SEOProStack_Media_Jobs {
             return false;
         }
         if ('remark' === $kind) {
+            // A changed (or switched off) mark fails every picture alike:
+            // stop before choosing one, without filling the refusal queue.
+            $context = SEOProStack_Watermark_Images::remark_context();
+            if (is_wp_error($context) || $context['mark_signature'] !== $job['mark_signature']) {
+                $job['state'] = 'failed';
+                $job['error'] = is_wp_error($context) ? $context->get_error_message() : 'The watermark changed during the job; restore its original settings before resuming.';
+                return false;
+            }
             $uploads = wp_get_upload_dir();
             $free = disk_free_space($uploads['basedir']);
             if (false !== $free && $free < 128 * MB_IN_BYTES) {
@@ -260,7 +273,7 @@ class SEOProStack_Media_Jobs {
             $job['state'] = 'failed';
             $job['error'] = 'Systematic failure (18 of the last 20 operations); ' . ($job['error'] ?? '');
         }
-        if (is_wp_error($result) && in_array($result->get_error_code(), array('storage_off', 'storage_originals_config', 'watermark_off'), true)) {
+        if (is_wp_error($result) && in_array($result->get_error_code(), array('storage_off', 'storage_originals_config', 'watermark_off', 'watermark_mark_changed'), true)) {
             $job['state'] = 'failed';
         }
         return $worked;

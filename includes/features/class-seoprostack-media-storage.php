@@ -2244,7 +2244,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             foreach ($ids as $id) {
                 $before = $id;
                 $watermark = SEOProStack_Watermark_Images::record($id);
-                if (!empty($watermark['remark_pending'])) {
+                if (!empty($watermark['remark_pending']) || SEOProStack_Watermark_Images::mark_queued($id)) {
                     continue;
                 }
                 $job = get_option(self::JOB . 'retry_original_' . $id);
@@ -4020,7 +4020,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // publish them, even after its batch lease expires or the job stops.
         wp_cache_delete($id, 'post_meta');
         $watermark = SEOProStack_Watermark_Images::record($id);
-        if (!empty($watermark['remark_pending'])) {
+        if (!empty($watermark['remark_pending']) || SEOProStack_Watermark_Images::mark_queued($id)) {
             return false;
         }
         $inventory = get_post_meta($id, self::META, true);

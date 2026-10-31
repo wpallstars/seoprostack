@@ -42,6 +42,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     const SKIP_META = '_seoprostack_watermark_skip';
 
+    /**
+     * Post meta: a new upload's mark was queued because a media batch held
+     * the lease. Media in cloud storage waits for it, so the batch cannot
+     * publish the clean files first.
+     */
+    const QUEUED_META = '_seoprostack_watermark_queued';
+
     /** Option: name of the folder in uploads that holds the originals. */
     const DIR_OPTION = 'seoprostack_watermark_dir';
 
@@ -825,10 +832,16 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             // background (storage waits for that batch) rather than hold up
             // the upload. A different batch running cannot take it, so mark it
             // now, as before the lease: a new upload never goes unmarked.
-            if (!self::enabled() || !SEOProStack_Settings::get('watermark_images_new') || self::record($attachment_id) || ('create' !== $context && !self::$finalizing)
-                || self::queue('add', array((int) $attachment_id))) {
+            if (!self::enabled() || !SEOProStack_Settings::get('watermark_images_new') || self::record($attachment_id) || ('create' !== $context && !self::$finalizing)) {
                 return $metadata;
             }
+            // Barrier first: the running batch may reach this upload before
+            // the queued mark does.
+            update_post_meta((int) $attachment_id, self::QUEUED_META, time());
+            if (self::queue('add', array((int) $attachment_id))) {
+                return $metadata;
+            }
+            delete_post_meta((int) $attachment_id, self::QUEUED_META);
             return self::after_generate_locked($metadata, $attachment_id, $context, true);
         }
         try {
@@ -1388,7 +1401,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return $context;
         }
         if ($context['mark_signature'] !== $job['mark_signature']) {
-            return new WP_Error('watermark_changed', 'The watermark changed during the job; restore its original settings before resuming.');
+            return new WP_Error('watermark_mark_changed', 'The watermark changed during the job; restore its original settings before resuming.');
         }
         $record = self::record($id);
         if (!$record) {
@@ -1902,6 +1915,26 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Whether a new upload's queued mark is still to come, so its clean
+     * files must not be published yet. Only while a batch that can mark it
+     * runs: one stopped or ended leaves the picture as an unmarked upload.
+     *
+     * @param int $id Attachment ID.
+     * @return bool
+     */
+    public static function mark_queued($id) {
+        if (!get_post_meta((int) $id, self::QUEUED_META, true)) {
+            return false;
+        }
+        $job = self::job();
+        if ($job && empty($job['ended']) && 'remove' !== $job['op']) {
+            return true;
+        }
+        delete_post_meta((int) $id, self::QUEUED_META);
+        return false;
+    }
+
+    /**
      * Whether a batch is in progress.
      *
      * @return bool
@@ -2117,6 +2150,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $job['done']++;
             update_option(self::JOB, $job, false);
             $job['error'] = self::apply($id, $job['op'], $job['counts'], (string) $job['error']);
+            // Marked, left alone or failed (and listed to retry): storage may go on.
+            delete_post_meta($id, self::QUEUED_META);
             wp_cache_flush_runtime();
             // Stopped from the settings screen meanwhile.
             $now = get_option(self::JOB);
