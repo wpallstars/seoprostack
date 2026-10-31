@@ -2342,20 +2342,36 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @param string $kind Job kind.
      * @param int $id Attachment ID.
-     * @return true|WP_Error
+     * @return true|string|WP_Error True when done, "skipped" when nothing was needed.
      */
     public static function media_job_step($kind, $id) {
         if (!self::ready()) {
-            return new WP_Error('storage_off', 'Media in cloud storage is not ready.');
+            // A re-mark without cloud storage has nothing to upload.
+            return 'remark' === $kind ? true : new WP_Error('storage_off', 'Media in cloud storage is not ready.');
         }
         $start = microtime(true);
         if ('adopt' === $kind) {
             $result = self::handover_attachment($id, false, false, true, $start);
-            return in_array($result, array('adopted', 'skipped'), true) ? true : new WP_Error('storage_adopt', $result);
+            if ('skipped' === $result) {
+                return 'skipped';
+            }
+            return 'adopted' === $result ? true : new WP_Error('storage_adopt', sprintf('Adoption of attachment %d: %s.', $id, $result));
         }
         if ('originals' === $kind) {
             if ('' === self::config()['originals_bucket'] || self::config()['originals_error']) {
                 return new WP_Error('storage_originals_config', 'Configure a separate private originals bucket first.');
+            }
+            // Most kept originals of a large library are drained already:
+            // those cost no request and do not use up the turn (GitHub issue #1069).
+            $record = SEOProStack_Watermark_Images::record($id);
+            if (empty($record['backup'])) {
+                return 'skipped';
+            }
+            if (!empty($record['remote'])) {
+                $path = self::kept_original_path($record);
+                if (!is_wp_error($path) && !is_file($path)) {
+                    return 'skipped';
+                }
             }
             return self::upload_original($id);
         }
@@ -3166,6 +3182,26 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::$batch_leases[$key] = array('value' => $value, 'depth' => 1);
         }
         return $inserted ? $value : '';
+    }
+
+    /**
+     * Take the batch lease, waiting for a running batch's bounded turn to
+     * end. WP-CLI and WP-Cron wait up to a minute; page requests a few
+     * seconds, so they never run into PHP's time limit.
+     *
+     * @return string The lease; empty when the wait ran out.
+     */
+    public static function lease_wait() {
+        $patience = (defined('WP_CLI') && WP_CLI) || wp_doing_cron() ? 60 : 5;
+        $until = microtime(true) + $patience;
+        do {
+            $lease = self::lease();
+            if ('' !== $lease) {
+                return $lease;
+            }
+            usleep(250000);
+        } while (microtime(true) < $until);
+        return '';
     }
 
     /**

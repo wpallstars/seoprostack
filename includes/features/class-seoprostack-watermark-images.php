@@ -821,12 +821,15 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         $lease = SEOProStack_Media_Storage::lease();
         if (!$lease) {
-            // Another media turn must not make a new upload silently miss its
-            // mark. The existing watermark worker retries after that lease.
-            if (self::enabled() && SEOProStack_Settings::get('watermark_images_new') && !self::record($attachment_id) && ('create' === $context || self::$finalizing)) {
-                self::queue('add', array((int) $attachment_id));
+            // A media batch holds the lease: mark the new upload in the
+            // background (storage waits for that batch) rather than hold up
+            // the upload. A different batch running cannot take it, so mark it
+            // now, as before the lease: a new upload never goes unmarked.
+            if (!self::enabled() || !SEOProStack_Settings::get('watermark_images_new') || self::record($attachment_id) || ('create' !== $context && !self::$finalizing)
+                || self::queue('add', array((int) $attachment_id))) {
+                return $metadata;
             }
-            return $metadata;
+            return self::after_generate_locked($metadata, $attachment_id, $context, true);
         }
         try {
             wp_cache_delete($attachment_id, 'post_meta');
@@ -842,9 +845,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @param array $metadata Metadata.
      * @param int $attachment_id ID.
      * @param string $context Generation context.
+     * @param bool $unleased Mark without the lease (a new upload no batch can take).
      * @return array
      */
-    private static function after_generate_locked($metadata, $attachment_id, $context) {
+    private static function after_generate_locked($metadata, $attachment_id, $context, $unleased = false) {
         $record = self::record($attachment_id);
         if (!empty($record['remark_pending'])) {
             // An interrupted refresh owns intermediate files, not a replacement.
@@ -872,7 +876,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$record && (!SEOProStack_Settings::get('watermark_images_new') || ('create' !== $context && !self::$finalizing))) {
             return $metadata;
         }
-        $result = self::mark_attachment($attachment_id, $metadata);
+        $result = $unleased ? self::mark_locked($attachment_id, $metadata) : self::mark_attachment($attachment_id, $metadata);
         return is_array($result) ? $result : $metadata;
     }
 
@@ -945,9 +949,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *                               "small" when nothing was large enough.
      */
     public static function mark_attachment($attachment_id, array $metadata) {
-        $lease = SEOProStack_Media_Storage::lease();
+        $lease = SEOProStack_Media_Storage::lease_wait();
         if (!$lease) {
-            return new WP_Error('watermark_busy', 'A media batch is running; retry watermarking later.');
+            return new WP_Error('watermark_busy', __('A media batch is running; retry watermarking later.', 'seoprostack'));
         }
         try {
             return self::mark_locked($attachment_id, $metadata);
@@ -1135,9 +1139,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string|WP_Error added, small or marked (marked, nothing kept).
      */
     public static function add($attachment_id) {
-        $lease = SEOProStack_Media_Storage::lease();
+        $lease = SEOProStack_Media_Storage::lease_wait();
         if (!$lease) {
-            return new WP_Error('watermark_busy', 'A media batch is running; retry watermarking later.');
+            return new WP_Error('watermark_busy', __('A media batch is running; retry watermarking later.', 'seoprostack'));
         }
         try {
             return self::add_locked($attachment_id);
@@ -1191,9 +1195,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string|WP_Error removed or unmarked.
      */
     public static function remove($attachment_id, $keep_original = false) {
-        $lease = SEOProStack_Media_Storage::lease();
+        $lease = SEOProStack_Media_Storage::lease_wait();
         if (!$lease) {
-            return new WP_Error('watermark_busy', 'A media batch is running; retry watermarking later.');
+            return new WP_Error('watermark_busy', __('A media batch is running; retry watermarking later.', 'seoprostack'));
         }
         try {
             return self::remove_locked($attachment_id, $keep_original);
@@ -1804,8 +1808,15 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $counts['sps_wm_failed_ids'] = array();
         $error  = '';
         $ids    = array_values($ids);
-        foreach ($ids as $i => $id) {
-            if (!self::more_time($start, self::BUDGET)) {
+        // Held for the whole action, so its pictures are not failed one by
+        // one while a media batch runs: they wait for the background instead.
+        $lease  = SEOProStack_Media_Storage::lease_wait();
+        try {
+            foreach ($ids as $i => $id) {
+                if ($lease && self::more_time($start, self::BUDGET)) {
+                    $error = self::apply($id, $op, $counts, $error);
+                    continue;
+                }
                 // The rest are changed in the background, unless another
                 // batch is running.
                 $rest = array_slice($ids, $i);
@@ -1816,7 +1827,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 }
                 break;
             }
-            $error = self::apply($id, $op, $counts, $error);
+        } finally {
+            if ($lease) {
+                SEOProStack_Media_Storage::release($lease);
+            }
         }
         if ($error) {
             set_transient('seoprostack_watermark_error_' . get_current_user_id(), array('error' => $error, 'op' => $op, 'counts' => $counts), 5 * MINUTE_IN_SECONDS);
@@ -2052,6 +2066,26 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             self::schedule(30);
             return;
         }
+        // One media lease for the whole part: a storage or media-jobs turn
+        // that holds it makes this part wait, never count pictures as failed.
+        $lease = SEOProStack_Media_Storage::lease();
+        if (!$lease) {
+            self::schedule(30);
+            return;
+        }
+        try {
+            self::run_part($job);
+        } finally {
+            SEOProStack_Media_Storage::release($lease);
+        }
+    }
+
+    /**
+     * One bounded part of the batch, under the media lease.
+     *
+     * @param array $job The batch.
+     */
+    private static function run_part(array $job) {
         set_transient(self::LOCK, 1, self::BUDGET + 60);
         if ('remove' !== $job['op']) {
             $mark = self::enabled() ? self::mark() : new WP_Error('watermark_off', __('Watermark pictures was switched off.', 'seoprostack'));

@@ -34,23 +34,30 @@ class SEOProStack_Media_Jobs {
     }
 
     /**
-     * wp seoprostack media-jobs start|status|stop remark|adopt|originals
+     * wp seoprostack media-jobs start|status|stop|run remark|adopt|originals [--minutes=<n>]
      *
      * Start resumes a stopped/failed journal; completed jobs start a new scan.
      * Status is read-only. Stop waits for the current lease rather than racing
      * its journal writer; already completed attachments are not rolled back.
+     * Run works through a started job in this process, turn by turn, for
+     * sites without WP-Cron or to finish sooner (default 60 minutes); it can
+     * be killed at any point and run again.
      *
      * @param array $args Positional arguments.
-     * @param array $assoc Options (none).
+     * @param array $assoc Options: minutes (run only).
      */
     public static function cli($args, $assoc) {
         $op = $args[0] ?? 'status';
         $kinds = isset($args[1]) ? array($args[1]) : self::KINDS;
-        if (!in_array($op, array('start', 'status', 'stop'), true) || array_diff($kinds, self::KINDS) || ('status' !== $op && !isset($args[1]))) {
-            WP_CLI::error('Use media-jobs start|status|stop remark|adopt|originals.');
+        if (!in_array($op, array('start', 'status', 'stop', 'run'), true) || array_diff($kinds, self::KINDS) || ('status' !== $op && !isset($args[1]))) {
+            WP_CLI::error('Use media-jobs start|status|stop|run remark|adopt|originals.');
             return;
         }
-        $lease = 'status' === $op ? '' : SEOProStack_Media_Storage::lease();
+        if ('run' === $op) {
+            self::cli_run($kinds[0], max(1, (int) ($assoc['minutes'] ?? 60)));
+            return;
+        }
+        $lease = 'status' === $op ? '' : SEOProStack_Media_Storage::lease_wait();
         if ('status' !== $op && '' === $lease) {
             WP_CLI::error('A media batch is running; repeat after its bounded turn.');
             return;
@@ -97,13 +104,51 @@ class SEOProStack_Media_Jobs {
     }
 
     /**
-     * Process one attachment, never advancing the cursor before its result is
+     * Work through one started job in this WP-CLI process.
+     *
+     * @param string $kind Kind.
+     * @param int $minutes Most minutes.
+     */
+    private static function cli_run($kind, $minutes) {
+        $name = self::PREFIX . $kind;
+        $until = time() + $minutes * MINUTE_IN_SECONDS;
+        $job = get_option($name, array());
+        if (!$job || 'waiting' !== $job['state']) {
+            WP_CLI::error(sprintf('%s is not waiting; start it first (wp seoprostack media-jobs start %s).', $kind, $kind));
+            return;
+        }
+        while (time() < $until) {
+            $used = self::run_batch($kind);
+            wp_cache_delete($name, 'options');
+            $job = get_option($name, array());
+            if ('busy' === $used) {
+                sleep(2);
+                continue;
+            }
+            WP_CLI::log(sprintf('%s: %s, %d done, %d skipped, %d failed%s', $kind, $job['state'] ?? 'gone', $job['done'] ?? 0, $job['skipped'] ?? 0, $job['failed'] ?? 0, empty($job['error']) ? '' : ' (last error: ' . $job['error'] . ')'));
+            if (!$job || 'waiting' !== $job['state']) {
+                break;
+            }
+            wp_cache_flush_runtime();
+        }
+        WP_CLI::log($kind . ': ' . wp_json_encode($job ?: array('state' => 'not started')));
+    }
+
+    /**
+     * Process one bounded turn: at most six pictures that needed work, within
+     * 20 seconds, and up to 200 that needed none (already drained, adopted or
+     * outside the plan), never advancing the cursor before a result is
      * durable. A killed operation retries in place, then joins the tail queue.
      *
-     * @return bool Whether a maintenance job used this worker turn.
+     * @param string $only One kind only (WP-CLI run), or any waiting job.
+     * @return bool|string Whether a maintenance job used this worker turn;
+     *                     "busy" when another batch held the lease.
      */
-    public static function run_batch() {
+    public static function run_batch($only = '') {
         foreach (self::KINDS as $kind) {
+            if ('' !== $only && $only !== $kind) {
+                continue;
+            }
             $name = self::PREFIX . $kind;
             $job = get_option($name, array());
             if (!$job || 'waiting' !== $job['state']) {
@@ -112,7 +157,7 @@ class SEOProStack_Media_Jobs {
             self::schedule();
             $lease = SEOProStack_Media_Storage::lease();
             if (!$lease) {
-                return true;
+                return 'busy';
             }
             try {
                 // Re-read after acquiring the lease: start/stop uses it too.
@@ -120,8 +165,11 @@ class SEOProStack_Media_Jobs {
                 $job = get_option($name, array());
                 if ($job && 'waiting' === $job['state']) {
                     $start = microtime(true);
-                    for ($part = 0; $part < 6 && 'waiting' === $job['state'] && microtime(true) - $start < 20; ++$part) {
-                        self::turn($kind, $job);
+                    $work = 0;
+                    for ($items = 0; $work < 6 && $items < 200 && 'waiting' === $job['state'] && microtime(true) - $start < 20; ++$items) {
+                        if (self::turn($kind, $job)) {
+                            ++$work;
+                        }
                         update_option($name, $job, false);
                     }
                 }
@@ -138,6 +186,8 @@ class SEOProStack_Media_Jobs {
      *
      * @param string $kind Kind.
      * @param array $job Journal, updated in place.
+     * @return bool Whether the picture needed work (skipped ones do not
+     *              count towards a turn's six).
      */
     private static function turn($kind, &$job) {
         $prefix = self::PREFIX . $kind . '_failed_';
@@ -145,18 +195,28 @@ class SEOProStack_Media_Jobs {
         if ($job['destination'] !== SEOProStack_Media_Storage::config()['signature']) {
             $job['state'] = 'failed';
             $job['error'] = 'Storage destination changed; resume only under the original connection.';
-            return;
+            return false;
         }
         if ($job['originals_destination'] !== SEOProStack_Media_Storage::config()['originals_bucket']) {
             $job['state'] = 'failed';
             $job['error'] = 'Private originals destination changed; restore the original connection before resuming.';
-            return;
+            return false;
+        }
+        if ('remark' === $kind) {
+            $uploads = wp_get_upload_dir();
+            $free = disk_free_space($uploads['basedir']);
+            if (false !== $free && $free < 128 * MB_IN_BYTES) {
+                // Pause before choosing or trying a picture: start resumes here.
+                $job['state'] = 'failed';
+                $job['error'] = 'Re-marking needs at least 128 MiB free in uploads; free some space, then start it again.';
+                return false;
+            }
         }
         $id = (int) $job['inflight'];
         if (!$id) {
             $id = self::next_id($kind, $job, $prefix);
             if (!$id) {
-                return;
+                return false;
             }
             $job['inflight'] = $id;
             $job['tries'] = 0;
@@ -166,9 +226,10 @@ class SEOProStack_Media_Jobs {
         if (get_option(self::PREFIX . $kind) !== $job) {
             $job['state'] = 'failed';
             $job['error'] = 'Cannot save the media journal; no files were changed.';
-            return;
+            return false;
         }
         $result = $job['tries'] > 3 ? new WP_Error('media_interrupted', 'Repeatedly interrupted operation.') : self::step($kind, $id, $job);
+        $worked = 'skipped' !== $result;
         if (is_wp_error($result)) {
             // Save the refusal before advancing; retries are separate options,
             // not an unbounded array in the journal or an autoloaded option.
@@ -176,7 +237,11 @@ class SEOProStack_Media_Jobs {
             $job['error'] = $result->get_error_message();
         } else {
             delete_option($prefix . $id);
-            ++$job['done'];
+            if ($worked) {
+                ++$job['done'];
+            } else {
+                $job['skipped'] = (int) ($job['skipped'] ?? 0) + 1;
+            }
         }
         // The indexed refusal rows are authoritative even if PHP died between
         // changing one and committing this journal. Counters never go negative.
@@ -198,6 +263,7 @@ class SEOProStack_Media_Jobs {
         if (is_wp_error($result) && in_array($result->get_error_code(), array('storage_off', 'storage_originals_config', 'watermark_off'), true)) {
             $job['state'] = 'failed';
         }
+        return $worked;
     }
 
     /**
@@ -250,21 +316,17 @@ class SEOProStack_Media_Jobs {
      * @param string $kind Kind.
      * @param int $id ID.
      * @param array $job Frozen re-mark context.
-     * @return true|WP_Error
+     * @return true|string|WP_Error True when done, "skipped" when nothing
+     *                              was needed.
      */
     private static function step($kind, $id, $job) {
         if ('attachment' !== get_post_type($id)) {
-            return true;
+            return 'skipped';
         }
         if ('remark' === $kind) {
-            $uploads = wp_get_upload_dir();
-            $free = disk_free_space($uploads['basedir']);
-            if (false === $free || $free < 128 * MB_IN_BYTES) {
-                return new WP_Error('media_disk', 'Re-marking requires at least 128 MiB free in uploads; local copies were kept.');
-            }
             $result = SEOProStack_Watermark_Images::remark_step($id, $job);
             if (true !== $result) {
-                return is_wp_error($result) ? $result : true;
+                return is_wp_error($result) ? $result : 'skipped';
             }
         }
         return SEOProStack_Media_Storage::media_job_step($kind, $id);
