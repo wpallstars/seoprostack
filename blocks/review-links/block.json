@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/review-links",
+	"version": "1.3.123",
+	"title": "Review links",
+	"category": "widgets",
+	"icon": "star-filled",
+	"description": "After a feedback form is sent: thanks, the visitor's comment with a Copy review button, and the site's review links (Google, Facebook, Trustpilot), whatever the rating.",
+	"keywords": [ "review", "feedback", "rating", "google", "trustpilot" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"formKey": { "type": "string", "default": "feedback-review" },
+		"ratingField": { "type": "string", "default": "rating" },
+		"commentField": { "type": "string", "default": "comment" },
+		"highRating": { "type": "number", "default": 4 },
+		"thanksHigh": { "type": "string", "default": "" },
+		"thanksLow": { "type": "string", "default": "" },
+		"askHigh": { "type": "string", "default": "" },
+		"askLow": { "type": "string", "default": "" },
+		"copyLabel": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide" ],
+		"spacing": { "margin": true, "padding": true }
+	},
+	"editorScript": "seoprostack-review-links-editor",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css"
+}
