@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.119-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.120-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.119
+Version: 1.3.120
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2240,6 +2240,12 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.120
+
+- Fix: Kadence Blocks’ block settings in dark mode. Colour circles such as Link Colour lose their dotted ring; the chosen HTML Tag and Text Alignment buttons lose their light frame, and the others are easier to read; the Select Icon arrow is light instead of black, and popover arrows lose their light outline (GitHub issue #1087).
+- Fix: **Fixes for other plugins** keeps block settings fields in place, in light and dark mode. Hreflang Manager’s editor stylesheet moved every field 24 px in from each side, so Kadence’s unit boxes (px beside Max Width, the unit beside Line Height) stood apart from their fields; and Kadence Blocks’ link fields (Text Wrap Link) show their whole Submit icon, level with the buttons beside them (GitHub issue #1087).
+- Faster: **Faster editor with Kadence Blocks** draws only the icons on screen in Kadence’s icon picker, which drew all 5,482 each time it opened: on the preview site it opened in 0.6 seconds instead of 1.35, and in dark mode in 0.9 seconds instead of 2.6 or more (GitHub issue #1087).
 
 ### 1.3.119
 

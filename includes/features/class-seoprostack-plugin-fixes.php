@@ -529,11 +529,11 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      */
     public static function editor_field_css() {
         if (wp_style_is(self::HREFLANG_EDITOR_STYLE, 'enqueued')) {
-            // Its own window (.dahm-single-connection) keeps them; panel rows keep WordPress's inherited bottom margin.
+            // Its own window (.dahm-single-connection) keeps them; in panel rows WordPress inherits the bottom margin.
             wp_add_inline_style(
                 self::HREFLANG_EDITOR_STYLE,
-                '.components-base-control:not(.dahm-single-connection *) .components-base-control__field{margin-right:0;margin-left:0}'
-                . '.components-base-control:not(.dahm-single-connection *,.components-panel__row *) .components-base-control__field{margin-bottom:0}'
+                '.components-base-control:not(.dahm-single-connection *) .components-base-control__field{margin:0}'
+                . '.components-panel__row .components-base-control:not(.dahm-single-connection *) .components-base-control__field{margin-bottom:inherit}'
             );
         }
         if (defined('KADENCE_BLOCKS_VERSION')) {

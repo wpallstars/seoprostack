@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.119
+Stable tag: 1.3.120
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -155,8 +155,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.119 =
-* Fix: Kadence Style Library colours follow dark mode (#1083).
-* New: Site Health warns about split object caches (#1072).
+= 1.3.120 =
+* Fix: Kadence block settings in dark mode, and fields moved by Hreflang Manager (#1087).
+* Faster: Kadence's icon picker opens two to three times faster (#1087).
 
 Older: `changelog.txt`.
