@@ -147,6 +147,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'wp_extras'                 => array(true, ''),
             'woo_light'                 => array(class_exists('WooCommerce', false), __('For shops: WooCommerce is not active.', 'seoprostack')),
             'kadence_library_on_demand' => array(defined('KADENCE_BLOCKS_VERSION'), __('For Kadence Blocks, which is not active.', 'seoprostack')),
+            'rank_math_no_stats_bar'    => array(did_action('rank_math/loaded') > 0, __('For Rank Math, which is not active.', 'seoprostack')),
             'heartbeat_limit'           => array(true, ''),
             'database_cleanup'          => array(true, ''),
             'autoload_options'          => array(!is_multisite(), __('For single sites.', 'seoprostack')),
