@@ -26,20 +26,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class SEOProStack_Site_Templates extends SEOProStack_Feature {
-
-    const KEY = 'site_templates';
-    const OPTION = 'seoprostack_site_template';
-    const HOOK = 'seoprostack_site_template_update';
-    const SEEN = 'seoprostack_site_template_seen';
-    const META = '_seoprostack_template_key';
-
-    /** @var array Site ownership, journal and resumable progress. */
-    private $record;
-    /** @var bool Read-only comparison. */
-    private $dry;
-    /** @var array Comparison rows. */
-    private $rows = array();
+/** Site-local registration and update discovery. */
+trait SEOProStack_Site_Template_Lifecycle {
 
     /** @return array */
     public static function settings() {
@@ -105,6 +93,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         return $out;
     }
 
+}
+
+/** Validate shipped input before acquiring a write lock. */
+trait SEOProStack_Site_Template_Manifest {
+
     /**
      * Validate the entire manifest before any writes, including duplicate keys.
      *
@@ -121,64 +114,145 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         }
         // phpcs:ignore WordPress.WP.AlternativeFunctions -- bounded, shipped local JSON only.
         $data = json_decode((string) file_get_contents($file), true);
-        if (!is_array($data) || ($data['slug'] ?? '') !== $slug || empty($data['version']) || !is_string($data['version']) || empty($data['name']) || !is_string($data['name'])) {
+        return self::validate_manifest($data, $slug);
+    }
+
+    /** @param mixed $data Decoded JSON. @param string $slug Requested slug. @return array|WP_Error */
+    private static function validate_manifest($data, $slug) {
+        if (!self::valid_manifest_header($data, $slug)) {
             return new WP_Error('template_schema', 'Template needs slug, name and a string version.');
         }
+        $data = self::manifest_sections($data);
+        if (is_wp_error($data)) {
+            return $data;
+        }
+        foreach (array('pages', 'elements', 'images') as $section) {
+            $result = self::validate_resources($data[$section], $section);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+        }
+        if (isset($data['custom_css']) && !is_string($data['custom_css'])) {
+            return new WP_Error('template_schema', 'custom_css must be a string.');
+        }
+        $result = self::validate_menus($data['menus']);
+        return is_wp_error($result) ? $result : $data;
+    }
+
+    /** @param mixed $data Decoded JSON. @param string $slug Requested slug. @return bool */
+    private static function valid_manifest_header($data, $slug) {
+        if (!is_array($data) || ($data['slug'] ?? '') !== $slug || empty($data['version']) || !is_string($data['version']) || empty($data['name']) || !is_string($data['name'])) {
+            return false;
+        }
+        return true;
+    }
+
+    /** @param array $data Manifest. @return array|WP_Error */
+    private static function manifest_sections($data) {
         foreach (array('pages', 'elements', 'images', 'options', 'widgets', 'theme_mods', 'menus') as $section) {
             if (isset($data[$section]) && !is_array($data[$section])) {
                 return new WP_Error('template_schema', 'Invalid section: ' . $section);
             }
             $data[$section] = $data[$section] ?? array();
         }
-        foreach (array('pages', 'elements', 'images') as $section) {
-            $keys = array();
-            foreach ($data[$section] as $item) {
-                if (!is_array($item) || !self::valid_key($item['key'] ?? '') || isset($keys[$item['key']])) {
-                    return new WP_Error('template_schema', 'Invalid or duplicate key in ' . $section);
-                }
-                $keys[$item['key']] = true;
-                if ('images' === $section) {
-                    $filename = $item['filename'] ?? '';
-                    if (!is_string($filename) || basename($filename) !== $filename || !preg_match('/\.(png|jpe?g|webp|gif|avif)$/iD', $filename) || !isset($item['sha256']) || !is_string($item['sha256']) || !preg_match('/^[a-f0-9]{64}$/D', $item['sha256'])) {
-                        return new WP_Error('template_schema', 'Invalid image filename or SHA-256.');
-                    }
-                    continue;
-                }
-                if (empty($item['title']) || empty($item['slug']) || !isset($item['parts']) || !is_array($item['parts']) || (isset($item['meta']) && !is_array($item['meta']))) {
-                    return new WP_Error('template_schema', 'Posts need title, slug and parts.');
-                }
-                if (!is_string($item['title']) || !is_string($item['slug']) || sanitize_title($item['slug']) !== $item['slug'] || (isset($item['template']) && !is_string($item['template']))) {
-                    return new WP_Error('template_schema', 'Invalid post title, slug or page template.');
-                }
-                $parts = array();
-                foreach ($item['parts'] as $part) {
-                    if (!is_array($part) || !self::valid_key($part['key'] ?? '') || isset($parts[$part['key']]) || !isset($part['markup']) || !is_string($part['markup'])) {
-                        return new WP_Error('template_schema', 'Invalid or duplicate part key/markup.');
-                    }
-                    $parts[$part['key']] = true;
-                }
-            }
-        }
-        if (isset($data['custom_css']) && !is_string($data['custom_css'])) {
-            return new WP_Error('template_schema', 'custom_css must be a string.');
-        }
-        foreach ($data['menus'] as $location => $menu) {
-            if (!self::valid_key($location) || !is_array($menu) || empty($menu['name']) || !is_string($menu['name']) || !isset($menu['items']) || !is_array($menu['items'])) {
-                return new WP_Error('template_schema', 'Menus need a location, name and keyed items.');
-            }
-            foreach ($menu['items'] as $key => $item) {
-                if (!self::valid_key($key) || !is_array($item) || !isset($item['title'], $item['url']) || !is_string($item['title']) || !is_string($item['url']) || !esc_url_raw($item['url'])) {
-                    return new WP_Error('template_schema', 'Invalid menu item.');
-                }
-            }
-        }
         return $data;
+    }
+
+    /** @param array $menus Menus by location. @return true|WP_Error */
+    private static function validate_menus($menus) {
+        foreach ($menus as $location => $menu) {
+            $result = self::validate_menu($location, $menu);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+        }
+        return true;
+    }
+
+    /** @param mixed $location Location. @param mixed $menu Menu. @return true|WP_Error */
+    private static function validate_menu($location, $menu) {
+        if (!self::valid_key($location) || !is_array($menu) || empty($menu['name']) || !is_string($menu['name']) || !isset($menu['items']) || !is_array($menu['items'])) {
+            return new WP_Error('template_schema', 'Menus need a location, name and keyed items.');
+        }
+        foreach ($menu['items'] as $key => $item) {
+            if (!self::valid_menu_item($key, $item)) {
+                return new WP_Error('template_schema', 'Invalid menu item.');
+            }
+        }
+        return true;
+    }
+
+    /** @param mixed $key Key. @param mixed $item Item. @return bool */
+    private static function valid_menu_item($key, $item) {
+        return self::valid_key($key) && is_array($item) && isset($item['title'], $item['url']) && is_string($item['title']) && is_string($item['url']) && (bool) esc_url_raw($item['url']);
     }
 
     /** @param mixed $key Stable key. @return bool */
     private static function valid_key($key) {
         return is_string($key) && 1 === preg_match('/^[a-z0-9][a-z0-9_-]{0,79}$/D', $key);
     }
+
+}
+
+/** Validate keyed resources independently of the document envelope. */
+trait SEOProStack_Site_Template_Resources {
+
+    /** @param array $items Resources. @param string $section Kind. @return true|WP_Error */
+    private static function validate_resources($items, $section) {
+        $keys = array();
+        foreach ($items as $item) {
+            if (!is_array($item) || !self::valid_key($item['key'] ?? '') || isset($keys[$item['key']])) {
+                return new WP_Error('template_schema', 'Invalid or duplicate key in ' . $section);
+            }
+            $keys[$item['key']] = true;
+            $result = 'images' === $section ? self::validate_image($item) : self::validate_post($item);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+        }
+        return true;
+    }
+
+    /** @param array $item Image. @return true|WP_Error */
+    private static function validate_image($item) {
+        $filename = $item['filename'] ?? '';
+        if (!is_string($filename) || basename($filename) !== $filename || !preg_match('/\.(png|jpe?g|webp|gif|avif)$/iD', $filename) || !isset($item['sha256']) || !is_string($item['sha256']) || !preg_match('/^[a-f0-9]{64}$/D', $item['sha256'])) {
+            return new WP_Error('template_schema', 'Invalid image filename or SHA-256.');
+        }
+        return true;
+    }
+
+    /** @param array $item Post. @return true|WP_Error */
+    private static function validate_post($item) {
+        if (empty($item['title']) || empty($item['slug']) || !isset($item['parts']) || !is_array($item['parts']) || (isset($item['meta']) && !is_array($item['meta']))) {
+            return new WP_Error('template_schema', 'Posts need title, slug and parts.');
+        }
+        return self::validate_post_parts($item);
+    }
+
+    /** @param array $item Post with required fields. @return true|WP_Error */
+    private static function validate_post_parts($item) {
+        if (!is_string($item['title']) || !is_string($item['slug']) || sanitize_title($item['slug']) !== $item['slug'] || (isset($item['template']) && !is_string($item['template']))) {
+            return new WP_Error('template_schema', 'Invalid post title, slug or page template.');
+        }
+        return self::validate_parts($item['parts']);
+    }
+
+    /** @param array $items Block parts. @return true|WP_Error */
+    private static function validate_parts($items) {
+        $parts = array();
+        foreach ($items as $part) {
+            if (!is_array($part) || !self::valid_key($part['key'] ?? '') || isset($parts[$part['key']]) || !isset($part['markup']) || !is_string($part['markup'])) {
+                return new WP_Error('template_schema', 'Invalid or duplicate part key/markup.');
+            }
+            $parts[$part['key']] = true;
+        }
+        return true;
+    }
+}
+
+/** Serialize entry points with a connection-owned lock. */
+trait SEOProStack_Site_Template_Execution {
 
     /** @param array $record Stored ownership. @param bool $dry Read-only. */
     private function __construct($record, $dry) {
@@ -231,6 +305,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
             $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock));
         }
     }
+
+}
+
+/** Resume bounded work while retaining the previous undo checkpoint. */
+trait SEOProStack_Site_Template_Batches {
 
     /** @param array $manifest Validated input. @return array|WP_Error */
     private function batch($manifest) {
@@ -335,6 +414,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         return array('pending' => $pending, 'rows' => $this->rows, 'record' => $this->record);
     }
 
+}
+
+/** Persist ownership and journal entries before resource writes. */
+trait SEOProStack_Site_Template_Journal {
+
     /** Persist only our own state, never autoload the backup/content. */
     private function save() {
         if (!$this->dry) {
@@ -369,6 +453,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         $this->record['backup']['writes'][] = array('type' => $type, 'id' => $id, 'before' => $before, 'after' => $after);
         $this->save();
     }
+
+}
+
+/** Apply owned post fields without replacing site-owned fields. */
+trait SEOProStack_Site_Template_Posts {
 
     /** @param string $key Page key. @param array $item Post manifest. @return true|WP_Error */
     private function apply_pages($key, $item) {
@@ -561,6 +650,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         return $missing ? null : $out;
     }
 
+}
+
+/** Merge named option leaves without reviving removed subtrees. */
+trait SEOProStack_Site_Template_Values {
+
     /** @param string $name Option. @param mixed $values Named keys or scalar. @return true|WP_Error */
     private function apply_option($name, $values) {
         // Non-serialized option scalars return as strings on the next request.
@@ -645,6 +739,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         return $desired;
     }
 
+}
+
+/** Preserve the site-owned CSS remainder and exact filtered snapshots. */
+trait SEOProStack_Site_Template_Styles {
+
     /** @param string $theme Theme. @param string $base Leading CSS. @return true|WP_Error */
     private function apply_css($theme, $base) {
         $current = wp_get_custom_css($theme);
@@ -680,6 +779,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         delete_option(SEOProStack_Page_Cache::OPTION);
         SEOProStack_Page_Cache::after_update();
     }
+
+}
+
+/** Import local assets while retaining replaced placeholder attachments. */
+trait SEOProStack_Site_Template_Images {
 
     /** @param string $key Image key. @param array $image Manifest image. @return true|WP_Error */
     private function apply_images($key, $image) {
@@ -730,6 +834,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         // Undo detaches ownership but retains media so existing links never break.
         return true;
     }
+
+}
+
+/** Preserve menu membership and fields not named by a manifest. */
+trait SEOProStack_Site_Template_Menus {
 
     /** @param string $location Theme menu location. @param array $menu Manifest menu. @return true|WP_Error */
     private function apply_menus($location, $menu) {
@@ -814,6 +923,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         $this->record['menus'][$location] = $old;
         return true;
     }
+
+}
+
+/** Preflight and resume undo without overwriting later site edits. */
+trait SEOProStack_Site_Template_Undo {
 
     /**
      * Restore the last run, refusing to overwrite any subsequent site edits.
@@ -916,6 +1030,11 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         return true;
     }
 
+}
+
+/** Read and restore only fields explicitly captured by the journal. */
+trait SEOProStack_Site_Template_Storage {
+
     /** @param array $write Journal entry. @return mixed */
     private static function read_write($write) {
         switch ($write['type']) {
@@ -1017,4 +1136,34 @@ class SEOProStack_Site_Templates extends SEOProStack_Feature {
         }
         return true;
     }
+}
+
+/** Site-template feature composed from the ownership operations above. */
+class SEOProStack_Site_Templates extends SEOProStack_Feature {
+    use SEOProStack_Site_Template_Lifecycle;
+    use SEOProStack_Site_Template_Manifest;
+    use SEOProStack_Site_Template_Resources;
+    use SEOProStack_Site_Template_Execution;
+    use SEOProStack_Site_Template_Batches;
+    use SEOProStack_Site_Template_Journal;
+    use SEOProStack_Site_Template_Posts;
+    use SEOProStack_Site_Template_Values;
+    use SEOProStack_Site_Template_Styles;
+    use SEOProStack_Site_Template_Images;
+    use SEOProStack_Site_Template_Menus;
+    use SEOProStack_Site_Template_Undo;
+    use SEOProStack_Site_Template_Storage;
+
+    const KEY = 'site_templates';
+    const OPTION = 'seoprostack_site_template';
+    const HOOK = 'seoprostack_site_template_update';
+    const SEEN = 'seoprostack_site_template_seen';
+    const META = '_seoprostack_template_key';
+
+    /** @var array Site ownership, journal and resumable progress. */
+    private $record;
+    /** @var bool Read-only comparison. */
+    private $dry;
+    /** @var array Comparison rows. */
+    private $rows = array();
 }

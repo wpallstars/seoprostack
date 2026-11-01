@@ -128,7 +128,8 @@ class SEOProStack_Site_Templates_CLI {
                     }
                 }
                 $offset += 50;
-            } while (count($ids) === 50);
+                $page_size = count($ids);
+            } while ($page_size === 50);
         } else {
             $error = $this->site($command, $args);
         }
@@ -140,12 +141,7 @@ class SEOProStack_Site_Templates_CLI {
     /** @param string $command Operation. @param array $args Arguments. @return true|WP_Error */
     private function site($command, $args) {
         if ('list' === $command) {
-            $rows = array();
-            foreach (SEOProStack_Site_Templates::manifests() as $slug => $manifest) {
-                $rows[] = array('slug' => $slug, 'name' => $manifest['name'], 'version' => $manifest['version']);
-            }
-            WP_CLI\Utils\format_items('table', $rows, array('slug', 'name', 'version'));
-            return true;
+            return $this->show_list();
         }
         $record = get_option(SEOProStack_Site_Templates::OPTION, array());
         $slug = $args[0] ?? ($record['slug'] ?? '');
@@ -154,21 +150,10 @@ class SEOProStack_Site_Templates_CLI {
                 WP_CLI::log('No template record; untouched.');
                 return true;
             }
-            WP_CLI::log('Template: ' . $slug . '; applied version: ' . ($record['version'] ?? 'pending'));
-            WP_CLI::log('Automatic updates: ' . (SEOProStack_Settings::get(SEOProStack_Site_Templates::KEY) ? 'on' : 'off'));
-            if (!empty($record['error'])) {
-                WP_CLI::warning($record['error']);
-            }
-            if (!empty($record['last_result'])) {
-                WP_CLI::log('Last run: ' . (string) wp_json_encode($record['last_result']));
-            }
+            $this->show_record($slug, $record);
         }
         if ('undo' === $command) {
-            $result = SEOProStack_Site_Templates::undo();
-            if (!is_wp_error($result)) {
-                WP_CLI::success('Last template run undone; newly created posts are retained as drafts.');
-            }
-            return $result;
+            return $this->undo_site();
         }
         if (!$slug) {
             return new WP_Error('template_slug', 'Name a template slug to initialise this site.');
@@ -185,5 +170,36 @@ class SEOProStack_Site_Templates_CLI {
             WP_CLI::success('Template applied. Edited and removed site content was kept.');
         }
         return true;
+    }
+
+    /** @return true */
+    private function show_list() {
+        $rows = array();
+        foreach (SEOProStack_Site_Templates::manifests() as $slug => $manifest) {
+            $rows[] = array('slug' => $slug, 'name' => $manifest['name'], 'version' => $manifest['version']);
+        }
+        WP_CLI\Utils\format_items('table', $rows, array('slug', 'name', 'version'));
+        return true;
+    }
+
+    /** @param string $slug Template. @param array $record Ownership. */
+    private function show_record($slug, $record) {
+        WP_CLI::log('Template: ' . $slug . '; applied version: ' . ($record['version'] ?? 'pending'));
+        WP_CLI::log('Automatic updates: ' . (SEOProStack_Settings::get(SEOProStack_Site_Templates::KEY) ? 'on' : 'off'));
+        if (!empty($record['error'])) {
+            WP_CLI::warning($record['error']);
+        }
+        if (!empty($record['last_result'])) {
+            WP_CLI::log('Last run: ' . (string) wp_json_encode($record['last_result']));
+        }
+    }
+
+    /** @return true|WP_Error */
+    private function undo_site() {
+        $result = SEOProStack_Site_Templates::undo();
+        if (!is_wp_error($result)) {
+            WP_CLI::success('Last template run undone; newly created posts are retained as drafts.');
+        }
+        return $result;
     }
 }
