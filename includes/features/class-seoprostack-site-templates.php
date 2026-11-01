@@ -273,7 +273,7 @@ trait SEOProStack_Site_Template_Execution {
             return $manifest;
         }
         $record = get_option(self::OPTION, array());
-        if ($record && ($record['slug'] ?? '') !== $slug) {
+        if (self::other_template($record, $slug)) {
             return new WP_Error('template_owned', 'This site already follows another template.');
         }
         $runner = new self(is_array($record) ? $record : array(), $dry);
@@ -293,7 +293,7 @@ trait SEOProStack_Site_Template_Execution {
             // Re-read after acquiring the lock; another runner may have finished.
             wp_cache_delete(self::OPTION, 'options');
             $fresh = get_option(self::OPTION, array());
-            if ($fresh && ($fresh['slug'] ?? '') !== $slug) {
+            if (self::other_template($fresh, $slug)) {
                 return new WP_Error('template_owned', 'This site already follows another template.');
             }
             $runner->record = is_array($fresh) ? $fresh : array();
@@ -306,6 +306,11 @@ trait SEOProStack_Site_Template_Execution {
         }
     }
 
+    /** @param mixed $record Stored record. @param string $slug Requested slug. @return bool */
+    private static function other_template($record, $slug) {
+        return $record && ($record['slug'] ?? '') !== $slug;
+    }
+
 }
 
 /** Resume bounded work while retaining the previous undo checkpoint. */
@@ -314,6 +319,28 @@ trait SEOProStack_Site_Template_Batches {
     /** @param array $manifest Validated input. @return array|WP_Error */
     private function batch($manifest) {
         $signature = hash('sha256', (string) wp_json_encode($manifest));
+        $error = $this->batch_state_error($signature);
+        if (is_wp_error($error)) {
+            return $error;
+        }
+        $ops = self::batch_operations($manifest);
+        if (is_wp_error($ops)) {
+            return $ops;
+        }
+        $this->begin_batch($manifest, $signature);
+        $cursor = $this->process_operations($ops);
+        if (is_wp_error($cursor)) {
+            return $cursor;
+        }
+        $pending = !$this->dry && $cursor < count($ops);
+        if (!$this->dry && !$pending) {
+            $this->finish_batch($manifest);
+        }
+        return array('pending' => $pending, 'rows' => $this->rows, 'record' => $this->record);
+    }
+
+    /** @param string $signature Manifest digest. @return WP_Error|null */
+    private function batch_state_error($signature) {
         if (!empty($this->record['pending']) && $this->record['pending']['signature'] !== $signature) {
             return new WP_Error('template_pending', 'Finish or undo the pending manifest before replacing it.');
         }
@@ -327,6 +354,11 @@ trait SEOProStack_Site_Template_Batches {
                 }
             }
         }
+        return null;
+    }
+
+    /** @param array $manifest Input. @return array|WP_Error */
+    private static function batch_operations($manifest) {
         $ops = array();
         foreach (array('images', 'pages', 'elements', 'menus') as $section) {
             foreach ($manifest[$section] as $key => $item) {
@@ -339,6 +371,23 @@ trait SEOProStack_Site_Template_Batches {
         if (isset($manifest['custom_css'])) {
             $ops[] = array('css', get_stylesheet(), $manifest['custom_css']);
         }
+        $options = self::option_operations($manifest);
+        if (is_wp_error($options)) {
+            return $options;
+        }
+        $ops = array_merge($ops, $options);
+        if ($manifest['theme_mods']) {
+            $ops[] = array('option', 'theme_mods_' . get_stylesheet(), $manifest['theme_mods']);
+        }
+        if (count($ops) > 500) {
+            return new WP_Error('template_size', 'A manifest may contain at most 500 resources.');
+        }
+        return $ops;
+    }
+
+    /** @param array $manifest Input. @return array|WP_Error */
+    private static function option_operations($manifest) {
+        $ops = array();
         foreach (array('options', 'widgets') as $section) {
             foreach ($manifest[$section] as $name => $values) {
                 if (!is_string($name) || preg_match('/(?:password|secret|token|licen[cs]e|api.?key|^seoprostack_|^active_plugins$|^siteurl$|^home$|^cron$|^users_can_register$|^default_role$)/i', $name)) {
@@ -347,12 +396,11 @@ trait SEOProStack_Site_Template_Batches {
                 $ops[] = array('option', $name, $values);
             }
         }
-        if ($manifest['theme_mods']) {
-            $ops[] = array('option', 'theme_mods_' . get_stylesheet(), $manifest['theme_mods']);
-        }
-        if (count($ops) > 500) {
-            return new WP_Error('template_size', 'A manifest may contain at most 500 resources.');
-        }
+        return $ops;
+    }
+
+    /** @param array $manifest Input. @param string $signature Digest. */
+    private function begin_batch($manifest, $signature) {
         if ($this->dry) {
             $this->record['pending']['initial'] = empty($this->record['slug']);
             $this->record['slug'] = $manifest['slug'];
@@ -368,6 +416,10 @@ trait SEOProStack_Site_Template_Batches {
             unset($this->record['error']);
             $this->save();
         }
+    }
+
+    /** @param array $ops Resources in dependency order. @return int|WP_Error */
+    private function process_operations($ops) {
         $start = microtime(true);
         $cursor = $this->dry ? 0 : $this->record['pending']['cursor'];
         $count = 0;
@@ -380,38 +432,44 @@ trait SEOProStack_Site_Template_Batches {
             ++$cursor;
             ++$count;
             if (!$this->dry) {
-                foreach ($this->record['backup']['writes'] as &$write) {
-                    $write['complete'] = true;
-                }
-                unset($write);
-                $this->record['pending']['cursor'] = $cursor;
-                $this->save();
+                $this->checkpoint_operation($cursor);
                 if ($count >= 20 || microtime(true) - $start > 10) {
                     break;
                 }
             }
         }
-        $pending = !$this->dry && $cursor < count($ops);
-        if (!$this->dry && !$pending) {
-            $named_posts = array();
-            foreach (array('pages', 'elements') as $section) {
-                foreach ($manifest[$section] as $item) {
-                    $named_posts[] = $section . '/' . $item['key'];
-                }
-            }
-            foreach (array_diff(array_keys($this->record['posts'] ?? array()), $named_posts) as $path) {
-                if (is_string($path)) {
-                    $this->report($path, 'removed-from-template');
-                }
-            }
-            $this->record['version'] = $manifest['version'];
-            if (!$this->record['backup']['writes'] && !empty($this->record['pending']['previous_backup'])) {
-                $this->record['backup'] = $this->record['pending']['previous_backup'];
-            }
-            unset($this->record['pending']);
-            $this->save();
+        return $cursor;
+    }
+
+    /** @param int $cursor Completed resource count. */
+    private function checkpoint_operation($cursor) {
+        foreach ($this->record['backup']['writes'] as &$write) {
+            $write['complete'] = true;
         }
-        return array('pending' => $pending, 'rows' => $this->rows, 'record' => $this->record);
+        unset($write);
+        $this->record['pending']['cursor'] = $cursor;
+        $this->save();
+    }
+
+    /** @param array $manifest Completed input. */
+    private function finish_batch($manifest) {
+        $named_posts = array();
+        foreach (array('pages', 'elements') as $section) {
+            foreach ($manifest[$section] as $item) {
+                $named_posts[] = $section . '/' . $item['key'];
+            }
+        }
+        foreach (array_diff(array_keys($this->record['posts'] ?? array()), $named_posts) as $path) {
+            if (is_string($path)) {
+                $this->report($path, 'removed-from-template');
+            }
+        }
+        $this->record['version'] = $manifest['version'];
+        if (!$this->record['backup']['writes'] && !empty($this->record['pending']['previous_backup'])) {
+            $this->record['backup'] = $this->record['pending']['previous_backup'];
+        }
+        unset($this->record['pending']);
+        $this->save();
     }
 
 }
@@ -482,15 +540,57 @@ trait SEOProStack_Site_Template_Posts {
     private function apply_post($path, $type, $item) {
         $old = $this->record['posts'][$path] ?? array();
         $post = !empty($old['id']) ? get_post($old['id']) : null;
-        if ($old && (!$post || 'trash' === $post->post_status || $post->post_type !== $type || get_post_meta($post->ID, self::META, true) !== $path)) {
-            $this->report($path, 'removed-on-site');
+        $status = self::post_ownership($path, $type, $item, $old, $post);
+        if ($status) {
+            $this->report($path, $status);
             return true;
+        }
+        list($blocks, $hashes) = $this->post_blocks($path, $item, $old, $post);
+        $fields = array('post_title' => $item['title'], 'post_name' => $item['slug']);
+        $write = array('post_type' => $type, 'post_status' => $post ? $post->post_status : 'publish', 'post_content' => serialize_blocks($blocks));
+        $field_hashes = $this->post_fields($path, $post, $fields, $old['fields'] ?? array(), $write);
+        $meta_hashes = $this->post_meta($path, $post, $item, $old['meta'] ?? array(), $write);
+        if ($this->dry) {
+            return true;
+        }
+        $id = $this->write_post($post, $write);
+        if (is_wp_error($id)) {
+            return $id;
+        }
+        $this->record['posts'][$path] = array('id' => $id, 'parts' => $hashes, 'fields' => $field_hashes, 'meta' => $meta_hashes);
+        $this->record_saved_post($path, $id, $write, $fields, $hashes, $old);
+        $this->save();
+        return true;
+    }
+
+    /** @param string $path Key. @param string $type Type. @param array $item Input. @param array $old Ownership. @param WP_Post|null $post Post. @return string */
+    private static function post_ownership($path, $type, $item, $old, $post) {
+        if ($old && (!$post || 'trash' === $post->post_status || $post->post_type !== $type || get_post_meta($post->ID, self::META, true) !== $path)) {
+            return 'removed-on-site';
         }
         if (!$old && get_page_by_path($item['slug'], OBJECT, $type)) {
-            $this->report($path, 'edited-on-site');
-            return true;
+            return 'edited-on-site';
         }
+        return '';
+    }
+
+    /** @param string $path Key. @param array $item Input. @param array $old Ownership. @param WP_Post|null $post Post. @return array */
+    private function post_blocks($path, $item, $old, $post) {
         $blocks = $post ? parse_blocks($post->post_content) : array();
+        $indices = self::block_indices($blocks);
+        $hashes = $old['parts'] ?? array();
+        foreach ($item['parts'] as $part) {
+            $this->merge_part($path, $part, $indices, $blocks, $hashes);
+        }
+        $named = array_column($item['parts'], 'key');
+        foreach (array_diff(array_keys($hashes), $named) as $key) {
+            $this->report($path . '/' . $key, 'removed-from-template');
+        }
+        return array($blocks, $hashes);
+    }
+
+    /** @param array $blocks Parsed blocks. @return array */
+    private static function block_indices($blocks) {
         $indices = array();
         foreach ($blocks as $index => $block) {
             $class = $block['attrs']['className'] ?? '';
@@ -498,20 +598,16 @@ trait SEOProStack_Site_Template_Posts {
                 $indices[substr($class, 18)][] = $index;
             }
         }
-        $hashes = $old['parts'] ?? array();
-        foreach ($item['parts'] as $part) {
+        return $indices;
+    }
+
+    /** @param string $path Key. @param array $part Part. @param array $indices Markers. @param array $blocks Blocks. @param array $hashes Ownership. */
+    private function merge_part($path, $part, $indices, &$blocks, &$hashes) {
             $key = $part['key'];
             $label = $path . '/' . $key;
-            $markup = $this->image_tokens($part['markup']);
+            $markup = $this->part_markup($label, $part['markup']);
             if (null === $markup) {
-                $this->report($label, 'skipped: image unavailable');
-                continue;
-            }
-            if (false !== strpos($markup, 'seoprostack/form') || false !== strpos($markup, '[seoprostack_form')) {
-                if (!shortcode_exists('seoprostack_form')) {
-                    $this->report($label, 'skipped: Fluent Forms inactive');
-                    continue;
-                }
+                return;
             }
             $class = 'sps-template-part-' . $key;
             $wrapped = '<!-- wp:group {"className":"' . $class . '","layout":{"type":"default"}} -->' . "\n" . '<div class="wp-block-group ' . $class . '">' . $markup . '</div>' . "\n" . '<!-- /wp:group -->';
@@ -520,11 +616,11 @@ trait SEOProStack_Site_Template_Posts {
             $found = $indices[$key] ?? array();
             if (isset($hashes[$key]) && !$found) {
                 $this->report($label, 'removed-on-site');
-                continue;
+                return;
             }
-            if (count($found) > 1 || ($found && (!isset($hashes[$key]) || self::fingerprint(serialize_block($blocks[$found[0]])) !== $hashes[$key]))) {
+            if (self::part_edited($key, $found, $hashes, $blocks)) {
                 $this->report($label, 'edited-on-site');
-                continue;
+                return;
             }
             $this->report($label, !$found ? 'added' : ($hash === $hashes[$key] ? 'same' : 'updated'));
             if ($found) {
@@ -533,14 +629,31 @@ trait SEOProStack_Site_Template_Posts {
                 $blocks[] = $new;
             }
             $hashes[$key] = $hash;
+    }
+
+    /** @param string $key Part. @param array $found Indices. @param array $hashes Ownership. @param array $blocks Blocks. @return bool */
+    private static function part_edited($key, $found, $hashes, $blocks) {
+        return count($found) > 1 || ($found && (!isset($hashes[$key]) || self::fingerprint(serialize_block($blocks[$found[0]])) !== $hashes[$key]));
+    }
+
+    /** @param string $label Part. @param string $markup Input. @return string|null */
+    private function part_markup($label, $markup) {
+        $markup = $this->image_tokens($markup);
+        if (null === $markup) {
+            $this->report($label, 'skipped: image unavailable');
+            return null;
         }
-        $named = array_column($item['parts'], 'key');
-        foreach (array_diff(array_keys($hashes), $named) as $key) {
-            $this->report($path . '/' . $key, 'removed-from-template');
+        if (false !== strpos($markup, 'seoprostack/form') || false !== strpos($markup, '[seoprostack_form')) {
+            if (!shortcode_exists('seoprostack_form')) {
+                $this->report($label, 'skipped: Fluent Forms inactive');
+                return null;
+            }
         }
-        $fields = array('post_title' => $item['title'], 'post_name' => $item['slug']);
-        $write = array('post_type' => $type, 'post_status' => $post ? $post->post_status : 'publish', 'post_content' => serialize_blocks($blocks));
-        $field_hashes = $old['fields'] ?? array();
+        return $markup;
+    }
+
+    /** @param string $path Key. @param WP_Post|null $post Post. @param array $fields Fields. @param array $field_hashes Ownership. @param array $write Write. @return array */
+    private function post_fields($path, $post, $fields, $field_hashes, &$write) {
         foreach ($fields as $field => $value) {
             if (!$post || (isset($field_hashes[$field]) && self::fingerprint($post->$field) === $field_hashes[$field])) {
                 $write[$field] = $value;
@@ -549,17 +662,14 @@ trait SEOProStack_Site_Template_Posts {
                 $this->report($path . '/' . $field, 'edited-on-site');
             }
         }
-        $meta = $item['meta'] ?? array();
-        if (isset($item['template'])) {
-            $meta['_wp_page_template'] = $item['template'];
-        }
-        $meta[self::META] = $path;
-        $meta_hashes = $old['meta'] ?? array();
+        return $field_hashes;
+    }
+
+    /** @param string $path Key. @param WP_Post|null $post Post. @param array $item Input. @param array $meta_hashes Ownership. @param array $write Write. @return array */
+    private function post_meta($path, $post, $item, $meta_hashes, &$write) {
+        $meta = self::post_meta_values($path, $item);
         $write['meta_input'] = array();
         foreach ($meta as $name => $value) {
-            if (is_scalar($value) || null === $value) {
-                $value = (string) $value;
-            }
             $current = $post ? get_post_meta($post->ID, $name, true) : '';
             if (!$post || (isset($meta_hashes[$name]) && self::fingerprint($current) === $meta_hashes[$name])) {
                 $write['meta_input'][$name] = $value;
@@ -568,9 +678,27 @@ trait SEOProStack_Site_Template_Posts {
                 $this->report($path . '/meta/' . $name, 'edited-on-site');
             }
         }
-        if ($this->dry) {
-            return true;
+        return $meta_hashes;
+    }
+
+    /** @param string $path Key. @param array $item Input. @return array */
+    private static function post_meta_values($path, $item) {
+        $meta = $item['meta'] ?? array();
+        if (isset($item['template'])) {
+            $meta['_wp_page_template'] = $item['template'];
         }
+        $meta[self::META] = $path;
+        foreach ($meta as &$value) {
+            if (is_scalar($value) || null === $value) {
+                $value = (string) $value;
+            }
+        }
+        unset($value);
+        return $meta;
+    }
+
+    /** @param WP_Post|null $post Existing post. @param array $write Write. @return int|WP_Error */
+    private function write_post($post, $write) {
         if ($post) {
             $write['ID'] = $post->ID;
         }
@@ -590,7 +718,11 @@ trait SEOProStack_Site_Template_Posts {
         } else {
             $id = $post->ID;
         }
-        $this->record['posts'][$path] = array('id' => $id, 'parts' => $hashes, 'fields' => $field_hashes, 'meta' => $meta_hashes);
+        return $id;
+    }
+
+    /** @param string $path Key. @param int $id Post. @param array $write Write. @param array $fields Fields. @param array $hashes Parts. @param array $old Ownership. */
+    private function record_saved_post($path, $id, $write, $fields, $hashes, $old) {
         // Core may normalise metadata or filter block markup. Own exactly what
         // reached storage, never the pre-filter input or preserved site edits.
         $saved = get_post($id);
@@ -604,7 +736,13 @@ trait SEOProStack_Site_Template_Posts {
                     $this->record['posts'][$path]['fields'][$field] = self::fingerprint($saved->$field);
                 }
             }
-            foreach (parse_blocks($saved->post_content) as $block) {
+            $this->record_saved_parts($path, $saved->post_content, $hashes, $old);
+        }
+    }
+
+    /** @param string $path Key. @param string $content Saved markup. @param array $hashes Parts. @param array $old Ownership. */
+    private function record_saved_parts($path, $content, $hashes, $old) {
+            foreach (parse_blocks($content) as $block) {
                 $class = $block['attrs']['className'] ?? '';
                 if ('core/group' !== $block['blockName'] || 0 !== strpos($class, 'sps-template-part-')) {
                     continue;
@@ -614,9 +752,6 @@ trait SEOProStack_Site_Template_Posts {
                     $this->record['posts'][$path]['parts'][$key] = self::fingerprint(serialize_block($block));
                 }
             }
-        }
-        $this->save();
-        return true;
     }
 
     /** @param int $id Post. @param array $keys Meta names. @return array */
@@ -714,29 +849,44 @@ trait SEOProStack_Site_Template_Values {
                 $this->report($path, 'edited-on-site');
                 return $current;
             }
-            $out = is_array($current) ? $current : array();
-            foreach ($desired as $key => $value) {
-                $child = $path . '/' . rawurlencode((string) $key);
-                if (!array_key_exists($key, $out) && $this->owned_path($child)) {
-                    $this->report($child, 'removed-on-site');
-                    continue;
-                }
-                $out[$key] = $this->merge_keys($child, $out[$key] ?? null, $value, array_key_exists($key, $out));
-            }
-            return $out;
+            return $this->merge_array($path, $current, $desired);
         }
+        return $this->merge_leaf($path, $current, $desired, $exists);
+    }
+
+    /** @param string $path Path. @param mixed $current Current tree. @param array $desired Named leaves. @return array */
+    private function merge_array($path, $current, $desired) {
+        $out = is_array($current) ? $current : array();
+        foreach ($desired as $key => $value) {
+            $child = $path . '/' . rawurlencode((string) $key);
+            if (!array_key_exists($key, $out) && $this->owned_path($child)) {
+                $this->report($child, 'removed-on-site');
+                continue;
+            }
+            $out[$key] = $this->merge_keys($child, $out[$key] ?? null, $value, array_key_exists($key, $out));
+        }
+        return $out;
+    }
+
+    /** @param string $path Path. @param mixed $current Current leaf. @param mixed $desired Input. @param bool $exists Present. @return mixed */
+    private function merge_leaf($path, $current, $desired, $exists) {
         $hash = $this->record['values'][$path] ?? null;
         if ($exists && (!$hash || self::fingerprint($current) !== $hash) && empty($this->record['pending']['initial'])) {
-            $this->report($path, $current === $desired && !$hash ? 'same' : 'edited-on-site');
-            // Equal pre-existing values may be adopted by an explicit apply.
-            if ($current === $desired && !$hash) {
-                $this->record['values'][$path] = self::fingerprint($desired);
-            }
+            $this->preserve_leaf($path, $current, $desired, $hash);
             return $current;
         }
         $this->report($path, !$exists ? 'added' : ($current === $desired ? 'same' : 'updated'));
         $this->record['values'][$path] = self::fingerprint($desired);
         return $desired;
+    }
+
+    /** @param string $path Path. @param mixed $current Site value. @param mixed $desired Input. @param string|null $hash Ownership. */
+    private function preserve_leaf($path, $current, $desired, $hash) {
+        $this->report($path, $current === $desired && !$hash ? 'same' : 'edited-on-site');
+        // Equal pre-existing values may be adopted by an explicit apply.
+        if ($current === $desired && !$hash) {
+            $this->record['values'][$path] = self::fingerprint($desired);
+        }
     }
 
 }
@@ -749,7 +899,7 @@ trait SEOProStack_Site_Template_Styles {
         $current = wp_get_custom_css($theme);
         $old = $this->record['css'][$theme] ?? null;
         $prefix = is_array($old) ? $old['base'] : '';
-        if ((null === $old && '' !== $current) || 0 !== strpos($current, $prefix)) {
+        if (self::css_edited($old, $current, $prefix)) {
             $this->report('custom_css', 'edited-on-site');
             return true;
         }
@@ -774,6 +924,11 @@ trait SEOProStack_Site_Template_Styles {
         return true;
     }
 
+    /** @param array|null $old Ownership. @param string $current CSS. @param string $prefix Owned base. @return bool */
+    private static function css_edited($old, $current, $prefix) {
+        return (null === $old && '' !== $current) || 0 !== strpos($current, $prefix);
+    }
+
     /** Purge this site's page caches, including deferred cache plugins. */
     private function purge() {
         delete_option(SEOProStack_Page_Cache::OPTION);
@@ -789,15 +944,9 @@ trait SEOProStack_Site_Template_Images {
     private function apply_images($key, $image) {
         $old = $this->record['images'][$key] ?? null;
         if ($old) {
-            $attachment = get_post($old['id']);
-            if (!$attachment || 'attachment' !== $attachment->post_type || 'trash' === $attachment->post_status || get_post_meta($attachment->ID, self::META, true) !== 'images/' . $key) {
-                $this->report('images/' . $key, 'removed-on-site');
-                return true;
-            }
-            $file = get_attached_file($old['id']);
-            $same = $file && is_readable($file) && hash_file('sha256', $file) === $old['sha256'];
-            if (!$same || empty($old['placeholder']) || ($old['source_sha256'] ?? $old['sha256']) === $image['sha256']) {
-                $this->report('images/' . $key, $same ? 'same' : ($file && is_readable($file) ? 'edited-on-site' : 'removed-on-site'));
+            $status = self::image_status($key, $old, $image);
+            if (null !== $status) {
+                $this->report('images/' . $key, $status);
                 return true;
             }
             // Only an untouched placeholder may advance to a new image. Import
@@ -811,6 +960,40 @@ trait SEOProStack_Site_Template_Images {
         if ($this->dry) {
             return true;
         }
+        return $this->import_image($key, $image, $file);
+    }
+
+    /** @param string $key Image. @param array $old Ownership. @param array $image Input. @return string|null */
+    private static function image_status($key, $old, $image) {
+        if (!self::owned_attachment($old['id'], $key)) {
+            return 'removed-on-site';
+        }
+        $file = get_attached_file($old['id']);
+        $same = self::image_file_matches($file, $old['sha256']);
+        if (!$same || empty($old['placeholder']) || ($old['source_sha256'] ?? $old['sha256']) === $image['sha256']) {
+            return $same ? 'same' : self::changed_image_status($file);
+        }
+        return null;
+    }
+
+    /** @param int $id Attachment. @param string $key Image. @return bool */
+    private static function owned_attachment($id, $key) {
+        $attachment = get_post($id);
+        return $attachment && 'attachment' === $attachment->post_type && 'trash' !== $attachment->post_status && get_post_meta($id, self::META, true) === 'images/' . $key;
+    }
+
+    /** @param string|false $file File. @param string $hash SHA-256. @return bool */
+    private static function image_file_matches($file, $hash) {
+        return $file && is_readable($file) && hash_file('sha256', $file) === $hash;
+    }
+
+    /** @param string|false $file File. @return string */
+    private static function changed_image_status($file) {
+        return $file && is_readable($file) ? 'edited-on-site' : 'removed-on-site';
+    }
+
+    /** @param string $key Image. @param array $image Input. @param string $file Local source. @return true|WP_Error */
+    private function import_image($key, $image, $file) {
         $this->journal('retained_media', $key, null, null);
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/media.php';
