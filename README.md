@@ -2293,6 +2293,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: in Dark mode, the Kadence theme’s typography popover in the Customizer (Font, Style and Size) and its colour pickers no longer open white (GitHub issue #1129).
+
 ### 1.3.134
 
 - New, on by default: **Palette colours for Kadence’s dark mode switch** (Content) adds the Global Palette swatches to Kadence Pro’s Dark Mode switch colours in the Customizer (Header, Mobile Header, Footer and the floating switch), so a switch can follow the site’s palette and the dark palette. **Keep switch colours in dark mode** (off by default) stops Kadence Pro swapping the two colours in dark mode, so a switch can share its row’s background in both modes (GitHub issue #1114).
