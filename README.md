@@ -84,6 +84,16 @@ Drafts only: nothing leaves the site until an administrator sends it in Tools â†
 
 ## Features
 
+**Site templates:** agency-built manifests can initialise template sites through
+`wp seoprostack site-templates apply <slug>`. After plugin updates, each site
+updates only unedited template parts; edited or removed parts stay untouched.
+The Content setting **Update unedited template parts automatically** is on by
+default, but does nothing without a template record. Cloned client sites inherit
+the record. WP-CLI offers `list`, `status`, `diff`, `apply` and `undo`, with
+`--url` and sequential `--all-sites`. Undo refuses later edits and retains newly
+created posts as drafts rather than deleting content. No manifests ship yet;
+the format is in `site-templates/README.md`.
+
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other pluginsâ€™ settings. On by default:
 
 - **Security:** Email protection, Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
@@ -2296,6 +2306,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Fix: in Dark mode, the Kadence themeâ€™s typography popover in the Customizer (Font, Style and Size) and its colour pickers no longer open white (GitHub issue #1129).
+- New: Site templates, per-part edit-safe updates, bounded site-local cron,
+  inherited ownership for cloned sites and WP-CLI comparison/apply/undo (#1127).
 
 ### 1.3.134
 
