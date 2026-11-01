@@ -122,7 +122,9 @@ class SEOProStack_Site_Template_Menus {
         if (is_wp_error($item_id)) {
             return $item_id;
         }
-        $old['items'][$key] = array('id' => $item_id, 'hash' => SEOProStack_Site_Template_Run::fingerprint($desired));
+        // Own what was stored: without a user, kses filters the title on save.
+        $stored = get_post($item_id);
+        $old['items'][$key] = array('id' => $item_id, 'hash' => SEOProStack_Site_Template_Run::fingerprint($stored ? self::current($stored) : $desired));
         update_post_meta($item_id, SEOProStack_Site_Templates::META, $path);
         $old['id'] = $id;
         $run->record['menus'][$location] = $old;

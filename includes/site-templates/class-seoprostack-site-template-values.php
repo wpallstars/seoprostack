@@ -67,7 +67,8 @@ class SEOProStack_Site_Template_Values {
         $current = wp_get_custom_css($theme);
         $old = $run->record['css'][$theme] ?? null;
         $prefix = is_array($old) ? $old['base'] : '';
-        if ((null === $old && '' !== $current) || 0 !== strpos($current, $prefix)) {
+        // strncmp, not strpos: PHP 7.4's strpos() fails on an empty needle.
+        if ((null === $old && '' !== $current) || 0 !== strncmp($current, $prefix, strlen($prefix))) {
             $run->report('custom_css', 'edited-on-site');
             return true;
         }
