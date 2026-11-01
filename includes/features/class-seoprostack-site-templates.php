@@ -44,10 +44,10 @@ trait SEOProStack_Site_Template_Lifecycle {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-site-templates-cli.php';
             WP_CLI::add_command('seoprostack site-templates', 'SEOProStack_Site_Templates_CLI');
         }
-        add_action(self::HOOK, array(__CLASS__, 'cron'));
-        add_action('wp_loaded', array(__CLASS__, 'maybe_schedule'));
-        add_action('upgrader_process_complete', array(__CLASS__, 'maybe_schedule'));
-        add_action('seoprostack_settings_changed', array(__CLASS__, 'maybe_schedule'));
+        add_action(self::HOOK, array(self::class, 'cron'));
+        add_action('wp_loaded', array(self::class, 'maybe_schedule'));
+        add_action('upgrader_process_complete', array(self::class, 'maybe_schedule'));
+        add_action('seoprostack_settings_changed', array(self::class, 'maybe_schedule'));
     }
 
     /** Each site discovers its own version change; never walk a network here. */
@@ -705,19 +705,18 @@ trait SEOProStack_Site_Template_Posts {
         $before = $post ? self::post_snapshot($post->ID, array_keys($write['meta_input'])) : null;
         $after = $before ? array_replace($before, $write) : $write;
         unset($after['ID']);
-        if ($before !== $after) {
-            $this->journal('post', $post ? $post->ID : 0, $before, $after);
-            $id = $post ? wp_update_post(wp_slash($write), true) : wp_insert_post(wp_slash($write), true);
-            if (is_wp_error($id)) {
-                return $id;
-            }
-            $last = count($this->record['backup']['writes']) - 1;
-            $this->record['backup']['writes'][$last]['id'] = $id;
-            $this->record['backup']['writes'][$last]['after'] = self::post_snapshot($id, array_keys($write['meta_input']));
-            SEOProStack_Page_Cache::purge_posts(array($id));
-        } else {
-            $id = $post->ID;
+        if ($post && $before === $after) {
+            return $post->ID;
         }
+        $this->journal('post', $post ? $post->ID : 0, $before, $after);
+        $id = $post ? wp_update_post(wp_slash($write), true) : wp_insert_post(wp_slash($write), true);
+        if (is_wp_error($id)) {
+            return $id;
+        }
+        $last = count($this->record['backup']['writes']) - 1;
+        $this->record['backup']['writes'][$last]['id'] = $id;
+        $this->record['backup']['writes'][$last]['after'] = self::post_snapshot($id, array_keys($write['meta_input']));
+        SEOProStack_Page_Cache::purge_posts(array($id));
         return $id;
     }
 

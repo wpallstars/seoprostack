@@ -109,20 +109,7 @@ class SEOProStack_Site_Templates_CLI {
             do {
                 $ids = get_sites(array('fields' => 'ids', 'number' => 50, 'offset' => $offset, 'orderby' => 'id', 'order' => 'ASC', 'deleted' => 0, 'spam' => 0, 'archived' => 0));
                 foreach ($ids as $id) {
-                    switch_to_blog((int) $id);
-                    try {
-                        WP_CLI::log('Site ' . $id);
-                        $record = get_option(SEOProStack_Site_Templates::OPTION, array());
-                        // Without a slug, diff has nothing to compare on an unrecorded site.
-                        $skip = in_array($command, array('apply', 'undo'), true) || ('diff' === $command && empty($args[0]));
-                        if (!$record && $skip) {
-                            WP_CLI::log('No template record; untouched.');
-                            continue;
-                        }
-                        $error = $this->site($command, $args);
-                    } finally {
-                        restore_current_blog();
-                    }
+                    $error = $this->visit_site($id, $command, $args);
                     if (is_wp_error($error)) {
                         WP_CLI::error($error->get_error_message());
                     }
@@ -135,6 +122,24 @@ class SEOProStack_Site_Templates_CLI {
         }
         if (is_wp_error($error)) {
             WP_CLI::error($error->get_error_message());
+        }
+    }
+
+    /** @param int|string $id Site. @param string $command Operation. @param array $args Arguments. @return true|WP_Error|null */
+    private function visit_site($id, $command, $args) {
+        switch_to_blog((int) $id);
+        try {
+            WP_CLI::log('Site ' . $id);
+            $record = get_option(SEOProStack_Site_Templates::OPTION, array());
+            // Without a slug, diff has nothing to compare on an unrecorded site.
+            $skip = in_array($command, array('apply', 'undo'), true) || ('diff' === $command && empty($args[0]));
+            if (!$record && $skip) {
+                WP_CLI::log('No template record; untouched.');
+                return null;
+            }
+            return $this->site($command, $args);
+        } finally {
+            restore_current_blog();
         }
     }
 
