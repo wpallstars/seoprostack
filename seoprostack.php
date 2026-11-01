@@ -11,6 +11,7 @@
  * License:           GPL-3.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       seoprostack
+ * Domain Path:       /languages
  * GitHub Plugin URI: wpallstars/seoprostack
  * Primary Branch:    main
  * Release Asset:     true
@@ -48,8 +49,9 @@ define('SEOPROSTACK_FILE', __FILE__);
 define('SEOPROSTACK_DIR', plugin_dir_path(__FILE__));
 define('SEOPROSTACK_URL', plugin_dir_url(__FILE__));
 
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-translations.php';
+SEOProStack_Translations::init();
+
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack.php';
 SEOProStack::load();
 register_deactivation_hook(__FILE__, array('SEOProStack', 'deactivate'));
-
-// Translations load just-in-time from WordPress.org language packs (WP 4.6+).
