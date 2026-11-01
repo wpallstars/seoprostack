@@ -2303,6 +2303,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: Links skip redirects matches encoded link paths as Rank Math does and ignores its cached redirects when Rank Math or its Redirections module is unavailable. Custom redirect filters still work without Rank Math (GitHub issue #1137).
+
 ### 1.3.136
 
 - Fix: in Dark mode, the Kadence theme’s typography preview in the Customizer (the arrow beside each font setting) shows its sample text on a light checkerboard again, as in light mode, so the site’s own text colours are readable (GitHub issue #1135).
