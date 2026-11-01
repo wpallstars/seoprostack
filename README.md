@@ -2272,6 +2272,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: the Starter sync runs daily instead of every Monday (GitHub issue #1124).
+
 ### 1.3.133
 
 - New: the Plugins screen has a **Redundant** view, beside All, Active and Inactive, listing every installed plugin that SEO Pro Stack or another of our plugins (SEO Pro Analytics, SEO Pro Cookie Consent, SEO Pro Directory) can replace, active or not, and plugins whose job WordPress now does itself, such as Performant Translations. The note under each row says what to do next. WordPress 6.3 or later (GitHub issue #1119).
@@ -3478,7 +3482,7 @@ SEO Pro Stack is built and maintained with [aidevops](https://aidevops.sh), the 
 
 Questions about using, changing or building on SEO Pro Stack: ask aidevops. Open this repository, or the site it runs on, with aidevops and ask; it reads the plugin's docs and code to answer, and can report a problem for you.
 
-Made from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding), the wpallstars starter plugin. Its shared standards and the weekly Starter sync keep this plugin up to date.
+Made from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding), the wpallstars starter plugin. Its shared standards and the daily Starter sync keep this plugin up to date.
 
 Works well with the other wpallstars plugins made from it: [SEO Pro Analytics](https://github.com/wpallstars/seoproanalytics), private stats, search rankings and sales without cookies, and [SEO Pro Cookie Consent](https://github.com/wpallstars/seoprocookieconsent), the simplest, lightest cookie consent for WordPress.
 

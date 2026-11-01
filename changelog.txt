@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Developers: all 82 starter core files match WP Plugin Starter main after 1.0.49. The Starter sync workflow runs daily instead of every Monday, so starter changes reach this plugin's starter-sync issue within a day (GitHub issue #1124).
+
 = 1.3.133 =
 * Change: TranslatePress Pro's links in Pro Plugins, and its Go Pro link in Free Plugins, carry the developer's referral ID in GitHub builds; .wporg-links keeps the WordPress.org build's links plain (GitHub issue #1120).
 * Change: Free Plugins' note under tools for occasional use (Advanced Database Cleaner, Debug Log Manager, Fluent Query Logger, GOTMLS, Query Monitor, User Switching, WP Crontrol) now reads "deactivate when not using … activate only when you need it to look into a problem or work on maintenance" (GitHub issue #1120).
