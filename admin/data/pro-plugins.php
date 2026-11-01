@@ -517,12 +517,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://translatepress.com/',
+                    'url' => 'https://translatepress.com/?ref=875',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://translatepress.com/pricing/'
+                    'url' => 'https://translatepress.com/pricing/?ref=875'
                 )
             ),
             'free_slug' => 'translatepress-multilingual'

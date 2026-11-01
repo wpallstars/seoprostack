@@ -995,7 +995,7 @@ class SEOProStack_Plugin_Manager {
         // or add checks while active, so they are not left on day to day.
         $occasional = array('advanced-database-cleaner', 'debug-log-manager', 'fluent-query-logger', 'gotmls', 'query-monitor', 'user-switching', 'wp-crontrol');
         if (in_array($slug, $occasional, true)) {
-            $note = __('Not needed day to day: deactivate or delete it so the site runs at full speed, and turn it on only when you need it to look into a problem or for admin work.', 'seoprostack');
+            $note = __('Not needed day to day: deactivate when not using, so the site runs at full speed, and activate only when you need it to look into a problem or work on maintenance.', 'seoprostack');
         }
         if ('fluent-query-logger' === $slug) {
             $note .= ' ' . __('Last updated in July 2022: check compatibility before using it.', 'seoprostack');
