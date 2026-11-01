@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.133-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.134-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.133
+Version: 1.3.134
 
 <!-- github-only:start -->
 ## Screenshots
@@ -596,6 +596,27 @@ The site's palette still needs accessible contrast, including accent colours.
 No scripts or saved WP Grid Builder settings change; turning this off restores
 its colours. No styles are added without active WP Grid Builder and Kadence,
 or on pages where WP Grid Builder does not print styles.
+
+### Palette colours for Kadence’s dark mode switch (Content)
+
+**On by default.** Kadence Pro’s Dark Mode switch colours (Customizer: Header,
+Mobile Header and Footer → Dark Mode, and the floating switch under Colors →
+Dark Mode) take only fixed colours, unlike the theme’s other colour controls.
+This adds the Global Palette swatches to their Light Color and Dark Color, so
+a switch can be set to `palette8`, `palette4` and so on, and follows the site’s
+palette and, in dark mode, the dark palette. Kadence Pro saves and prints the
+palette names (`var(--global-palette8)`); nothing else changes, colours saved
+before stay as they are, and nothing changes without the Kadence theme and
+Kadence Pro’s Dark Mode module.
+
+- **Keep switch colours in dark mode** (off by default): Kadence Pro swaps the
+  two colours in dark mode, so the button shown in the Dark Color in light mode
+  is in the Light Color in dark mode. To have a top bar’s switch share the top
+  bar’s background in both modes, set the switch’s Dark Color to the top bar’s
+  background palette colour and turn this on: each colour keeps its place in
+  dark mode, and palette colours alone change with the mode. Fixed colours then
+  look the same in both modes. In the Customizer, a change shows in dark mode
+  after saving.
 
 ### Kadence colour check (Content)
 
@@ -2272,8 +2293,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.134
 
+- New, on by default: **Palette colours for Kadence’s dark mode switch** (Content) adds the Global Palette swatches to Kadence Pro’s Dark Mode switch colours in the Customizer (Header, Mobile Header, Footer and the floating switch), so a switch can follow the site’s palette and the dark palette. **Keep switch colours in dark mode** (off by default) stops Kadence Pro swapping the two colours in dark mode, so a switch can share its row’s background in both modes (GitHub issue #1114).
 - Developers: the Starter sync runs daily instead of every Monday (GitHub issue #1124).
 
 ### 1.3.133

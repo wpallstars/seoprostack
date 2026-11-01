@@ -2,7 +2,8 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.134 =
+* New, on by default: Palette colours for Kadence's dark mode switch (SEOProStack_Kadence_Switch_Palette, setting kadence_switch_palette, Content tab). Kadence Pro's Dark Mode switch colour controls (header_dark_mode_colors, mobile_dark_mode_colors, footer_dark_mode_colors and dark_mode_colors) are the theme's kadence_color_control with input_attrs colors.light/dark.palette false, so the Customizer offered only a free colour picker. On customize_register at priority 20, after the theme's Theme_Customizer::add_controls, each of those controls that exists gets palette true for both colours, so it shows the Global Palette swatches and saves paletteN, which Kadence Pro already prints as var(--global-paletteN) and Kadence's live preview resolves. Saved colours are unchanged; without the Kadence theme or Kadence Pro's Dark Mode module the controls do not exist and nothing changes. Keep switch colours in dark mode (kadence_switch_palette_keep, off by default) prints, after Kadence Pro's switch styles and only where its dark mode is on, body.color-switch-dark rules giving each switch (on its wrapper, or the body for the floating switch) its light and dark colour values swapped, since Kadence Pro's CSS swaps them in dark mode: a switch whose Dark Color is its row's background palette colour then shares that background in both modes. Only paletteN and plain colour values are printed (GitHub issue #1114).
 * Developers: all 82 starter core files match WP Plugin Starter main after 1.0.49. The Starter sync workflow runs daily instead of every Monday, so starter changes reach this plugin's starter-sync issue within a day (GitHub issue #1124).
 
 = 1.3.133 =

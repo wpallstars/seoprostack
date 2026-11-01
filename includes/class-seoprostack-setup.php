@@ -80,6 +80,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Fluentforms_Colours',
         'SEOProStack_Form_Keys',
         'SEOProStack_Kadence_Colour_Check',
+        'SEOProStack_Kadence_Switch_Palette',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Paste_Media',
         'SEOProStack_Svg_Uploads',
