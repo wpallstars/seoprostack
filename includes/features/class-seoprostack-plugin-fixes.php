@@ -396,6 +396,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Kadence Blocks Pro's query loop REST controller. */
     const KADENCE_QUERY_CONTROLLER = 'Kadence_Blocks_Query_Loop_CPT_Rest_Controller';
 
+    /** Last Kadence Blocks Pro release whose query route definition was checked. */
+    const KADENCE_QUERY_CHECKED = '2.8.20.1'; // NOSONAR: a plugin version bound, not an IP address.
+
     /** Whether the query loop's own server is dispatching Kadence's request. */
     private static $kadence_query_dispatching = false;
 
@@ -1235,6 +1238,10 @@ JS;
         if (null !== $pre || empty($kbp_ql_id) || !empty($wp_rest_server) || self::$kadence_query_dispatching
             || !isset($block['blockName']) || !is_string($block['blockName']) || 0 !== strpos($block['blockName'], 'kadence/query-')
             || !empty($kb_query_rest_responses[$kbp_ql_id]) || !class_exists(self::KADENCE_QUERY_CONTROLLER, false)) {
+            return $pre;
+        }
+        // A newer release may change permissions or methods: use its full REST server until checked.
+        if (!defined('KBP_VERSION') || version_compare((string) KBP_VERSION, self::KADENCE_QUERY_CHECKED, '>')) {
             return $pre;
         }
         $type       = get_post_type_object('kadence_query');
