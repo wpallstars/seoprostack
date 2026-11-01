@@ -2108,6 +2108,26 @@ html.sps-dark .components-button.kadence-color-icon-indicate {
 	background-clip: padding-box;
 }
 
+/*
+ * Typography preview (the arrow beside a font setting): Kadence's #ddd
+ * checkerboard is drawn over clear squares, which turn near-black on a dark
+ * panel, and the sample shows the site's own text colour, meant for its
+ * light pages. Keep the light-mode look: the same checkerboard on white,
+ * with dark text for a font setting that has no colour (Kadence's inline
+ * colour still wins when one is set).
+ */
+html.sps-dark .wp-customizer .kadence-preview-font {
+	background:
+		linear-gradient(45deg, #ddd 25%, transparent 0),
+		linear-gradient(-45deg, #ddd 25%, transparent 0),
+		linear-gradient(45deg, transparent 75%, #ddd 0),
+		linear-gradient(-45deg, transparent 75%, #ddd 0),
+		#fff;
+	background-size: 10px 10px;
+	background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+	color: #1d2327;
+}
+
 html.sps-dark .wp-customizer .kadence-builder-item-start button.kadence-builder-item:hover {
 	background: var(--sps-ui-border) !important;
 	border-color: var(--sps-ui-field-border);
