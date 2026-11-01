@@ -20,9 +20,14 @@ esac
 
 if [[ "$mode" != compile ]]; then
     # A fixed creation date avoids timestamp-only changes on every extraction.
-    wp i18n make-pot "$root" "$root/languages/seoprostack.pot" \
+    temporary="$(mktemp)"
+    trap 'rm -f "$temporary"' EXIT
+    wp i18n make-pot "$root" "$temporary" \
         --slug=seoprostack --domain=seoprostack --exclude=dist,scripts \
         --headers='{"POT-Creation-Date":"2026-11-01 00:00+0000"}'
+    # Header addresses identify the author/product; they are not prose to translate.
+    msggrep --invert-match --msgid --extended-regexp --regexp='^https?://[^[:space:]]+$' \
+        --no-wrap --output-file="$root/languages/seoprostack.pot" "$temporary"
 fi
 
 if [[ "$mode" != pot ]]; then

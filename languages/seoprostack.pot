@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SEO Pro Stack 1.3.136\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/seoprostack\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wpallstars-seoprostack-feature-auto-20261101-203653-gh1141\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,8 +16,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #. translators: %s: the plugin's name.
-#: seoprostack.php
-#: admin/includes/class-admin-manager.php:293
+#: seoprostack.php admin/includes/class-admin-manager.php:293
 #: admin/includes/class-admin-manager.php:294
 #: admin/includes/class-admin-manager.php:303
 #: admin/includes/class-admin-page.php:36
@@ -27,11 +26,6 @@ msgstr ""
 #: includes/class-seoprostack-admin-bar.php:104
 #: includes/features/class-seoprostack-outbound-calls.php:979
 msgid "SEO Pro Stack"
-msgstr ""
-
-#. Plugin URI of the plugin
-#: seoprostack.php
-msgid "https://github.com/wpallstars/seoprostack"
 msgstr ""
 
 #. Description of the plugin
@@ -44,13 +38,7 @@ msgstr ""
 msgid "Marcus Quinn"
 msgstr ""
 
-#. Author URI of the plugin
-#: seoprostack.php
-msgid "https://www.wpallstars.com/"
-msgstr ""
-
-#: admin/data/readme.php:32
-#: admin/includes/class-admin-manager.php:175
+#: admin/data/readme.php:32 admin/includes/class-admin-manager.php:175
 msgid "Read Me"
 msgstr ""
 
@@ -59,8 +47,7 @@ msgstr ""
 #: admin/includes/class-admin-page.php:238
 #: admin/includes/class-network-manager.php:102
 #: includes/features/class-seoprostack-admin-menu.php:1698
-#: blocks/brand-icon/index.js:158
-#: blocks/form/index.js:64
+#: blocks/brand-icon/index.js:158 blocks/form/index.js:64
 msgid "Settings"
 msgstr ""
 
@@ -134,8 +121,7 @@ msgstr ""
 #: admin/includes/class-admin-page.php:117
 #: admin/includes/class-plugin-manager.php:706
 #: admin/includes/class-plugin-manager.php:882
-#: admin/partials/theme-panel.php:83
-#: admin/partials/theme-panel.php:89
+#: admin/partials/theme-panel.php:83 admin/partials/theme-panel.php:89
 #: admin/partials/theme-panel.php:91
 #: includes/class-seoprostack-form-policy-links.php:81
 #: includes/class-seoprostack-review-links.php:150
@@ -368,8 +354,7 @@ msgstr ""
 #: admin/includes/class-free-plugins-manager.php:93
 #: admin/includes/class-plugin-manager.php:664
 #: admin/includes/class-plugin-manager.php:1123
-#: admin/partials/theme-panel.php:73
-#: admin/js/seoprostack-tabs.js:828
+#: admin/partials/theme-panel.php:73 admin/js/seoprostack-tabs.js:828
 msgid "Activate"
 msgstr ""
 
@@ -462,9 +447,8 @@ msgid "Filter…"
 msgstr ""
 
 #. translators: %d: number of items
-#: admin/includes/class-link-cards.php:59
-#: admin/js/seoprostack-tabs.js:54
-#, php-format,js-format
+#: admin/includes/class-link-cards.php:59 admin/js/seoprostack-tabs.js:54
+#, php-format
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] ""
@@ -1143,8 +1127,7 @@ msgstr ""
 #: includes/features/class-seoprostack-post-reactions.php:384
 #: includes/features/class-seoprostack-woo-tidy.php:52
 #: includes/features/class-seoprostack-wp-extras.php:53
-#: admin/js/seoprostack-word-import.js:131
-#: blocks/saved-posts/index.js:50
+#: admin/js/seoprostack-word-import.js:131 blocks/saved-posts/index.js:50
 msgid "Remove"
 msgstr ""
 
@@ -1327,29 +1310,25 @@ msgid "Colour mode"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:726
-#: admin/js/seoprostack-theme.js:24
-#: admin/js/seoprostack-whole-theme.js:32
+#: admin/js/seoprostack-theme.js:24 admin/js/seoprostack-whole-theme.js:32
 msgid "Light"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:727
-#: admin/js/seoprostack-theme.js:28
-#: admin/js/seoprostack-whole-theme.js:32
+#: admin/js/seoprostack-theme.js:28 admin/js/seoprostack-whole-theme.js:32
 msgid "Dark"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:728
-#: admin/js/seoprostack-theme.js:32
-#: admin/js/seoprostack-whole-theme.js:32
+#: admin/js/seoprostack-theme.js:32 admin/js/seoprostack-whole-theme.js:32
 msgid "System"
 msgstr ""
 
 #. translators: %s: Light, Dark or System.
 #. translators: %s: the colour mode, Light, Dark or System.
 #: includes/admin/class-seoprostack-admin-whole-theme.php:741
-#: admin/js/seoprostack-theme.js:63
-#: admin/js/seoprostack-whole-theme.js:49
-#, php-format,js-format
+#: admin/js/seoprostack-theme.js:63 admin/js/seoprostack-whole-theme.js:49
+#, php-format
 msgid "Colour mode: %s"
 msgstr ""
 
@@ -1551,8 +1530,7 @@ msgstr ""
 msgid "Buttons: 4 columns"
 msgstr ""
 
-#: includes/class-seoprostack-form-modal.php:164
-#: blocks/form/index.js:39
+#: includes/class-seoprostack-form-modal.php:164 blocks/form/index.js:39
 #: blocks/review-links/index.js:60
 msgid "Form"
 msgstr ""
@@ -2528,8 +2506,7 @@ msgstr ""
 #: includes/class-seoprostack-reaction-lists.php:61
 #: includes/features/class-seoprostack-post-reactions.php:333
 #: includes/features/class-seoprostack-post-reactions.php:616
-#: blocks/saved-panel/index.js:15
-#: blocks/saved-posts/index.js:31
+#: blocks/saved-panel/index.js:15 blocks/saved-posts/index.js:31
 msgid "Shortlist"
 msgstr ""
 
@@ -3471,8 +3448,7 @@ msgstr ""
 #: includes/features/class-seoprostack-admin-menu.php:2359
 #: includes/features/class-seoprostack-linking.php:347
 #: includes/features/class-seoprostack-linking.php:349
-#: blocks/link-card/index.js:229
-#: blocks/screenshot/index.js:344
+#: blocks/link-card/index.js:229 blocks/screenshot/index.js:344
 msgid "Address"
 msgstr ""
 
@@ -3651,8 +3627,7 @@ msgstr ""
 #: includes/features/class-seoprostack-hosting-needs.php:3119
 #: includes/features/class-seoprostack-social-sharing.php:392
 #: includes/features/class-seoprostack-term-tools.php:451
-#: blocks/link-card/index.js:242
-#: blocks/term-list/index.js:59
+#: blocks/link-card/index.js:242 blocks/term-list/index.js:59
 msgid "None"
 msgstr ""
 
@@ -4740,8 +4715,7 @@ msgid "Offer leftover keys too"
 msgstr ""
 
 #: includes/features/class-seoprostack-database-keys.php:646
-#: blocks/related-posts/index.js:81
-#: blocks/term-list/index.js:169
+#: blocks/related-posts/index.js:81 blocks/term-list/index.js:169
 msgid "Columns"
 msgstr ""
 
@@ -9112,8 +9086,7 @@ msgstr ""
 #: includes/features/class-seoprostack-outbound-calls.php:931
 #: includes/features/class-seoprostack-post-reactions.php:380
 #: includes/features/class-seoprostack-post-reactions.php:471
-#: blocks/post-reactions/index.js:41
-#: blocks/post-reactions/index.js:47
+#: blocks/post-reactions/index.js:41 blocks/post-reactions/index.js:47
 msgid "Save"
 msgstr ""
 
@@ -10066,8 +10039,7 @@ msgstr ""
 
 #: includes/features/class-seoprostack-post-reactions.php:331
 #: includes/features/class-seoprostack-post-reactions.php:379
-#: blocks/lists/index.js:16
-#: blocks/saved-posts/index.js:30
+#: blocks/lists/index.js:16 blocks/saved-posts/index.js:30
 msgid "Liked"
 msgstr ""
 
@@ -10204,8 +10176,7 @@ msgstr ""
 
 #: includes/features/class-seoprostack-post-reactions.php:378
 #: includes/features/class-seoprostack-post-reactions.php:464
-#: blocks/post-reactions/index.js:40
-#: blocks/post-reactions/index.js:46
+#: blocks/post-reactions/index.js:40 blocks/post-reactions/index.js:46
 msgid "Like"
 msgstr ""
 
@@ -10225,8 +10196,7 @@ msgstr ""
 
 #: includes/features/class-seoprostack-post-reactions.php:477
 #: includes/features/class-seoprostack-social-sharing.php:909
-#: blocks/iframe/index.js:56
-#: blocks/post-reactions/index.js:42
+#: blocks/iframe/index.js:56 blocks/post-reactions/index.js:42
 #: blocks/post-reactions/index.js:48
 msgid "Share"
 msgstr ""
@@ -11024,7 +10994,7 @@ msgstr ""
 #: includes/features/class-seoprostack-screenshots.php:958
 #: includes/features/class-seoprostack-screenshots.php:978
 #: blocks/screenshot/index.js:261
-#, php-format,js-format
+#, php-format
 msgid "Screenshot of %s"
 msgstr ""
 
@@ -11087,8 +11057,7 @@ msgid "A temporary file could not be made."
 msgstr ""
 
 #: includes/features/class-seoprostack-screenshots.php:1246
-#: blocks/iframe/index.js:90
-#: blocks/link-card/index.js:199
+#: blocks/iframe/index.js:90 blocks/link-card/index.js:199
 #: blocks/screenshot/index.js:49
 msgid "Enter a full web address starting with https://"
 msgstr ""
@@ -11491,10 +11460,8 @@ msgid "Use this short link in your email signature and when you ask happy custom
 msgstr ""
 
 #: includes/features/class-seoprostack-short-links.php:787
-#: blocks/brand-icon/index.js:173
-#: blocks/link-card/index.js:265
-#: blocks/screenshot/index.js:334
-#: blocks/term-list/index.js:301
+#: blocks/brand-icon/index.js:173 blocks/link-card/index.js:265
+#: blocks/screenshot/index.js:334 blocks/term-list/index.js:301
 msgid "Link"
 msgstr ""
 
@@ -12311,8 +12278,7 @@ msgid "Some themes show related posts of their own, such as Kadence on posts (Cu
 msgstr ""
 
 #: includes/features/class-seoprostack-term-displays.php:201
-#: blocks/related-posts/index.js:61
-#: blocks/related-posts/index.js:108
+#: blocks/related-posts/index.js:61 blocks/related-posts/index.js:108
 #: blocks/related-posts/index.js:141
 msgid "Related posts"
 msgstr ""
@@ -13406,8 +13372,7 @@ msgstr ""
 
 #: includes/wpallstars-reports/class-wpallstars-reports.php:856
 #: includes/wpallstars-reports/class-wpallstars-reports.php:937
-#: blocks/form/index.js:108
-#: blocks/iframe/index.js:201
+#: blocks/form/index.js:108 blocks/iframe/index.js:201
 #: blocks/link-card/index.js:232
 msgid "Title"
 msgstr ""
@@ -13533,7 +13498,6 @@ msgid "Wait for the bulk action to finish, or stop it."
 msgstr ""
 
 #: admin/js/seoprostack-tabs.js:233
-#, js-format
 msgid "%d plugin"
 msgid_plural "%d plugins"
 msgstr[0] ""
@@ -13541,7 +13505,6 @@ msgstr[1] ""
 
 #. translators: %s: plugin name
 #: admin/js/seoprostack-tabs.js:327
-#, js-format
 msgid "Uninstall %s? This deletes its files, and the plugin may delete its settings and data."
 msgstr ""
 
@@ -13566,22 +13529,18 @@ msgid "Uninstalling…"
 msgstr ""
 
 #: admin/js/seoprostack-tabs.js:449
-#, js-format
 msgid "%s installed."
 msgstr ""
 
 #: admin/js/seoprostack-tabs.js:450
-#, js-format
 msgid "%s activated."
 msgstr ""
 
 #: admin/js/seoprostack-tabs.js:451
-#, js-format
 msgid "%s deactivated."
 msgstr ""
 
 #: admin/js/seoprostack-tabs.js:452
-#, js-format
 msgid "%s uninstalled."
 msgstr ""
 
@@ -13590,7 +13549,6 @@ msgid "Stopping after this plugin…"
 msgstr ""
 
 #: admin/js/seoprostack-tabs.js:651
-#, js-format
 msgid "%d selected"
 msgid_plural "%d selected"
 msgstr[0] ""
@@ -13606,7 +13564,6 @@ msgstr ""
 
 #. translators: %d: number of plugins
 #: admin/js/seoprostack-tabs.js:687
-#, js-format
 msgid "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data."
 msgid_plural "Uninstall %d plugins? Active ones are deactivated first. This deletes their files, and the plugins may delete their settings and data."
 msgstr[0] ""
@@ -13614,13 +13571,11 @@ msgstr[1] ""
 
 #. translators: 1: position, 2: total, 3: plugin name
 #: admin/js/seoprostack-tabs.js:719
-#, js-format
 msgid "%1$d of %2$d: %3$s"
 msgstr ""
 
 #. translators: 1: plugins changed, 2: plugins skipped, 3: plugins that failed
 #: admin/js/seoprostack-tabs.js:764
-#, js-format
 msgid "Changed %1$d, skipped %2$d, failed %3$d."
 msgstr ""
 
@@ -13632,8 +13587,7 @@ msgstr ""
 msgid "Done."
 msgstr ""
 
-#: admin/js/seoprostack-theme.js:106
-#: admin/js/seoprostack-whole-theme.js:800
+#: admin/js/seoprostack-theme.js:106 admin/js/seoprostack-whole-theme.js:800
 msgid "The colour mode could not be saved. Please try again."
 msgstr ""
 
@@ -13651,7 +13605,6 @@ msgstr ""
 
 #. translators: %d: number of pictures
 #: admin/js/seoprostack-word-import.js:110
-#, js-format
 msgid "%d picture in the document could not be added."
 msgid_plural "%d pictures in the document could not be added."
 msgstr[0] ""
@@ -13669,7 +13622,6 @@ msgstr ""
 
 #. translators: %s: file name
 #: admin/js/seoprostack-word-import.js:139
-#, js-format
 msgid "Converting %s…"
 msgstr ""
 
@@ -13677,8 +13629,7 @@ msgstr ""
 msgid "Converts a Word document into blocks."
 msgstr ""
 
-#: blocks/brand-icon/index.js:93
-#: blocks/brand-icon/index.js:94
+#: blocks/brand-icon/index.js:93 blocks/brand-icon/index.js:94
 msgid "Search brand icons"
 msgstr ""
 
@@ -13710,8 +13661,7 @@ msgstr ""
 msgid "Size (px)"
 msgstr ""
 
-#: blocks/brand-icon/index.js:180
-#: blocks/link-card/index.js:266
+#: blocks/brand-icon/index.js:180 blocks/link-card/index.js:266
 #: blocks/screenshot/index.js:351
 msgid "Open in a new tab"
 msgstr ""
@@ -13752,8 +13702,7 @@ msgstr ""
 msgid "Upcoming FluentBooking calls."
 msgstr ""
 
-#: blocks/client-dashboard/index.js:54
-#: blocks/iframe/index.js:55
+#: blocks/client-dashboard/index.js:54 blocks/iframe/index.js:55
 msgid "Payments"
 msgstr ""
 
@@ -13785,15 +13734,12 @@ msgstr ""
 msgid "A page ID or address for “Book a call”. Empty uses the one chosen in SEO Pro Stack."
 msgstr ""
 
-#: blocks/form/index.js:31
-#: blocks/review-links/index.js:44
+#: blocks/form/index.js:31 blocks/review-links/index.js:44
 msgid "Choose a form"
 msgstr ""
 
 #. translators: %s: form key
-#: blocks/form/index.js:36
-#: blocks/review-links/index.js:49
-#, js-format
+#: blocks/form/index.js:36 blocks/review-links/index.js:49
 msgid "%s (no form on this site)"
 msgstr ""
 
@@ -13815,7 +13761,6 @@ msgstr ""
 
 #. translators: %s: link address, such as #request
 #: blocks/form/index.js:99
-#, js-format
 msgid "Opens from links to %s."
 msgstr ""
 
@@ -13923,8 +13868,7 @@ msgstr ""
 msgid "Paste the address of the page to embed."
 msgstr ""
 
-#: blocks/iframe/index.js:168
-#: blocks/link-card/index.js:285
+#: blocks/iframe/index.js:168 blocks/link-card/index.js:285
 #: blocks/screenshot/index.js:247
 msgid "Page address"
 msgstr ""
@@ -13933,8 +13877,7 @@ msgstr ""
 msgid "Embed"
 msgstr ""
 
-#: blocks/iframe/index.js:190
-#: blocks/link-card/index.js:299
+#: blocks/iframe/index.js:190 blocks/link-card/index.js:299
 #: blocks/screenshot/index.js:288
 msgid "Change address"
 msgstr ""
@@ -14083,8 +14026,7 @@ msgstr ""
 msgid "Wide, as in social previews"
 msgstr ""
 
-#: blocks/link-card/index.js:253
-#: blocks/screenshot/index.js:155
+#: blocks/link-card/index.js:253 blocks/screenshot/index.js:155
 #: blocks/term-list/index.js:62
 msgid "Square"
 msgstr ""
@@ -14165,8 +14107,7 @@ msgstr ""
 msgid "Members only. Shown to:"
 msgstr ""
 
-#: blocks/post-reactions/index.js:39
-#: blocks/spectra/convert.js:362
+#: blocks/post-reactions/index.js:39 blocks/spectra/convert.js:362
 msgid "Buttons"
 msgstr ""
 
@@ -14178,8 +14119,7 @@ msgstr ""
 msgid "Number of posts"
 msgstr ""
 
-#: blocks/related-posts/index.js:71
-#: blocks/term-list/index.js:162
+#: blocks/related-posts/index.js:71 blocks/term-list/index.js:162
 msgid "Show as"
 msgstr ""
 
@@ -14187,8 +14127,7 @@ msgstr ""
 msgid "Grid with pictures"
 msgstr ""
 
-#: blocks/related-posts/index.js:75
-#: blocks/saved-posts/index.js:27
+#: blocks/related-posts/index.js:75 blocks/saved-posts/index.js:27
 #: blocks/term-list/index.js:30
 msgid "List"
 msgstr ""
@@ -14205,8 +14144,7 @@ msgstr ""
 msgid "Show a heading"
 msgstr ""
 
-#: blocks/related-posts/index.js:107
-#: blocks/spectra/convert.js:357
+#: blocks/related-posts/index.js:107 blocks/spectra/convert.js:357
 msgid "Heading"
 msgstr ""
 
@@ -14224,7 +14162,6 @@ msgstr ""
 
 #. translators: %s: review sites, such as Google, Trustpilot
 #: blocks/review-links/index.js:54
-#, js-format
 msgid "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s."
 msgstr ""
 
@@ -14345,7 +14282,6 @@ msgid "Only http and https addresses can be captured."
 msgstr ""
 
 #: blocks/screenshot/index.js:150
-#, js-format
 msgid "Browser window (%1$d × %2$d)"
 msgstr ""
 
@@ -14353,8 +14289,7 @@ msgstr ""
 msgid "The screenshot could not be taken."
 msgstr ""
 
-#: blocks/screenshot/index.js:229
-#: blocks/screenshot/index.js:306
+#: blocks/screenshot/index.js:229 blocks/screenshot/index.js:306
 msgid "Screenshot"
 msgstr ""
 
@@ -14367,7 +14302,6 @@ msgid "Take screenshot"
 msgstr ""
 
 #: blocks/screenshot/index.js:268
-#, js-format
 msgid "Getting the screenshot of %s. A new one can take up to a minute."
 msgstr ""
 
@@ -14416,7 +14350,6 @@ msgid "Leave empty to fill the space available."
 msgstr ""
 
 #: blocks/screenshot/index.js:332
-#, js-format
 msgid "Taken on %s."
 msgstr ""
 
@@ -14453,7 +14386,6 @@ msgid "Add caption"
 msgstr ""
 
 #: blocks/screenshot/index.js:440
-#, js-format
 msgid "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it."
 msgstr ""
 
@@ -14467,7 +14399,6 @@ msgstr ""
 
 #. translators: %d: number of blocks
 #: blocks/spectra/convert.js:340
-#, js-format
 msgid "Converted %d Spectra block. Check it, then save."
 msgid_plural "Converted %d Spectra blocks. Check them, then save."
 msgstr[0] ""
@@ -14475,7 +14406,6 @@ msgstr[1] ""
 
 #. translators: %d: number of blocks
 #: blocks/spectra/convert.js:347
-#, js-format
 msgid "%d Spectra block could not be converted and is left as it is."
 msgid_plural "%d Spectra blocks could not be converted and are left as they are."
 msgstr[0] ""
@@ -14519,13 +14449,11 @@ msgstr ""
 
 #. translators: %d: number of blocks
 #: blocks/spectra/convert.js:403
-#, js-format
 msgid "Convert all %d"
 msgstr ""
 
 #. translators: 1: Spectra block name, 2: what it becomes
 #: blocks/spectra/convert.js:413
-#, js-format
 msgid "Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save."
 msgstr ""
 
@@ -14797,15 +14725,12 @@ msgctxt "block description"
 msgid "A Fluent form chosen by its key, in a modal that any link to its #ID opens."
 msgstr ""
 
-#: blocks/form-modal/block.json
-#: blocks/form/block.json
-#: blocks/iframe/block.json
+#: blocks/form-modal/block.json blocks/form/block.json blocks/iframe/block.json
 msgctxt "block keyword"
 msgid "form"
 msgstr ""
 
-#: blocks/form-modal/block.json
-#: blocks/form/block.json
+#: blocks/form-modal/block.json blocks/form/block.json
 msgctxt "block keyword"
 msgid "fluent"
 msgstr ""
@@ -14895,8 +14820,7 @@ msgctxt "block description"
 msgid "A preview card for any web page: title, description, site and picture, with the picture saved to your Media Library."
 msgstr ""
 
-#: blocks/link-card/block.json
-#: blocks/post-reactions/block.json
+#: blocks/link-card/block.json blocks/post-reactions/block.json
 msgctxt "block keyword"
 msgid "bookmark"
 msgstr ""
@@ -14911,8 +14835,7 @@ msgctxt "block keyword"
 msgid "link"
 msgstr ""
 
-#: blocks/link-card/block.json
-#: blocks/screenshot/block.json
+#: blocks/link-card/block.json blocks/screenshot/block.json
 msgctxt "block keyword"
 msgid "preview"
 msgstr ""
@@ -14937,8 +14860,7 @@ msgctxt "block keyword"
 msgid "shortlist"
 msgstr ""
 
-#: blocks/lists/block.json
-#: blocks/saved-posts/block.json
+#: blocks/lists/block.json blocks/saved-posts/block.json
 msgctxt "block keyword"
 msgid "saved"
 msgstr ""
@@ -14948,14 +14870,12 @@ msgctxt "block keyword"
 msgid "liked"
 msgstr ""
 
-#: blocks/lists/block.json
-#: blocks/saved-posts/block.json
+#: blocks/lists/block.json blocks/saved-posts/block.json
 msgctxt "block keyword"
 msgid "favourites"
 msgstr ""
 
-#: blocks/lists/block.json
-#: blocks/saved-posts/block.json
+#: blocks/lists/block.json blocks/saved-posts/block.json
 msgctxt "block keyword"
 msgid "bookmarks"
 msgstr ""
@@ -15060,14 +14980,12 @@ msgctxt "block keyword"
 msgid "posts"
 msgstr ""
 
-#: blocks/related-posts/block.json
-#: blocks/term-list/block.json
+#: blocks/related-posts/block.json blocks/term-list/block.json
 msgctxt "block keyword"
 msgid "tags"
 msgstr ""
 
-#: blocks/related-posts/block.json
-#: blocks/term-list/block.json
+#: blocks/related-posts/block.json blocks/term-list/block.json
 msgctxt "block keyword"
 msgid "categories"
 msgstr ""
