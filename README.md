@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.134-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.135-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.134
+Version: 1.3.135
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2303,11 +2303,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.135
 
 - Fix: in Dark mode, the Kadence theme’s typography popover in the Customizer (Font, Style and Size) and its colour pickers no longer open white (GitHub issue #1129).
-- New: Site templates, per-part edit-safe updates, bounded site-local cron,
-  inherited ownership for cloned sites and WP-CLI comparison/apply/undo (#1127).
+- New: Site templates. A site made from a template shipped in `site-templates/` gets the template’s later changes after each plugin update, through its own cron, a few parts at a time; parts edited or removed on the site are kept and listed. Sites cloned from a template site follow it too. `wp seoprostack site-templates list|status|diff|apply|undo`, with `--all-sites` on a network. No templates ship yet (GitHub issue #1127).
 
 ### 1.3.134
 
