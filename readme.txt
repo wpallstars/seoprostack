@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.133
+Stable tag: 1.3.134
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -51,7 +51,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Named lists and Saved panel**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
-* **WP Grid Builder colours** in Kadence dark mode.
+* **WP Grid Builder colours** in Kadence dark mode; **palette colours for its switch**.
 * **Kadence colour check**: fixes Customizer contrast, with Restore.
 * **Fluent Forms by key**: form, panel and modal blocks.
 
@@ -151,8 +151,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.133 =
-* New: a Redundant view on the Plugins screen lists installed plugins SEO Pro Stack replaces, and plugins whose job WordPress now does (#1119).
-* Change: Free Plugins' note for tools to use only now and then says to activate them only for a problem or maintenance (#1120).
+= 1.3.134 =
+* New: Kadence Pro's dark mode switch colours in the Customizer offer the Global Palette, and can keep their places in dark mode (#1114).
 
 Older: `changelog.txt`.
