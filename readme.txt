@@ -86,6 +86,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: opt-in, with undo.
+* **Site templates**: WP-CLI apply, compare and undo; plugin updates keep edited parts.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within time limits, using CPU.
 * **Agency** orders and client dashboard; **Recommended** themes, plugins, hosting and tools.
@@ -150,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: Site templates with edit-safe updates and WP-CLI (#1127).
 
 = 1.3.134 =
 * New: Kadence Pro's dark mode switch colours in the Customizer offer the Global Palette, and can keep their places in dark mode (#1114).

@@ -132,6 +132,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Plugin_Toggle',
         'SEOProStack_Plugin_Sizes',
         'SEOProStack_Plugin_Presets',
+        'SEOProStack_Site_Templates',
         'SEOProStack_Database_Keys',
         'SEOProStack_Added_Keys',
         'SEOProStack_Database_Charset',
