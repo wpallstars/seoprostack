@@ -2314,6 +2314,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: Links skip redirects matches encoded link paths as Rank Math does and ignores its cached redirects when Rank Math or its Redirections module is unavailable. Custom redirect filters still work without Rank Math (GitHub issue #1137).
+
 ### 1.3.140
 
 - New: translations for French (France, Belgium), Spanish (Spain, Mexico), Italian, Portuguese (Portugal, Brazil), Dutch (Netherlands), German (Austria, Switzerland), Polish, Romanian, Latvian and Estonian, beside the existing Dutch (Belgium), German and French (Canada). Visitors' labels (Like, Save, Share, the shortlist) are reviewed by hand in every language, so a Spanish page reads "Me gusta" and "Guardar" instead of TranslatePress's word-by-word "Como" and "Ahorrar" (#1161).

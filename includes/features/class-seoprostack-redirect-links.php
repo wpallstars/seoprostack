@@ -108,13 +108,11 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
         if (null !== self::$map) {
             return self::$map;
         }
-        $map = get_transient(self::CACHE);
-        if (!is_array($map) || !isset($map['exact'], $map['nocase'])) {
-            $map = self::read();
-            if (null === $map) {
-                // Rank Math is not loaded on this request: skip nothing, and keep no empty list.
-                $map = array('exact' => array(), 'nocase' => array());
-            } else {
+        $map = array('exact' => array(), 'nocase' => array());
+        if (did_action('rank_math/loaded') && class_exists('\RankMath\Helper') && \RankMath\Helper::is_module_active('redirections')) {
+            $map = get_transient(self::CACHE);
+            if (!is_array($map) || !isset($map['exact'], $map['nocase'])) {
+                $map = self::read();
                 set_transient(self::CACHE, $map, 10 * MINUTE_IN_SECONDS);
             }
         }
@@ -135,15 +133,11 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
 
     /**
      * Rank Math's active, exact, permanent redirections from this site to
-     * this site; null while Rank Math or its Redirections module is not
-     * loaded.
+     * this site. Called only while Rank Math's Redirections module is active.
      *
-     * @return array{exact:array<string,string>,nocase:array<string,string>}|null
+     * @return array{exact:array<string,string>,nocase:array<string,string>}
      */
     private static function read() {
-        if (!did_action('rank_math/loaded') || !class_exists('\RankMath\Helper') || !\RankMath\Helper::is_module_active('redirections')) {
-            return null;
-        }
         global $wpdb;
         $rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Rank Math's own table, read at most every ten minutes and kept in a transient.
             $wpdb->prepare(
@@ -207,7 +201,8 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
         if (0 !== strpos($path, $base)) {
             return null;
         }
-        return trim(substr($path, strlen($base)), '/');
+        // Rank Math decodes the request URI, not its stored source patterns.
+        return trim(urldecode(substr($path, strlen($base))), '/');
     }
 
     /**
@@ -270,6 +265,7 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
      */
     private static function mentions_old_address($html) {
         $map = self::map();
+        $html = urldecode($html);
         foreach (array_keys($map['exact']) as $path) {
             if (false !== strpos($html, '/' . $path)) {
                 return true;
