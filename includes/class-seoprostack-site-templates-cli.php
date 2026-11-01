@@ -113,7 +113,9 @@ class SEOProStack_Site_Templates_CLI {
                     try {
                         WP_CLI::log('Site ' . $id);
                         $record = get_option(SEOProStack_Site_Templates::OPTION, array());
-                        if (!$record && in_array($command, array('apply', 'undo'), true)) {
+                        // Without a slug, diff has nothing to compare on an unrecorded site.
+                        $skip = in_array($command, array('apply', 'undo'), true) || ('diff' === $command && empty($args[0]));
+                        if (!$record && $skip) {
                             WP_CLI::log('No template record; untouched.');
                             continue;
                         }
