@@ -100,79 +100,123 @@ class SEOProStack_Site_Templates_CLI {
 
     /** @param string $command Operation. @param array $args Arguments. @param array $flags Flags. */
     private function dispatch($command, $args, $flags) {
-        $error = null;
-        if (!empty($flags['all-sites'])) {
-            if (!is_multisite()) {
-                WP_CLI::error('--all-sites needs a multisite network.');
-            }
-            $offset = 0;
-            do {
-                $ids = get_sites(array('fields' => 'ids', 'number' => 50, 'offset' => $offset, 'orderby' => 'id', 'order' => 'ASC', 'deleted' => 0, 'spam' => 0, 'archived' => 0));
-                foreach ($ids as $id) {
-                    switch_to_blog((int) $id);
-                    try {
-                        WP_CLI::log('Site ' . $id);
-                        $record = get_option(SEOProStack_Site_Templates::OPTION, array());
-                        // Without a slug, diff has nothing to compare on an unrecorded site.
-                        $skip = in_array($command, array('apply', 'undo'), true) || ('diff' === $command && empty($args[0]));
-                        if (!$record && $skip) {
-                            WP_CLI::log('No template record; untouched.');
-                            continue;
-                        }
-                        $error = $this->site($command, $args);
-                    } finally {
-                        restore_current_blog();
-                    }
-                    if (is_wp_error($error)) {
-                        WP_CLI::error($error->get_error_message());
-                    }
-                }
-                $offset += 50;
-            } while (count($ids) === 50);
-        } else {
-            $error = $this->site($command, $args);
-        }
+        $error = empty($flags['all-sites']) ? $this->site($command, $args) : $this->all_sites($command, $args);
         if (is_wp_error($error)) {
             WP_CLI::error($error->get_error_message());
+        }
+    }
+
+    /**
+     * Visit every active site in turn; stop at the first failure.
+     *
+     * @param string $command Operation.
+     * @param array  $args Arguments.
+     * @return true
+     */
+    private function all_sites($command, $args) {
+        if (!is_multisite()) {
+            WP_CLI::error('--all-sites needs a multisite network.');
+        }
+        // Without a slug, diff has nothing to compare on an unrecorded site.
+        $recorded_only = in_array($command, array('apply', 'undo'), true) || ('diff' === $command && empty($args[0]));
+        $offset = 0;
+        do {
+            $ids = get_sites(array('fields' => 'ids', 'number' => 50, 'offset' => $offset, 'orderby' => 'id', 'order' => 'ASC', 'deleted' => 0, 'spam' => 0, 'archived' => 0));
+            foreach ($ids as $id) {
+                $error = $this->visit((int) $id, $command, $args, $recorded_only);
+                if (is_wp_error($error)) {
+                    WP_CLI::error($error->get_error_message());
+                }
+            }
+            $offset += 50;
+            $more = 50 === count($ids);
+        } while ($more);
+        return true;
+    }
+
+    /**
+     * @param int    $id Site.
+     * @param string $command Operation.
+     * @param array  $args Arguments.
+     * @param bool   $recorded_only Leave sites without a template record alone.
+     * @return true|WP_Error
+     */
+    private function visit($id, $command, $args, $recorded_only) {
+        switch_to_blog($id);
+        try {
+            WP_CLI::log('Site ' . $id);
+            if ($recorded_only && !get_option(SEOProStack_Site_Templates::OPTION, array())) {
+                WP_CLI::log('No template record; untouched.');
+                return true;
+            }
+            return $this->site($command, $args);
+        } finally {
+            restore_current_blog();
         }
     }
 
     /** @param string $command Operation. @param array $args Arguments. @return true|WP_Error */
     private function site($command, $args) {
         if ('list' === $command) {
-            $rows = array();
-            foreach (SEOProStack_Site_Templates::manifests() as $slug => $manifest) {
-                $rows[] = array('slug' => $slug, 'name' => $manifest['name'], 'version' => $manifest['version']);
-            }
-            WP_CLI\Utils\format_items('table', $rows, array('slug', 'name', 'version'));
-            return true;
-        }
-        $record = get_option(SEOProStack_Site_Templates::OPTION, array());
-        $slug = $args[0] ?? ($record['slug'] ?? '');
-        if ('status' === $command) {
-            if (!$record) {
-                WP_CLI::log('No template record; untouched.');
-                return true;
-            }
-            WP_CLI::log('Template: ' . $slug . '; applied version: ' . ($record['version'] ?? 'pending'));
-            WP_CLI::log('Automatic updates: ' . (SEOProStack_Settings::get(SEOProStack_Site_Templates::KEY) ? 'on' : 'off'));
-            if (!empty($record['error'])) {
-                WP_CLI::warning($record['error']);
-            }
-            if (!empty($record['last_result'])) {
-                WP_CLI::log('Last run: ' . (string) wp_json_encode($record['last_result']));
-            }
+            return $this->list_templates();
         }
         if ('undo' === $command) {
-            $result = SEOProStack_Site_Templates::undo();
-            if (!is_wp_error($result)) {
-                WP_CLI::success('Last template run undone; newly created posts are retained as drafts.');
-            }
-            return $result;
+            return $this->undo_site();
         }
+        $record = get_option(SEOProStack_Site_Templates::OPTION, array());
+        if ('status' === $command && !$record) {
+            WP_CLI::log('No template record; untouched.');
+            return true;
+        }
+        if ('status' === $command) {
+            $this->show_status($record);
+        }
+        $slug = $args[0] ?? ($record['slug'] ?? '');
         if (!$slug) {
             return new WP_Error('template_slug', 'Name a template slug to initialise this site.');
         }
+        return $this->run($command, $slug);
+    }
+
+    /** @return true */
+    private function list_templates() {
+        $rows = array();
+        foreach (SEOProStack_Site_Templates::manifests() as $slug => $manifest) {
+            $rows[] = array('slug' => $slug, 'name' => $manifest['name'], 'version' => $manifest['version']);
+        }
+        WP_CLI\Utils\format_items('table', $rows, array('slug', 'name', 'version'));
+        return true;
+    }
+
+    /** @param array $record This site's template record. */
+    private function show_status($record) {
+        WP_CLI::log('Template: ' . ($record['slug'] ?? '') . '; applied version: ' . ($record['version'] ?? 'pending'));
+        WP_CLI::log('Automatic updates: ' . (SEOProStack_Settings::get(SEOProStack_Site_Templates::KEY) ? 'on' : 'off'));
+        if (!empty($record['error'])) {
+            WP_CLI::warning($record['error']);
+        }
+        if (!empty($record['last_result'])) {
+            WP_CLI::log('Last run: ' . (string) wp_json_encode($record['last_result']));
+        }
+    }
+
+    /** @return true|WP_Error */
+    private function undo_site() {
+        $result = SEOProStack_Site_Templates::undo();
+        if (!is_wp_error($result)) {
+            WP_CLI::success('Last template run undone; newly created posts are retained as drafts.');
+        }
+        return $result;
+    }
+
+    /**
+     * Compare, or apply every batch, and print each batch's rows.
+     *
+     * @param string $command Operation: apply writes, status and diff compare.
+     * @param string $slug Template.
+     * @return true|WP_Error
+     */
+    private function run($command, $slug) {
         do {
             $result = SEOProStack_Site_Templates::run($slug, 'apply' !== $command);
             if (is_wp_error($result)) {
