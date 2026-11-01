@@ -2308,6 +2308,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Fix: in Dark mode, the Kadence themeâ€™s typography popover in the Customizer (Font, Style and Size) and its colour pickers no longer open white (GitHub issue #1129).
 - New: Site templates, per-part edit-safe updates, bounded site-local cron,
   inherited ownership for cloned sites and WP-CLI comparison/apply/undo (#1127).
+- Developers: Site templates' code is split into focused classes in `includes/site-templates/`, loaded only when a template runs, with no change in what it does; PHP Mess Detector reports nothing for it (GitHub issue #1131).
 
 ### 1.3.134
 
