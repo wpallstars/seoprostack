@@ -8,7 +8,9 @@
  * - active: recommends deactivating it unless that is needed, with core's
  *   Deactivate link;
  * - inactive on a single site: says it can be deleted, with a Delete link.
- * The owner decides: nothing is deactivated or deleted here.
+ * The owner decides: nothing is deactivated or deleted here. Installed ones
+ * are also listed under the Plugins screen's Redundant view
+ * (`SEOProStack_Replaced_Plugins`).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -41,6 +43,41 @@ class SEOProStack_Core_Plugins {
         }
         add_action('after_plugin_row', array(__CLASS__, 'row_note'), 10, 1);
         add_action('admin_head', array(__CLASS__, 'row_note_style'));
+        add_filter('seoprostack_redundant_plugins', array(__CLASS__, 'redundant'));
+    }
+
+    /**
+     * List installed plugins WordPress now does the job of under the
+     * Plugins screen's Redundant view, active or not.
+     *
+     * @param mixed $files Plugin files.
+     * @return string[]
+     */
+    public static function redundant($files) {
+        $files = is_array($files) ? $files : array();
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $plugins = self::plugins();
+        foreach (array_keys(get_plugins()) as $file) {
+            $slug = dirname((string) $file);
+            if (self::merged($plugins, $slug)) {
+                $files[] = (string) $file;
+            }
+        }
+        return $files;
+    }
+
+    /**
+     * Whether the site's WordPress does the job of the plugin in this folder.
+     *
+     * @param array<string,mixed> $plugins From plugins().
+     * @param string              $slug    Plugin folder.
+     * @return bool
+     */
+    private static function merged(array $plugins, $slug) {
+        return isset($plugins[$slug]) && is_array($plugins[$slug]) && !empty($plugins[$slug]['wp'])
+            && version_compare(get_bloginfo('version'), (string) $plugins[$slug]['wp'], '>=');
     }
 
     /**
@@ -92,13 +129,10 @@ class SEOProStack_Core_Plugins {
         global $wp_list_table;
         $plugins = self::plugins();
         $slug    = dirname((string) $file);
-        if (!isset($plugins[$slug]) || !is_array($plugins[$slug]) || empty($plugins[$slug]['wp'])) {
+        if (!self::merged($plugins, $slug)) {
             return;
         }
         $wp = (string) $plugins[$slug]['wp'];
-        if (version_compare(get_bloginfo('version'), $wp, '<')) {
-            return;
-        }
         $still = isset($plugins[$slug]['still']) ? (string) $plugins[$slug]['still'] : '';
         if ('' !== $still && !empty($plugins[$slug]['languages']) && self::english_only()) {
             $still = '';
