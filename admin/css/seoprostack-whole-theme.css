@@ -2087,6 +2087,18 @@ html.sps-dark .wp-customizer :is(.kadence-builder-item, .kadence-builder-item-st
 }
 
 /*
+ * Its typography, colour and background popovers: #fff with a light
+ * shadow under `.components-popover.kadence-popover-color`, which beats
+ * the WordPress components popover rule above. Without this they were
+ * dark only where the fallback copy of Kadence's controls.css loaded.
+ */
+html.sps-dark .wp-customizer .components-popover.kadence-popover-color .components-popover__content {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	box-shadow: 0 0 0 1px var(--sps-ui-border), 0 6px 18px rgb(0 0 0 / 45%);
+}
+
+/*
  * Colour swatches: a #ddd checkerboard (for see-through colours) under
  * the whole button shows through its clear 1px border as a dotted ring
  * on a dark panel. It stays under the colour; the ring is a solid line.
