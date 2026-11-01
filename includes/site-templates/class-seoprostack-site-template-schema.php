@@ -28,7 +28,7 @@ class SEOProStack_Site_Template_Schema {
                     return 'Invalid or duplicate key in ' . $section;
                 }
                 $keys[$item['key']] = true;
-                $error = 'images' === $section ? self::image_error($item) : self::post_error($item);
+                $error = 'images' === $section ? SEOProStack_Site_Template_Media::item_error($item) : self::post_error($item);
                 if ('' !== $error) {
                     return $error;
                 }
@@ -50,15 +50,6 @@ class SEOProStack_Site_Template_Schema {
             }
         }
         return '';
-    }
-
-    /** @param array $item Manifest image. @return string */
-    private static function image_error($item) {
-        $filename = $item['filename'] ?? '';
-        $sha = $item['sha256'] ?? null;
-        $file_ok = is_string($filename) && basename($filename) === $filename && preg_match('/\.(png|jpe?g|webp|gif|avif)$/iD', $filename);
-        $sha_ok = is_string($sha) && preg_match('/^[a-f0-9]{64}$/D', $sha);
-        return $file_ok && $sha_ok ? '' : 'Invalid image filename or SHA-256.';
     }
 
     /** @param array $item Manifest page or element. @return string */

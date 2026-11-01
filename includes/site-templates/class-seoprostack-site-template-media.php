@@ -107,6 +107,15 @@ class SEOProStack_Site_Template_Media {
         return '';
     }
 
+    /** @param array $item Manifest image. @return string The problem with its filename or SHA-256, or ''. */
+    public static function item_error($item) {
+        $filename = $item['filename'] ?? '';
+        $sha = $item['sha256'] ?? null;
+        $file_ok = is_string($filename) && basename($filename) === $filename && preg_match('/\.(png|jpe?g|webp|gif|avif)$/iD', $filename);
+        $sha_ok = is_string($sha) && preg_match('/^[a-f0-9]{64}$/D', $sha);
+        return $file_ok && $sha_ok ? '' : 'Invalid image filename or SHA-256.';
+    }
+
     /** @param WP_Post|null $attachment Owned attachment. @param string $key Image key. @return bool */
     private static function still_ours($attachment, $key) {
         return $attachment && 'attachment' === $attachment->post_type && 'trash' !== $attachment->post_status && get_post_meta($attachment->ID, SEOProStack_Site_Templates::META, true) === 'images/' . $key;

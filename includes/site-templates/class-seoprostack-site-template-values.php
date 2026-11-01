@@ -33,7 +33,7 @@ class SEOProStack_Site_Template_Values {
             $values = (string) $values;
         }
         $before = self::snapshot($name);
-        $removed = !$before['exists'] && self::owned_path($run, 'options/' . $name);
+        $removed = !$before['exists'] && $run->owns('options/' . $name);
         $after = self::merge($run, 'options/' . $name, $before['value'], $values, $before['exists']);
         if ($run->dry || $before['value'] === $after || $removed) {
             return true;
@@ -106,16 +106,6 @@ class SEOProStack_Site_Template_Values {
         return true;
     }
 
-    /** @param SEOProStack_Site_Template_Run $run Run. @param string $path Ownership subtree. @return bool */
-    private static function owned_path($run, $path) {
-        foreach (array_keys($run->record['values'] ?? array()) as $key) {
-            if (is_string($key) && ($key === $path || 0 === strpos($key, $path . '/'))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Merge only manifest leaves, preserving unmentioned and site-edited keys.
      *
@@ -127,7 +117,7 @@ class SEOProStack_Site_Template_Values {
      * @return mixed
      */
     private static function merge($run, $path, $current, $desired, $exists) {
-        if (!$exists && self::owned_path($run, $path)) {
+        if (!$exists && $run->owns($path)) {
             $run->report($path, 'removed-on-site');
             return $current;
         }
@@ -153,7 +143,7 @@ class SEOProStack_Site_Template_Values {
         $out = is_array($current) ? $current : array();
         foreach ($desired as $key => $value) {
             $child = $path . '/' . rawurlencode((string) $key);
-            if (!array_key_exists($key, $out) && self::owned_path($run, $child)) {
+            if (!array_key_exists($key, $out) && $run->owns($child)) {
                 $run->report($child, 'removed-on-site');
                 continue;
             }
@@ -172,17 +162,44 @@ class SEOProStack_Site_Template_Values {
      */
     private static function merge_leaf($run, $path, $current, $desired, $exists) {
         $hash = $run->record['values'][$path] ?? null;
-        if ($exists && (!$hash || SEOProStack_Site_Template_Run::fingerprint($current) !== $hash) && empty($run->record['pending']['initial'])) {
-            $adopt = $current === $desired && !$hash;
-            $run->report($path, $adopt ? 'same' : 'edited-on-site');
-            // Equal pre-existing values may be adopted by an explicit apply.
-            if ($adopt) {
-                $run->record['values'][$path] = SEOProStack_Site_Template_Run::fingerprint($desired);
-            }
-            return $current;
+        if ($exists && self::site_value($run, $current, $hash)) {
+            return self::keep_site_value($run, $path, $current, $desired, $hash);
         }
         $run->report($path, !$exists ? 'added' : ($current === $desired ? 'same' : 'updated'));
         $run->record['values'][$path] = SEOProStack_Site_Template_Run::fingerprint($desired);
         return $desired;
+    }
+
+    /**
+     * Report the site's value and keep it.
+     *
+     * @param SEOProStack_Site_Template_Run $run Run.
+     * @param string                        $path Ownership path.
+     * @param mixed                         $current Current value.
+     * @param mixed                         $desired Manifest value.
+     * @param string|null                   $hash Owned hash.
+     * @return mixed The current value.
+     */
+    private static function keep_site_value($run, $path, $current, $desired, $hash) {
+        $adopt = $current === $desired && !$hash;
+        $run->report($path, $adopt ? 'same' : 'edited-on-site');
+        // Equal pre-existing values may be adopted by an explicit apply.
+        if ($adopt) {
+            $run->record['values'][$path] = SEOProStack_Site_Template_Run::fingerprint($desired);
+        }
+        return $current;
+    }
+
+    /**
+     * Whether an existing value is the site's: never owned, or edited since.
+     * A site's first template run (no template before) takes its values.
+     *
+     * @param SEOProStack_Site_Template_Run $run Run.
+     * @param mixed                         $current Current value.
+     * @param string|null                   $hash Owned hash.
+     * @return bool
+     */
+    private static function site_value($run, $current, $hash) {
+        return (!$hash || SEOProStack_Site_Template_Run::fingerprint($current) !== $hash) && empty($run->record['pending']['initial']);
     }
 }

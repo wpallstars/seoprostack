@@ -40,9 +40,15 @@ class SEOProStack_Site_Template_Journal {
             case 'locations':
                 return get_nav_menu_locations();
             case 'menu_item':
-                return SEOProStack_Site_Template_Menus::snapshot($write['id']);
+                return self::menu_item($write['id']);
         }
         return null;
+    }
+
+    /** @param int $id Menu item. @return array|null Title, URL and status as stored. */
+    private static function menu_item($id) {
+        $post = $id ? get_post($id) : null;
+        return $post ? SEOProStack_Site_Template_Menus::current($post) : null;
     }
 
     /** @param int $id Post. @param array $keys Meta names. @return array Fields and meta as stored. */

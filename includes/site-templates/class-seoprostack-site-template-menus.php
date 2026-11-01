@@ -71,12 +71,6 @@ class SEOProStack_Site_Template_Menus {
         return array('', $menu);
     }
 
-    /** @param int $id Menu item. @return array|null Title, URL and status as stored. */
-    public static function snapshot($id) {
-        $post = $id ? get_post($id) : null;
-        return $post ? self::current($post) : null;
-    }
-
     /**
      * Journal, create the menu and assign it to the location.
      *
@@ -98,8 +92,8 @@ class SEOProStack_Site_Template_Menus {
         return $id;
     }
 
-    /** @param WP_Post $post Menu item. @return array */
-    private static function current($post) {
+    /** @param WP_Post $post Menu item. @return array Title, URL and status as stored. */
+    public static function current($post) {
         return array('title' => $post->post_title, 'url' => get_post_meta($post->ID, '_menu_item_url', true), 'status' => $post->post_status);
     }
 

@@ -180,6 +180,16 @@ class SEOProStack_Site_Template_Run {
         $this->record['last_result'][$key] = $status;
     }
 
+    /** @param string $path Ownership subtree. @return bool Whether this site's record owns a value in it. */
+    public function owns($path) {
+        foreach (array_keys($this->record['values'] ?? array()) as $key) {
+            if (is_string($key) && ($key === $path || 0 === strpos($key, $path . '/'))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Remember a write before executing it. Undo checks the exact after-image
      * so edits made after apply are not overwritten either.
