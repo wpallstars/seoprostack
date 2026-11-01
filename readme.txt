@@ -152,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: newer Kadence Blocks Pro versions use their own REST route definition for query loops (#1138).
+
 = 1.3.136 =
 * Fix: Dark mode: Kadence's typography preview in the Customizer shows its sample text on a light checkerboard again, readable in the site's own colours (#1135).
 

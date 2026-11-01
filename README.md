@@ -2303,6 +2303,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: Kadence Blocks Pro versions newer than the checked 2.8.20.1 use their full REST server for query loops, so changes to Kadence's route permissions and methods are not replaced by an older definition (#1138).
+
 ### 1.3.136
 
 - Fix: in Dark mode, the Kadence theme’s typography preview in the Customizer (the arrow beside each font setting) shows its sample text on a light checkerboard again, as in light mode, so the site’s own text colours are readable (GitHub issue #1135).
