@@ -397,7 +397,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     const KADENCE_QUERY_CONTROLLER = 'Kadence_Blocks_Query_Loop_CPT_Rest_Controller';
 
     /** Last Kadence Blocks Pro release whose query route definition was checked. */
-    const KADENCE_QUERY_CHECKED = '2.8.20.1';
+    const KADENCE_QUERY_CHECKED = '2.8.20.1'; // NOSONAR: a plugin version bound, not an IP address.
 
     /** Whether the query loop's own server is dispatching Kadence's request. */
     private static $kadence_query_dispatching = false;
