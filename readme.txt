@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.135
+Stable tag: 1.3.136
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,8 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.135 =
-* New: Site templates: sites made from a template get its later changes on plugin updates, while parts edited on the site are kept; WP-CLI compares, applies and undoes them (#1127).
-* Fix: Dark mode: Kadence's typography and colour popovers in the Customizer no longer open white (#1129).
+= 1.3.136 =
+* Fix: Dark mode: Kadence's typography preview in the Customizer shows its sample text on a light checkerboard again, readable in the site's own colours (#1135).
 
 Older: `changelog.txt`.
