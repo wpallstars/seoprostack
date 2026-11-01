@@ -1027,42 +1027,110 @@ trait SEOProStack_Site_Template_Menus {
     private function apply_menus($location, $menu) {
         $locations = get_nav_menu_locations();
         $old = $this->record['menus'][$location] ?? array();
-        if (!$old && !empty($locations[$location])) {
-            $this->report('menus/' . $location, 'edited-on-site');
+        $status = self::menu_ownership($location, $locations, $old);
+        if ($status) {
+            $this->report('menus/' . $location, $status);
             return true;
         }
         $id = $old['id'] ?? 0;
-        $existing_menu = $id ? wp_get_nav_menu_object($id) : false;
-        if ($id && (!$existing_menu || ($locations[$location] ?? 0) !== $id)) {
-            $this->report('menus/' . $location, 'removed-on-site');
-            return true;
-        }
         if (!$id && !$this->dry) {
+            $id = $this->create_menu($location, $menu, $locations);
+            if (is_wp_error($id)) {
+                return $id;
+            }
+        }
+        foreach ($menu['items'] as $key => $item) {
+            $result = $this->apply_menu_item($location, $key, $item, $id, $old);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+        }
+        $old['id'] = $id;
+        $this->record['menus'][$location] = $old;
+        return true;
+    }
+
+    /** @param string $location Location. @param array $locations Assignments. @param array $old Ownership. @return string */
+    private static function menu_ownership($location, $locations, $old) {
+        if (!$old && !empty($locations[$location])) {
+            return 'edited-on-site';
+        }
+        $id = $old['id'] ?? 0;
+        $existing_menu = wp_get_nav_menu_object($id);
+        if ($id && (!$existing_menu || ($locations[$location] ?? 0) !== $id)) {
+            return 'removed-on-site';
+        }
+        return '';
+    }
+
+    /** @param string $location Location. @param array $menu Input. @param array $locations Assignments. @return int|string|WP_Error */
+    private function create_menu($location, $menu, $locations) {
             $this->journal('retained_menu', $location, null, null);
             $id = wp_create_nav_menu($menu['name']);
             if (is_wp_error($id)) {
                 return $id;
             }
+            $created_menu = wp_get_nav_menu_object($id);
+            if (!$created_menu) {
+                return new WP_Error('template_menu', 'Unable to resolve the created menu.');
+            }
+            $id = $created_menu->term_id;
             $this->journal('locations', get_stylesheet(), $locations, array_merge($locations, array($location => $id)));
             $locations[$location] = $id;
             set_theme_mod('nav_menu_locations', $locations);
-        }
-        foreach ($menu['items'] as $key => $item) {
+            return $id;
+    }
+
+    /** @param string $location Location. @param string $key Key. @param array $item Input. @param int|string $id Menu. @param array $old Ownership. @return true|WP_Error */
+    private function apply_menu_item($location, $key, $item, $id, &$old) {
             $path = 'menus/' . $location . '/' . $key;
             $tracked = $old['items'][$key] ?? array();
             $post = !empty($tracked['id']) ? get_post($tracked['id']) : null;
-            $current = $post ? array('title' => $post->post_title, 'url' => get_post_meta($post->ID, '_menu_item_url', true), 'status' => $post->post_status) : null;
-            if ($tracked && (!$post || 'trash' === $post->post_status || 'nav_menu_item' !== $post->post_type || get_post_meta($post->ID, self::META, true) !== $path || !$existing_menu || !has_term($existing_menu->term_id, 'nav_menu', $post->ID))) {
-                $this->report($path, 'removed-on-site');
-                continue;
-            }
-            if ($tracked && self::fingerprint($current) !== $tracked['hash']) {
-                $this->report($path, 'edited-on-site');
-                continue;
+            $current = self::menu_item_snapshot($post);
+            $status = self::menu_item_ownership($path, $tracked, $post, wp_get_nav_menu_object($id), $current);
+            if ($status) {
+                $this->report($path, $status);
+                return true;
             }
             $desired = array('title' => $item['title'], 'url' => esc_url_raw($item['url']), 'status' => $post ? $post->post_status : 'publish');
-            $this->report($path, $desired === $current ? 'same' : ($post ? 'updated' : 'added'));
+            $this->report($path, self::change_status($current, $desired, (bool) $post));
             if ($desired !== $current && !$this->dry) {
+                $item_id = $this->write_menu_item($path, $post, $id, $current, $desired);
+                if (is_wp_error($item_id)) {
+                    return $item_id;
+                }
+                $old['items'][$key] = array('id' => $item_id, 'hash' => self::fingerprint($desired));
+                $old['id'] = $id;
+                $this->record['menus'][$location] = $old;
+                $this->save();
+                $this->purge();
+            }
+            return true;
+    }
+
+    /** @param mixed $current Current value. @param mixed $desired Input. @param bool $exists Present. @return string */
+    private static function change_status($current, $desired, $exists) {
+        return $desired === $current ? 'same' : ($exists ? 'updated' : 'added');
+    }
+
+    /** @param WP_Post|null $post Item. @return array|null */
+    private static function menu_item_snapshot($post) {
+        return $post ? array('title' => $post->post_title, 'url' => get_post_meta($post->ID, '_menu_item_url', true), 'status' => $post->post_status) : null;
+    }
+
+    /** @param string $path Key. @param array $tracked Ownership. @param WP_Post|null $post Item. @param WP_Term|false $menu Menu. @param array|null $current Snapshot. @return string */
+    private static function menu_item_ownership($path, $tracked, $post, $menu, $current) {
+        if (!$tracked) {
+            return '';
+        }
+        if (!$post || 'trash' === $post->post_status || 'nav_menu_item' !== $post->post_type || get_post_meta($post->ID, self::META, true) !== $path || !$menu || !has_term($menu->term_id, 'nav_menu', $post->ID)) {
+            return 'removed-on-site';
+        }
+        return self::fingerprint($current) !== $tracked['hash'] ? 'edited-on-site' : '';
+    }
+
+    /** @param string $path Key. @param WP_Post|null $post Item. @param int|string $id Menu. @param array|null $current Snapshot. @param array $desired Input. @return int|WP_Error */
+    private function write_menu_item($path, $post, $id, $current, $desired) {
                 // A stable post name makes a creation discoverable after a crash.
                 // Existing items update only title and URL: core's menu helper
                 // otherwise defaults (and clears) unmentioned site-owned fields.
@@ -1094,17 +1162,8 @@ trait SEOProStack_Site_Template_Menus {
                     }
                 }
                 $this->record['backup']['writes'][$last]['id'] = $item_id;
-                $old['items'][$key] = array('id' => $item_id, 'hash' => self::fingerprint($desired));
                 update_post_meta($item_id, self::META, $path);
-                $old['id'] = $id;
-                $this->record['menus'][$location] = $old;
-                $this->save();
-                $this->purge();
-            }
-        }
-        $old['id'] = $id;
-        $this->record['menus'][$location] = $old;
-        return true;
+                return $item_id;
     }
 
 }
@@ -1143,39 +1202,11 @@ trait SEOProStack_Site_Template_Undo {
 
     /** @return true|WP_Error */
     private function restore() {
-        // Recover identities for journalled creations before inspecting storage.
-        foreach ($this->record['backup']['writes'] as &$write) {
-            if (!$write['id'] && 'post' === $write['type']) {
-                $after = $write['after'];
-                $found = get_page_by_path($after['post_name'], OBJECT, $after['post_type']);
-                if ($found && get_post_meta($found->ID, self::META, true) === ($after['meta_input'][self::META] ?? null)) {
-                    $write['id'] = $found->ID;
-                }
-            } elseif (!$write['id'] && 'menu_item' === $write['type'] && isset($write['lookup'])) {
-                $lookup = $write['lookup'];
-                $found = get_page_by_path($lookup['slug'], OBJECT, $lookup['type']);
-                if ($found && get_post_meta($found->ID, self::META, true) === $lookup['key']) {
-                    $write['id'] = $found->ID;
-                }
-            }
-        }
-        unset($write);
-        $this->save();
+        $this->recover_creations();
         $writes = array_reverse($this->record['backup']['writes'], true);
-        // Preflight every resource before touching anything. Multiple writes to
-        // one target are checked against a virtual reverse-order snapshot.
-        $virtual = array();
-        foreach ($writes as $index => $write) {
-            if (!empty($write['undone'])) {
-                continue;
-            }
-            $key = $write['type'] . '/' . $write['id'];
-            $current = array_key_exists($key, $virtual) ? $virtual[$key] : self::read_write($write);
-            $target = self::undo_target($write);
-            if (!self::equal($current, $write['after']) && !self::equal($current, $write['before']) && !self::equal($current, $target)) {
-                return new WP_Error('template_undo_edited', 'Undo stopped: changed since apply: ' . $key);
-            }
-            $virtual[$key] = $target;
+        $result = self::preflight_undo($writes);
+        if (is_wp_error($result)) {
+            return $result;
         }
         $this->record['undoing'] = true;
         $this->save();
@@ -1183,19 +1214,9 @@ trait SEOProStack_Site_Template_Undo {
             if (!empty($write['undone'])) {
                 continue;
             }
-            $current = self::read_write($write);
-            $target = self::undo_target($write);
-            if (!self::equal($current, $write['before']) && !self::equal($current, $target)) {
-                if (!self::equal($current, $write['after'])) {
-                    return new WP_Error('template_undo_edited', 'Resource changed during undo; stopped without overwriting it.');
-                }
-                $result = self::restore_write($write);
-                if (is_wp_error($result)) {
-                    return $result;
-                }
-                if (!self::equal(self::read_write($write), $target)) {
-                    return new WP_Error('template_undo_write', 'Undo write did not reach its recorded target.');
-                }
+            $result = self::restore_one($write);
+            if (is_wp_error($result)) {
+                return $result;
             }
             $this->record['backup']['writes'][$index]['undone'] = true;
             $this->save();
@@ -1213,6 +1234,73 @@ trait SEOProStack_Site_Template_Undo {
         return true;
     }
 
+    /** Recover identities for journalled creations before inspecting storage. */
+    private function recover_creations() {
+        foreach ($this->record['backup']['writes'] as $index => $write) {
+            $this->record['backup']['writes'][$index] = self::recover_creation($write);
+        }
+        $this->save();
+    }
+
+    /** @param array $write Journal entry. @return array */
+    private static function recover_creation($write) {
+        if ($write['id']) {
+            return $write;
+        }
+        if ('post' === $write['type']) {
+            $after = $write['after'];
+            $lookup = array('slug' => $after['post_name'], 'type' => $after['post_type'], 'key' => $after['meta_input'][self::META] ?? null);
+        } elseif ('menu_item' === $write['type'] && isset($write['lookup'])) {
+            $lookup = $write['lookup'];
+        } else {
+            return $write;
+        }
+        $found = get_page_by_path($lookup['slug'], OBJECT, $lookup['type']);
+        if ($found && get_post_meta($found->ID, self::META, true) === $lookup['key']) {
+            $write['id'] = $found->ID;
+        }
+        return $write;
+    }
+
+    /** @param array $writes Reverse-ordered journal. @return true|WP_Error */
+    private static function preflight_undo($writes) {
+        // Preflight every resource before touching anything. Multiple writes to
+        // one target are checked against a virtual reverse-order snapshot.
+        $virtual = array();
+        foreach ($writes as $index => $write) {
+            if (!empty($write['undone'])) {
+                continue;
+            }
+            $key = $write['type'] . '/' . $write['id'];
+            $current = array_key_exists($key, $virtual) ? $virtual[$key] : self::read_write($write);
+            $target = self::undo_target($write);
+            if (!self::equal($current, $write['after']) && !self::equal($current, $write['before']) && !self::equal($current, $target)) {
+                return new WP_Error('template_undo_edited', 'Undo stopped: changed since apply: ' . $key);
+            }
+            $virtual[$key] = $target;
+        }
+        return true;
+    }
+
+    /** @param array $write Journal entry. @return true|WP_Error */
+    private static function restore_one($write) {
+            $current = self::read_write($write);
+            $target = self::undo_target($write);
+            if (!self::equal($current, $write['before']) && !self::equal($current, $target)) {
+                if (!self::equal($current, $write['after'])) {
+                    return new WP_Error('template_undo_edited', 'Resource changed during undo; stopped without overwriting it.');
+                }
+                $result = self::restore_write($write);
+                if (is_wp_error($result)) {
+                    return $result;
+                }
+                if (!self::equal(self::read_write($write), $target)) {
+                    return new WP_Error('template_undo_write', 'Undo write did not reach its recorded target.');
+                }
+            }
+        return true;
+    }
+
 }
 
 /** Read and restore only fields explicitly captured by the journal. */
@@ -1222,7 +1310,7 @@ trait SEOProStack_Site_Template_Storage {
     private static function read_write($write) {
         switch ($write['type']) {
             case 'post':
-                return $write['id'] && get_post($write['id']) ? self::post_snapshot($write['id'], array_keys($write['after']['meta_input'])) : null;
+                return self::read_post_write($write);
             case 'option':
                 return self::option_snapshot($write['id']);
             case 'css':
@@ -1231,9 +1319,14 @@ trait SEOProStack_Site_Template_Storage {
                 return get_nav_menu_locations();
             case 'menu_item':
                 $post = $write['id'] ? get_post($write['id']) : null;
-                return $post ? array('title' => $post->post_title, 'url' => get_post_meta($post->ID, '_menu_item_url', true), 'status' => $post->post_status) : null;
+                return self::menu_item_snapshot($post);
         }
         return null;
+    }
+
+    /** @param array $write Post journal entry. @return array|null */
+    private static function read_post_write($write) {
+        return $write['id'] && get_post($write['id']) ? self::post_snapshot($write['id'], array_keys($write['after']['meta_input'])) : null;
     }
 
     /** Compare structured snapshots without depending on JSON/PHP key order.
@@ -1269,12 +1362,20 @@ trait SEOProStack_Site_Template_Storage {
 
     /** @param array $write Journal entry. @return true|WP_Error */
     private static function restore_write($write) {
+        $methods = array('post' => 'restore_post', 'option' => 'restore_option', 'css' => 'restore_css', 'locations' => 'restore_locations', 'menu_item' => 'restore_menu_item');
+        if (isset($methods[$write['type']])) {
+            $method = $methods[$write['type']];
+            return self::$method($write);
+        }
+        return true;
+    }
+
+    /** @param array $write Post journal entry. @return true|WP_Error */
+    private static function restore_post($write) {
         $id = $write['id'];
         $before = $write['before'];
-        switch ($write['type']) {
-            case 'post':
                 if (!$id) {
-                    break;
+                    return true;
                 }
                 $data = null === $before ? array('post_status' => 'draft') : $before;
                 foreach ($data['meta_input'] ?? array() as $key => $value) {
@@ -1288,24 +1389,40 @@ trait SEOProStack_Site_Template_Storage {
                 if (is_wp_error($result)) {
                     return $result;
                 }
-                break;
-            case 'option':
+        return true;
+    }
+
+    /** @param array $write Option journal entry. @return true */
+    private static function restore_option($write) {
+        $id = $write['id'];
+        $before = $write['before'];
                 if ($before['exists']) {
                     update_option($id, $before['value'], false);
                 } else {
                     delete_option($id);
                 }
-                break;
-            case 'css':
-                $result = wp_update_custom_css_post($before, array('stylesheet' => $id));
+        return true;
+    }
+
+    /** @param array $write CSS journal entry. @return true|WP_Error */
+    private static function restore_css($write) {
+                $result = wp_update_custom_css_post($write['before'], array('stylesheet' => $write['id']));
                 if (is_wp_error($result)) {
                     return $result;
                 }
-                break;
-            case 'locations':
-                set_theme_mod('nav_menu_locations', $before);
-                break;
-            case 'menu_item':
+        return true;
+    }
+
+    /** @param array $write Menu-location journal entry. @return true */
+    private static function restore_locations($write) {
+        set_theme_mod('nav_menu_locations', $write['before']);
+        return true;
+    }
+
+    /** @param array $write Menu-item journal entry. @return true|WP_Error */
+    private static function restore_menu_item($write) {
+        $id = $write['id'];
+        $before = $write['before'];
                 if ($id) {
                     $result = wp_update_post(wp_slash(array('ID' => $id, 'post_status' => null === $before ? 'draft' : $before['status'], 'post_title' => null === $before ? $write['after']['title'] : $before['title'])), true);
                     if (is_wp_error($result)) {
@@ -1315,8 +1432,6 @@ trait SEOProStack_Site_Template_Storage {
                         update_post_meta($id, '_menu_item_url', $before['url']);
                     }
                 }
-                break;
-        }
         return true;
     }
 }
