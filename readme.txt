@@ -71,6 +71,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
+* **Links skip redirects**: link straight to Rank Math's permanent on-site redirect targets.
 * **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
@@ -154,6 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Fix: newer Kadence Blocks Pro versions use their own REST route definition for query loops (#1138).
+* Fix: Links skip redirects handles encoded paths and ignores cached Rank Math redirects when its Redirections module is unavailable (#1137).
 
 = 1.3.136 =
 * Fix: Dark mode: Kadence's typography preview in the Customizer shows its sample text on a light checkerboard again, readable in the site's own colours (#1135).

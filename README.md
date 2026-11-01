@@ -2306,6 +2306,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Fix: Kadence Blocks Pro versions newer than the checked 2.8.20.1 use their full REST server for query loops, so changes to Kadence's route permissions and methods are not replaced by an older definition (#1138).
+- Fix: Links skip redirects matches encoded link paths as Rank Math does and ignores its cached redirects when Rank Math or its Redirections module is unavailable. Custom redirect filters still work without Rank Math (GitHub issue #1137).
 
 ### 1.3.136
 
