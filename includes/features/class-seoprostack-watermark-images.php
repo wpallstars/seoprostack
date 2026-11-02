@@ -2109,7 +2109,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return;
         }
         try {
-            self::run_part($job);
+            self::run_part();
         } finally {
             SEOProStack_Media_Storage::release($lease);
         }
@@ -2117,11 +2117,18 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     /**
      * One bounded part of the batch, under the media lease.
-     *
-     * @param array $job The batch.
      */
-    private static function run_part(array $job) {
+    private static function run_part() {
         set_transient(self::LOCK, 1, self::BUDGET + 60);
+        // Another runner may have advanced or ended this non-autoloaded job
+        // since run_batch read it, before this request acquired the media lease.
+        wp_cache_delete(self::JOB, 'options');
+        wp_cache_delete('notoptions', 'options');
+        $job = self::job();
+        if (!$job || !empty($job['ended'])) {
+            delete_transient(self::LOCK);
+            return;
+        }
         if ('remove' !== $job['op']) {
             $mark = self::enabled() ? self::mark() : new WP_Error('watermark_off', __('Watermark pictures was switched off.', 'seoprostack'));
             if (is_wp_error($mark)) {

@@ -152,9 +152,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Fix: cloud uploads recover lost watermark cron events; CLI status explains stalled watermark jobs (#1147).
-
 = 1.3.137 =
 * New: Dutch, German and French translations ship with the plugin (#1141).
 * Fix: newer Kadence Blocks Pro versions use their own REST route definition for query loops (#1138).
