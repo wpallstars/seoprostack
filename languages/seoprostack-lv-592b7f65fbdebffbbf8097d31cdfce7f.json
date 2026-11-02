@@ -1,0 +1,33 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-theme.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Colour mode": [
+                "Kr\u0101su re\u017e\u012bms"
+            ],
+            "Light": [
+                "Gaisma"
+            ],
+            "Dark": [
+                "Tum\u0161s"
+            ],
+            "System": [
+                "Sist\u0113ma"
+            ],
+            "Colour mode: %s": [
+                "Kr\u0101su re\u017e\u012bms: %s"
+            ],
+            "The colour mode could not be saved. Please try again.": [
+                "Kr\u0101su re\u017e\u012bmu nevar\u0113ja saglab\u0101t. L\u016bdzu, m\u0113\u0123iniet v\u0113lreiz."
+            ]
+        }
+    }
+}

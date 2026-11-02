@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Form": [
+                "Form\u0103"
+            ],
+            "Choose a form": [
+                "Alege\u021bi un formular"
+            ],
+            "%s (no form on this site)": [
+                "%s (nu exist\u0103 formular pe acest site)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Se afi\u0219eaz\u0103 dup\u0103 trimiterea formularului: mul\u021bumirile, comentariul cu Copiere recenzie \u0219i linkuri de recenzie pentru %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Se afi\u0219eaz\u0103 dup\u0103 trimiterea formularului: doar mul\u021bumiri. Seta\u021bi obiectivele linkurilor scurte googlereview, facebookreview sau trustpilotreview pentru a afi\u0219a linkuri c\u0103tre recenzii."
+            ],
+            "Feedback form": [
+                "Formular de feedback"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "Formularul cu cheie Fluent de pe aceast\u0103 pagin\u0103 care colecteaz\u0103 evaluarea \u0219i comentariul."
+            ],
+            "Rating field name": [
+                "Numele c\u00e2mpului de evaluare"
+            ],
+            "Default: rating.": [
+                "Implicit: evaluare."
+            ],
+            "Comment field name": [
+                "Numele c\u00e2mpului de comentarii"
+            ],
+            "Default: comment.": [
+                "Implicit: comentariu."
+            ],
+            "High rating from": [
+                "Evaluare ridicat\u0103 de la"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Doar formularea se schimb\u0103: linkurile de recenzii apar pentru fiecare evaluare."
+            ],
+            "Wording": [
+                "Formulare"
+            ],
+            "Thanks, high rating": [
+                "Mul\u021bumesc, evaluare mare"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Implicit: V\u0103 mul\u021bumim pentru feedback!"
+            ],
+            "Thanks, low rating": [
+                "Mul\u021bumesc, evaluare mic\u0103"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Implicit: V\u0103 mul\u021bumim c\u0103 ne-a\u021bi anun\u021bat. V\u0103 vom contacta pentru a rezolva problema."
+            ],
+            "Review request, high rating": [
+                "Cerere de recenzie, evaluare \u00eenalt\u0103"
+            ],
+            "Review request, low rating": [
+                "Cerere de recenzie, evaluare sc\u0103zut\u0103"
+            ],
+            "Copy button": [
+                "Butonul Copiere"
+            ],
+            "Default: Copy review": [
+                "Implicit: Copiere revizuire"
+            ],
+            "Review links": [
+                "Linkuri de recenzie"
+            ]
+        }
+    }
+}

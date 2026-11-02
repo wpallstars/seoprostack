@@ -1,0 +1,33 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-theme.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Colour mode": [
+                "V\u00e4rvire\u017eiim"
+            ],
+            "Light": [
+                "Valgus"
+            ],
+            "Dark": [
+                "Tume"
+            ],
+            "System": [
+                "S\u00fcsteem"
+            ],
+            "Colour mode: %s": [
+                "V\u00e4rvire\u017eiim: %s"
+            ],
+            "The colour mode could not be saved. Please try again.": [
+                "V\u00e4rvire\u017eiimi ei \u00f5nnestunud salvestada. Palun proovige uuesti."
+            ]
+        }
+    }
+}

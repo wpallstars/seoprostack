@@ -1,0 +1,66 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-icon\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "it_IT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Impostazioni"
+            ],
+            "Brand icons": [
+                "Icone del marchio"
+            ],
+            "Link": [
+                "Collegamento"
+            ],
+            "Search brand icons": [
+                "Cerca le icone del marchio"
+            ],
+            "Icons could not be loaded. Please try again.": [
+                "Impossibile caricare le icone. Riprova."
+            ],
+            "No icons found.": [
+                "Nessuna icona trovata."
+            ],
+            "Icon": [
+                "Icona"
+            ],
+            "Brand colour": [
+                "Colore del marchio"
+            ],
+            "The brand\u2019s own colour.": [
+                "Il colore distintivo del marchio."
+            ],
+            "The text colour (choose one under Styles, or it follows the theme and its dark mode).": [
+                "Il colore del testo (scegline uno in Stili, oppure segue il tema e la sua modalit\u00e0 scura)."
+            ],
+            "Size (px)": [
+                "Dimensioni (px)"
+            ],
+            "Open in a new tab": [
+                "Apri in una nuova scheda"
+            ],
+            "Name for screen readers": [
+                "Nome per i lettori di schermo"
+            ],
+            "Leave empty for the brand\u2019s name.": [
+                "Lascia vuoto il campo relativo al nome del marchio."
+            ],
+            "Brand icon": [
+                "Icona del marchio"
+            ],
+            "This icon is no longer in the set. Choose another.": [
+                "Questa icona non \u00e8 pi\u00f9 presente nel set. Scegline un'altra."
+            ],
+            "Search for a brand and choose its icon.": [
+                "Cerca un marchio e scegli la sua icona."
+            ]
+        }
+    }
+}

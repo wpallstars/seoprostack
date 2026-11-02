@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pt_PT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Address": [
+                "Morada"
+            ],
+            "Screenshot of %s": [
+                "Captura de ecr\u00e3 de %s"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Introduza um endere\u00e7o web completo come\u00e7ando por https:\/\/"
+            ],
+            "Link": [
+                "Liga\u00e7\u00e3o"
+            ],
+            "Open in a new tab": [
+                "Abrir numa nova aba"
+            ],
+            "Page address": [
+                "Endere\u00e7o da p\u00e1gina"
+            ],
+            "Change address": [
+                "Alterar endere\u00e7o"
+            ],
+            "Square": [
+                "Quadrado"
+            ],
+            "Only http and https addresses can be captured.": [
+                "Apenas os endere\u00e7os http e https podem ser capturados."
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                "Janela do browser (%1$d \u00d7 %2$d)"
+            ],
+            "The screenshot could not be taken.": [
+                "N\u00e3o foi poss\u00edvel capturar o ecr\u00e3."
+            ],
+            "Screenshot": [
+                "Captura de ecr\u00e3"
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                "Introduza o endere\u00e7o da p\u00e1gina que pretende capturar. A captura de ecr\u00e3 ser\u00e1 guardada na Biblioteca de Media."
+            ],
+            "Take screenshot": [
+                "Tirar uma captura de ecr\u00e3"
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                "Obten\u00e7\u00e3o da captura de ecr\u00e3 de %s. Uma nova pode demorar at\u00e9 um minuto."
+            ],
+            "The captured page": [
+                "A p\u00e1gina capturada"
+            ],
+            "This post": [
+                "Esta publica\u00e7\u00e3o"
+            ],
+            "Another address": [
+                "Outro endere\u00e7o"
+            ],
+            "No link": [
+                "Sem link"
+            ],
+            "Take a new screenshot": [
+                "Fa\u00e7a uma nova captura de ecr\u00e3."
+            ],
+            "Alternative text": [
+                "Texto alternativo"
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                "Descreva a p\u00e1gina \u00e0s pessoas que n\u00e3o a conseguem visualizar. Deixe em branco para usar \"Captura de ecr\u00e3 de\" e o nome do site."
+            ],
+            "Shape": [
+                "Forma"
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                "A largura da janela do browser \u00e9 definida em Defini\u00e7\u00f5es \u2192 SEO Pro Stack; a forma define a sua altura. Uma nova forma tira uma nova captura de ecr\u00e3."
+            ],
+            "Width on the page (px)": [
+                "Largura na p\u00e1gina (px)"
+            ],
+            "Leave empty to fill the space available.": [
+                "Deixe em branco para preencher o espa\u00e7o dispon\u00edvel."
+            ],
+            "Taken on %s.": [
+                "Fotografado em %s."
+            ],
+            "Link to": [
+                "Link para"
+            ],
+            "Add nofollow": [
+                "Adicione nofollow"
+            ],
+            "Asks search engines not to follow the link.": [
+                "Solicita aos motores de busca que n\u00e3o sigam o link."
+            ],
+            "Sponsored": [
+                "Patrocinado"
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                "Indica um link pago, de afiliado ou patrocinado."
+            ],
+            "User-generated": [
+                "Gerado pelo utilizador"
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                "Indica um link adicionado por um visitante, como num coment\u00e1rio ou publica\u00e7\u00e3o num f\u00f3rum."
+            ],
+            "Add caption": [
+                "Adicionar legenda"
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                "Uma captura de ecr\u00e3 de %s. Ela ainda aparece no site. Converta-a num bloco de Captura de Ecr\u00e3 para a alterar."
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                "Um bloco \"Capturas de ecr\u00e3 do navegador\" vazio. Converta-o num bloco \"Captura de ecr\u00e3\" para adicionar um endere\u00e7o."
+            ],
+            "Convert to Screenshot block": [
+                "Converter em bloco de captura de ecr\u00e3"
+            ]
+        }
+    }
+}

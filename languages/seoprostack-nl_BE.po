@@ -52,7 +52,7 @@ msgstr "Opslaan…"
 
 #: admin/includes/class-admin-manager.php:418 admin/includes/class-network-manager.php:321 includes/class-seoprostack-reaction-lists.php:61 includes/class-seoprostack-settings.php:1079 includes/features/class-seoprostack-post-reactions.php:332 includes/features/class-seoprostack-post-reactions.php:381 blocks/saved-posts/index.js:29
 msgid "Saved"
-msgstr "Opgeslagen"
+msgstr "Bewaard"
 
 #: admin/includes/class-admin-manager.php:419
 msgid "Could not save. Please try again."
@@ -2329,7 +2329,7 @@ msgstr "Je lijsten"
 
 #: includes/class-seoprostack-reaction-lists.php:61 includes/features/class-seoprostack-post-reactions.php:333 includes/features/class-seoprostack-post-reactions.php:616 blocks/saved-panel/index.js:15 blocks/saved-posts/index.js:31
 msgid "Shortlist"
-msgstr "Voorkeurslijst"
+msgstr "Mijn lijst"
 
 #: includes/class-seoprostack-review-links.php:68
 msgid "Google"
@@ -4883,10 +4883,9 @@ msgstr "De beheerdersbalk"
 msgid "Duplicate “%s” as a new draft"
 msgstr "Dupliceer “%s” als een nieuw concept."
 
-# machine translation
 #: includes/features/class-seoprostack-duplicate-posts.php:235 includes/features/class-seoprostack-duplicate-posts.php:303
 msgid "Duplicate"
-msgstr "Duplicaat"
+msgstr "Dupliceren"
 
 # machine translation
 #: includes/features/class-seoprostack-duplicate-posts.php:253 includes/features/class-seoprostack-duplicate-posts.php:279
@@ -9786,10 +9785,9 @@ msgstr "Keuze voor %s"
 msgid "Not decided"
 msgstr "Nog niet besloten"
 
-# machine translation
 #: includes/features/class-seoprostack-outbound-calls.php:931 includes/features/class-seoprostack-post-reactions.php:380 includes/features/class-seoprostack-post-reactions.php:471 blocks/post-reactions/index.js:41 blocks/post-reactions/index.js:47
 msgid "Save"
-msgstr "Redden"
+msgstr "Bewaren"
 
 # machine translation
 #. translators: 1: person; 2: time ago
@@ -10789,10 +10787,9 @@ msgstr "%s deactiveren?"
 msgid "Activate %s?"
 msgstr "%s activeren?"
 
-# machine translation
 #: includes/features/class-seoprostack-post-reactions.php:116 includes/features/class-seoprostack-post-reactions.php:486
 msgid "Like, save and share"
-msgstr "Vind ik leuk, opslaan en delen"
+msgstr "Vind ik leuk, bewaren en delen"
 
 # machine translation
 #: includes/features/class-seoprostack-post-reactions.php:117
@@ -11074,10 +11071,9 @@ msgstr "Verwijderd uit %s."
 msgid "register"
 msgstr "register"
 
-# machine translation
 #: includes/features/class-seoprostack-post-reactions.php:375 includes/features/class-seoprostack-post-reactions.php:592 blocks/shortlist-button/index.js:16
 msgid "Add to shortlist"
-msgstr "Toevoegen aan favorieten"
+msgstr "Op mijn lijst"
 
 # machine translation
 #: includes/features/class-seoprostack-post-reactions.php:376
@@ -11089,12 +11085,10 @@ msgstr "Op je shortlist"
 msgid "Nothing here yet."
 msgstr "Nog niets te zien."
 
-# machine translation
 #: includes/features/class-seoprostack-post-reactions.php:378 includes/features/class-seoprostack-post-reactions.php:464 blocks/post-reactions/index.js:40 blocks/post-reactions/index.js:46
 msgid "Like"
-msgstr "Leuk vinden"
+msgstr "Vind ik leuk"
 
-# machine translation
 #: includes/features/class-seoprostack-post-reactions.php:382 includes/features/class-seoprostack-social-sharing.php:895
 msgid "Link copied"
 msgstr "Link gekopieerd"
@@ -11109,33 +11103,29 @@ msgstr "Nog niets opgeslagen."
 msgid "That did not work. Please try again."
 msgstr "Dat werkte niet. Probeer het nogmaals."
 
-# machine translation
 #: includes/features/class-seoprostack-post-reactions.php:477 includes/features/class-seoprostack-social-sharing.php:909 blocks/iframe/index.js:56 blocks/post-reactions/index.js:42 blocks/post-reactions/index.js:48
 msgid "Share"
-msgstr "Deel"
+msgstr "Delen"
 
-# machine translation
 #. translators: %s: number of likes.
 #: includes/features/class-seoprostack-post-reactions.php:520
 #, php-format
 msgid "%s Like"
 msgid_plural "%s Likes"
-msgstr[0] "%s Like"
-msgstr[1] "%s vindt het leuk"
+msgstr[0] "%s like"
+msgstr[1] "%s likes"
 
-# machine translation
 #. translators: %s: number of people who shortlisted it.
 #: includes/features/class-seoprostack-post-reactions.php:522
 #, php-format
 msgid "%s Shortlist"
 msgid_plural "%s Shortlists"
-msgstr[0] "%s Shortlist"
-msgstr[1] "%s Shortlists"
+msgstr[0] "%s keer bewaard"
+msgstr[1] "%s keer bewaard"
 
-# machine translation
 #: includes/features/class-seoprostack-post-reactions.php:664
 msgid "Loading your lists…"
-msgstr "Uw lijsten worden geladen..."
+msgstr "Je lijsten worden geladen…"
 
 # machine translation
 #: includes/features/class-seoprostack-post-reactions.php:821
@@ -13005,15 +12995,13 @@ msgstr "Tooltips"
 msgid "Open sharing in"
 msgstr "Open delen in"
 
-# machine translation
 #: includes/features/class-seoprostack-social-sharing.php:207
 msgid "Email"
 msgstr "E-mail"
 
-# machine translation
 #: includes/features/class-seoprostack-social-sharing.php:208 includes/features/class-seoprostack-social-sharing.php:881
 msgid "Copy page link"
-msgstr "Kopieer paginalink"
+msgstr "Paginalink kopiëren"
 
 # machine translation
 #: includes/features/class-seoprostack-social-sharing.php:293
@@ -13089,12 +13077,10 @@ msgstr "Een pop-upvenster"
 msgid "A new tab"
 msgstr "Een nieuw tabblad"
 
-# machine translation
 #: includes/features/class-seoprostack-social-sharing.php:883
 msgid "Share by email"
 msgstr "Delen via e-mail"
 
-# machine translation
 #. translators: %s: a social network, such as Facebook.
 #: includes/features/class-seoprostack-social-sharing.php:886
 #, php-format

@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "de_CH",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Columns": [
+                "Spalten"
+            ],
+            "Related posts": [
+                "\u00c4hnliche Beitr\u00e4ge"
+            ],
+            "Number of posts": [
+                "Anzahl der Beitr\u00e4ge"
+            ],
+            "Show as": [
+                "Anzeigen als"
+            ],
+            "Grid with pictures": [
+                "Raster mit Bildern"
+            ],
+            "List": [
+                "Liste"
+            ],
+            "Show featured images": [
+                "Ausgew\u00e4hlte Bilder anzeigen"
+            ],
+            "Show dates": [
+                "Showtermine"
+            ],
+            "Show a heading": [
+                "\u00dcberschrift anzeigen"
+            ],
+            "Heading": [
+                "\u00dcberschrift"
+            ],
+            "Compare": [
+                "Vergleichen"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "Keines der H\u00e4kchen vergleicht alle. Begriffe, die nur in wenigen Beitr\u00e4gen verwendet werden, haben ein h\u00f6heres Gewicht."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "Bisher keine \u00e4hnlichen Beitr\u00e4ge. Beitr\u00e4ge, die Kategorien, Schlagw\u00f6rter oder andere Begriffe mit diesem Beitrag teilen, werden hier angezeigt."
+            ]
+        }
+    }
+}

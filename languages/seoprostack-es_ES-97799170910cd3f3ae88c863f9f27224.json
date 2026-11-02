@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/form\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_ES",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Ajustes"
+            ],
+            "Form": [
+                "Forma"
+            ],
+            "Choose a form in the block settings.": [
+                "Seleccione un formulario en la configuraci\u00f3n del bloque."
+            ],
+            "Title": [
+                "T\u00edtulo"
+            ],
+            "Choose a form": [
+                "Elija un formulario"
+            ],
+            "%s (no form on this site)": [
+                "%s (no hay formulario en este sitio)"
+            ],
+            "Published Fluent forms that carry a key.": [
+                "Formularios Fluent publicados que contienen una clave."
+            ],
+            "No form has a key yet: wp seoprostack form-keys set <form-id> <key>.": [
+                "Ning\u00fan formulario tiene una clave todav\u00eda: wp seoprostack form-keys set <form-id> <key>."
+            ],
+            "In a panel": [
+                "En un panel"
+            ],
+            "A bordered box around the form, as the theme draws panels.": [
+                "Un recuadro con borde alrededor de la forma, como lo indica el tema que dibuja los paneles."
+            ],
+            "Opens from links to %s.": [
+                "Se abre desde enlaces a %s."
+            ],
+            "Without Kadence Blocks Pro the form shows here, in a panel.": [
+                "Sin Kadence Blocks Pro, el formulario se muestra aqu\u00ed, en un panel."
+            ],
+            "Modal ID": [
+                "ID modal"
+            ],
+            "Links to #ID open the modal. Empty: the form key.": [
+                "Los enlaces a #ID abren la ventana modal. Vac\u00edo: la clave del formulario."
+            ],
+            "Introduction": [
+                "Introducci\u00f3n"
+            ],
+            "Form modal": [
+                "Formulario modal"
+            ]
+        }
+    }
+}

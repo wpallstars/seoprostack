@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Columns": [
+                "Kolommen"
+            ],
+            "Related posts": [
+                "Gerelateerde berichten"
+            ],
+            "Number of posts": [
+                "Aantal berichten"
+            ],
+            "Show as": [
+                "Weergeven als"
+            ],
+            "Grid with pictures": [
+                "Raster met afbeeldingen"
+            ],
+            "List": [
+                "Lijst"
+            ],
+            "Show featured images": [
+                "Toon uitgelichte afbeeldingen"
+            ],
+            "Show dates": [
+                "Datums van de voorstelling"
+            ],
+            "Show a heading": [
+                "Toon een koptekst"
+            ],
+            "Heading": [
+                "Koptekst"
+            ],
+            "Compare": [
+                "Vergelijken"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "Geen van beide aangevinkte opties vergelijkt ze allemaal. Termen die in enkele berichten voorkomen, tellen zwaarder mee."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "Nog geen gerelateerde berichten. Berichten die dezelfde categorie\u00ebn, tags of andere termen delen als dit bericht, worden hier weergegeven."
+            ]
+        }
+    }
+}

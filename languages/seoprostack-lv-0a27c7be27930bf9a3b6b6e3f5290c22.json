@@ -1,0 +1,57 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/saved-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Saved": [
+                "Saglab\u0101ts"
+            ],
+            "Remove": [
+                "No\u0146emt"
+            ],
+            "Shortlist": [
+                "Mans saraksts"
+            ],
+            "Liked": [
+                "Patika"
+            ],
+            "Nothing saved yet.": [
+                "V\u0113l nekas nav saglab\u0101ts."
+            ],
+            "List": [
+                "Saraksts"
+            ],
+            "A saved post": [
+                "Saglab\u0101ts ieraksts"
+            ],
+            "Another saved post": [
+                "V\u0113l viens saglab\u0101ts ieraksts"
+            ],
+            "Saved posts": [
+                "Saglab\u0101t\u0101s zi\u0146as"
+            ],
+            "Show excerpts": [
+                "R\u0101d\u012bt fragmentus"
+            ],
+            "Show Remove buttons": [
+                "R\u0101d\u012bt pogas No\u0146emt"
+            ],
+            "Text when nothing is saved": [
+                "S\u016bt\u012bt \u012bszi\u0146u, ja nekas nav saglab\u0101ts"
+            ],
+            "The post\u2019s excerpt.": [
+                "Ieraksta fragments."
+            ],
+            "Each visitor sees their own selected list.": [
+                "Katrs apmekl\u0113t\u0101js redz savu atlas\u012bto sarakstu."
+            ]
+        }
+    }
+}

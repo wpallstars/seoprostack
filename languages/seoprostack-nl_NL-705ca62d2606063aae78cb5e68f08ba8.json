@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Terms": [
+                "Termen"
+            ],
+            "None": [
+                "Geen"
+            ],
+            "Columns": [
+                "Kolommen"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Taxonomy": [
+                "Taxonomie"
+            ],
+            "Square": [
+                "Vierkant"
+            ],
+            "Show as": [
+                "Weergeven als"
+            ],
+            "List": [
+                "Lijst"
+            ],
+            "Grid": [
+                "Rooster"
+            ],
+            "Tag cloud": [
+                "Labelwolk"
+            ],
+            "Comma-separated": [
+                "Door komma's gescheiden"
+            ],
+            "A\u2013Z index": [
+                "A\u2013Z-index"
+            ],
+            "Drop-down": [
+                "Uitklapmenu"
+            ],
+            "All terms": [
+                "Alle voorwaarden"
+            ],
+            "This post\u2019s terms": [
+                "Voorwaarden van dit bericht"
+            ],
+            "Name": [
+                "Naam"
+            ],
+            "Most posts first": [
+                "De meeste berichten eerst"
+            ],
+            "Random": [
+                "Willekeurig"
+            ],
+            "Under headings": [
+                "Onder rubrieken"
+            ],
+            "Accordion": [
+                "Accordeon"
+            ],
+            "Tabs": [
+                "Tabs"
+            ],
+            "Theme default": [
+                "Standaardthema"
+            ],
+            "Dot": [
+                "Punt"
+            ],
+            "Circle": [
+                "Cirkel"
+            ],
+            "Numbers": [
+                "Getallen"
+            ],
+            "No groups": [
+                "Geen groepen"
+            ],
+            "By top-level term": [
+                "Per term op het hoogste niveau"
+            ],
+            "By Tag Groups group": [
+                "Per taggroepen"
+            ],
+            "Terms to show": [
+                "Te tonen termen"
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                "De voorwaarden van het bericht of de pagina waarop het blok zich bevindt, of van elk bericht in een querylus."
+            ],
+            "Show letter links": [
+                "Letterlinks weergeven"
+            ],
+            "Show as boxes": [
+                "Weergeven als vakjes"
+            ],
+            "Show post counts": [
+                "Toon het aantal berichten"
+            ],
+            "Show child terms": [
+                "Toon kindtermen"
+            ],
+            "Off shows only top-level terms.": [
+                "Uitgeschakeld toont alleen termen op het hoogste niveau."
+            ],
+            "Show empty terms": [
+                "Toon lege termen"
+            ],
+            "Text when there are no terms": [
+                "Tekst wanneer er geen termen zijn"
+            ],
+            "Leave empty to show nothing.": [
+                "Laat dit veld leeg om niets weer te geven."
+            ],
+            "Order and number": [
+                "Volgorde en nummer"
+            ],
+            "Order": [
+                "Volgorde"
+            ],
+            "Most terms to show": [
+                "De meeste termen om te laten zien"
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                "0 toont alles. Als er meer zijn, worden degenen met de meeste berichten weergegeven."
+            ],
+            "Fewest posts a term needs": [
+                "Het minste aantal berichten per termijn vereist"
+            ],
+            "Groups": [
+                "Groepen"
+            ],
+            "Group terms": [
+                "Groepsvoorwaarden"
+            ],
+            "Show groups": [
+                "Groepen weergeven"
+            ],
+            "Tag cloud sizes": [
+                "Groottes van tagwolken"
+            ],
+            "Smallest text (em)": [
+                "Kleinste tekst (em)"
+            ],
+            "Largest text (em)": [
+                "Grootste tekst (em)"
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                "Termen met meer berichten zijn groter. Stel beide even groot in."
+            ],
+            "Spacing and markers": [
+                "Afstand en markeringen"
+            ],
+            "List marker": [
+                "Lijstmarkering"
+            ],
+            "Space between items (px)": [
+                "Ruimte tussen items (px)"
+            ],
+            "Link colours": [
+                "Linkkleuren"
+            ],
+            "Link on hover": [
+                "Link bij hoveren"
+            ]
+        }
+    }
+}

@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Address": [
+                "Aadress"
+            ],
+            "None": [
+                "Puudub"
+            ],
+            "Cancel": [
+                "T\u00fchista"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Sisesta t\u00e4ielik veebiaadress, mis algab https:\/\/-ga"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Picture": [
+                "Pilt"
+            ],
+            "Title": [
+                "Pealkiri"
+            ],
+            "Open in a new tab": [
+                "Ava uuel vahelehel"
+            ],
+            "Page address": [
+                "Lehe aadress"
+            ],
+            "Change address": [
+                "Aadressi muutmine"
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                "Pildi kopeerimine meediateeki\u2026"
+            ],
+            "The picture could not be copied.": [
+                "Pilti ei saanud kopeerida."
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                "Otsin saidi ikooni\u2026"
+            ],
+            "The site\u2019s icon could not be copied.": [
+                "Saidi ikooni ei saanud kopeerida."
+            ],
+            "Reading the page\u2026": [
+                "Lehek\u00fclge lugedes\u2026"
+            ],
+            "Fill in the title and description in the block settings.": [
+                "T\u00e4ida ploki seadetes pealkiri ja kirjeldus."
+            ],
+            "Card": [
+                "Kaart"
+            ],
+            "Read the page again": [
+                "Loe lehte uuesti"
+            ],
+            "Description": [
+                "Kirjeldus"
+            ],
+            "Site name": [
+                "Saidi nimi"
+            ],
+            "On the right": [
+                "Paremal"
+            ],
+            "On the left": [
+                "Vasakul"
+            ],
+            "Above": [
+                "\u00dclalpool"
+            ],
+            "Beside the text when the card is wide enough.": [
+                "Teksti k\u00f5rval, kui kaart on piisavalt lai."
+            ],
+            "Picture shape": [
+                "Pildi kuju"
+            ],
+            "Its own shape": [
+                "Oma kuju"
+            ],
+            "Wide, as in social previews": [
+                "Lai, nagu sotsiaalmeedia eelvaadetes"
+            ],
+            "Square": [
+                "Ruut"
+            ],
+            "Fill the card\u2019s height": [
+                "T\u00e4ida kaardi k\u00f5rgus"
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                "Pilte kuvatakse tervikuna, igal kaardil samal k\u00f5rgusel. Kaardi k\u00f5rguse t\u00e4itmiseks k\u00e4rbitakse neid."
+            ],
+            "Copy the picture": [
+                "Kopeeri pilt"
+            ],
+            "Use the page\u2019s picture": [
+                "Kasutage lehe pilti"
+            ],
+            "Use the site\u2019s icon": [
+                "Kasutage saidi ikooni"
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                "Palu otsingumootoritel mitte j\u00e4lgida (nofollow)"
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                "Keegi, kes saab faile \u00fcles laadida, peab selle kaardi pildi lisamiseks avama."
+            ],
+            "Link card": [
+                "Lingikaart"
+            ],
+            "Paste the address of a page to show a preview card.": [
+                "Eelvaate kaardi kuvamiseks kleepige lehe aadress."
+            ],
+            "Show card": [
+                "N\u00e4ita kaarti"
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                "See on j\u00e4rjehoidjakaart. Teisenda see lingikaardiks, et selle pilt oma saidil alles j\u00e4\u00e4ks."
+            ],
+            "Convert to Link card": [
+                "Teisenda lingikaardiks"
+            ],
+            "Default": [
+                "Vaikimisi"
+            ],
+            "Horizontal": [
+                "Horisontaalne"
+            ]
+        }
+    }
+}

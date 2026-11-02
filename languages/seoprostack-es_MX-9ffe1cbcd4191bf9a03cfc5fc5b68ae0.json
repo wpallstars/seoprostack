@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_MX",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Columns": [
+                "Columnas"
+            ],
+            "Related posts": [
+                "Publicaciones relacionadas"
+            ],
+            "Number of posts": [
+                "N\u00famero de publicaciones"
+            ],
+            "Show as": [
+                "Mostrar como"
+            ],
+            "Grid with pictures": [
+                "Cuadr\u00edcula con im\u00e1genes"
+            ],
+            "List": [
+                "Lista"
+            ],
+            "Show featured images": [
+                "Mostrar im\u00e1genes destacadas"
+            ],
+            "Show dates": [
+                "Fechas del espect\u00e1culo"
+            ],
+            "Show a heading": [
+                "Mostrar un encabezado"
+            ],
+            "Heading": [
+                "T\u00edtulo"
+            ],
+            "Compare": [
+                "Comparar"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "Ninguna opci\u00f3n marcada las compara todas. Los t\u00e9rminos usados en pocas publicaciones tienen mayor peso."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "A\u00fan no hay publicaciones relacionadas. Las publicaciones que compartan categor\u00edas, etiquetas u otros t\u00e9rminos con esta aparecer\u00e1n aqu\u00ed."
+            ]
+        }
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-word-import.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Remove": [
+                "Verwijderen"
+            ],
+            "This server cannot open Word documents: ask your host to turn on PHP\u2019s zip extension.": [
+                "Deze server kan geen Word-documenten openen: vraag uw hostingprovider om de zip-extensie van PHP in te schakelen."
+            ],
+            "Drop the document into the editor again to convert it.": [
+                "Sleep het document opnieuw naar de editor om het te converteren."
+            ],
+            "The document is larger than your site accepts.": [
+                "Het document is groter dan uw website toelaat."
+            ],
+            "The document has no text to add.": [
+                "Het document bevat geen tekst om toe te voegen."
+            ],
+            "%d picture in the document could not be added.": [
+                "De afbeelding %d kon niet aan het document worden toegevoegd.",
+                "%d afbeeldingen in het document konden niet worden toegevoegd."
+            ],
+            "The document could not be converted.": [
+                "Het document kon niet worden geconverteerd."
+            ],
+            "Word document": [
+                "Word-document"
+            ],
+            "Converting %s\u2026": [
+                "%s converteren \u2026"
+            ],
+            "Converts a Word document into blocks.": [
+                "Converteert een Word-document naar blokken."
+            ]
+        }
+    }
+}

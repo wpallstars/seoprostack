@@ -1,0 +1,165 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Size": [
+                "Dimensiune"
+            ],
+            "Embedded content": [
+                "Con\u021binut \u00eencorporat"
+            ],
+            "Page": [
+                "Pagin\u0103"
+            ],
+            "Share": [
+                "Distribuie"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Introduce\u021bi o adres\u0103 web complet\u0103 care \u00eencepe cu https:\/\/"
+            ],
+            "Title": [
+                "Titlu"
+            ],
+            "Payments": [
+                "Pl\u0103\u021bi"
+            ],
+            "Run scripts": [
+                "Execut\u0103 scripturi"
+            ],
+            "Treat as its own site (cookies, storage)": [
+                "Tratament ca site propriu (cookie-uri, stocare)"
+            ],
+            "Submit forms": [
+                "Trimite\u021bi formulare"
+            ],
+            "Open pop-ups": [
+                "Deschide\u021bi ferestrele pop-up"
+            ],
+            "Pop-ups without restrictions": [
+                "Ferestre pop-up f\u0103r\u0103 restric\u021bii"
+            ],
+            "Presentation mode": [
+                "Mod de prezentare"
+            ],
+            "Alerts and dialogs": [
+                "Alerte \u0219i dialoguri"
+            ],
+            "Downloads": [
+                "Desc\u0103rc\u0103ri"
+            ],
+            "Navigate this page when clicked": [
+                "Naviga\u021bi pe aceast\u0103 pagin\u0103 c\u00e2nd face\u021bi clic pe ea"
+            ],
+            "Autoplay": [
+                "Redare automat\u0103"
+            ],
+            "Camera": [
+                "Camer\u0103"
+            ],
+            "Microphone": [
+                "Microfon"
+            ],
+            "Location": [
+                "Loca\u0163ie"
+            ],
+            "Copy to clipboard": [
+                "Copia\u021bi \u00een clipboard"
+            ],
+            "Protected media": [
+                "Medii protejate"
+            ],
+            "Picture-in-picture": [
+                "Imagine \u00een imagine"
+            ],
+            "Fixed size": [
+                "Dimensiune fix\u0103"
+            ],
+            "Only http and https addresses can be embedded.": [
+                "Doar adresele http \u0219i https pot fi \u00eencorporate."
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                "Acest domeniu nu se afl\u0103 pe lista permis\u0103 din Set\u0103ri \u2192 SEO Pro Stack, deci nu va fi afi\u0219at."
+            ],
+            "iFrame": [
+                "iFrame"
+            ],
+            "Paste the address of the page to embed.": [
+                "Lipi\u021bi adresa paginii de \u00eencorporat."
+            ],
+            "Page address": [
+                "Adresa paginii"
+            ],
+            "Embed": [
+                "\u00cencorporare"
+            ],
+            "Change address": [
+                "Schimba\u021bi adresa"
+            ],
+            "Describes the embed for screen readers.": [
+                "Descrie \u00eencorporarea pentru cititoarele de ecran."
+            ],
+            "Pass page URL parameters": [
+                "Transmite\u021bi parametrii paginii URL"
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                "Adaug\u0103 \u0219irul de interogare al acestei pagini (de exemplu, etichete UTM) la adresa \u00eencorporat\u0103."
+            ],
+            "Aspect ratio": [
+                "Raport de aspect"
+            ],
+            "Width": [
+                "L\u0103\u0163ime"
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                "Pixeli (de exemplu, 600) sau un procent (de exemplu, 100%)."
+            ],
+            "Height (px)": [
+                "\u00cen\u0103l\u021bime (px)"
+            ],
+            "Show border": [
+                "Afi\u0219eaz\u0103 chenarul"
+            ],
+            "Loading and permissions": [
+                "\u00cenc\u0103rcare \u0219i permisiuni"
+            ],
+            "Lazy load": [
+                "\u00cenc\u0103rcare lene\u0219\u0103"
+            ],
+            "Load the page only when it scrolls into view.": [
+                "\u00cenc\u0103rca\u021bi pagina numai c\u00e2nd aceasta apare \u00een c\u00e2mpul vizual."
+            ],
+            "Allow full screen": [
+                "Permite ecran complet"
+            ],
+            "Allow the embedded page to use": [
+                "Permite\u021bi paginii \u00eencorporate s\u0103 utilizeze"
+            ],
+            "Referrer policy": [
+                "Politica privind recomand\u0103rile"
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                "C\u00e2t din adresa acestei pagini este trimis\u0103 c\u0103tre site-ul \u00eencorporat."
+            ],
+            "Sandbox": [
+                "Cutie cu nisip"
+            ],
+            "Sandbox the embedded page": [
+                "Pagina \u00eencorporat\u0103 \u00een sandbox"
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                "Recomandat. Pagina poate face doar ce este bifat mai jos."
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                "Pagina \u00eencorporat\u0103 nu este restric\u021bionat\u0103. Dezactiva\u021bi aceast\u0103 op\u021biune doar pentru site-urile \u00een care ave\u021bi \u00eencredere."
+            ]
+        }
+    }
+}

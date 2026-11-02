@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/form\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Instellingen"
+            ],
+            "Form": [
+                "Formulier"
+            ],
+            "Choose a form in the block settings.": [
+                "Kies een formulier in de blokinstellingen."
+            ],
+            "Title": [
+                "Titel"
+            ],
+            "Choose a form": [
+                "Kies een formulier"
+            ],
+            "%s (no form on this site)": [
+                "%s (geen formulier op deze site)"
+            ],
+            "Published Fluent forms that carry a key.": [
+                "Gepubliceerde Fluent formulieren die een sleutel bevatten."
+            ],
+            "No form has a key yet: wp seoprostack form-keys set <form-id> <key>.": [
+                "Er is nog geen sleutel voor een formulier: wp seoprostack form-keys set <form-id> <key>."
+            ],
+            "In a panel": [
+                "In een paneel"
+            ],
+            "A bordered box around the form, as the theme draws panels.": [
+                "Een omlijnde doos rond de vorm, waarbij het thema panelen gebruikt."
+            ],
+            "Opens from links to %s.": [
+                "Opent vanuit links naar %s."
+            ],
+            "Without Kadence Blocks Pro the form shows here, in a panel.": [
+                "Zonder Kadence Blocks Pro wordt het formulier hier in een paneel weergegeven."
+            ],
+            "Modal ID": [
+                "Modale ID"
+            ],
+            "Links to #ID open the modal. Empty: the form key.": [
+                "Links naar #ID openen het modale venster. Leeg: de formuliersleutel."
+            ],
+            "Introduction": [
+                "Invoering"
+            ],
+            "Form modal": [
+                "Formulier"
+            ]
+        }
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-word-import.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "it_IT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Remove": [
+                "Rimuovere"
+            ],
+            "This server cannot open Word documents: ask your host to turn on PHP\u2019s zip extension.": [
+                "Questo server non \u00e8 in grado di aprire documenti Word: chiedi al tuo provider di hosting di abilitare l'estensione zip di PHP."
+            ],
+            "Drop the document into the editor again to convert it.": [
+                "Trascina nuovamente il documento nell'editor per convertirlo."
+            ],
+            "The document is larger than your site accepts.": [
+                "Il documento \u00e8 pi\u00f9 grande di quanto consentito dal tuo sito."
+            ],
+            "The document has no text to add.": [
+                "Il documento non contiene testo da aggiungere."
+            ],
+            "%d picture in the document could not be added.": [
+                "Impossibile aggiungere l'immagine %d al documento.",
+                "Impossibile aggiungere le immagini %d al documento."
+            ],
+            "The document could not be converted.": [
+                "Impossibile convertire il documento."
+            ],
+            "Word document": [
+                "Documento Word"
+            ],
+            "Converting %s\u2026": [
+                "Conversione di %s \u2026"
+            ],
+            "Converts a Word document into blocks.": [
+                "Converte un documento Word in blocchi."
+            ]
+        }
+    }
+}

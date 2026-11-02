@@ -1,0 +1,66 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-icon\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Seaded"
+            ],
+            "Brand icons": [
+                "Br\u00e4ndi ikoonid"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Search brand icons": [
+                "Otsi br\u00e4ndiikoone"
+            ],
+            "Icons could not be loaded. Please try again.": [
+                "Ikoone ei \u00f5nnestunud laadida. Palun proovige uuesti."
+            ],
+            "No icons found.": [
+                "Ikoone ei leitud."
+            ],
+            "Icon": [
+                "Ikoon"
+            ],
+            "Brand colour": [
+                "Br\u00e4ndi v\u00e4rv"
+            ],
+            "The brand\u2019s own colour.": [
+                "Br\u00e4ndi enda v\u00e4rv."
+            ],
+            "The text colour (choose one under Styles, or it follows the theme and its dark mode).": [
+                "Teksti v\u00e4rv (vali \u00fcks stiilide alt v\u00f5i j\u00e4rgib see teemat ja selle tumedat re\u017eiimi)."
+            ],
+            "Size (px)": [
+                "Suurus (pikslites)"
+            ],
+            "Open in a new tab": [
+                "Ava uuel vahelehel"
+            ],
+            "Name for screen readers": [
+                "Ekraanilugejate nimi"
+            ],
+            "Leave empty for the brand\u2019s name.": [
+                "J\u00e4ta br\u00e4ndi nime jaoks t\u00fchjaks."
+            ],
+            "Brand icon": [
+                "Br\u00e4ndiikoon"
+            ],
+            "This icon is no longer in the set. Choose another.": [
+                "See ikoon pole enam komplektis. Valige teine."
+            ],
+            "Search for a brand and choose its icon.": [
+                "Otsi br\u00e4ndi ja vali selle ikoon."
+            ]
+        }
+    }
+}

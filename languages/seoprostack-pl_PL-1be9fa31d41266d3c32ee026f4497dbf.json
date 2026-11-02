@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Address": [
+                "Adres"
+            ],
+            "None": [
+                "Nic"
+            ],
+            "Cancel": [
+                "Anulowa\u0107"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Wprowad\u017a pe\u0142ny adres internetowy zaczynaj\u0105cy si\u0119 od https:\/\/"
+            ],
+            "Link": [
+                "Po\u0142\u0105czy\u0107"
+            ],
+            "Picture": [
+                "Zdj\u0119cie"
+            ],
+            "Title": [
+                "Tytu\u0142"
+            ],
+            "Open in a new tab": [
+                "Otw\u00f3rz w nowej karcie"
+            ],
+            "Page address": [
+                "Adres strony"
+            ],
+            "Change address": [
+                "Zmie\u0144 adres"
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                "Kopiowanie obrazu do Biblioteki multimedi\u00f3w\u2026"
+            ],
+            "The picture could not be copied.": [
+                "Nie uda\u0142o si\u0119 skopiowa\u0107 zdj\u0119cia."
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                "Szukasz ikony witryny\u2026"
+            ],
+            "The site\u2019s icon could not be copied.": [
+                "Nie uda\u0142o si\u0119 skopiowa\u0107 ikony witryny."
+            ],
+            "Reading the page\u2026": [
+                "Czytanie strony\u2026"
+            ],
+            "Fill in the title and description in the block settings.": [
+                "W ustawieniach bloku wpisz tytu\u0142 i opis."
+            ],
+            "Card": [
+                "Karta"
+            ],
+            "Read the page again": [
+                "Przeczytaj stron\u0119 jeszcze raz"
+            ],
+            "Description": [
+                "Opis"
+            ],
+            "Site name": [
+                "Nazwa witryny"
+            ],
+            "On the right": [
+                "Po prawej stronie"
+            ],
+            "On the left": [
+                "Po lewej stronie"
+            ],
+            "Above": [
+                "Powy\u017cej"
+            ],
+            "Beside the text when the card is wide enough.": [
+                "Obok tekstu, gdy karta jest wystarczaj\u0105co szeroka."
+            ],
+            "Picture shape": [
+                "Kszta\u0142t obrazu"
+            ],
+            "Its own shape": [
+                "W\u0142asny kszta\u0142t"
+            ],
+            "Wide, as in social previews": [
+                "Szeroki, jak w podgl\u0105dach spo\u0142eczno\u015bciowych"
+            ],
+            "Square": [
+                "Kwadrat"
+            ],
+            "Fill the card\u2019s height": [
+                "Wype\u0142nij wysoko\u015b\u0107 karty"
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                "Zdj\u0119cia przedstawiaj\u0105 ca\u0142o\u015b\u0107, na tej samej wysoko\u015bci na ka\u017cdej karcie. Wype\u0142nienie karty powoduje ich przyci\u0119cie."
+            ],
+            "Copy the picture": [
+                "Skopiuj obrazek"
+            ],
+            "Use the page\u2019s picture": [
+                "U\u017cyj obrazka strony"
+            ],
+            "Use the site\u2019s icon": [
+                "U\u017cyj ikony witryny"
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                "Popro\u015b wyszukiwarki, aby nie \u015bledzi\u0142y Ci\u0119 (nofollow)"
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                "Kto\u015b, kto mo\u017ce przesy\u0142a\u0107 pliki, musi otworzy\u0107 t\u0119 kart\u0119, aby doda\u0107 jej zdj\u0119cie."
+            ],
+            "Link card": [
+                "Karta linku"
+            ],
+            "Paste the address of a page to show a preview card.": [
+                "Wklej adres strony, aby wy\u015bwietli\u0107 kart\u0119 podgl\u0105du."
+            ],
+            "Show card": [
+                "Poka\u017c kart\u0119"
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                "To jest karta zak\u0142adki. Przekszta\u0142\u0107 j\u0105 w kart\u0119 linku, aby zachowa\u0107 jej zdj\u0119cie na swojej stronie."
+            ],
+            "Convert to Link card": [
+                "Konwertuj na kart\u0119 Link"
+            ],
+            "Default": [
+                "Domy\u015blny"
+            ],
+            "Horizontal": [
+                "Poziomy"
+            ]
+        }
+    }
+}

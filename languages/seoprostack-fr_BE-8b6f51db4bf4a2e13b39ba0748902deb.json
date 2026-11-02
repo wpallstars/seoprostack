@@ -1,0 +1,24 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/lists\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_BE",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Liked": [
+                "J'ai aim\u00e9"
+            ],
+            "New list": [
+                "Nouvelle liste"
+            ],
+            "Each visitor sees their own lists here: Liked, and the lists they name, with Move to, Remove and the actions other plugins add.": [
+                "Chaque visiteur voit ici ses propres listes\u00a0: \u00ab\u00a0Aim\u00e9s\u00a0\u00bb, et les listes qu\u2019il nomme, avec \u00ab\u00a0D\u00e9placer vers\u00a0\u00bb, \u00ab\u00a0Supprimer\u00a0\u00bb et les actions ajout\u00e9es par d\u2019autres plugins."
+            ]
+        }
+    }
+}

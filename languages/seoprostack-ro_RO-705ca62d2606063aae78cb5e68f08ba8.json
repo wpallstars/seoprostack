@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Terms": [
+                "Termeni"
+            ],
+            "None": [
+                "Nici unul"
+            ],
+            "Columns": [
+                "Coloane"
+            ],
+            "Link": [
+                "Leg\u0103tur\u0103"
+            ],
+            "Taxonomy": [
+                "Taxonomie"
+            ],
+            "Square": [
+                "P\u0103trat"
+            ],
+            "Show as": [
+                "Afi\u0219are ca"
+            ],
+            "List": [
+                "List\u0103"
+            ],
+            "Grid": [
+                "Gril\u0103"
+            ],
+            "Tag cloud": [
+                "Nor de etichete"
+            ],
+            "Comma-separated": [
+                "Separate prin virgul\u0103"
+            ],
+            "A\u2013Z index": [
+                "Indexul A\u2013Z"
+            ],
+            "Drop-down": [
+                "Scap\u0103 jos"
+            ],
+            "All terms": [
+                "To\u021bi termenii"
+            ],
+            "This post\u2019s terms": [
+                "Termenii acestei post\u0103ri"
+            ],
+            "Name": [
+                "Nume"
+            ],
+            "Most posts first": [
+                "Majoritatea post\u0103rilor mai \u00eent\u00e2i"
+            ],
+            "Random": [
+                "Aleatoriu"
+            ],
+            "Under headings": [
+                "Sub titluri"
+            ],
+            "Accordion": [
+                "Acordeon"
+            ],
+            "Tabs": [
+                "Taburi"
+            ],
+            "Theme default": [
+                "Tem\u0103 implicit\u0103"
+            ],
+            "Dot": [
+                "Punct"
+            ],
+            "Circle": [
+                "Cerc"
+            ],
+            "Numbers": [
+                "Numere"
+            ],
+            "No groups": [
+                "Niciun grup"
+            ],
+            "By top-level term": [
+                "Dup\u0103 termenul de nivel superior"
+            ],
+            "By Tag Groups group": [
+                "Dup\u0103 grupul de grupuri de etichete"
+            ],
+            "Terms to show": [
+                "Termeni de afi\u0219at"
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                "Termenii post\u0103rii sau paginii pe care se afl\u0103 blocul sau ai fiec\u0103rei post\u0103ri dintr-o bucl\u0103 de interogare."
+            ],
+            "Show letter links": [
+                "Afi\u0219eaz\u0103 linkurile cu litere"
+            ],
+            "Show as boxes": [
+                "Afi\u0219a\u021bi ca \u0219i casete"
+            ],
+            "Show post counts": [
+                "Afi\u0219eaz\u0103 num\u0103rul de post\u0103ri"
+            ],
+            "Show child terms": [
+                "Afi\u0219eaz\u0103 termenii secundari"
+            ],
+            "Off shows only top-level terms.": [
+                "Op\u021biunea \u201eDezactivat\u201d afi\u0219eaz\u0103 doar termenii de nivel superior."
+            ],
+            "Show empty terms": [
+                "Afi\u0219eaz\u0103 termenii goi"
+            ],
+            "Text when there are no terms": [
+                "Text atunci c\u00e2nd nu exist\u0103 termeni"
+            ],
+            "Leave empty to show nothing.": [
+                "Se las\u0103 gol pentru a nu afi\u0219a nimic."
+            ],
+            "Order and number": [
+                "Ordine \u0219i num\u0103r"
+            ],
+            "Order": [
+                "Comanda"
+            ],
+            "Most terms to show": [
+                "Cei mai mul\u021bi termeni de ar\u0103tat"
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                "0 afi\u0219eaz\u0103 tot. C\u00e2nd sunt mai multe, sunt afi\u0219ate cele cu cele mai multe post\u0103ri."
+            ],
+            "Fewest posts a term needs": [
+                "Cele mai pu\u021bine post\u0103ri necesare pe termen"
+            ],
+            "Groups": [
+                "Grupuri"
+            ],
+            "Group terms": [
+                "Termeni de grup"
+            ],
+            "Show groups": [
+                "Afi\u0219a\u021bi grupurile"
+            ],
+            "Tag cloud sizes": [
+                "Dimensiunile norului de etichete"
+            ],
+            "Smallest text (em)": [
+                "Cel mai mic text (em)"
+            ],
+            "Largest text (em)": [
+                "Cel mai mare text (em)"
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                "Termenii cu mai multe post\u0103ri sunt mai mari. Seta\u021bi ambele la fel pentru aceea\u0219i dimensiune."
+            ],
+            "Spacing and markers": [
+                "Spa\u021biere \u0219i marcaje"
+            ],
+            "List marker": [
+                "Marcator de list\u0103"
+            ],
+            "Space between items (px)": [
+                "Spa\u021biu \u00eentre elemente (px)"
+            ],
+            "Link colours": [
+                "Culorile linkurilor"
+            ],
+            "Link on hover": [
+                "Link la trecerea cu mouse-ul peste"
+            ]
+        }
+    }
+}

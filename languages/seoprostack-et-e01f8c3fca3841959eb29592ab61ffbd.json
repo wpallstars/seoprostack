@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Address": [
+                "Aadress"
+            ],
+            "Screenshot of %s": [
+                "%s ekraanipilt"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Sisesta t\u00e4ielik veebiaadress, mis algab https:\/\/-ga"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Open in a new tab": [
+                "Ava uuel vahelehel"
+            ],
+            "Page address": [
+                "Lehe aadress"
+            ],
+            "Change address": [
+                "Aadressi muutmine"
+            ],
+            "Square": [
+                "Ruut"
+            ],
+            "Only http and https addresses can be captured.": [
+                "J\u00e4\u00e4dvustada saab ainult http- ja https-aadresse."
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                "Brauseri aken (%1$d \u00d7 %2$d)"
+            ],
+            "The screenshot could not be taken.": [
+                "Ekraanipilti ei \u00f5nnestunud teha."
+            ],
+            "Screenshot": [
+                "Ekraanipilt"
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                "Sisestage j\u00e4\u00e4dvustatava lehe aadress. Ekraanipilt salvestatakse meediateeki."
+            ],
+            "Take screenshot": [
+                "Tehke ekraanipilt"
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                "%s ekraanipildi hankimine. Uue tegemine v\u00f5ib v\u00f5tta kuni minuti."
+            ],
+            "The captured page": [
+                "J\u00e4\u00e4dvustatud leht"
+            ],
+            "This post": [
+                "See postitus"
+            ],
+            "Another address": [
+                "Teine aadress"
+            ],
+            "No link": [
+                "Linki pole"
+            ],
+            "Take a new screenshot": [
+                "Tehke uus ekraanipilt"
+            ],
+            "Alternative text": [
+                "Alternatiivne tekst"
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                "Kirjelda lehte inimestele, kes seda ei n\u00e4e. J\u00e4ta t\u00fchjaks, kui soovid kasutada valikut \u201eEkraanipilt\u201d ja saidi nime."
+            ],
+            "Shape": [
+                "Kuju"
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                "Brauseriakna laiust saab m\u00e4\u00e4rata men\u00fc\u00fcpunktis Seaded \u2192 SEO Pro Stack; kuju m\u00e4\u00e4rab selle k\u00f5rguse. Uus kujund teeb uue ekraanipildi."
+            ],
+            "Width on the page (px)": [
+                "Laius lehel (px)"
+            ],
+            "Leave empty to fill the space available.": [
+                "J\u00e4tke t\u00fchjaks, et t\u00e4ita vaba ruum."
+            ],
+            "Taken on %s.": [
+                "Tehtud %s."
+            ],
+            "Link to": [
+                "Lingi juurde"
+            ],
+            "Add nofollow": [
+                "Lisa nofollow"
+            ],
+            "Asks search engines not to follow the link.": [
+                "Palub otsingumootoritel linki mitte j\u00e4lgida."
+            ],
+            "Sponsored": [
+                "Sponsoreeritud"
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                "M\u00e4rgib tasulist, sidusettev\u00f5tte v\u00f5i sponsoreeritud linki."
+            ],
+            "User-generated": [
+                "Kasutaja loodud"
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                "M\u00e4rgib k\u00fclastaja lisatud linki, n\u00e4iteks kommentaaris v\u00f5i foorumipostituses."
+            ],
+            "Add caption": [
+                "Lisa pealdis"
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                "%s ekraanipilt. See kuvatakse ikka veel saidil. Selle muutmiseks teisenda see ekraanipildi plokiks."
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                "T\u00fchi brauseripiltide plokk. Aadressi lisamiseks teisenda see ekraanipildi plokiks."
+            ],
+            "Convert to Screenshot block": [
+                "Teisenda ekraanipildi plokiks"
+            ]
+        }
+    }
+}

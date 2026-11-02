@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_FR",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Columns": [
+                "Colonnes"
+            ],
+            "Related posts": [
+                "Articles similaires"
+            ],
+            "Number of posts": [
+                "Nombre de messages"
+            ],
+            "Show as": [
+                "Afficher comme"
+            ],
+            "Grid with pictures": [
+                "Grille avec images"
+            ],
+            "List": [
+                "Liste"
+            ],
+            "Show featured images": [
+                "Afficher les images mises en avant"
+            ],
+            "Show dates": [
+                "Afficher les dates"
+            ],
+            "Show a heading": [
+                "Afficher un titre"
+            ],
+            "Heading": [
+                "Titre"
+            ],
+            "Compare": [
+                "Comparer"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "Aucune case coch\u00e9e ne permet de les comparer toutes. Les termes utilis\u00e9s dans peu de messages ont un impact plus important."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "Aucun article similaire pour le moment. Les articles partageant les m\u00eames cat\u00e9gories, \u00e9tiquettes ou autres termes que celui-ci s'afficheront ici."
+            ]
+        }
+    }
+}

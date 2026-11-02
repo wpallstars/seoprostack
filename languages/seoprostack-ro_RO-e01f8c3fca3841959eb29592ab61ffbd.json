@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Address": [
+                "Adresa"
+            ],
+            "Screenshot of %s": [
+                "Captur\u0103 de ecran cu %s"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Introduce\u021bi o adres\u0103 web complet\u0103 care \u00eencepe cu https:\/\/"
+            ],
+            "Link": [
+                "Leg\u0103tur\u0103"
+            ],
+            "Open in a new tab": [
+                "Deschide \u00eentr-o fil\u0103 nou\u0103"
+            ],
+            "Page address": [
+                "Adresa paginii"
+            ],
+            "Change address": [
+                "Schimba\u021bi adresa"
+            ],
+            "Square": [
+                "P\u0103trat"
+            ],
+            "Only http and https addresses can be captured.": [
+                "Pot fi capturate doar adresele http \u0219i https."
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                "Fereastra browserului (%1$d \u00d7 %2$d)"
+            ],
+            "The screenshot could not be taken.": [
+                "Captura de ecran nu a putut fi f\u0103cut\u0103."
+            ],
+            "Screenshot": [
+                "Captur\u0103 de ecran"
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                "Introduce\u021bi adresa paginii de capturat. Captura de ecran este salvat\u0103 \u00een Biblioteca media."
+            ],
+            "Take screenshot": [
+                "Face\u021bi o captur\u0103 de ecran"
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                "Se ob\u021bine captura de ecran a lui %s. Una nou\u0103 poate dura p\u00e2n\u0103 la un minut."
+            ],
+            "The captured page": [
+                "Pagina capturat\u0103"
+            ],
+            "This post": [
+                "Aceast\u0103 postare"
+            ],
+            "Another address": [
+                "O alt\u0103 adres\u0103"
+            ],
+            "No link": [
+                "Nicio leg\u0103tur\u0103"
+            ],
+            "Take a new screenshot": [
+                "Face\u021bi o nou\u0103 captur\u0103 de ecran"
+            ],
+            "Alternative text": [
+                "Text alternativ"
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                "Descrie\u021bi pagina pentru persoanele care nu o pot vedea. L\u0103sa\u021bi c\u00e2mpul gol pentru a utiliza \u201eCaptur\u0103 de ecran a\u201d \u0219i numele site-ului."
+            ],
+            "Shape": [
+                "Form\u0103"
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                "L\u0103\u021bimea ferestrei browserului este setat\u0103 \u00een Set\u0103ri \u2192 SEO Pro Stack; forma \u00eei stabile\u0219te \u00een\u0103l\u021bimea. O form\u0103 nou\u0103 genereaz\u0103 o nou\u0103 captur\u0103 de ecran."
+            ],
+            "Width on the page (px)": [
+                "L\u0103\u021bime pe pagin\u0103 (px)"
+            ],
+            "Leave empty to fill the space available.": [
+                "L\u0103sa\u021bi gol pentru a umple spa\u021biul disponibil."
+            ],
+            "Taken on %s.": [
+                "Luat\u0103 pe %s."
+            ],
+            "Link to": [
+                "Leg\u0103tur\u0103 c\u0103tre"
+            ],
+            "Add nofollow": [
+                "Ad\u0103uga\u021bi nofollow"
+            ],
+            "Asks search engines not to follow the link.": [
+                "Cere motoarelor de c\u0103utare s\u0103 nu urmeze linkul."
+            ],
+            "Sponsored": [
+                "Sponsorizat"
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                "Marcheaz\u0103 un link pl\u0103tit, afiliat sau sponsorizat."
+            ],
+            "User-generated": [
+                "Generat de utilizatori"
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                "Marcheaz\u0103 un link ad\u0103ugat de un vizitator, cum ar fi \u00eentr-un comentariu sau o postare pe forum."
+            ],
+            "Add caption": [
+                "Ad\u0103uga\u021bi o legend\u0103"
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                "O captur\u0103 de ecran a lui %s. \u00cenc\u0103 apare pe site. Converte\u0219te-o \u00eentr-un bloc de captur\u0103 de ecran pentru a o schimba."
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                "Un bloc gol de \u201eBrowser Shots\u201d. Converte\u0219te-l \u00eentr-un bloc \u201eScreenscreenshot\u201d pentru a ad\u0103uga o adres\u0103."
+            ],
+            "Convert to Screenshot block": [
+                "Conversie \u00een blocul Captur\u0103 de ecran"
+            ]
+        }
+    }
+}

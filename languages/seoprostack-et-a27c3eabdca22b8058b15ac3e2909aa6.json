@@ -1,0 +1,165 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Size": [
+                "Suurus"
+            ],
+            "Embedded content": [
+                "Manustatud sisu"
+            ],
+            "Page": [
+                "Leht"
+            ],
+            "Share": [
+                "Jaga"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Sisesta t\u00e4ielik veebiaadress, mis algab https:\/\/-ga"
+            ],
+            "Title": [
+                "Pealkiri"
+            ],
+            "Payments": [
+                "Maksed"
+            ],
+            "Run scripts": [
+                "K\u00e4ivita skripte"
+            ],
+            "Treat as its own site (cookies, storage)": [
+                "Kohtle omaette saidina (k\u00fcpsised, salvestusruum)"
+            ],
+            "Submit forms": [
+                "Esita vormid"
+            ],
+            "Open pop-ups": [
+                "Ava h\u00fcpikaknad"
+            ],
+            "Pop-ups without restrictions": [
+                "H\u00fcpikaknad ilma piiranguteta"
+            ],
+            "Presentation mode": [
+                "Esitlusre\u017eiim"
+            ],
+            "Alerts and dialogs": [
+                "Hoiatused ja dialoogid"
+            ],
+            "Downloads": [
+                "Allalaadimised"
+            ],
+            "Navigate this page when clicked": [
+                "Sellel lehel navigeerimine kl\u00f5psamisel"
+            ],
+            "Autoplay": [
+                "Automaatne esitamine"
+            ],
+            "Camera": [
+                "Kaamera"
+            ],
+            "Microphone": [
+                "Mikrofon"
+            ],
+            "Location": [
+                "Asukoht"
+            ],
+            "Copy to clipboard": [
+                "Kopeeri l\u00f5ikelauale"
+            ],
+            "Protected media": [
+                "Kaitstud meedia"
+            ],
+            "Picture-in-picture": [
+                "Pilt pildis"
+            ],
+            "Fixed size": [
+                "Fikseeritud suurus"
+            ],
+            "Only http and https addresses can be embedded.": [
+                "Ainult http ja https aadresse saab manustada."
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                "See domeen ei ole lubatud domeenide nimekirjas men\u00fc\u00fcs Seaded \u2192 SEO Pro Stack, seega seda ei kuvata."
+            ],
+            "iFrame": [
+                "iFrame"
+            ],
+            "Paste the address of the page to embed.": [
+                "Kleebi manustamiseks lehe aadress."
+            ],
+            "Page address": [
+                "Lehe aadress"
+            ],
+            "Embed": [
+                "Manusta"
+            ],
+            "Change address": [
+                "Aadressi muutmine"
+            ],
+            "Describes the embed for screen readers.": [
+                "Kirjeldab ekraanilugejate jaoks manustamist."
+            ],
+            "Pass page URL parameters": [
+                "Edastage lehe URL parameetrid"
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                "Lisab selle lehe p\u00e4ringustringi (n\u00e4iteks UTM-sildid) manustatud aadressile."
+            ],
+            "Aspect ratio": [
+                "Kuvasuhe"
+            ],
+            "Width": [
+                "Laius"
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                "Piksleid (nt 600) v\u00f5i protsenti (nt 100%)."
+            ],
+            "Height (px)": [
+                "K\u00f5rgus (pikslites)"
+            ],
+            "Show border": [
+                "N\u00e4ita \u00e4\u00e4rist"
+            ],
+            "Loading and permissions": [
+                "Laadimine ja \u00f5igused"
+            ],
+            "Lazy load": [
+                "Laisk koormus"
+            ],
+            "Load the page only when it scrolls into view.": [
+                "Laadi leht alles siis, kui see kuvatakse."
+            ],
+            "Allow full screen": [
+                "Luba t\u00e4isekraan"
+            ],
+            "Allow the embedded page to use": [
+                "Luba manustatud lehel kasutada"
+            ],
+            "Referrer policy": [
+                "Viitajapoliitika"
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                "Kui suur osa selle lehe aadressist saadetakse manustatud saidile."
+            ],
+            "Sandbox": [
+                "Liivakast"
+            ],
+            "Sandbox the embedded page": [
+                "Manustatud lehe liivakast"
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                "Soovitatav. Leht saab teha ainult allpool m\u00e4rgitud valikuid."
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                "Manustatud leht pole piiratud. L\u00fclitage see v\u00e4lja ainult saitidel, mida usaldate."
+            ]
+        }
+    }
+}

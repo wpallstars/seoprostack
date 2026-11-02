@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Address": [
+                "Adres"
+            ],
+            "Screenshot of %s": [
+                "Zrzut ekranu %s"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Wprowad\u017a pe\u0142ny adres internetowy zaczynaj\u0105cy si\u0119 od https:\/\/"
+            ],
+            "Link": [
+                "Po\u0142\u0105czy\u0107"
+            ],
+            "Open in a new tab": [
+                "Otw\u00f3rz w nowej karcie"
+            ],
+            "Page address": [
+                "Adres strony"
+            ],
+            "Change address": [
+                "Zmie\u0144 adres"
+            ],
+            "Square": [
+                "Kwadrat"
+            ],
+            "Only http and https addresses can be captured.": [
+                "Mo\u017cna przechwytywa\u0107 tylko adresy http i https."
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                "Okno przegl\u0105darki (%1$d \u00d7 %2$d)"
+            ],
+            "The screenshot could not be taken.": [
+                "Nie uda\u0142o si\u0119 wykona\u0107 zrzutu ekranu."
+            ],
+            "Screenshot": [
+                "Zrzut ekranu"
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                "Wprowad\u017a adres strony, kt\u00f3r\u0105 chcesz przechwyci\u0107. Zrzut ekranu zostanie zapisany w Bibliotece multimedi\u00f3w."
+            ],
+            "Take screenshot": [
+                "Zr\u00f3b zrzut ekranu"
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                "Pobieranie zrzutu ekranu %s. Nowy zrzut mo\u017ce powsta\u0107 w ci\u0105gu minuty."
+            ],
+            "The captured page": [
+                "Przechwycona strona"
+            ],
+            "This post": [
+                "Ten post"
+            ],
+            "Another address": [
+                "Inny adres"
+            ],
+            "No link": [
+                "Brak \u0142\u0105cza"
+            ],
+            "Take a new screenshot": [
+                "Zr\u00f3b nowy zrzut ekranu"
+            ],
+            "Alternative text": [
+                "Tekst alternatywny"
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                "Opisz stron\u0119 dla os\u00f3b, kt\u00f3re jej nie widz\u0105. Pozostaw puste pole, aby u\u017cy\u0107 opcji \u201eZrzut ekranu\u201d i nazwy witryny."
+            ],
+            "Shape": [
+                "Kszta\u0142t"
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                "Szeroko\u015b\u0107 okna przegl\u0105darki ustawia si\u0119 w Ustawieniach \u2192 SEO Pro Stack; kszta\u0142t ustawia swoj\u0105 wysoko\u015b\u0107. Nowy kszta\u0142t tworzy nowy zrzut ekranu."
+            ],
+            "Width on the page (px)": [
+                "Szeroko\u015b\u0107 na stronie (px)"
+            ],
+            "Leave empty to fill the space available.": [
+                "Pozostaw puste, aby wype\u0142ni\u0107 dost\u0119pn\u0105 przestrze\u0144."
+            ],
+            "Taken on %s.": [
+                "Zrobione o %s."
+            ],
+            "Link to": [
+                "Link do"
+            ],
+            "Add nofollow": [
+                "Dodaj nofollow"
+            ],
+            "Asks search engines not to follow the link.": [
+                "Prosi wyszukiwarki, aby nie klika\u0142y w link."
+            ],
+            "Sponsored": [
+                "Sponsorowane"
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                "Oznacza link p\u0142atny, afiliacyjny lub sponsorowany."
+            ],
+            "User-generated": [
+                "Utworzone przez u\u017cytkownika"
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                "Oznacza link dodany przez odwiedzaj\u0105cego, np. w komentarzu lub wpisie na forum."
+            ],
+            "Add caption": [
+                "Dodaj podpis"
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                "Zrzut ekranu z %s. Nadal jest widoczny na stronie. Aby go zmieni\u0107, przekonwertuj go na blok \u201eZrzut ekranu\u201d."
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                "Pusty blok \u201eZrzuty ekranu przegl\u0105darki\u201d. Przekszta\u0142\u0107 go w blok \u201eZrzut ekranu\u201d, aby doda\u0107 adres."
+            ],
+            "Convert to Screenshot block": [
+                "Konwertuj na blok zrzutu ekranu"
+            ]
+        }
+    }
+}

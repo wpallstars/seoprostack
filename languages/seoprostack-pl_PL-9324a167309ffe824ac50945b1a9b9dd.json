@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Form": [
+                "Formularz"
+            ],
+            "Choose a form": [
+                "Wybierz formularz"
+            ],
+            "%s (no form on this site)": [
+                "%s (brak formularza na tej stronie)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Wy\u015bwietla si\u0119 po wys\u0142aniu formularza: podzi\u0119kowania, komentarz z kopi\u0105 recenzji i linki do recenzji dla %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Po wys\u0142aniu formularza wy\u015bwietla si\u0119: tylko dzi\u0119kuj\u0119. Ustaw cele kr\u00f3tkich link\u00f3w googlereview, facebookreview lub trustpilotreview, aby wy\u015bwietla\u0107 linki do recenzji."
+            ],
+            "Feedback form": [
+                "Formularz opinii"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "Formularz Fluent na tej stronie, kt\u00f3ry zbiera oceny i komentarze."
+            ],
+            "Rating field name": [
+                "Nazwa pola oceny"
+            ],
+            "Default: rating.": [
+                "Domy\u015blnie: ocena."
+            ],
+            "Comment field name": [
+                "Nazwa pola komentarza"
+            ],
+            "Default: comment.": [
+                "Domy\u015blnie: komentarz."
+            ],
+            "High rating from": [
+                "Wysoka ocena od"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Zmienia si\u0119 tylko sformu\u0142owanie: przy ka\u017cdej ocenie wy\u015bwietlaj\u0105 si\u0119 linki do recenzji."
+            ],
+            "Wording": [
+                "Sformu\u0142owanie"
+            ],
+            "Thanks, high rating": [
+                "Dzi\u0119kuj\u0119, wysoka ocena"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Domy\u015blnie: Dzi\u0119kujemy za opini\u0119!"
+            ],
+            "Thanks, low rating": [
+                "Dzi\u0119kuj\u0119, niska ocena"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Domy\u015blnie: Dzi\u0119kujemy za informacj\u0119. Skontaktujemy si\u0119 z Tob\u0105, aby to naprawi\u0107."
+            ],
+            "Review request, high rating": [
+                "Pro\u015bba o recenzj\u0119, wysoka ocena"
+            ],
+            "Review request, low rating": [
+                "Pro\u015bba o recenzj\u0119, niska ocena"
+            ],
+            "Copy button": [
+                "Przycisk Kopiuj"
+            ],
+            "Default: Copy review": [
+                "Domy\u015blne: Kopiuj recenzj\u0119"
+            ],
+            "Review links": [
+                "Linki do recenzji"
+            ]
+        }
+    }
+}

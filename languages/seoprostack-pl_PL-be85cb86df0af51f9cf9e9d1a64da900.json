@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/client-dashboard\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Order page": [
+                "Strona zam\u00f3wienia"
+            ],
+            "Call booking page": [
+                "Strona rezerwacji po\u0142\u0105cze\u0144"
+            ],
+            "Calls": [
+                "Po\u0142\u0105czenia"
+            ],
+            "Show": [
+                "Pokazywa\u0107"
+            ],
+            "Orders": [
+                "\u015awi\u0119cenia"
+            ],
+            "Report": [
+                "Raport"
+            ],
+            "A link to the address in the client\u2019s FluentCRM report field.": [
+                "Link do adresu w polu raportu FluentCRM klienta."
+            ],
+            "Upcoming FluentBooking calls.": [
+                "Nadchodz\u0105ce rozmowy w ramach FluentBooking."
+            ],
+            "Payments": [
+                "P\u0142atno\u015bci"
+            ],
+            "Fluent Forms payments.": [
+                "p\u0142atno\u015bci Fluent Forms."
+            ],
+            "Courses": [
+                "Kursy"
+            ],
+            "Tutor LMS courses the client is enrolled in.": [
+                "Kursy LMS, w kt\u00f3rych uczestniczy klient."
+            ],
+            "Community spaces": [
+                "Przestrzenie wsp\u00f3lne"
+            ],
+            "FluentCommunity spaces the client belongs to.": [
+                "Przestrzenie FluentCommunity, do kt\u00f3rych nale\u017cy klient."
+            ],
+            "A page ID or address for \u201cOrder something new\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Identyfikator strony lub adres dla \u201eZam\u00f3w co\u015b nowego\u201d. Empty u\u017cywa identyfikatora wybranego w SEO Pro Stack."
+            ],
+            "A page ID or address for \u201cBook a call\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Identyfikator strony lub adres dla opcji \u201eZarezerwuj rozmow\u0119\u201d. Empty u\u017cywa identyfikatora wybranego w SEO Pro Stack."
+            ]
+        }
+    }
+}

@@ -1,0 +1,67 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/spectra\/convert.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Convert": [
+                "Convertit"
+            ],
+            "Buttons": [
+                "Butoane"
+            ],
+            "Heading": [
+                "Titlu"
+            ],
+            "Converted %d Spectra block. Check it, then save.": [
+                "Blocul Spectra %d convertit. Verific\u0103-l, apoi salveaz\u0103-l.",
+                "Blocurile Spectra %d au fost convertite. Le verifici, apoi salvezi.",
+                "Blocurile Spectra %d au fost convertite. Le verifici, apoi salvezi."
+            ],
+            "%d Spectra block could not be converted and is left as it is.": [
+                "Blocul %d Spectra nu a putut fi convertit \u0219i a r\u0103mas a\u0219a cum este.",
+                "Blocurile %d Spectra nu au putut fi convertite \u0219i au r\u0103mas a\u0219a cum sunt.",
+                "Blocurile %d Spectra nu au putut fi convertite \u0219i au r\u0103mas a\u0219a cum sunt."
+            ],
+            "a Heading block": [
+                "un bloc de titlu"
+            ],
+            "Image": [
+                "Imagine"
+            ],
+            "an Image block": [
+                "un bloc de imagine"
+            ],
+            "a Buttons block": [
+                "un bloc de butoane"
+            ],
+            "Testimonial": [
+                "M\u0103rturie"
+            ],
+            "Quote blocks": [
+                "Blocuri de citate"
+            ],
+            "Taxonomy List": [
+                "List\u0103 de taxonomie"
+            ],
+            "a Term list block": [
+                "un bloc de list\u0103 de termeni"
+            ],
+            "core blocks": [
+                "blocuri de baz\u0103"
+            ],
+            "Convert all %d": [
+                "Converte\u0219te toate %d"
+            ],
+            "Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save.": [
+                "Blocul Spectra %1$s. Spectra nu este activ, a\u0219a c\u0103 func\u021bia Convert \u00eel transform\u0103 \u00een %2$s. Nimic nu se schimb\u0103 p\u00e2n\u0103 c\u00e2nd nu salva\u021bi."
+            ]
+        }
+    }
+}

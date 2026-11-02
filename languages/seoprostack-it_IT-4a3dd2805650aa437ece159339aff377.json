@@ -1,0 +1,65 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/spectra\/convert.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "it_IT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Convert": [
+                "Convertire"
+            ],
+            "Buttons": [
+                "pulsanti"
+            ],
+            "Heading": [
+                "Intestazione"
+            ],
+            "Converted %d Spectra block. Check it, then save.": [
+                "Blocco Spectra %d convertito. Controllalo, poi salvalo.",
+                "Blocchi Spectra %d convertiti. Controllali, poi salvali."
+            ],
+            "%d Spectra block could not be converted and is left as it is.": [
+                "Il blocco %d Spectra non \u00e8 stato convertito e viene lasciato cos\u00ec com'\u00e8.",
+                "I blocchi %d Spectra non sono stati convertiti e sono stati lasciati cos\u00ec come sono."
+            ],
+            "a Heading block": [
+                "un blocco di intestazione"
+            ],
+            "Image": [
+                "Immagine"
+            ],
+            "an Image block": [
+                "Blocco immagine"
+            ],
+            "a Buttons block": [
+                "un blocco di pulsanti"
+            ],
+            "Testimonial": [
+                "Testimonianza"
+            ],
+            "Quote blocks": [
+                "blocchi di citazione"
+            ],
+            "Taxonomy List": [
+                "Elenco tassonomico"
+            ],
+            "a Term list block": [
+                "un blocco di elenco dei termini"
+            ],
+            "core blocks": [
+                "blocchi centrali"
+            ],
+            "Convert all %d": [
+                "Converti tutti %d"
+            ],
+            "Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save.": [
+                "Blocco Spectra %1$s. Spectra non \u00e8 attivo, quindi Convert lo trasforma in %2$s. Non cambia nulla finch\u00e9 non salvi."
+            ]
+        }
+    }
+}

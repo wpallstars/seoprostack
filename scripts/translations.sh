@@ -31,9 +31,10 @@ if [[ "$mode" != compile ]]; then
 fi
 
 if [[ "$mode" != pot ]]; then
-    for locale in nl_BE de_DE fr_CA; do
-        po="$root/languages/seoprostack-$locale.po"
-        msgfmt --check --check-format -o "$root/languages/seoprostack-$locale.mo" "$po"
+    # Every bundled locale: languages/seoprostack-<locale>.po.
+    for po in "$root"/languages/seoprostack-*.po; do
+        [[ -f "$po" ]] || continue
+        msgfmt --check --check-format -o "${po%.po}.mo" "$po"
         # Keep JS entries in the PO: the same source is also used for MO files.
         wp i18n make-json "$po" "$root/languages" --no-purge --pretty-print
     done

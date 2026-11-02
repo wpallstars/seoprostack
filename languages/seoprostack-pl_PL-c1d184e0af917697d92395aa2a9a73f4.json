@@ -1,0 +1,47 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-word-import.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Remove": [
+                "Usun\u0105\u0107"
+            ],
+            "This server cannot open Word documents: ask your host to turn on PHP\u2019s zip extension.": [
+                "Ten serwer nie mo\u017ce otwiera\u0107 dokument\u00f3w Word: popro\u015b swojego us\u0142ugodawc\u0119 o w\u0142\u0105czenie rozszerzenia ZIP PHP."
+            ],
+            "Drop the document into the editor again to convert it.": [
+                "Ponownie upu\u015b\u0107 dokument do edytora, aby go przekonwertowa\u0107."
+            ],
+            "The document is larger than your site accepts.": [
+                "Dokument jest wi\u0119kszy, ni\u017c dopuszcza Twoja witryna."
+            ],
+            "The document has no text to add.": [
+                "W dokumencie nie ma tekstu, kt\u00f3ry mo\u017cna by doda\u0107."
+            ],
+            "%d picture in the document could not be added.": [
+                "Nie uda\u0142o si\u0119 doda\u0107 obrazka %d do dokumentu.",
+                "Nie uda\u0142o si\u0119 doda\u0107 obrazk\u00f3w %d do dokumentu.",
+                "Nie uda\u0142o si\u0119 doda\u0107 obrazk\u00f3w %d do dokumentu."
+            ],
+            "The document could not be converted.": [
+                "Nie uda\u0142o si\u0119 przekonwertowa\u0107 dokumentu."
+            ],
+            "Word document": [
+                "Dokument Word"
+            ],
+            "Converting %s\u2026": [
+                "Konwersja %s \u2026"
+            ],
+            "Converts a Word document into blocks.": [
+                "Konwertuje dokument Worda na bloki."
+            ]
+        }
+    }
+}

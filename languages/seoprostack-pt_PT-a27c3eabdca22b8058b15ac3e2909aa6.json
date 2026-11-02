@@ -1,0 +1,165 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pt_PT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Size": [
+                "Tamanho"
+            ],
+            "Embedded content": [
+                "Conte\u00fado incorporado"
+            ],
+            "Page": [
+                "P\u00e1gina"
+            ],
+            "Share": [
+                "Partilhar"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Introduza um endere\u00e7o web completo come\u00e7ando por https:\/\/"
+            ],
+            "Title": [
+                "T\u00edtulo"
+            ],
+            "Payments": [
+                "Pagamentos"
+            ],
+            "Run scripts": [
+                "Executar scripts"
+            ],
+            "Treat as its own site (cookies, storage)": [
+                "Tratar como um site pr\u00f3prio (cookies, armazenamento)"
+            ],
+            "Submit forms": [
+                "Enviar formul\u00e1rios"
+            ],
+            "Open pop-ups": [
+                "Abrir janelas pop-up"
+            ],
+            "Pop-ups without restrictions": [
+                "Pop-ups sem restri\u00e7\u00f5es"
+            ],
+            "Presentation mode": [
+                "Modo de apresenta\u00e7\u00e3o"
+            ],
+            "Alerts and dialogs": [
+                "Alertas e di\u00e1logos"
+            ],
+            "Downloads": [
+                "Downloads"
+            ],
+            "Navigate this page when clicked": [
+                "Navegue nesta p\u00e1gina ao clicar."
+            ],
+            "Autoplay": [
+                "Reprodu\u00e7\u00e3o autom\u00e1tica"
+            ],
+            "Camera": [
+                "C\u00e2mera"
+            ],
+            "Microphone": [
+                "Microfone"
+            ],
+            "Location": [
+                "Localiza\u00e7\u00e3o"
+            ],
+            "Copy to clipboard": [
+                "Copiar para a \u00e1rea de transfer\u00eancia"
+            ],
+            "Protected media": [
+                "M\u00eddia protegida"
+            ],
+            "Picture-in-picture": [
+                "Imagem em imagem"
+            ],
+            "Fixed size": [
+                "Tamanho fixo"
+            ],
+            "Only http and https addresses can be embedded.": [
+                "Apenas os endere\u00e7os http e https podem ser incorporados."
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                "Este dom\u00ednio n\u00e3o est\u00e1 na lista de permitidos em Defini\u00e7\u00f5es \u2192 SEO Pro Stack, pelo que n\u00e3o ser\u00e1 apresentado."
+            ],
+            "iFrame": [
+                "iFrame"
+            ],
+            "Paste the address of the page to embed.": [
+                "Cole o endere\u00e7o da p\u00e1gina que pretende incorporar."
+            ],
+            "Page address": [
+                "Endere\u00e7o da p\u00e1gina"
+            ],
+            "Embed": [
+                "Incorporar"
+            ],
+            "Change address": [
+                "Alterar endere\u00e7o"
+            ],
+            "Describes the embed for screen readers.": [
+                "Descreve a incorpora\u00e7\u00e3o para leitores de ecr\u00e3."
+            ],
+            "Pass page URL parameters": [
+                "Passe os par\u00e2metros da p\u00e1gina URL"
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                "Adiciona a string de consulta desta p\u00e1gina (por exemplo, etiquetas UTM) ao endere\u00e7o incorporado."
+            ],
+            "Aspect ratio": [
+                "Propor\u00e7\u00e3o"
+            ],
+            "Width": [
+                "Largura"
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                "Pixels (ex.: 600) ou uma percentagem (ex.: 100%)."
+            ],
+            "Height (px)": [
+                "Altura (px)"
+            ],
+            "Show border": [
+                "Mostrar borda"
+            ],
+            "Loading and permissions": [
+                "Carregamento e permiss\u00f5es"
+            ],
+            "Lazy load": [
+                "Carga pregui\u00e7osa"
+            ],
+            "Load the page only when it scrolls into view.": [
+                "Carregue a p\u00e1gina apenas quando esta estiver vis\u00edvel no ecr\u00e3."
+            ],
+            "Allow full screen": [
+                "Permitir ecr\u00e3 inteiro"
+            ],
+            "Allow the embedded page to use": [
+                "Permitir que a p\u00e1gina incorporada utilize"
+            ],
+            "Referrer policy": [
+                "Pol\u00edtica de refer\u00eancia"
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                "Que percentagem do endere\u00e7o desta p\u00e1gina \u00e9 enviada para o site incorporado?"
+            ],
+            "Sandbox": [
+                "Sandbox"
+            ],
+            "Sandbox the embedded page": [
+                "Crie um ambiente de teste para a p\u00e1gina incorporada."
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                "Recomendado. A p\u00e1gina s\u00f3 pode fazer o que est\u00e1 selecionado abaixo."
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                "A p\u00e1gina incorporada n\u00e3o est\u00e1 restrita. Desative esta op\u00e7\u00e3o apenas para sites em que confia."
+            ]
+        }
+    }
+}

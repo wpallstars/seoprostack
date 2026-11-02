@@ -1,0 +1,95 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-tabs.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Activate": [
+                "Aktiviz\u0113t"
+            ],
+            "%d item": [
+                "%d prece",
+                "%d preces",
+                "%d preces"
+            ],
+            "Could not measure": [
+                "Nevar\u0113ja izm\u0113r\u012bt"
+            ],
+            "Wait for the bulk action to finish, or stop it.": [
+                "Pagaidiet, l\u012bdz masveida darb\u012bba ir pabeigta, vai apturiet to."
+            ],
+            "%d plugin": [
+                "%d spraudnis",
+                "%d spraud\u0146i",
+                "%d spraud\u0146i"
+            ],
+            "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
+                "Atinstal\u0113t %s? Tas izdz\u0113s\u012bs t\u0101 failus, un spraudnis var izdz\u0113s\u012bs t\u0101 iestat\u012bjumus un datus."
+            ],
+            "Cancelled.": [
+                "Atcelts."
+            ],
+            "Installing\u2026": [
+                "Notiek instal\u0113\u0161ana\u2026"
+            ],
+            "Activating\u2026": [
+                "Aktiviz\u0113\u0161ana\u2026"
+            ],
+            "Deactivating\u2026": [
+                "Deaktiviz\u0113\u0161ana\u2026"
+            ],
+            "Uninstalling\u2026": [
+                "Atinstal\u0113\u0161ana\u2026"
+            ],
+            "%s installed.": [
+                "%s ir instal\u0113ts."
+            ],
+            "%s activated.": [
+                "%s aktiviz\u0113ts."
+            ],
+            "%s deactivated.": [
+                "%s deaktiviz\u0113ts."
+            ],
+            "%s uninstalled.": [
+                "%s ir atinstal\u0113ts."
+            ],
+            "Stopping after this plugin\u2026": [
+                "Apst\u0101jas p\u0113c \u0161\u012b spraud\u0146a izmanto\u0161anas\u2026"
+            ],
+            "%d selected": [
+                "%d atlas\u012bts",
+                "%d atlas\u012bts",
+                "%d atlas\u012bts"
+            ],
+            "Choose a bulk action.": [
+                "Izv\u0113lieties masveida darb\u012bbu."
+            ],
+            "Select at least one plugin.": [
+                "Atlasiet vismaz vienu spraudni."
+            ],
+            "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.": [
+                "Vai atinstal\u0113t %d spraudni? Ja tas ir akt\u012bvs, tas vispirms tiek deaktiviz\u0113ts. Tas izdz\u0113\u0161 t\u0101 failus, un spraudnis var izdz\u0113st t\u0101 iestat\u012bjumus un datus.",
+                "Vai atinstal\u0113t %d spraud\u0146us? Vispirms tiek deaktiviz\u0113ti akt\u012bvie. Tas izdz\u0113\u0161 to failus, un spraud\u0146i var izdz\u0113siet savus iestat\u012bjumus un datus.",
+                "Vai atinstal\u0113t %d spraud\u0146us? Vispirms tiek deaktiviz\u0113ti akt\u012bvie. Tas izdz\u0113\u0161 to failus, un spraud\u0146i var izdz\u0113siet savus iestat\u012bjumus un datus."
+            ],
+            "%1$d of %2$d: %3$s": [
+                "%1$d no %2$d: %3$s"
+            ],
+            "Changed %1$d, skipped %2$d, failed %3$d.": [
+                "Main\u012bts %1$d, izlaists %2$d, neizdev\u0101s %3$d."
+            ],
+            "Stopped.": [
+                "Apst\u0101jies."
+            ],
+            "Done.": [
+                "Pabeigts."
+            ]
+        }
+    }
+}

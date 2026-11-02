@@ -1,0 +1,47 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-word-import.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Remove": [
+                "Elimina"
+            ],
+            "This server cannot open Word documents: ask your host to turn on PHP\u2019s zip extension.": [
+                "Acest server nu poate deschide documente Word: ruga\u021bi gazda s\u0103 activeze extensia zip din PHP."
+            ],
+            "Drop the document into the editor again to convert it.": [
+                "Plasa\u021bi din nou documentul \u00een editor pentru a-l converti."
+            ],
+            "The document is larger than your site accepts.": [
+                "Documentul este mai mare dec\u00e2t accept\u0103 site-ul dvs."
+            ],
+            "The document has no text to add.": [
+                "Documentul nu are text de ad\u0103ugat."
+            ],
+            "%d picture in the document could not be added.": [
+                "Imaginea %d din document nu a putut fi ad\u0103ugat\u0103.",
+                "Imaginile %d din document nu au putut fi ad\u0103ugate.",
+                "Imaginile %d din document nu au putut fi ad\u0103ugate."
+            ],
+            "The document could not be converted.": [
+                "Documentul nu a putut fi convertit."
+            ],
+            "Word document": [
+                "Document Word"
+            ],
+            "Converting %s\u2026": [
+                "Conversia lui %s \u2026"
+            ],
+            "Converts a Word document into blocks.": [
+                "Converte\u0219te un document Word \u00een blocuri."
+            ]
+        }
+    }
+}

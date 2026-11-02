@@ -1,0 +1,30 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-whole-theme.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Light": [
+                "Aprinde"
+            ],
+            "Dark": [
+                "\u00centuneric"
+            ],
+            "System": [
+                "Sistem"
+            ],
+            "Colour mode: %s": [
+                "Mod de culoare: %s"
+            ],
+            "The colour mode could not be saved. Please try again.": [
+                "Modul de culoare nu a putut fi salvat. V\u0103 rug\u0103m s\u0103 \u00eencerca\u021bi din nou."
+            ]
+        }
+    }
+}

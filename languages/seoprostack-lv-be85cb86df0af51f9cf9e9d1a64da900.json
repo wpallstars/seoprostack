@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/client-dashboard\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Order page": [
+                "Pas\u016bt\u012bjuma lapa"
+            ],
+            "Call booking page": [
+                "Zvanu rezerv\u0113\u0161anas lapa"
+            ],
+            "Calls": [
+                "Zvani"
+            ],
+            "Show": [
+                "R\u0101d\u012bt"
+            ],
+            "Orders": [
+                "Pas\u016bt\u012bjumi"
+            ],
+            "Report": [
+                "Zi\u0146ojums"
+            ],
+            "A link to the address in the client\u2019s FluentCRM report field.": [
+                "Saite uz adresi klienta FluentCRM atskaites lauk\u0101."
+            ],
+            "Upcoming FluentBooking calls.": [
+                "Gaid\u0101mie FluentBooking zvani."
+            ],
+            "Payments": [
+                "Maks\u0101jumi"
+            ],
+            "Fluent Forms payments.": [
+                "Fluent Forms maks\u0101jumi."
+            ],
+            "Courses": [
+                "Kursi"
+            ],
+            "Tutor LMS courses the client is enrolled in.": [
+                "Pasniedz\u0113ja LMS kursi, kuros klients ir re\u0123istr\u0113jies."
+            ],
+            "Community spaces": [
+                "Kopienas telpas"
+            ],
+            "FluentCommunity spaces the client belongs to.": [
+                "FluentCommunity telpas, kur\u0101m klients pieder."
+            ],
+            "A page ID or address for \u201cOrder something new\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Lapas ID vai adrese sada\u013cai \u201cPas\u016bt\u012bt kaut ko jaunu\u201d. Tuk\u0161a sleja izmanto izv\u0113l\u0113to SEO Pro Stack lauk\u0101."
+            ],
+            "A page ID or address for \u201cBook a call\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Lapas ID vai adrese funkcijai \u201cRezerv\u0113t zvanu\u201d. Tuk\u0161a poz\u012bcija izmanto izv\u0113l\u0113to SEO Pro Stack."
+            ]
+        }
+    }
+}

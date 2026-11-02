@@ -1,0 +1,165 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Size": [
+                "Izm\u0113rs"
+            ],
+            "Embedded content": [
+                "Iegults saturs"
+            ],
+            "Page": [
+                "Lapa"
+            ],
+            "Share": [
+                "Kop\u012bgot"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Ievadiet pilnu t\u012bmek\u013ca adresi, kas s\u0101kas ar https:\/\/"
+            ],
+            "Title": [
+                "Nosaukums"
+            ],
+            "Payments": [
+                "Maks\u0101jumi"
+            ],
+            "Run scripts": [
+                "Palaist skriptus"
+            ],
+            "Treat as its own site (cookies, storage)": [
+                "Uztvert k\u0101 atsevi\u0161\u0137u vietni (s\u012bkfaili, kr\u0101tuve)"
+            ],
+            "Submit forms": [
+                "Iesniegt veidlapas"
+            ],
+            "Open pop-ups": [
+                "Atv\u0113rt uznirsto\u0161os logus"
+            ],
+            "Pop-ups without restrictions": [
+                "Uznirsto\u0161ie logi bez ierobe\u017eojumiem"
+            ],
+            "Presentation mode": [
+                "Prezent\u0101cijas re\u017e\u012bms"
+            ],
+            "Alerts and dialogs": [
+                "Br\u012bdin\u0101jumi un dialoglodzi\u0146i"
+            ],
+            "Downloads": [
+                "Lejupiel\u0101des"
+            ],
+            "Navigate this page when clicked": [
+                "Navig\u0101cija \u0161aj\u0101 lap\u0101, noklik\u0161\u0137inot uz t\u0101s"
+            ],
+            "Autoplay": [
+                "Autom\u0101tiska atska\u0146o\u0161ana"
+            ],
+            "Camera": [
+                "Kamera"
+            ],
+            "Microphone": [
+                "Mikrofons"
+            ],
+            "Location": [
+                "Atra\u0161an\u0101s vieta"
+            ],
+            "Copy to clipboard": [
+                "Kop\u0113t starpliktuv\u0113"
+            ],
+            "Protected media": [
+                "Aizsarg\u0101ts multivide"
+            ],
+            "Picture-in-picture": [
+                "Att\u0113ls att\u0113l\u0101"
+            ],
+            "Fixed size": [
+                "Fiks\u0113ts izm\u0113rs"
+            ],
+            "Only http and https addresses can be embedded.": [
+                "Var iegult tikai http un https adreses."
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                "\u0160is dom\u0113ns nav at\u013cauto dom\u0113nu sarakst\u0101 sada\u013c\u0101 Iestat\u012bjumi \u2192 SEO Pro Stack, t\u0101p\u0113c tas netiks r\u0101d\u012bts."
+            ],
+            "iFrame": [
+                "iFrame"
+            ],
+            "Paste the address of the page to embed.": [
+                "Iel\u012bm\u0113jiet iegult\u0101s lapas adresi."
+            ],
+            "Page address": [
+                "Lapas adrese"
+            ],
+            "Embed": [
+                "Iegult"
+            ],
+            "Change address": [
+                "Main\u012bt adresi"
+            ],
+            "Describes the embed for screen readers.": [
+                "Apraksta iegul\u0161anu ekr\u0101na las\u012bt\u0101jiem."
+            ],
+            "Pass page URL parameters": [
+                "Nodot lapu URL parametriem"
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                "Pievieno \u0161\u012bs lapas vaic\u0101juma virkni (piem\u0113ram, UTM tagus) iegultajai adresei."
+            ],
+            "Aspect ratio": [
+                "Malu attiec\u012bba"
+            ],
+            "Width": [
+                "Platums"
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                "Pikse\u013ci (piem\u0113ram, 600) vai procentu\u0101l\u0101 da\u013ca (piem\u0113ram, 100%)."
+            ],
+            "Height (px)": [
+                "Augstums (pikse\u013ci)"
+            ],
+            "Show border": [
+                "R\u0101d\u012bt apmali"
+            ],
+            "Loading and permissions": [
+                "Iel\u0101de un at\u013caujas"
+            ],
+            "Lazy load": [
+                "Slinka slodze"
+            ],
+            "Load the page only when it scrolls into view.": [
+                "Iel\u0101d\u0113t lapu tikai tad, kad t\u0101 tiek ritin\u0101ta redzam\u0101 viet\u0101."
+            ],
+            "Allow full screen": [
+                "At\u013caut pilnekr\u0101na re\u017e\u012bmu"
+            ],
+            "Allow the embedded page to use": [
+                "At\u013caut iegult\u0101s lapas lieto\u0161anu"
+            ],
+            "Referrer policy": [
+                "Atsauces politika"
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                "Cik liela da\u013ca no \u0161\u012bs lapas adreses tiek nos\u016bt\u012bta uz iegulto vietni."
+            ],
+            "Sandbox": [
+                "Smil\u0161u kaste"
+            ],
+            "Sandbox the embedded page": [
+                "Iegult\u0101s lapas smil\u0161kaste"
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                "Ieteicams. Lapa var veikt tikai to, kas ir atz\u012bm\u0113ts zem\u0101k."
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                "Iegult\u0101 lapa nav ierobe\u017eota. Izsl\u0113dziet \u0161o funkciju tikai vietn\u0113m, kur\u0101m uzticaties."
+            ]
+        }
+    }
+}

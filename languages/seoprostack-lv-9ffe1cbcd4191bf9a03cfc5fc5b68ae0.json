@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Columns": [
+                "Kolonnas"
+            ],
+            "Related posts": [
+                "Saist\u012bt\u0101s zi\u0146as"
+            ],
+            "Number of posts": [
+                "Ierakstu skaits"
+            ],
+            "Show as": [
+                "R\u0101d\u012bt k\u0101"
+            ],
+            "Grid with pictures": [
+                "Re\u017e\u0123is ar att\u0113liem"
+            ],
+            "List": [
+                "Saraksts"
+            ],
+            "Show featured images": [
+                "R\u0101d\u012bt pied\u0101v\u0101tos att\u0113lus"
+            ],
+            "Show dates": [
+                "R\u0101d\u012bt datumus"
+            ],
+            "Show a heading": [
+                "R\u0101d\u012bt virsrakstu"
+            ],
+            "Heading": [
+                "Virsraksts"
+            ],
+            "Compare": [
+                "Sal\u012bdzin\u0101t"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "Neviens neatz\u012bm\u0113tais nel\u012bdzsvaro tos visus. Termini, kas izmantoti da\u017eos ierakstos, ir daudz svar\u012bg\u0101ki."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "V\u0113l nav saist\u012btu ierakstu. \u0160eit tiks r\u0101d\u012bti ieraksti, kuriem ir t\u0101das pa\u0161as kategorijas, tagi vai citi termini k\u0101 \u0161im ierakstam."
+            ]
+        }
+    }
+}

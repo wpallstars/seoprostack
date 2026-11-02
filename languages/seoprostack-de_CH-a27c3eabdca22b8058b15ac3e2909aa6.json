@@ -1,0 +1,165 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "de_CH",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Size": [
+                "Gr\u00f6sse"
+            ],
+            "Embedded content": [
+                "Eingebetteter Inhalt"
+            ],
+            "Page": [
+                "Seite"
+            ],
+            "Share": [
+                "Teilen"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Geben Sie eine vollst\u00e4ndige Webadresse ein, die mit https:\/\/ beginnt."
+            ],
+            "Title": [
+                "Titel"
+            ],
+            "Payments": [
+                "Zahlungen"
+            ],
+            "Run scripts": [
+                "Skripte ausf\u00fchren"
+            ],
+            "Treat as its own site (cookies, storage)": [
+                "Behandeln Sie es wie eine eigene Website (Cookies, Speicherung)"
+            ],
+            "Submit forms": [
+                "Formulare einreichen"
+            ],
+            "Open pop-ups": [
+                "\u00d6ffnen Sie Pop-ups"
+            ],
+            "Pop-ups without restrictions": [
+                "Pop-ups ohne Einschr\u00e4nkungen"
+            ],
+            "Presentation mode": [
+                "Pr\u00e4sentationsmodus"
+            ],
+            "Alerts and dialogs": [
+                "Benachrichtigungen und Dialoge"
+            ],
+            "Downloads": [
+                "Downloads"
+            ],
+            "Navigate this page when clicked": [
+                "Navigieren Sie auf dieser Seite, wenn Sie darauf klicken"
+            ],
+            "Autoplay": [
+                "Automatische Wiedergabe"
+            ],
+            "Camera": [
+                "Kamera"
+            ],
+            "Microphone": [
+                "Mikrofon"
+            ],
+            "Location": [
+                "Standort"
+            ],
+            "Copy to clipboard": [
+                "In die Zwischenablage kopieren"
+            ],
+            "Protected media": [
+                "Gesch\u00fctzte Medien"
+            ],
+            "Picture-in-picture": [
+                "Bild-in-Bild"
+            ],
+            "Fixed size": [
+                "Feste Gr\u00f6sse"
+            ],
+            "Only http and https addresses can be embedded.": [
+                "Es k\u00f6nnen nur http- und https-Adressen eingebettet werden."
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                "Diese Domain steht nicht auf der Liste der zul\u00e4ssigen Domains unter Einstellungen \u2192 SEO Pro Stack und wird daher nicht angezeigt."
+            ],
+            "iFrame": [
+                "iFrame"
+            ],
+            "Paste the address of the page to embed.": [
+                "F\u00fcgen Sie die Adresse der Seite ein, die eingebettet werden soll."
+            ],
+            "Page address": [
+                "Seitenadresse"
+            ],
+            "Embed": [
+                "Einbetten"
+            ],
+            "Change address": [
+                "Adresse \u00e4ndern"
+            ],
+            "Describes the embed for screen readers.": [
+                "Beschreibt die Einbettung f\u00fcr Bildschirmleseprogramme."
+            ],
+            "Pass page URL parameters": [
+                "Pass-Seite URL-Parameter"
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                "F\u00fcgt die Abfragezeichenfolge dieser Seite (z. B. UTM-Tags) zur eingebetteten Adresse hinzu."
+            ],
+            "Aspect ratio": [
+                "Seitenverh\u00e4ltnis"
+            ],
+            "Width": [
+                "Breite"
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                "Pixel (z. B. 600) oder ein Prozentsatz (z. B. 100 %)."
+            ],
+            "Height (px)": [
+                "H\u00f6he (px)"
+            ],
+            "Show border": [
+                "Rahmen anzeigen"
+            ],
+            "Loading and permissions": [
+                "Laden und Berechtigungen"
+            ],
+            "Lazy load": [
+                "Faule Ladung"
+            ],
+            "Load the page only when it scrolls into view.": [
+                "Die Seite wird erst geladen, wenn sie in den sichtbaren Bereich gescrollt wird."
+            ],
+            "Allow full screen": [
+                "Vollbildmodus zulassen"
+            ],
+            "Allow the embedded page to use": [
+                "Erlauben Sie der eingebetteten Seite die Verwendung"
+            ],
+            "Referrer policy": [
+                "Empfehlungsrichtlinie"
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                "Wie viel von der Adresse dieser Seite wird an die eingebettete Website gesendet?"
+            ],
+            "Sandbox": [
+                "Sandkasten"
+            ],
+            "Sandbox the embedded page": [
+                "Sandbox-Umgebung f\u00fcr die eingebettete Seite"
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                "Empfohlen. Die Seite kann nur die unten ausgew\u00e4hlten Aktionen ausf\u00fchren."
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                "Die eingebettete Seite ist nicht eingeschr\u00e4nkt. Deaktivieren Sie diese Funktion nur f\u00fcr Seiten, denen Sie vertrauen."
+            ]
+        }
+    }
+}

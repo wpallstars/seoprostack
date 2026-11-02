@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.140 =
+* New: translations: fr_FR, fr_BE, es_ES, es_MX, it_IT, pt_PT, pt_BR, nl_NL, de_AT, de_CH, pl_PL, ro_RO, lv and et, 3,291 strings each, beside nl_BE, de_DE and fr_CA. Machine translations (Google Cloud Translation v2) carry the translator comment "machine translation"; nl_NL, de_AT and de_CH copy the Belgian Dutch and German catalogues (de_CH with "ss" for "ß"), whose hand-written strings Google would otherwise replace. Without a bundled catalogue TranslatePress translated the plugin's front-end labels one fragment at a time and chose the wrong sense: on a Spanish page "Like" read "Como" ("as") and "Save" "Ahorrar" (save money). The 18 strings visitors see (the reactions, the shortlist, sharing, Close, More, Duplicate and the tally plurals) are reviewed in every locale, including nl_BE, de_DE and fr_CA ("Share" had been "Aktie" in German and "Save" "Redden" in Dutch), with short labels and the shortlist named "my list" as on the sites' headers. scripts/translations.sh compiles every languages/seoprostack-*.po instead of a fixed list (#1161).
+
 = 1.3.139 =
 * Fix: Language switcher: the list opens towards the side of its button with room. The header list still opens downwards and the footer and mobile-drawer lists upwards, but when the list does not fit there and the other side has more room it opens that way; its max-height is capped to the space it has (EDGE 14px from the screen edge, never under 120px or above the stylesheet's cap) through data-placement="up|down", so every language stays on screen and the list scrolls with its shade. Before, a mobile drawer whose button was less than the list's height from the top put the first languages above the screen (#1159).
 
