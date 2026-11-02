@@ -5143,7 +5143,6 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     $id = (int) $job['id'];
                     $record = get_post_meta($id, self::META, true);
                     if (count($retry_ids) < $limit && empty($record['collision_refused']) && !self::removed_elsewhere($id)) {
-                        self::queue($id);
                         $retry_ids[] = $id;
                     }
                 } elseif (is_array($job) && 'original_retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
@@ -5174,28 +5173,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
-        $retried = 0;
-        $uploaded = 0;
-        if ($retry_ids) {
-            // Explicit retries must not yield to an unrelated media-job queue.
-            // upload_attachment still guards each picture's pending watermark.
-            $lease = self::cli_lease();
-            $retry_start = microtime(true);
-            try {
-                foreach ($retry_ids as $id) {
-                    if (!self::more_time($retry_start, self::BUDGET)) {
-                        break;
-                    }
-                    ++$retried;
-                    if (self::upload_attachment($id, $retry_start)) {
-                        ++$uploaded;
-                    }
-                }
-            } finally {
-                self::release($lease);
-            }
-        }
-        $limit -= $retried;
+        $retries = self::cli_retry_uploads($retry_ids);
+        $limit -= $retries['retried'];
         // Use the same lock, budget and watermark guard as cron.
         $start = microtime(true);
         while ($limit > 0) {
@@ -5209,8 +5188,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (isset($assoc['retry-failed'])) {
             delete_transient(self::COUNTS);
             $failed = self::counts()['failed'];
-            $message = sprintf('Retried %d attachment(s); %d uploaded; %d still failed; %d retries deferred.', $retried, $uploaded, $failed, count($retry_ids) - $uploaded);
-            if ($failed || count($retry_ids) > $uploaded) {
+            $message = sprintf('Retried %d attachment(s); %d uploaded; %d still failed; %d retries incomplete.', $retries['retried'], $retries['uploaded'], $failed, count($retry_ids) - $retries['uploaded']);
+            if ($failed || count($retry_ids) > $retries['uploaded']) {
                 WP_CLI::error($message);
             }
             WP_CLI::success($message);
@@ -5220,11 +5199,43 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Recover failed or unfinished uploads whose retry job was lost, newest first.
+     * Retry selected pictures before unrelated media jobs, within one batch budget.
+     *
+     * @param int[] $ids Selected attachment IDs.
+     * @return array{retried:int,uploaded:int} Retry outcomes.
+     */
+    private static function cli_retry_uploads($ids) {
+        $counts = array('retried' => 0, 'uploaded' => 0);
+        if (!$ids) {
+            return $counts;
+        }
+        $lease = self::cli_lease();
+        $start = microtime(true);
+        try {
+            foreach ($ids as $id) {
+                if (!self::more_time($start, self::BUDGET)) {
+                    break;
+                }
+                // Direct uploads ignore back-off; keep the old retry job and
+                // completion marker intact if a watermark guard defers them.
+                ++$counts['retried'];
+                // upload_attachment retains the per-picture watermark guard.
+                if (self::upload_attachment($id, $start)) {
+                    ++$counts['uploaded'];
+                }
+            }
+        } finally {
+            self::release($lease);
+        }
+        return $counts;
+    }
+
+    /**
+     * Find failed or unfinished uploads whose retry job was lost, newest first.
      * Page past refusals without loading the whole media library.
      *
-     * @param int $limit Most attachments to requeue.
-     * @return int[] Requeued attachment IDs.
+     * @param int $limit Most attachments to select.
+     * @return int[] Selected attachment IDs.
      */
     private static function retry_stranded($limit) {
         global $wpdb;
@@ -5253,7 +5264,6 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 if (!empty($record['collision_refused']) || $legacy_refusal || self::removed_elsewhere($id)) {
                     continue;
                 }
-                self::queue($id);
                 $queued[] = $id;
             }
         } while ($ids && count($queued) < $limit);
