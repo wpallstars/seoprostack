@@ -2305,6 +2305,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- New: Dutch (`nl_BE`), German (`de_DE`) and French (`fr_CA`) translations ship in `languages/` (`Domain Path: /languages`), 3,291 strings each, so sites in those languages show the plugin's screens, blocks and front-end text translated. Most are machine translations (Google Cloud Translation v2), marked with the translator comment "machine translation" until reviewed; placeholders, HTML and product names are kept. The text domain is registered on `init` before features start, block and admin scripts load the bundled JSON files, and a WordPress.org language pack still wins. `bash scripts/translations.sh` regenerates the `.pot` and compiles the `.mo` and `.json` files (#1141).
 - Fix: Kadence Blocks Pro versions newer than the checked 2.8.20.1 use their full REST server for query loops, so changes to Kadence's route permissions and methods are not replaced by an older definition (#1138).
 
 ### 1.3.136
