@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.137-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.138-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.137
+Version: 1.3.138
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2314,8 +2314,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.138
 
+- Fix: `wp seoprostack media-storage upload --retry-failed` retries failed uploads before background media jobs, instead of uploading nothing while they have work (#1152).
 - New, off by default: **Language switcher beside Kadence's dark mode switch** (Content tab). With TranslatePress and more than one language, a compact flag-and-code button in the header, mobile menu and footer opens the site's languages with their flags; English shows the site's own country flag. The footer row is centred (#1156).
 - Fix: **Media in cloud storage** retries transient storage errors up to three times within its batch deadline, without resending successful peers. An isolated removal HEAD failure keeps that picture's files instead of pausing removal for the whole site; repeated service failures still pause it (#1145).
 - Fix: Media in cloud storage recovers a watermark job whose cron event was lost, so uploads do not wait forever. `wp seoprostack media-storage status` names the waiting job, warns after a minute without recorded progress and restores a missing watermark event (#1147).
