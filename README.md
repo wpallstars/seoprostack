@@ -2317,6 +2317,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Fix: Links skip redirects matches encoded link paths as Rank Math does and ignores its cached redirects when Rank Math or its Redirections module is unavailable. Custom redirect filters still work without Rank Math (GitHub issue #1137).
+- Fix: Links skip redirects lets WordPress decode HTML entities before rejecting a link and keeps literal `+` and percent escapes in custom filter paths distinct from decoded Rank Math paths (#1137).
 
 ### 1.3.140
 

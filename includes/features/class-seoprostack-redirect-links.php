@@ -50,8 +50,9 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
     /**
      * Redirections for this request: exact (old path => where it goes) and
      * nocase (the same, for patterns that ignore case, by lower-case path).
+     * Custom additions and overrides also match their raw path first.
      *
-     * @var array{exact:array<string,string>,nocase:array<string,string>}|null
+     * @var array{exact:array<string,string>,nocase:array<string,string>,custom:array<string,string>}|null
      */
     private static $map = null;
 
@@ -102,7 +103,7 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
     /**
      * The redirections links skip.
      *
-     * @return array{exact:array<string,string>,nocase:array<string,string>}
+     * @return array{exact:array<string,string>,nocase:array<string,string>,custom:array<string,string>}
      */
     private static function map() {
         if (null !== self::$map) {
@@ -124,9 +125,11 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
          * @param array<string,string> $exact Redirects, from Rank Math.
          */
         $exact = apply_filters('seoprostack_redirect_links', (array) $map['exact']);
+        $exact = is_array($exact) ? array_map('strval', $exact) : array();
         self::$map = array(
-            'exact'  => is_array($exact) ? array_map('strval', $exact) : array(),
+            'exact'  => $exact,
             'nocase' => (array) $map['nocase'],
+            'custom' => array_diff_assoc($exact, (array) $map['exact']),
         );
         return self::$map;
     }
@@ -201,8 +204,7 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
         if (0 !== strpos($path, $base)) {
             return null;
         }
-        // Rank Math decodes the request URI, not its stored source patterns.
-        return trim(urldecode(substr($path, strlen($base))), '/');
+        return trim(substr($path, strlen($base)), '/');
     }
 
     /**
@@ -216,6 +218,12 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
             return null;
         }
         $map = self::map();
+        // Custom filter paths keep literal '+' and percent escapes distinct.
+        if (isset($map['custom'][$path])) {
+            return $map['custom'][$path];
+        }
+        // Rank Math decodes the request URI, not its stored source patterns.
+        $path = trim(urldecode($path), '/');
         if (isset($map['exact'][$path])) {
             return $map['exact'][$path];
         }
@@ -264,15 +272,19 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
      * @return bool
      */
     private static function mentions_old_address($html) {
+        // Let the tag processor decode entities before deciding which links match.
+        if (false !== strpos($html, '&')) {
+            return true;
+        }
         $map = self::map();
-        $html = urldecode($html);
+        $decoded = urldecode($html);
         foreach (array_keys($map['exact']) as $path) {
-            if (false !== strpos($html, '/' . $path)) {
+            if (false !== strpos($html, '/' . $path) || false !== strpos($decoded, '/' . $path)) {
                 return true;
             }
         }
         foreach (array_keys($map['nocase']) as $path) {
-            if (false !== stripos($html, '/' . $path)) {
+            if (false !== stripos($html, '/' . $path) || false !== stripos($decoded, '/' . $path)) {
                 return true;
             }
         }
