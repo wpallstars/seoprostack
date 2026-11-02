@@ -1,0 +1,91 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-tabs.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_ES",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Activate": [
+                "Activar"
+            ],
+            "%d item": [
+                "Art\u00edculo %d",
+                "Elementos %d"
+            ],
+            "Could not measure": [
+                "No se pudo medir"
+            ],
+            "Wait for the bulk action to finish, or stop it.": [
+                "Espere a que finalice la operaci\u00f3n masiva o det\u00e9ngala."
+            ],
+            "%d plugin": [
+                "complemento %d",
+                "complementos %d"
+            ],
+            "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
+                "Desinstalar %s: Esto elimina sus archivos y el complemento podr\u00eda borrar su configuraci\u00f3n y datos."
+            ],
+            "Cancelled.": [
+                "Cancelado."
+            ],
+            "Installing\u2026": [
+                "Instalando\u2026"
+            ],
+            "Activating\u2026": [
+                "Activando\u2026"
+            ],
+            "Deactivating\u2026": [
+                "Desactivando\u2026"
+            ],
+            "Uninstalling\u2026": [
+                "Desinstalando\u2026"
+            ],
+            "%s installed.": [
+                "%s instalado."
+            ],
+            "%s activated.": [
+                "%s activado."
+            ],
+            "%s deactivated.": [
+                "%s desactivado."
+            ],
+            "%s uninstalled.": [
+                "%s desinstalado."
+            ],
+            "Stopping after this plugin\u2026": [
+                "Deteni\u00e9ndose despu\u00e9s de este complemento\u2026"
+            ],
+            "%d selected": [
+                "%d seleccionado",
+                "%d seleccionado"
+            ],
+            "Choose a bulk action.": [
+                "Seleccione una acci\u00f3n masiva."
+            ],
+            "Select at least one plugin.": [
+                "Seleccione al menos un complemento."
+            ],
+            "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.": [
+                "\u00bfDesinstalar el plugin %d ? Si est\u00e1 activo, primero debe desactivarse. Esto elimina sus archivos y, posiblemente, su configuraci\u00f3n y datos.",
+                "\u00bfDesinstalar los plugins %d ? Primero se desactivan los que est\u00e1n activos. Esto elimina sus archivos, y los plugins podr\u00edan borrar su configuraci\u00f3n y datos."
+            ],
+            "%1$d of %2$d: %3$s": [
+                "%1$d de %2$d: %3$s"
+            ],
+            "Changed %1$d, skipped %2$d, failed %3$d.": [
+                "Se modific\u00f3 %1$d, se omiti\u00f3 %2$d, fall\u00f3 %3$d."
+            ],
+            "Stopped.": [
+                "Interrumpido."
+            ],
+            "Done.": [
+                "Hecho."
+            ]
+        }
+    }
+}

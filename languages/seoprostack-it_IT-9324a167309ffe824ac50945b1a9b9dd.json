@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "it_IT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Form": [
+                "Modulo"
+            ],
+            "Choose a form": [
+                "Scegli un modulo"
+            ],
+            "%s (no form on this site)": [
+                "%s (nessun modulo su questo sito)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Mostra dopo l'invio del modulo: ringraziamenti, il commento con Copia revisione e i link di revisione per %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Mostrato dopo l'invio del modulo: solo ringraziamenti. Imposta i destinatari dei link brevi googlereview, facebookreview o trustpilotreview per mostrare i link alle recensioni."
+            ],
+            "Feedback form": [
+                "Modulo di feedback"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "Il modulo Fluent presente in questa pagina raccoglie la valutazione e il commento."
+            ],
+            "Rating field name": [
+                "Nome del campo di valutazione"
+            ],
+            "Default: rating.": [
+                "Predefinito: valutazione."
+            ],
+            "Comment field name": [
+                "Nome del campo dei commenti"
+            ],
+            "Default: comment.": [
+                "Predefinito: commento."
+            ],
+            "High rating from": [
+                "Valutazione elevata da"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Cambia solo la formulazione: per ogni valutazione vengono visualizzati i link alle recensioni."
+            ],
+            "Wording": [
+                "Formulazione"
+            ],
+            "Thanks, high rating": [
+                "Grazie, valutazione alta"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Predefinito: Grazie per il tuo feedback!"
+            ],
+            "Thanks, low rating": [
+                "Grazie, voto basso"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Predefinito: Grazie per avercelo segnalato. Ti contatteremo per risolvere la situazione."
+            ],
+            "Review request, high rating": [
+                "Richiesta di recensione, valutazione elevata"
+            ],
+            "Review request, low rating": [
+                "Richiesta di recensione, valutazione bassa"
+            ],
+            "Copy button": [
+                "Pulsante Copia"
+            ],
+            "Default: Copy review": [
+                "Predefinito: Revisione della copia"
+            ],
+            "Review links": [
+                "Link di recensione"
+            ]
+        }
+    }
+}

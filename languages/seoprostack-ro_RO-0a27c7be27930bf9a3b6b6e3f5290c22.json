@@ -1,0 +1,57 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/saved-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Saved": [
+                "Salvat"
+            ],
+            "Remove": [
+                "Elimina"
+            ],
+            "Shortlist": [
+                "Lista mea"
+            ],
+            "Liked": [
+                "A pl\u0103cut"
+            ],
+            "Nothing saved yet.": [
+                "Nimic salvat \u00eenc\u0103."
+            ],
+            "List": [
+                "List\u0103"
+            ],
+            "A saved post": [
+                "O postare salvat\u0103"
+            ],
+            "Another saved post": [
+                "\u00cenc\u0103 o postare salvat\u0103"
+            ],
+            "Saved posts": [
+                "Post\u0103ri salvate"
+            ],
+            "Show excerpts": [
+                "Afi\u0219a\u021bi fragmente"
+            ],
+            "Show Remove buttons": [
+                "Afi\u0219a\u021bi butoanele Eliminare"
+            ],
+            "Text when nothing is saved": [
+                "Trimite mesaj c\u00e2nd nu este salvat nimic"
+            ],
+            "The post\u2019s excerpt.": [
+                "Extrasul post\u0103rii."
+            ],
+            "Each visitor sees their own selected list.": [
+                "Fiecare vizitator \u00ee\u0219i vede propria list\u0103 selectat\u0103."
+            ]
+        }
+    }
+}

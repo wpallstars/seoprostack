@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/form\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Settings": [
+                "Set\u0103ri"
+            ],
+            "Form": [
+                "Form\u0103"
+            ],
+            "Choose a form in the block settings.": [
+                "Alege\u021bi un formular din set\u0103rile blocului."
+            ],
+            "Title": [
+                "Titlu"
+            ],
+            "Choose a form": [
+                "Alege\u021bi un formular"
+            ],
+            "%s (no form on this site)": [
+                "%s (nu exist\u0103 formular pe acest site)"
+            ],
+            "Published Fluent forms that carry a key.": [
+                "Formulare Fluent publicate care poart\u0103 o cheie."
+            ],
+            "No form has a key yet: wp seoprostack form-keys set <form-id> <key>.": [
+                "Niciun formular nu are \u00eenc\u0103 o cheie: wp seoprostack form-keys set <form-id> <key>."
+            ],
+            "In a panel": [
+                "\u00centr-un panou"
+            ],
+            "A bordered box around the form, as the theme draws panels.": [
+                "O caset\u0103 \u00eencadrat\u0103 \u00een jurul formularului, deoarece tema deseneaz\u0103 panouri."
+            ],
+            "Opens from links to %s.": [
+                "Se deschide din linkuri c\u0103tre %s."
+            ],
+            "Without Kadence Blocks Pro the form shows here, in a panel.": [
+                "F\u0103r\u0103 Kadence Blocks Pro, formularul este afi\u0219at aici, \u00eentr-un panou."
+            ],
+            "Modal ID": [
+                "ID modal"
+            ],
+            "Links to #ID open the modal. Empty: the form key.": [
+                "Linkurile c\u0103tre #ID deschid fereastra modal\u0103. Gol: cheia formularului."
+            ],
+            "Introduction": [
+                "Introducere"
+            ],
+            "Form modal": [
+                "Formular modal"
+            ]
+        }
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Columns": [
+                "Veerud"
+            ],
+            "Related posts": [
+                "Seotud postitused"
+            ],
+            "Number of posts": [
+                "Postituste arv"
+            ],
+            "Show as": [
+                "N\u00e4ita kui"
+            ],
+            "Grid with pictures": [
+                "Piltidega ruudustik"
+            ],
+            "List": [
+                "Loend"
+            ],
+            "Show featured images": [
+                "N\u00e4ita esilet\u00f5stetud pilte"
+            ],
+            "Show dates": [
+                "N\u00e4ita kuup\u00e4evi"
+            ],
+            "Show a heading": [
+                "Pealkirja kuvamine"
+            ],
+            "Heading": [
+                "Pealkiri"
+            ],
+            "Compare": [
+                "V\u00f5rdle"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "\u00dckski linnuke ei v\u00f5rdle neid k\u00f5iki. V\u00e4hestes postitustes kasutatud terminid loevad rohkem."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "Seotud postitusi veel pole. Siin kuvatakse postitused, millel on sellega samad kategooriad, sildid v\u00f5i muud terminid."
+            ]
+        }
+    }
+}

@@ -1,0 +1,57 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/saved-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Saved": [
+                "Salvestatud"
+            ],
+            "Remove": [
+                "Eemalda"
+            ],
+            "Shortlist": [
+                "Minu nimekiri"
+            ],
+            "Liked": [
+                "Meeldis"
+            ],
+            "Nothing saved yet.": [
+                "Midagi pole veel salvestatud."
+            ],
+            "List": [
+                "Loend"
+            ],
+            "A saved post": [
+                "Salvestatud postitus"
+            ],
+            "Another saved post": [
+                "Veel \u00fcks salvestatud postitus"
+            ],
+            "Saved posts": [
+                "Salvestatud postitused"
+            ],
+            "Show excerpts": [
+                "N\u00e4ita katkendeid"
+            ],
+            "Show Remove buttons": [
+                "Kuva eemaldamisnupud"
+            ],
+            "Text when nothing is saved": [
+                "S\u00f5numi saatmine, kui midagi pole salvestatud"
+            ],
+            "The post\u2019s excerpt.": [
+                "Postituse v\u00e4ljav\u00f5te."
+            ],
+            "Each visitor sees their own selected list.": [
+                "Iga k\u00fclastaja n\u00e4eb oma valitud nimekirja."
+            ]
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/saved-panel\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_MX",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Shortlist": [
+                "Mi lista"
+            ],
+            "Opens the visitor\u2019s lists: Liked and the lists they name.": [
+                "Abre las listas de visitantes: \"Me gusta\" y las listas que mencionan."
+            ]
+        }
+    }
+}

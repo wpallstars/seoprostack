@@ -1,0 +1,91 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-tabs.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Activate": [
+                "Aktiveeri"
+            ],
+            "%d item": [
+                "%d ese",
+                "%d eset"
+            ],
+            "Could not measure": [
+                "Ei \u00f5nnestunud m\u00f5\u00f5ta"
+            ],
+            "Wait for the bulk action to finish, or stop it.": [
+                "Oota, kuni hulgitoiming l\u00f5peb, v\u00f5i peata see."
+            ],
+            "%d plugin": [
+                "%d plugin",
+                "%d pluginad"
+            ],
+            "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
+                "Kas desinstallida %s? See kustutab selle failid ja plugin v\u00f5ib kustutada selle seaded ja andmed."
+            ],
+            "Cancelled.": [
+                "T\u00fchistatud."
+            ],
+            "Installing\u2026": [
+                "Paigaldamine\u2026"
+            ],
+            "Activating\u2026": [
+                "Aktiveerimine\u2026"
+            ],
+            "Deactivating\u2026": [
+                "Deaktiveerimine\u2026"
+            ],
+            "Uninstalling\u2026": [
+                "Desinstallimine\u2026"
+            ],
+            "%s installed.": [
+                "%s on installitud."
+            ],
+            "%s activated.": [
+                "%s aktiveeritud."
+            ],
+            "%s deactivated.": [
+                "%s deaktiveeritud."
+            ],
+            "%s uninstalled.": [
+                "%s on desinstallitud."
+            ],
+            "Stopping after this plugin\u2026": [
+                "Peatumine p\u00e4rast selle plugina kasutamist\u2026"
+            ],
+            "%d selected": [
+                "%d valitud",
+                "%d valitud"
+            ],
+            "Choose a bulk action.": [
+                "Valige hulgitoiming."
+            ],
+            "Select at least one plugin.": [
+                "Vali v\u00e4hemalt \u00fcks plugin."
+            ],
+            "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.": [
+                "Kas desinstallida %d plugin? Kui see on aktiivne, deaktiveeritakse see k\u00f5igepealt. See kustutab selle failid ja plugin v\u00f5ib kustutada selle seaded ja andmed.",
+                "Kas desinstallida %d pluginad? Aktiivsed deaktiveeritakse esmalt. See kustutab nende failid ja pluginad v\u00f5ivad kustutada oma seaded ja andmed."
+            ],
+            "%1$d of %2$d: %3$s": [
+                "%1$d %2$d: %3$s"
+            ],
+            "Changed %1$d, skipped %2$d, failed %3$d.": [
+                "Muudeti %1$d, j\u00e4eti %2$d vahele, %3$d eba\u00f5nnestus."
+            ],
+            "Stopped.": [
+                "Peatus."
+            ],
+            "Done.": [
+                "Valmis."
+            ]
+        }
+    }
+}

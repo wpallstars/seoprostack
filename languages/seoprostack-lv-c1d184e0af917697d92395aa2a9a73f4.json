@@ -1,0 +1,47 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-word-import.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Remove": [
+                "No\u0146emt"
+            ],
+            "This server cannot open Word documents: ask your host to turn on PHP\u2019s zip extension.": [
+                "\u0160is serveris nevar atv\u0113rt Word dokumentus: l\u016bdziet savam mitin\u0101t\u0101jam iesl\u0113gt PHP zip papla\u0161in\u0101jumu."
+            ],
+            "Drop the document into the editor again to convert it.": [
+                "Ievietojiet dokumentu v\u0113lreiz redaktor\u0101, lai to konvert\u0113tu."
+            ],
+            "The document is larger than your site accepts.": [
+                "Dokuments ir liel\u0101ks, nek\u0101 j\u016bsu vietne pie\u0146em."
+            ],
+            "The document has no text to add.": [
+                "Dokument\u0101 nav pievienojama teksta."
+            ],
+            "%d picture in the document could not be added.": [
+                "Dokument\u0101 nevar\u0113ja pievienot att\u0113lu %d.",
+                "Dokument\u0101 nevar\u0113ja pievienot %d att\u0113lus.",
+                "Dokument\u0101 nevar\u0113ja pievienot %d att\u0113lus."
+            ],
+            "The document could not be converted.": [
+                "Dokumentu nevar\u0113ja konvert\u0113t."
+            ],
+            "Word document": [
+                "Word dokuments"
+            ],
+            "Converting %s\u2026": [
+                "Konvert\u0113jot %s \u2026"
+            ],
+            "Converts a Word document into blocks.": [
+                "P\u0101rveido Word dokumentu blokos."
+            ]
+        }
+    }
+}

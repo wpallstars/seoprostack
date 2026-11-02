@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Terms": [
+                "Warunki"
+            ],
+            "None": [
+                "Nic"
+            ],
+            "Columns": [
+                "Kolumny"
+            ],
+            "Link": [
+                "Po\u0142\u0105czy\u0107"
+            ],
+            "Taxonomy": [
+                "Taksonomia"
+            ],
+            "Square": [
+                "Kwadrat"
+            ],
+            "Show as": [
+                "Poka\u017c jako"
+            ],
+            "List": [
+                "Lista"
+            ],
+            "Grid": [
+                "Siatka"
+            ],
+            "Tag cloud": [
+                "Chmura tag\u00f3w"
+            ],
+            "Comma-separated": [
+                "Rozdzielone przecinkami"
+            ],
+            "A\u2013Z index": [
+                "Indeks A\u2013Z"
+            ],
+            "Drop-down": [
+                "Lista rozwijana"
+            ],
+            "All terms": [
+                "Wszystkie terminy"
+            ],
+            "This post\u2019s terms": [
+                "Warunki tego posta"
+            ],
+            "Name": [
+                "Nazwa"
+            ],
+            "Most posts first": [
+                "Wi\u0119kszo\u015b\u0107 post\u00f3w na pocz\u0105tku"
+            ],
+            "Random": [
+                "Losowy"
+            ],
+            "Under headings": [
+                "Pod nag\u0142\u00f3wkami"
+            ],
+            "Accordion": [
+                "Akordeon"
+            ],
+            "Tabs": [
+                "Karty"
+            ],
+            "Theme default": [
+                "Motyw domy\u015blny"
+            ],
+            "Dot": [
+                "Kropka"
+            ],
+            "Circle": [
+                "Ko\u0142o"
+            ],
+            "Numbers": [
+                "Takty muzyczne"
+            ],
+            "No groups": [
+                "Brak grup"
+            ],
+            "By top-level term": [
+                "Wed\u0142ug terminu najwy\u017cszego poziomu"
+            ],
+            "By Tag Groups group": [
+                "Wed\u0142ug grup tag\u00f3w"
+            ],
+            "Terms to show": [
+                "Warunki do pokazania"
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                "Warunki wpisu lub strony, na kt\u00f3rej znajduje si\u0119 blok, albo ka\u017cdego wpisu w p\u0119tli zapytania."
+            ],
+            "Show letter links": [
+                "Poka\u017c linki do liter"
+            ],
+            "Show as boxes": [
+                "Poka\u017c jako pola"
+            ],
+            "Show post counts": [
+                "Poka\u017c liczb\u0119 post\u00f3w"
+            ],
+            "Show child terms": [
+                "Poka\u017c terminy podrz\u0119dne"
+            ],
+            "Off shows only top-level terms.": [
+                "Wy\u0142\u0105czenie wy\u015bwietla tylko terminy najwy\u017cszego poziomu."
+            ],
+            "Show empty terms": [
+                "Poka\u017c puste terminy"
+            ],
+            "Text when there are no terms": [
+                "Tekst, gdy nie ma \u017cadnych termin\u00f3w"
+            ],
+            "Leave empty to show nothing.": [
+                "Pozostaw puste, aby nic nie wy\u015bwietla\u0107."
+            ],
+            "Order and number": [
+                "Zam\u00f3wienie i numer"
+            ],
+            "Order": [
+                "Zam\u00f3wienie"
+            ],
+            "Most terms to show": [
+                "Najwi\u0119cej termin\u00f3w do pokazania"
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                "0 wy\u015bwietla wszystkie. Je\u015bli jest ich wi\u0119cej, wy\u015bwietlane s\u0105 te z najwi\u0119ksz\u0105 liczb\u0105 post\u00f3w."
+            ],
+            "Fewest posts a term needs": [
+                "Najmniej post\u00f3w potrzebnych na semestr"
+            ],
+            "Groups": [
+                "Grupy"
+            ],
+            "Group terms": [
+                "Terminy grupowe"
+            ],
+            "Show groups": [
+                "Poka\u017c grupy"
+            ],
+            "Tag cloud sizes": [
+                "Rozmiary chmury tag\u00f3w"
+            ],
+            "Smallest text (em)": [
+                "Najmniejszy tekst (em)"
+            ],
+            "Largest text (em)": [
+                "Najwi\u0119kszy tekst (em)"
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                "Has\u0142a z wi\u0119ksz\u0105 liczb\u0105 wpis\u00f3w s\u0105 wi\u0119ksze. Ustaw oba tak samo dla jednego rozmiaru."
+            ],
+            "Spacing and markers": [
+                "Odst\u0119py i znaczniki"
+            ],
+            "List marker": [
+                "Znacznik listy"
+            ],
+            "Space between items (px)": [
+                "Odst\u0119p mi\u0119dzy elementami (px)"
+            ],
+            "Link colours": [
+                "Kolory link\u00f3w"
+            ],
+            "Link on hover": [
+                "Link po najechaniu kursorem"
+            ]
+        }
+    }
+}

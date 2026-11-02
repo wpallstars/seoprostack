@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Address": [
+                "Adrese"
+            ],
+            "None": [
+                "Neviens"
+            ],
+            "Cancel": [
+                "Atcelt"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Ievadiet pilnu t\u012bmek\u013ca adresi, kas s\u0101kas ar https:\/\/"
+            ],
+            "Link": [
+                "Saite"
+            ],
+            "Picture": [
+                "Att\u0113ls"
+            ],
+            "Title": [
+                "Nosaukums"
+            ],
+            "Open in a new tab": [
+                "Atv\u0113rt jaun\u0101 ciln\u0113"
+            ],
+            "Page address": [
+                "Lapas adrese"
+            ],
+            "Change address": [
+                "Main\u012bt adresi"
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                "Att\u0113la kop\u0113\u0161ana uz j\u016bsu multivides bibliot\u0113ku\u2026"
+            ],
+            "The picture could not be copied.": [
+                "Att\u0113lu nevar\u0113ja nokop\u0113t."
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                "Mekl\u0113ju vietnes ikonu\u2026"
+            ],
+            "The site\u2019s icon could not be copied.": [
+                "Vietnes ikonu nevar\u0113ja nokop\u0113t."
+            ],
+            "Reading the page\u2026": [
+                "Lasot lapu\u2026"
+            ],
+            "Fill in the title and description in the block settings.": [
+                "Bloka iestat\u012bjumos aizpildiet nosaukumu un aprakstu."
+            ],
+            "Card": [
+                "Karte"
+            ],
+            "Read the page again": [
+                "Izlasi lapu v\u0113lreiz"
+            ],
+            "Description": [
+                "Apraksts"
+            ],
+            "Site name": [
+                "Vietnes nosaukums"
+            ],
+            "On the right": [
+                "Pa labi"
+            ],
+            "On the left": [
+                "Kreisaj\u0101 pus\u0113"
+            ],
+            "Above": [
+                "Virs"
+            ],
+            "Beside the text when the card is wide enough.": [
+                "Blakus tekstam, kad karte ir pietiekami plata."
+            ],
+            "Picture shape": [
+                "Att\u0113la forma"
+            ],
+            "Its own shape": [
+                "Sava forma"
+            ],
+            "Wide, as in social previews": [
+                "Plats, k\u0101 soci\u0101lo mediju priek\u0161skat\u012bjumos"
+            ],
+            "Square": [
+                "Kvadr\u0101ts"
+            ],
+            "Fill the card\u2019s height": [
+                "Aizpildiet kartes augstumu"
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                "Att\u0113li tiek r\u0101d\u012bti veseli, katr\u0101 kart\u012bt\u0113 vien\u0101d\u0101 augstum\u0101. Aizpildot kart\u012btes augstumu, att\u0113li tiek apgriezti."
+            ],
+            "Copy the picture": [
+                "Kop\u0113t att\u0113lu"
+            ],
+            "Use the page\u2019s picture": [
+                "Izmantojiet lapas att\u0113lu"
+            ],
+            "Use the site\u2019s icon": [
+                "Izmantojiet vietnes ikonu"
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                "L\u016bgt mekl\u0113t\u0101jprogramm\u0101m nesekot (nofollow)"
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                "K\u0101dam, kur\u0161 var aug\u0161upiel\u0101d\u0113t failus, ir j\u0101atver \u0161\u012b kart\u012bte, lai pievienotu t\u0101s att\u0113lu."
+            ],
+            "Link card": [
+                "Saites karte"
+            ],
+            "Paste the address of a page to show a preview card.": [
+                "Iel\u012bm\u0113jiet lapas adresi, lai par\u0101d\u012btu priek\u0161skat\u012bjuma karti."
+            ],
+            "Show card": [
+                "R\u0101d\u012bt karti"
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                "\u0160\u012b ir gr\u0101matz\u012bmju kart\u012bte. P\u0101rveidojiet to par saites karti, lai saglab\u0101tu t\u0101s att\u0113lu sav\u0101 vietn\u0113."
+            ],
+            "Convert to Link card": [
+                "Konvert\u0113t uz saites karti"
+            ],
+            "Default": [
+                "Noklus\u0113juma"
+            ],
+            "Horizontal": [
+                "Horizont\u0101li"
+            ]
+        }
+    }
+}

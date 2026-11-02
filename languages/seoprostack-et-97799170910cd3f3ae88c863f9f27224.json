@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/form\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Seaded"
+            ],
+            "Form": [
+                "Vorm"
+            ],
+            "Choose a form in the block settings.": [
+                "Valige ploki seadetes vorm."
+            ],
+            "Title": [
+                "Pealkiri"
+            ],
+            "Choose a form": [
+                "Valige vorm"
+            ],
+            "%s (no form on this site)": [
+                "%s (sellel saidil vormi pole)"
+            ],
+            "Published Fluent forms that carry a key.": [
+                "Avaldatud Fluent vormid, millel on v\u00f5ti."
+            ],
+            "No form has a key yet: wp seoprostack form-keys set <form-id> <key>.": [
+                "\u00dchelgi vormil pole veel v\u00f5tit: wp seoprostack form-keys set <form-id> <key>."
+            ],
+            "In a panel": [
+                "Paneelil"
+            ],
+            "A bordered box around the form, as the theme draws panels.": [
+                "Vormi \u00fcmber \u00e4\u00e4risega kast, kuna kujundus joonistab paneele."
+            ],
+            "Opens from links to %s.": [
+                "Avaneb linkidest %s."
+            ],
+            "Without Kadence Blocks Pro the form shows here, in a panel.": [
+                "Ilma Kadence Blocks Pro-ta kuvatakse vorm siin paneelil."
+            ],
+            "Modal ID": [
+                "Modaalne ID"
+            ],
+            "Links to #ID open the modal. Empty: the form key.": [
+                "Lingid #ID-le avavad modaalakna. T\u00fchi: vormiv\u00f5ti."
+            ],
+            "Introduction": [
+                "Sissejuhatus"
+            ],
+            "Form modal": [
+                "Vormi modaal"
+            ]
+        }
+    }
+}

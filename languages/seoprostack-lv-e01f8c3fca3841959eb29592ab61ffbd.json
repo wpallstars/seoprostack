@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Address": [
+                "Adrese"
+            ],
+            "Screenshot of %s": [
+                "%s ekr\u0101nuz\u0146\u0113mums"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Ievadiet pilnu t\u012bmek\u013ca adresi, kas s\u0101kas ar https:\/\/"
+            ],
+            "Link": [
+                "Saite"
+            ],
+            "Open in a new tab": [
+                "Atv\u0113rt jaun\u0101 ciln\u0113"
+            ],
+            "Page address": [
+                "Lapas adrese"
+            ],
+            "Change address": [
+                "Main\u012bt adresi"
+            ],
+            "Square": [
+                "Kvadr\u0101ts"
+            ],
+            "Only http and https addresses can be captured.": [
+                "Var uztvert tikai http un https adreses."
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                "P\u0101rl\u016bkprogrammas logs (%1$d \u00d7 %2$d)"
+            ],
+            "The screenshot could not be taken.": [
+                "Ekr\u0101nuz\u0146\u0113mumu nevar\u0113ja uz\u0146emt."
+            ],
+            "Screenshot": [
+                "Ekr\u0101nuz\u0146\u0113mums"
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                "Ievadiet lapas adresi, kuru v\u0113laties uz\u0146emt. Ekr\u0101nuz\u0146\u0113mums tiks saglab\u0101ts multivides bibliot\u0113k\u0101."
+            ],
+            "Take screenshot": [
+                "Uz\u0146emt ekr\u0101nuz\u0146\u0113mumu"
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                "Notiek %s ekr\u0101nuz\u0146\u0113muma ieg\u016b\u0161ana. Jauna ekr\u0101nuz\u0146\u0113muma izveide var aiz\u0146emt l\u012bdz pat min\u016btei."
+            ],
+            "The captured page": [
+                "Uz\u0146emt\u0101 lapa"
+            ],
+            "This post": [
+                "\u0160is ieraksts"
+            ],
+            "Another address": [
+                "Cita adrese"
+            ],
+            "No link": [
+                "Nav saites"
+            ],
+            "Take a new screenshot": [
+                "Uz\u0146emiet jaunu ekr\u0101nuz\u0146\u0113mumu"
+            ],
+            "Alternative text": [
+                "Alternat\u012bvs teksts"
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                "Aprakstiet lapu cilv\u0113kiem, kuri to nevar redz\u0113t. Atst\u0101jiet tuk\u0161u, lai izmantotu \u201cEkr\u0101nuz\u0146\u0113mums\u201d un vietnes nosaukumu."
+            ],
+            "Shape": [
+                "Forma"
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                "P\u0101rl\u016bkprogrammas loga platumu var iestat\u012bt sada\u013c\u0101 Iestat\u012bjumi \u2192 SEO Pro Stack; forma nosaka t\u0101s augstumu. Jauna forma uz\u0146em jaunu ekr\u0101nuz\u0146\u0113mumu."
+            ],
+            "Width on the page (px)": [
+                "Platums lap\u0101 (pikse\u013cos)"
+            ],
+            "Leave empty to fill the space available.": [
+                "Atst\u0101jiet tuk\u0161u, lai aizpild\u012btu pieejamo vietu."
+            ],
+            "Taken on %s.": [
+                "Uz\u0146emts %s."
+            ],
+            "Link to": [
+                "Saite uz"
+            ],
+            "Add nofollow": [
+                "Pievienot nofollow"
+            ],
+            "Asks search engines not to follow the link.": [
+                "L\u016bdz mekl\u0113t\u0101jprogramm\u0101m nesekot saitei."
+            ],
+            "Sponsored": [
+                "Sponsor\u0113ts"
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                "Atz\u012bm\u0113 apmaks\u0101tu, saist\u012bto vai sponsor\u0113tu saiti."
+            ],
+            "User-generated": [
+                "Lietot\u0101ja \u0123ener\u0113ts"
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                "Atz\u012bm\u0113 apmekl\u0113t\u0101ja pievienotu saiti, piem\u0113ram, koment\u0101r\u0101 vai foruma ierakst\u0101."
+            ],
+            "Add caption": [
+                "Pievienot parakstu"
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                "%s ekr\u0101nuz\u0146\u0113mums. Tas joproj\u0101m ir redzams vietn\u0113. Lai to main\u012btu, p\u0101rveidojiet to par ekr\u0101nuz\u0146\u0113muma bloku."
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                "Tuk\u0161s p\u0101rl\u016bkprogrammas att\u0113lu bloks. P\u0101rveidojiet to par ekr\u0101nuz\u0146\u0113mumu bloku, lai pievienotu adresi."
+            ],
+            "Convert to Screenshot block": [
+                "Konvert\u0113t uz ekr\u0101nuz\u0146\u0113muma bloku"
+            ]
+        }
+    }
+}

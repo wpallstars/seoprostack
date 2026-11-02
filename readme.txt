@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.139
+Stable tag: 1.3.140
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= 1.3.140 =
+* New: translations for French (France, Belgium), Spanish (Spain, Mexico), Italian, Portuguese (Portugal, Brazil), Dutch (Netherlands), German (Austria, Switzerland), Polish, Romanian, Latvian and Estonian; the front-end labels (Like, Save, Share, shortlist) are reviewed in every language (#1161).
 
 = 1.3.139 =
 * Fix: the language switcher's list stays on screen in the mobile menu (#1159).

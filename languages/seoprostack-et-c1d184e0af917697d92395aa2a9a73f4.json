@@ -1,0 +1,46 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-word-import.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Remove": [
+                "Eemalda"
+            ],
+            "This server cannot open Word documents: ask your host to turn on PHP\u2019s zip extension.": [
+                "See server ei saa Wordi dokumente avada: paluge oma serveril PHP zip-laiendus sisse l\u00fclitada."
+            ],
+            "Drop the document into the editor again to convert it.": [
+                "Dokumendi teisendamiseks lohista see uuesti redaktorisse."
+            ],
+            "The document is larger than your site accepts.": [
+                "Dokument on suurem, kui teie sait aktsepteerib."
+            ],
+            "The document has no text to add.": [
+                "Dokumendil pole teksti, mida lisada."
+            ],
+            "%d picture in the document could not be added.": [
+                "Dokumendis olevat pilti %d ei saanud lisada.",
+                "Dokumendis olevaid %d pilte ei saanud lisada."
+            ],
+            "The document could not be converted.": [
+                "Dokumenti ei saanud teisendada."
+            ],
+            "Word document": [
+                "Wordi dokument"
+            ],
+            "Converting %s\u2026": [
+                "Teisendades %s \u2026"
+            ],
+            "Converts a Word document into blocks.": [
+                "Teisendab Wordi dokumendi plokkideks."
+            ]
+        }
+    }
+}

@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/form\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Settings": [
+                "Iestat\u012bjumi"
+            ],
+            "Form": [
+                "Veidlapa"
+            ],
+            "Choose a form in the block settings.": [
+                "Bloka iestat\u012bjumos izv\u0113lieties veidlapu."
+            ],
+            "Title": [
+                "Nosaukums"
+            ],
+            "Choose a form": [
+                "Izv\u0113lieties veidlapu"
+            ],
+            "%s (no form on this site)": [
+                "%s (\u0161aj\u0101 vietn\u0113 nav veidlapas)"
+            ],
+            "Published Fluent forms that carry a key.": [
+                "Public\u0113tas Fluent veidlapas, kur\u0101m ir atsl\u0113ga."
+            ],
+            "No form has a key yet: wp seoprostack form-keys set <form-id> <key>.": [
+                "Nevienai formai v\u0113l nav atsl\u0113gas: wp seoprostack form-keys set <form-id> <key>."
+            ],
+            "In a panel": [
+                "Panel\u012b"
+            ],
+            "A bordered box around the form, as the theme draws panels.": [
+                "Ap veidlapu apmalots lodzi\u0146\u0161, jo t\u0113ma z\u012bm\u0113 pane\u013cus."
+            ],
+            "Opens from links to %s.": [
+                "Atveras no sait\u0113m uz %s."
+            ],
+            "Without Kadence Blocks Pro the form shows here, in a panel.": [
+                "Bez Kadence Blocks Pro veidlapa ir redzama \u0161eit, panel\u012b."
+            ],
+            "Modal ID": [
+                "Mod\u0101lais ID"
+            ],
+            "Links to #ID open the modal. Empty: the form key.": [
+                "Saites uz #ID atver mod\u0101lo logu. Tuk\u0161a: formas atsl\u0113ga."
+            ],
+            "Introduction": [
+                "Ievads"
+            ],
+            "Form modal": [
+                "Formas mod\u0101lais lauks"
+            ]
+        }
+    }
+}

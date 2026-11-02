@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/client-dashboard\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Order page": [
+                "Tellimuse leht"
+            ],
+            "Call booking page": [
+                "K\u00f5ne broneerimise leht"
+            ],
+            "Calls": [
+                "K\u00f5ned"
+            ],
+            "Show": [
+                "N\u00e4ita"
+            ],
+            "Orders": [
+                "Tellimused"
+            ],
+            "Report": [
+                "Aruanne"
+            ],
+            "A link to the address in the client\u2019s FluentCRM report field.": [
+                "Link kliendi FluentCRM aruandev\u00e4ljal olevale aadressile."
+            ],
+            "Upcoming FluentBooking calls.": [
+                "Eelseisvad FluentBookingu k\u00f5ned."
+            ],
+            "Payments": [
+                "Maksed"
+            ],
+            "Fluent Forms payments.": [
+                "Fluent Forms maksed."
+            ],
+            "Courses": [
+                "Kursused"
+            ],
+            "Tutor LMS courses the client is enrolled in.": [
+                "\u00d5ppej\u00f5u halduss\u00fcsteemi kursused, millele klient on registreerunud."
+            ],
+            "Community spaces": [
+                "Kogukonnaruumid"
+            ],
+            "FluentCommunity spaces the client belongs to.": [
+                "FluentCommunity ruumid, kuhu klient kuulub."
+            ],
+            "A page ID or address for \u201cOrder something new\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Lehe ID v\u00f5i aadress funktsiooni \u201eTelli midagi uut\u201c jaoks. T\u00fchi lahter kasutab SEO Pro Stack valitud ID-d v\u00f5i aadressi."
+            ],
+            "A page ID or address for \u201cBook a call\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Lehe ID v\u00f5i aadress valiku \u201eK\u00f5ne broneerimine\u201c jaoks. T\u00fchi lahter kasutab SEO Pro Stack s valitud ID-d v\u00f5i aadressi."
+            ]
+        }
+    }
+}

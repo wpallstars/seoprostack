@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/client-dashboard\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "it_IT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Order page": [
+                "Pagina degli ordini"
+            ],
+            "Call booking page": [
+                "Chiama la pagina di prenotazione"
+            ],
+            "Calls": [
+                "Chiamate"
+            ],
+            "Show": [
+                "Spettacolo"
+            ],
+            "Orders": [
+                "Ordini"
+            ],
+            "Report": [
+                "Rapporto"
+            ],
+            "A link to the address in the client\u2019s FluentCRM report field.": [
+                "Un collegamento all'indirizzo presente nel campo di report FluentCRM del client."
+            ],
+            "Upcoming FluentBooking calls.": [
+                "Prossime chiamate FluentBooking."
+            ],
+            "Payments": [
+                "Pagamenti"
+            ],
+            "Fluent Forms payments.": [
+                "Pagamenti Fluent Forms."
+            ],
+            "Courses": [
+                "Corsi"
+            ],
+            "Tutor LMS courses the client is enrolled in.": [
+                "Offrire tutoraggio per i corsi LMS a cui il cliente \u00e8 iscritto."
+            ],
+            "Community spaces": [
+                "Spazi comunitari"
+            ],
+            "FluentCommunity spaces the client belongs to.": [
+                "Gli spazi FluentCommunity a cui appartiene il cliente."
+            ],
+            "A page ID or address for \u201cOrder something new\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Un ID o indirizzo di pagina per \"Ordina qualcosa di nuovo\". Se vuoto, viene utilizzato quello scelto in SEO Pro Stack."
+            ],
+            "A page ID or address for \u201cBook a call\u201d. Empty uses the one chosen in SEO Pro Stack.": [
+                "Un ID o indirizzo di pagina per \"Prenota una chiamata\". Se vuoto, viene utilizzato quello scelto in SEO Pro Stack."
+            ]
+        }
+    }
+}

@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Address": [
+                "Adres"
+            ],
+            "None": [
+                "Geen"
+            ],
+            "Cancel": [
+                "Annuleren"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Voer een volledig webadres in, beginnend met https:\/\/"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Picture": [
+                "Afbeelding"
+            ],
+            "Title": [
+                "Titel"
+            ],
+            "Open in a new tab": [
+                "Openen in een nieuw tabblad"
+            ],
+            "Page address": [
+                "Pagina-adres"
+            ],
+            "Change address": [
+                "Adres wijzigen"
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                "De afbeelding kopi\u00ebren naar uw mediabibliotheek\u2026"
+            ],
+            "The picture could not be copied.": [
+                "De afbeelding kon niet worden gekopieerd."
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                "Op zoek naar het site-icoon\u2026"
+            ],
+            "The site\u2019s icon could not be copied.": [
+                "Het site-icoon kon niet worden gekopieerd."
+            ],
+            "Reading the page\u2026": [
+                "De pagina lezen\u2026"
+            ],
+            "Fill in the title and description in the block settings.": [
+                "Vul de titel en beschrijving in bij de blokinstellingen."
+            ],
+            "Card": [
+                "Kaart"
+            ],
+            "Read the page again": [
+                "Lees de pagina nog eens."
+            ],
+            "Description": [
+                "Beschrijving"
+            ],
+            "Site name": [
+                "Sitenaam"
+            ],
+            "On the right": [
+                "Aan de rechterkant"
+            ],
+            "On the left": [
+                "Aan de linkerkant"
+            ],
+            "Above": [
+                "Boven"
+            ],
+            "Beside the text when the card is wide enough.": [
+                "Naast de tekst, wanneer de kaart breed genoeg is."
+            ],
+            "Picture shape": [
+                "Afbeeldingsvorm"
+            ],
+            "Its own shape": [
+                "Zijn eigen vorm"
+            ],
+            "Wide, as in social previews": [
+                "Breed, zoals in sociale media-voorvertoningen"
+            ],
+            "Square": [
+                "Vierkant"
+            ],
+            "Fill the card\u2019s height": [
+                "Vul de hoogte van de kaart op."
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                "De afbeeldingen worden in hun geheel weergegeven, op dezelfde hoogte op elke kaart. Als de hoogte van de kaart wordt opgevuld, worden ze bijgesneden."
+            ],
+            "Copy the picture": [
+                "Kopieer de afbeelding"
+            ],
+            "Use the page\u2019s picture": [
+                "Gebruik de afbeelding van de pagina."
+            ],
+            "Use the site\u2019s icon": [
+                "Gebruik het site-icoon"
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                "Vraag zoekmachines om je niet te volgen (nofollow)."
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                "Iemand die bestanden kan uploaden, moet deze kaart openen om zijn of haar foto toe te voegen."
+            ],
+            "Link card": [
+                "Linkkaart"
+            ],
+            "Paste the address of a page to show a preview card.": [
+                "Plak het adres van een pagina om een voorbeeldkaart weer te geven."
+            ],
+            "Show card": [
+                "Toon kaart"
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                "Dit is een bladwijzerkaart. Zet deze om in een linkkaart om de afbeelding ervan op uw site te behouden."
+            ],
+            "Convert to Link card": [
+                "Omzetten naar Link-kaart"
+            ],
+            "Default": [
+                "Standaard"
+            ],
+            "Horizontal": [
+                "Horizontaal"
+            ]
+        }
+    }
+}

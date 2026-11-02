@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_ES",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Form": [
+                "Forma"
+            ],
+            "Choose a form": [
+                "Elija un formulario"
+            ],
+            "%s (no form on this site)": [
+                "%s (no hay formulario en este sitio)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Se muestra despu\u00e9s de que se env\u00eda el formulario: agradecimientos, el comentario con Copiar rese\u00f1a y enlaces de rese\u00f1a para %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Se muestra despu\u00e9s de enviar el formulario: solo agradecimiento. Configure los destinos de los enlaces cortos de googlereview, facebookreview o trustpilotreview para mostrar los enlaces de rese\u00f1as."
+            ],
+            "Feedback form": [
+                "Formulario de comentarios"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "El formulario con la tecla Fluent en esta p\u00e1gina que recopila la calificaci\u00f3n y el comentario."
+            ],
+            "Rating field name": [
+                "Nombre del campo de calificaci\u00f3n"
+            ],
+            "Default: rating.": [
+                "Predeterminado: calificaci\u00f3n."
+            ],
+            "Comment field name": [
+                "Nombre del campo de comentarios"
+            ],
+            "Default: comment.": [
+                "Predeterminado: comentario."
+            ],
+            "High rating from": [
+                "Alta calificaci\u00f3n de"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Solo cambia la redacci\u00f3n: se muestran enlaces a rese\u00f1as para cada calificaci\u00f3n."
+            ],
+            "Wording": [
+                "Fraseolog\u00eda"
+            ],
+            "Thanks, high rating": [
+                "Gracias, alta calificaci\u00f3n"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Predeterminado: \u00a1Gracias por sus comentarios!"
+            ],
+            "Thanks, low rating": [
+                "Gracias, baja calificaci\u00f3n"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Predeterminado: Gracias por avisarnos. Nos pondremos en contacto con usted para solucionarlo."
+            ],
+            "Review request, high rating": [
+                "Solicitud de revisi\u00f3n, alta calificaci\u00f3n"
+            ],
+            "Review request, low rating": [
+                "Solicitud de revisi\u00f3n, calificaci\u00f3n baja"
+            ],
+            "Copy button": [
+                "Bot\u00f3n Copiar"
+            ],
+            "Default: Copy review": [
+                "Predeterminado: Copiar revisi\u00f3n"
+            ],
+            "Review links": [
+                "Enlaces de revisi\u00f3n"
+            ]
+        }
+    }
+}

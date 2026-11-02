@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_MX",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Address": [
+                "DIRECCI\u00d3N"
+            ],
+            "None": [
+                "Ninguno"
+            ],
+            "Cancel": [
+                "Cancelar"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Introduzca una direcci\u00f3n web completa que comience con https:\/\/"
+            ],
+            "Link": [
+                "Enlace"
+            ],
+            "Picture": [
+                "Imagen"
+            ],
+            "Title": [
+                "T\u00edtulo"
+            ],
+            "Open in a new tab": [
+                "Abrir en una pesta\u00f1a nueva"
+            ],
+            "Page address": [
+                "Direcci\u00f3n de la p\u00e1gina"
+            ],
+            "Change address": [
+                "Cambiar direcci\u00f3n"
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                "Copiar la imagen a tu biblioteca multimedia\u2026"
+            ],
+            "The picture could not be copied.": [
+                "No se pudo copiar la imagen."
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                "Buscando el icono del sitio\u2026"
+            ],
+            "The site\u2019s icon could not be copied.": [
+                "No se pudo copiar el icono del sitio."
+            ],
+            "Reading the page\u2026": [
+                "Leyendo la p\u00e1gina\u2026"
+            ],
+            "Fill in the title and description in the block settings.": [
+                "Rellena el t\u00edtulo y la descripci\u00f3n en la configuraci\u00f3n del bloque."
+            ],
+            "Card": [
+                "Tarjeta"
+            ],
+            "Read the page again": [
+                "Lee la p\u00e1gina de nuevo"
+            ],
+            "Description": [
+                "Descripci\u00f3n"
+            ],
+            "Site name": [
+                "Nombre del sitio"
+            ],
+            "On the right": [
+                "A la derecha"
+            ],
+            "On the left": [
+                "A la izquierda"
+            ],
+            "Above": [
+                "Arriba"
+            ],
+            "Beside the text when the card is wide enough.": [
+                "Junto al texto cuando la tarjeta sea lo suficientemente ancha."
+            ],
+            "Picture shape": [
+                "forma de imagen"
+            ],
+            "Its own shape": [
+                "Su propia forma"
+            ],
+            "Wide, as in social previews": [
+                "Amplio, como en las vistas previas sociales"
+            ],
+            "Square": [
+                "Cuadrado"
+            ],
+            "Fill the card\u2019s height": [
+                "Rellena la altura de la tarjeta"
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                "Las im\u00e1genes se muestran completas, a la misma altura en cada tarjeta. Al rellenar la altura de la tarjeta, se recortan."
+            ],
+            "Copy the picture": [
+                "Copia la imagen"
+            ],
+            "Use the page\u2019s picture": [
+                "Utilice la imagen de la p\u00e1gina"
+            ],
+            "Use the site\u2019s icon": [
+                "Utilice el icono del sitio"
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                "Pide a los motores de b\u00fasqueda que no te sigan (nofollow)."
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                "Alguien que pueda subir archivos debe abrir esta tarjeta para a\u00f1adirle la imagen."
+            ],
+            "Link card": [
+                "Tarjeta de enlace"
+            ],
+            "Paste the address of a page to show a preview card.": [
+                "Pega la direcci\u00f3n de una p\u00e1gina para mostrar una vista previa."
+            ],
+            "Show card": [
+                "Tarjeta de presentaci\u00f3n"
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                "Esta es una tarjeta de marcador. Convi\u00e9rtela en una tarjeta de enlace para mantener su imagen en tu sitio web."
+            ],
+            "Convert to Link card": [
+                "Convertir a tarjeta de enlace"
+            ],
+            "Default": [
+                "Por defecto"
+            ],
+            "Horizontal": [
+                "Horizontal"
+            ]
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/lists\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Liked": [
+                "Patika"
+            ],
+            "New list": [
+                "Jauns saraksts"
+            ],
+            "Each visitor sees their own lists here: Liked, and the lists they name, with Move to, Remove and the actions other plugins add.": [
+                "Katrs apmekl\u0113t\u0101js \u0161eit redz savus sarakstus: Pat\u012bk un sarakstus, kuriem vi\u0146\u0161 pie\u0161\u0137ir nosaukumu, k\u0101 ar\u012b P\u0101rvietot uz, No\u0146emt un darb\u012bbas, ko pievieno citi spraud\u0146i."
+            ]
+        }
+    }
+}

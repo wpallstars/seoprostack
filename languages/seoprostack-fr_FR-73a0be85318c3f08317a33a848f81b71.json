@@ -1,0 +1,91 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-tabs.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_FR",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Activate": [
+                "Activer"
+            ],
+            "%d item": [
+                "article %d",
+                "articles %d"
+            ],
+            "Could not measure": [
+                "Impossible de mesurer"
+            ],
+            "Wait for the bulk action to finish, or stop it.": [
+                "Attendez que l'op\u00e9ration en masse soit termin\u00e9e, ou arr\u00eatez-la."
+            ],
+            "%d plugin": [
+                "plugin %d",
+                "plugins %d"
+            ],
+            "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
+                "D\u00e9sinstaller %s? Cela supprimera ses fichiers, et le plugin risque de supprimer ses param\u00e8tres et ses donn\u00e9es."
+            ],
+            "Cancelled.": [
+                "Annul\u00e9."
+            ],
+            "Installing\u2026": [
+                "Installation en cours\u2026"
+            ],
+            "Activating\u2026": [
+                "Activation\u2026"
+            ],
+            "Deactivating\u2026": [
+                "D\u00e9sactivation\u2026"
+            ],
+            "Uninstalling\u2026": [
+                "D\u00e9sinstallation\u2026"
+            ],
+            "%s installed.": [
+                "%s install\u00e9."
+            ],
+            "%s activated.": [
+                "%s activ\u00e9."
+            ],
+            "%s deactivated.": [
+                "%s d\u00e9sactiv\u00e9."
+            ],
+            "%s uninstalled.": [
+                "%s d\u00e9sinstall\u00e9."
+            ],
+            "Stopping after this plugin\u2026": [
+                "Je m'arr\u00eate apr\u00e8s ce plugin\u2026"
+            ],
+            "%d selected": [
+                "%d s\u00e9lectionn\u00e9",
+                "%d s\u00e9lectionn\u00e9"
+            ],
+            "Choose a bulk action.": [
+                "Choisissez une action group\u00e9e."
+            ],
+            "Select at least one plugin.": [
+                "S\u00e9lectionnez au moins un plugin."
+            ],
+            "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.": [
+                "D\u00e9sinstaller le plugin %d\u00a0? S'il est actif, il est d'abord d\u00e9sactiv\u00e9. Cela supprime ses fichiers, et le plugin peut \u00e9galement supprimer ses param\u00e8tres et ses donn\u00e9es.",
+                "D\u00e9sinstaller les plugins %d\u00a0? Les plugins actifs sont d\u2019abord d\u00e9sactiv\u00e9s. Cela supprime leurs fichiers, et les plugins peuvent \u00e9galement supprimer leurs param\u00e8tres et leurs donn\u00e9es."
+            ],
+            "%1$d of %2$d: %3$s": [
+                "%1$d de %2$d: %3$s"
+            ],
+            "Changed %1$d, skipped %2$d, failed %3$d.": [
+                "%1$d modifi\u00e9, %2$d ignor\u00e9, %3$d \u00e9chou\u00e9."
+            ],
+            "Stopped.": [
+                "Arr\u00eat\u00e9."
+            ],
+            "Done.": [
+                "Fait."
+            ]
+        }
+    }
+}

@@ -1,0 +1,95 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-tabs.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Activate": [
+                "Activa"
+            ],
+            "%d item": [
+                "articol %d",
+                "articole %d",
+                "articole %d"
+            ],
+            "Could not measure": [
+                "Nu s-a putut m\u0103sura"
+            ],
+            "Wait for the bulk action to finish, or stop it.": [
+                "A\u0219tepta\u021bi finalizarea ac\u021biunii \u00een bloc sau opri\u021bi-o."
+            ],
+            "%d plugin": [
+                "pluginul %d",
+                "plugin-uri %d",
+                "plugin-uri %d"
+            ],
+            "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
+                "Dezinstala\u021bi %s? Aceast\u0103 ac\u021biune \u00eei \u0219terge fi\u0219ierele, iar pluginul poate \u0219terge set\u0103rile \u0219i datele."
+            ],
+            "Cancelled.": [
+                "Anulat."
+            ],
+            "Installing\u2026": [
+                "Se instaleaz\u0103\u2026"
+            ],
+            "Activating\u2026": [
+                "Se activeaz\u0103\u2026"
+            ],
+            "Deactivating\u2026": [
+                "Se dezactiveaz\u0103\u2026"
+            ],
+            "Uninstalling\u2026": [
+                "Se dezinstaleaz\u0103\u2026"
+            ],
+            "%s installed.": [
+                "%s instalat."
+            ],
+            "%s activated.": [
+                "%s activat."
+            ],
+            "%s deactivated.": [
+                "%s dezactivat."
+            ],
+            "%s uninstalled.": [
+                "%s dezinstalat."
+            ],
+            "Stopping after this plugin\u2026": [
+                "Se opre\u0219te dup\u0103 acest plugin\u2026"
+            ],
+            "%d selected": [
+                "%d selectat",
+                "%d selectat",
+                "%d selectat"
+            ],
+            "Choose a bulk action.": [
+                "Alege\u021bi o ac\u021biune \u00een bloc."
+            ],
+            "Select at least one plugin.": [
+                "Selecta\u021bi cel pu\u021bin un plugin."
+            ],
+            "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.": [
+                "Dezinstala\u021bi pluginul %d ? Dac\u0103 este activ, este dezactivat mai \u00eent\u00e2i. Aceasta \u0219terge fi\u0219ierele sale, iar pluginul poate \u0219terge set\u0103rile \u0219i datele sale.",
+                "Dezinstala\u021bi pluginurile %d ? Cele active sunt dezactivate mai \u00eent\u00e2i. Aceasta \u0219terge fi\u0219ierele lor, iar pluginurile le pot \u0219terge set\u0103rile \u0219i datele.",
+                "Dezinstala\u021bi pluginurile %d ? Cele active sunt dezactivate mai \u00eent\u00e2i. Aceasta \u0219terge fi\u0219ierele lor, iar pluginurile le pot \u0219terge set\u0103rile \u0219i datele."
+            ],
+            "%1$d of %2$d: %3$s": [
+                "%1$d din %2$d: %3$s"
+            ],
+            "Changed %1$d, skipped %2$d, failed %3$d.": [
+                "Am schimbat %1$d, am omis %2$d, am e\u0219uat %3$d."
+            ],
+            "Stopped.": [
+                "Oprit."
+            ],
+            "Done.": [
+                "F\u0103cut."
+            ]
+        }
+    }
+}

@@ -1,0 +1,57 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/saved-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_MX",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Saved": [
+                "Guardado"
+            ],
+            "Remove": [
+                "Eliminar"
+            ],
+            "Shortlist": [
+                "Mi lista"
+            ],
+            "Liked": [
+                "Apreciado"
+            ],
+            "Nothing saved yet.": [
+                "A\u00fan no se ha guardado nada."
+            ],
+            "List": [
+                "Lista"
+            ],
+            "A saved post": [
+                "Una publicaci\u00f3n guardada"
+            ],
+            "Another saved post": [
+                "Otra publicaci\u00f3n guardada"
+            ],
+            "Saved posts": [
+                "Publicaciones guardadas"
+            ],
+            "Show excerpts": [
+                "Mostrar extractos"
+            ],
+            "Show Remove buttons": [
+                "Mostrar botones de eliminar"
+            ],
+            "Text when nothing is saved": [
+                "Texto cuando no se guarda nada"
+            ],
+            "The post\u2019s excerpt.": [
+                "Fragmento de la publicaci\u00f3n."
+            ],
+            "Each visitor sees their own selected list.": [
+                "Cada visitante ve su propia lista seleccionada."
+            ]
+        }
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/related-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pl_PL",
+                "plural-forms": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+            },
+            "Columns": [
+                "Kolumny"
+            ],
+            "Related posts": [
+                "Powi\u0105zane posty"
+            ],
+            "Number of posts": [
+                "Liczba post\u00f3w"
+            ],
+            "Show as": [
+                "Poka\u017c jako"
+            ],
+            "Grid with pictures": [
+                "Siatka ze zdj\u0119ciami"
+            ],
+            "List": [
+                "Lista"
+            ],
+            "Show featured images": [
+                "Poka\u017c wyr\u00f3\u017cnione obrazy"
+            ],
+            "Show dates": [
+                "Poka\u017c daty"
+            ],
+            "Show a heading": [
+                "Poka\u017c nag\u0142\u00f3wek"
+            ],
+            "Heading": [
+                "Nag\u0142\u00f3wek"
+            ],
+            "Compare": [
+                "Por\u00f3wnywa\u0107"
+            ],
+            "None ticked compares them all. Terms used on few posts count for more.": [
+                "Brak zaznaczenia oznacza por\u00f3wnanie wszystkich. Terminy u\u017cyte w kilku postach maj\u0105 wi\u0119ksze znaczenie."
+            ],
+            "No related posts yet. Posts that share categories, tags or other terms with this one will show here.": [
+                "Brak powi\u0105zanych post\u00f3w. Tutaj pojawi\u0105 si\u0119 posty, kt\u00f3re maj\u0105 te same kategorie, tagi lub inne terminy co ten."
+            ]
+        }
+    }
+}

@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Address": [
+                "Adres"
+            ],
+            "Screenshot of %s": [
+                "Screenshot van %s"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Voer een volledig webadres in, beginnend met https:\/\/"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Open in a new tab": [
+                "Openen in een nieuw tabblad"
+            ],
+            "Page address": [
+                "Pagina-adres"
+            ],
+            "Change address": [
+                "Adres wijzigen"
+            ],
+            "Square": [
+                "Vierkant"
+            ],
+            "Only http and https addresses can be captured.": [
+                "Alleen http- en https-adressen kunnen worden vastgelegd."
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                "Browservenster (%1$d \u00d7 %2$d)"
+            ],
+            "The screenshot could not be taken.": [
+                "Het maken van de schermafbeelding is mislukt."
+            ],
+            "Screenshot": [
+                "Schermafbeelding"
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                "Voer het adres in van de pagina die u wilt vastleggen. De schermafbeelding wordt opgeslagen in de mediabibliotheek."
+            ],
+            "Take screenshot": [
+                "Maak een screenshot"
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                "Een screenshot van %s maken. Het kan tot een minuut duren voordat er een nieuwe screenshot is gemaakt."
+            ],
+            "The captured page": [
+                "De vastgelegde pagina"
+            ],
+            "This post": [
+                "Dit bericht"
+            ],
+            "Another address": [
+                "Een ander adres"
+            ],
+            "No link": [
+                "Geen link"
+            ],
+            "Take a new screenshot": [
+                "Maak een nieuwe schermafbeelding"
+            ],
+            "Alternative text": [
+                "Alternatieve tekst"
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                "Beschrijf de pagina voor mensen die deze niet kunnen zien. Laat dit veld leeg om 'Schermafbeelding van' en de sitenaam te gebruiken."
+            ],
+            "Shape": [
+                "Vorm"
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                "De breedte van het browservenster wordt ingesteld in Instellingen \u2192 SEO Pro Stack; de vorm bepaalt de hoogte. Een nieuwe vorm maakt een nieuwe schermafbeelding."
+            ],
+            "Width on the page (px)": [
+                "Breedte op de pagina (px)"
+            ],
+            "Leave empty to fill the space available.": [
+                "Laat dit veld leeg om de beschikbare ruimte op te vullen."
+            ],
+            "Taken on %s.": [
+                "Gemaakt op %s."
+            ],
+            "Link to": [
+                "Link naar"
+            ],
+            "Add nofollow": [
+                "Voeg nofollow toe"
+            ],
+            "Asks search engines not to follow the link.": [
+                "Vraagt zoekmachines om de link niet te volgen."
+            ],
+            "Sponsored": [
+                "Gesponsord"
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                "Geeft aan dat het een betaalde link, affiliate-link of gesponsorde link is."
+            ],
+            "User-generated": [
+                "Door gebruikers gegenereerd"
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                "Geeft een link aan die door een bezoeker is toegevoegd, bijvoorbeeld in een reactie of forumbericht."
+            ],
+            "Add caption": [
+                "Voeg een onderschrift toe"
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                "Een screenshot van %s. Het wordt nog steeds op de site weergegeven. Converteer het naar een screenshotblok om dit te wijzigen."
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                "Een leeg Browser Shots-blok. Converteer het naar een Screenshot-blok om een adres toe te voegen."
+            ],
+            "Convert to Screenshot block": [
+                "Converteren naar schermafbeeldingblok"
+            ]
+        }
+    }
+}

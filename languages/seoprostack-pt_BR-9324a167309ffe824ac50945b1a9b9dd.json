@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pt_BR",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Form": [
+                "Forma"
+            ],
+            "Choose a form": [
+                "Escolha um formul\u00e1rio"
+            ],
+            "%s (no form on this site)": [
+                "%s (nenhum formul\u00e1rio neste site)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Aparece ap\u00f3s o envio do formul\u00e1rio: agradecimentos, o coment\u00e1rio com \"Copiar revis\u00e3o\" e links de revis\u00e3o para %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Exibe apenas a mensagem de agradecimento ap\u00f3s o envio do formul\u00e1rio. Defina os destinos dos links curtos do Google Review, Facebook Review ou Trustpilot Review para exibir os links das avalia\u00e7\u00f5es."
+            ],
+            "Feedback form": [
+                "Formul\u00e1rio de feedback"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "O formul\u00e1rio Fluent nesta p\u00e1gina coleta a avalia\u00e7\u00e3o e os coment\u00e1rios."
+            ],
+            "Rating field name": [
+                "Nome do campo de classifica\u00e7\u00e3o"
+            ],
+            "Default: rating.": [
+                "Padr\u00e3o: classifica\u00e7\u00e3o."
+            ],
+            "Comment field name": [
+                "Nome do campo de coment\u00e1rios"
+            ],
+            "Default: comment.": [
+                "Padr\u00e3o: coment\u00e1rio."
+            ],
+            "High rating from": [
+                "Classifica\u00e7\u00e3o alta de"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "A \u00fanica coisa que muda \u00e9 a reda\u00e7\u00e3o: agora aparecem links para as avalia\u00e7\u00f5es em todas as classifica\u00e7\u00f5es."
+            ],
+            "Wording": [
+                "Reda\u00e7\u00e3o"
+            ],
+            "Thanks, high rating": [
+                "Obrigado, avalia\u00e7\u00e3o alta"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Padr\u00e3o: Obrigado pelo seu feedback!"
+            ],
+            "Thanks, low rating": [
+                "Obrigado, avalia\u00e7\u00e3o baixa."
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Resposta padr\u00e3o: Obrigado por nos avisar. Entraremos em contato para resolver a situa\u00e7\u00e3o."
+            ],
+            "Review request, high rating": [
+                "Solicita\u00e7\u00e3o de avalia\u00e7\u00e3o, classifica\u00e7\u00e3o alta"
+            ],
+            "Review request, low rating": [
+                "Solicita\u00e7\u00e3o de avalia\u00e7\u00e3o, classifica\u00e7\u00e3o baixa"
+            ],
+            "Copy button": [
+                "Bot\u00e3o Copiar"
+            ],
+            "Default: Copy review": [
+                "Padr\u00e3o: Copiar revis\u00e3o"
+            ],
+            "Review links": [
+                "Links de avalia\u00e7\u00e3o"
+            ]
+        }
+    }
+}

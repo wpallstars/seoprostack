@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Form": [
+                "Veidlapa"
+            ],
+            "Choose a form": [
+                "Izv\u0113lieties veidlapu"
+            ],
+            "%s (no form on this site)": [
+                "%s (\u0161aj\u0101 vietn\u0113 nav veidlapas)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "P\u0113c veidlapas nos\u016bt\u012b\u0161anas tiek r\u0101d\u012bts: paldies, koment\u0101rs ar atsauksmes kopiju un atsauksmju saites lietot\u0101jam %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "R\u0101da p\u0113c veidlapas nos\u016bt\u012b\u0161anas: tikai paldies. Iestatiet googlereview, facebookreview vai trustpilotreview \u012bso sai\u0161u m\u0113r\u0137us, lai tiktu r\u0101d\u012btas atsauksmju saites."
+            ],
+            "Feedback form": [
+                "Atsauksmju veidlapa"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "\u0160aj\u0101 lap\u0101 eso\u0161\u0101 atsl\u0113gveida Fluent veidlapa, kas apkopo v\u0113rt\u0113jumu un koment\u0101rus."
+            ],
+            "Rating field name": [
+                "V\u0113rt\u0113juma lauka nosaukums"
+            ],
+            "Default: rating.": [
+                "Noklus\u0113jums: v\u0113rt\u0113jums."
+            ],
+            "Comment field name": [
+                "Koment\u0101ra lauka nosaukums"
+            ],
+            "Default: comment.": [
+                "Noklus\u0113jums: koment\u0101rs."
+            ],
+            "High rating from": [
+                "Augsts v\u0113rt\u0113jums no"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Main\u0101s tikai formul\u0113jums: katram v\u0113rt\u0113jumam tiek r\u0101d\u012btas atsauksmju saites."
+            ],
+            "Wording": [
+                "Formul\u0113jums"
+            ],
+            "Thanks, high rating": [
+                "Paldies, augsts v\u0113rt\u0113jums"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Noklus\u0113jums: Paldies par j\u016bsu atsauksmi!"
+            ],
+            "Thanks, low rating": [
+                "Paldies, zems v\u0113rt\u0113jums"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Noklus\u0113jums: Paldies, ka past\u0101st\u012bj\u0101t. M\u0113s sazin\u0101simies ar jums, lai visu sak\u0101rtotu."
+            ],
+            "Review request, high rating": [
+                "P\u0101rskat\u012b\u0161anas piepras\u012bjums, augsts v\u0113rt\u0113jums"
+            ],
+            "Review request, low rating": [
+                "P\u0101rskat\u012b\u0161anas piepras\u012bjums, zems v\u0113rt\u0113jums"
+            ],
+            "Copy button": [
+                "Kop\u0113\u0161anas poga"
+            ],
+            "Default: Copy review": [
+                "Noklus\u0113jums: Kop\u0113t atsauksmi"
+            ],
+            "Review links": [
+                "Atsauksmju saites"
+            ]
+        }
+    }
+}

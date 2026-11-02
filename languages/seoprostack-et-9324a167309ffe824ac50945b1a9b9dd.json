@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Form": [
+                "Vorm"
+            ],
+            "Choose a form": [
+                "Valige vorm"
+            ],
+            "%s (no form on this site)": [
+                "%s (sellel saidil vormi pole)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "P\u00e4rast vormi saatmist kuvatakse: t\u00e4nud, kommentaar koos arvustuse koopiaga ja arvustuste lingid kasutajale %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Kuvatakse p\u00e4rast vormi saatmist: ainult t\u00e4nud. M\u00e4\u00e4rake googlereview, facebookreview v\u00f5i trustpilotreview l\u00fchilinkide sihtm\u00e4rgid arvustuste linkide kuvamiseks."
+            ],
+            "Feedback form": [
+                "Tagasiside vorm"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "Sellel lehel olev v\u00f5tiga Fluent vorm, mis kogub hinnanguid ja kommentaare."
+            ],
+            "Rating field name": [
+                "Hinnanguv\u00e4lja nimi"
+            ],
+            "Default: rating.": [
+                "Vaikimisi: hinnang."
+            ],
+            "Comment field name": [
+                "Kommentaariv\u00e4lja nimi"
+            ],
+            "Default: comment.": [
+                "Vaikimisi: kommentaar."
+            ],
+            "High rating from": [
+                "K\u00f5rge hinnang alates"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Ainult s\u00f5nastus muutub: iga hinnangu puhul kuvatakse arvustuste lingid."
+            ],
+            "Wording": [
+                "S\u00f5nastus"
+            ],
+            "Thanks, high rating": [
+                "T\u00e4nan, k\u00f5rge hinnang"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Vaikimisi: T\u00e4name tagasiside eest!"
+            ],
+            "Thanks, low rating": [
+                "T\u00e4nan, madal hinnang"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Vaikimisi: T\u00e4name teid teavitamast. V\u00f5tame teiega \u00fchendust, et asjad korda ajada."
+            ],
+            "Review request, high rating": [
+                "\u00dclevaatustaotlus, k\u00f5rge hinnang"
+            ],
+            "Review request, low rating": [
+                "\u00dclevaatustaotlus, madal hinnang"
+            ],
+            "Copy button": [
+                "Kopeerimisnupp"
+            ],
+            "Default: Copy review": [
+                "Vaikimisi: Kopeeri arvustus"
+            ],
+            "Review links": [
+                "Arvustuste lingid"
+            ]
+        }
+    }
+}

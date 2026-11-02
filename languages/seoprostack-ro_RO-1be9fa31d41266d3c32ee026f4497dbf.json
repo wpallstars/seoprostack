@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Address": [
+                "Adresa"
+            ],
+            "None": [
+                "Nici unul"
+            ],
+            "Cancel": [
+                "Anula"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Introduce\u021bi o adres\u0103 web complet\u0103 care \u00eencepe cu https:\/\/"
+            ],
+            "Link": [
+                "Leg\u0103tur\u0103"
+            ],
+            "Picture": [
+                "Imagine"
+            ],
+            "Title": [
+                "Titlu"
+            ],
+            "Open in a new tab": [
+                "Deschide \u00eentr-o fil\u0103 nou\u0103"
+            ],
+            "Page address": [
+                "Adresa paginii"
+            ],
+            "Change address": [
+                "Schimba\u021bi adresa"
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                "Se copiaz\u0103 imaginea \u00een biblioteca media\u2026"
+            ],
+            "The picture could not be copied.": [
+                "Imaginea nu a putut fi copiat\u0103."
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                "Caut pictograma site-ului\u2026"
+            ],
+            "The site\u2019s icon could not be copied.": [
+                "Pictograma site-ului nu a putut fi copiat\u0103."
+            ],
+            "Reading the page\u2026": [
+                "Citind pagina\u2026"
+            ],
+            "Fill in the title and description in the block settings.": [
+                "Completa\u021bi titlul \u0219i descrierea \u00een set\u0103rile blocului."
+            ],
+            "Card": [
+                "Card"
+            ],
+            "Read the page again": [
+                "Cite\u0219te din nou pagina"
+            ],
+            "Description": [
+                "Descriere"
+            ],
+            "Site name": [
+                "Numele site-ului"
+            ],
+            "On the right": [
+                "Pe dreapta"
+            ],
+            "On the left": [
+                "La st\u00e2nga"
+            ],
+            "Above": [
+                "Mai sus"
+            ],
+            "Beside the text when the card is wide enough.": [
+                "L\u00e2ng\u0103 text, c\u00e2nd cardul este suficient de lat."
+            ],
+            "Picture shape": [
+                "Forma imaginii"
+            ],
+            "Its own shape": [
+                "Propria sa form\u0103"
+            ],
+            "Wide, as in social previews": [
+                "Lat, ca \u00een previzualiz\u0103rile sociale"
+            ],
+            "Square": [
+                "P\u0103trat"
+            ],
+            "Fill the card\u2019s height": [
+                "Umple\u021bi \u00een\u0103l\u021bimea cardului"
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                "Imaginile sunt afi\u0219ate \u00eentregi, la aceea\u0219i \u00een\u0103l\u021bime pe fiecare card. Umplerea cardului la \u00een\u0103l\u021bimea acestuia le decupeaz\u0103."
+            ],
+            "Copy the picture": [
+                "Copia\u021bi imaginea"
+            ],
+            "Use the page\u2019s picture": [
+                "Folose\u0219te imaginea paginii"
+            ],
+            "Use the site\u2019s icon": [
+                "Folose\u0219te pictograma site-ului"
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                "Cere\u021bi motoarelor de c\u0103utare s\u0103 nu urm\u0103reasc\u0103 (nofollow)"
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                "Cineva care poate \u00eenc\u0103rca fi\u0219iere trebuie s\u0103 deschid\u0103 acest card pentru a ad\u0103uga fotografia acestuia."
+            ],
+            "Link card": [
+                "Card de leg\u0103tur\u0103"
+            ],
+            "Paste the address of a page to show a preview card.": [
+                "Lipi\u021bi adresa unei pagini pentru a afi\u0219a o fi\u0219\u0103 de previzualizare."
+            ],
+            "Show card": [
+                "Afi\u0219a\u021bi cardul"
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                "Acesta este un card cu semne de carte. Transform\u0103-l \u00eentr-un card cu linkuri pentru a p\u0103stra imaginea sa pe site-ul t\u0103u."
+            ],
+            "Convert to Link card": [
+                "Conversie \u00een card Link"
+            ],
+            "Default": [
+                "Implicit"
+            ],
+            "Horizontal": [
+                "Orizontal\u0103"
+            ]
+        }
+    }
+}

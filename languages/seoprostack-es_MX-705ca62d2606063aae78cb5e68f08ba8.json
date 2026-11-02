@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_MX",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Terms": [
+                "T\u00e9rminos"
+            ],
+            "None": [
+                "Ninguno"
+            ],
+            "Columns": [
+                "Columnas"
+            ],
+            "Link": [
+                "Enlace"
+            ],
+            "Taxonomy": [
+                "Taxonom\u00eda"
+            ],
+            "Square": [
+                "Cuadrado"
+            ],
+            "Show as": [
+                "Mostrar como"
+            ],
+            "List": [
+                "Lista"
+            ],
+            "Grid": [
+                "Red"
+            ],
+            "Tag cloud": [
+                "Nube de etiquetas"
+            ],
+            "Comma-separated": [
+                "Separados por comas"
+            ],
+            "A\u2013Z index": [
+                "\u00cdndice A-Z"
+            ],
+            "Drop-down": [
+                "Desplegable"
+            ],
+            "All terms": [
+                "Todos los t\u00e9rminos"
+            ],
+            "This post\u2019s terms": [
+                "T\u00e9rminos de esta publicaci\u00f3n"
+            ],
+            "Name": [
+                "Nombre"
+            ],
+            "Most posts first": [
+                "La mayor\u00eda de las publicaciones primero"
+            ],
+            "Random": [
+                "Aleatorio"
+            ],
+            "Under headings": [
+                "Bajo los encabezados"
+            ],
+            "Accordion": [
+                "Acorde\u00f3n"
+            ],
+            "Tabs": [
+                "Cortina a la italiana"
+            ],
+            "Theme default": [
+                "Tema predeterminado"
+            ],
+            "Dot": [
+                "Punto"
+            ],
+            "Circle": [
+                "C\u00edrculo"
+            ],
+            "Numbers": [
+                "N\u00fameros"
+            ],
+            "No groups": [
+                "No hay grupos"
+            ],
+            "By top-level term": [
+                "Por t\u00e9rmino de nivel superior"
+            ],
+            "By Tag Groups group": [
+                "Por grupos de etiquetas"
+            ],
+            "Terms to show": [
+                "T\u00e9rminos para mostrar"
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                "Los t\u00e9rminos de la publicaci\u00f3n o p\u00e1gina en la que se encuentra el bloque, o de cada publicaci\u00f3n en un bucle de consulta."
+            ],
+            "Show letter links": [
+                "Mostrar enlaces a las cartas"
+            ],
+            "Show as boxes": [
+                "Mostrar como cuadros"
+            ],
+            "Show post counts": [
+                "Mostrar recuento de publicaciones"
+            ],
+            "Show child terms": [
+                "Mostrar t\u00e9rminos secundarios"
+            ],
+            "Off shows only top-level terms.": [
+                "Off muestra solo los t\u00e9rminos de nivel superior."
+            ],
+            "Show empty terms": [
+                "Mostrar t\u00e9rminos vac\u00edos"
+            ],
+            "Text when there are no terms": [
+                "Texto cuando no hay t\u00e9rminos"
+            ],
+            "Leave empty to show nothing.": [
+                "D\u00e9jelo en blanco para que no aparezca nada."
+            ],
+            "Order and number": [
+                "Orden y n\u00famero"
+            ],
+            "Order": [
+                "Orden"
+            ],
+            "Most terms to show": [
+                "La mayor\u00eda de los t\u00e9rminos para mostrar"
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                "0 muestra todos. Cuando hay m\u00e1s, se muestran los que tienen m\u00e1s publicaciones."
+            ],
+            "Fewest posts a term needs": [
+                "Se necesitan menos publicaciones por t\u00e9rmino"
+            ],
+            "Groups": [
+                "Grupos"
+            ],
+            "Group terms": [
+                "T\u00e9rminos de grupo"
+            ],
+            "Show groups": [
+                "Mostrar grupos"
+            ],
+            "Tag cloud sizes": [
+                "Tama\u00f1os de nube de etiquetas"
+            ],
+            "Smallest text (em)": [
+                "Texto m\u00e1s peque\u00f1o (em)"
+            ],
+            "Largest text (em)": [
+                "Texto m\u00e1s grande (em)"
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                "Los t\u00e9rminos con m\u00e1s publicaciones son m\u00e1s grandes. Establezca ambos con el mismo tama\u00f1o."
+            ],
+            "Spacing and markers": [
+                "Espaciado y marcadores"
+            ],
+            "List marker": [
+                "Marcador de lista"
+            ],
+            "Space between items (px)": [
+                "Espacio entre elementos (px)"
+            ],
+            "Link colours": [
+                "Colores de enlace"
+            ],
+            "Link on hover": [
+                "Enlace al pasar el cursor"
+            ]
+        }
+    }
+}

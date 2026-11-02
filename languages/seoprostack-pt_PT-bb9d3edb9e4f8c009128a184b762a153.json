@@ -1,0 +1,66 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-icon\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pt_PT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Configura\u00e7\u00f5es"
+            ],
+            "Brand icons": [
+                "\u00cdcones da marca"
+            ],
+            "Link": [
+                "Liga\u00e7\u00e3o"
+            ],
+            "Search brand icons": [
+                "Pesquisar \u00edcones de marca"
+            ],
+            "Icons could not be loaded. Please try again.": [
+                "Os \u00edcones n\u00e3o puderam ser carregados. Tente novamente."
+            ],
+            "No icons found.": [
+                "Nenhum \u00edcone encontrado."
+            ],
+            "Icon": [
+                "\u00cdcone"
+            ],
+            "Brand colour": [
+                "Cor da marca"
+            ],
+            "The brand\u2019s own colour.": [
+                "A cor pr\u00f3pria da marca."
+            ],
+            "The text colour (choose one under Styles, or it follows the theme and its dark mode).": [
+                "A cor do texto (escolha uma em Estilos ou deixe que siga o tema e o seu modo escuro)."
+            ],
+            "Size (px)": [
+                "Tamanho (px)"
+            ],
+            "Open in a new tab": [
+                "Abrir numa nova aba"
+            ],
+            "Name for screen readers": [
+                "Nome para leitores de ecr\u00e3"
+            ],
+            "Leave empty for the brand\u2019s name.": [
+                "Deixe o campo do nome da marca em branco."
+            ],
+            "Brand icon": [
+                "\u00cdcone da marca"
+            ],
+            "This icon is no longer in the set. Choose another.": [
+                "Este \u00edcone j\u00e1 n\u00e3o est\u00e1 no conjunto. Escolha outro."
+            ],
+            "Search for a brand and choose its icon.": [
+                "Procure uma marca e escolha o seu \u00edcone."
+            ]
+        }
+    }
+}

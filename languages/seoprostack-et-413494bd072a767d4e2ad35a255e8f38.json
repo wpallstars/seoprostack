@@ -1,0 +1,30 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/members-only\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Message": [
+                "S\u00f5num"
+            ],
+            "Write what only they see\u2026": [
+                "Kirjuta seda, mida ainult nemad n\u00e4evad..."
+            ],
+            "Message instead of these blocks": [
+                "S\u00f5num nende plokkide asemel"
+            ],
+            "Leave empty for the message set in SEO Pro Stack. Logged-out visitors also get a link to log in.": [
+                "J\u00e4ta SEO Pro Stack m\u00e4\u00e4ratud s\u00f5numi jaoks t\u00fchjaks. V\u00e4ljalogitud k\u00fclastajad saavad samuti sisselogimise lingi."
+            ],
+            "Members only. Shown to:": [
+                "Ainult liikmetele. N\u00e4idatakse:"
+            ]
+        }
+    }
+}

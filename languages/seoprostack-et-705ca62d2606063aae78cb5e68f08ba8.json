@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "et",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Terms": [
+                "Tingimused"
+            ],
+            "None": [
+                "Puudub"
+            ],
+            "Columns": [
+                "Veerud"
+            ],
+            "Link": [
+                "Link"
+            ],
+            "Taxonomy": [
+                "Taksonoomia"
+            ],
+            "Square": [
+                "Ruut"
+            ],
+            "Show as": [
+                "N\u00e4ita kui"
+            ],
+            "List": [
+                "Loend"
+            ],
+            "Grid": [
+                "Ruudustik"
+            ],
+            "Tag cloud": [
+                "Sildipilv"
+            ],
+            "Comma-separated": [
+                "Komaga eraldatud"
+            ],
+            "A\u2013Z index": [
+                "A\u2013Z register"
+            ],
+            "Drop-down": [
+                "Rippmen\u00fc\u00fc"
+            ],
+            "All terms": [
+                "K\u00f5ik terminid"
+            ],
+            "This post\u2019s terms": [
+                "Selle postituse tingimused"
+            ],
+            "Name": [
+                "Nimi"
+            ],
+            "Most posts first": [
+                "Enamik postitusi esimesena"
+            ],
+            "Random": [
+                "Juhuslik"
+            ],
+            "Under headings": [
+                "Pealkirjade all"
+            ],
+            "Accordion": [
+                "Akordion"
+            ],
+            "Tabs": [
+                "Vahelehed"
+            ],
+            "Theme default": [
+                "Vaikimisi teema"
+            ],
+            "Dot": [
+                "Punkt"
+            ],
+            "Circle": [
+                "Ring"
+            ],
+            "Numbers": [
+                "Numbrid"
+            ],
+            "No groups": [
+                "Gruppe pole"
+            ],
+            "By top-level term": [
+                "Tipptaseme termini j\u00e4rgi"
+            ],
+            "By Tag Groups group": [
+                "Sildigruppide grupi j\u00e4rgi"
+            ],
+            "Terms to show": [
+                "Kuvatavad terminid"
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                "Postituse v\u00f5i lehe terminid, millel blokk asub, v\u00f5i iga p\u00e4ringuts\u00fckli postituse terminid."
+            ],
+            "Show letter links": [
+                "Kuva t\u00e4htede lingid"
+            ],
+            "Show as boxes": [
+                "N\u00e4ita kastidena"
+            ],
+            "Show post counts": [
+                "N\u00e4ita postituste arvu"
+            ],
+            "Show child terms": [
+                "N\u00e4ita alamtermineid"
+            ],
+            "Off shows only top-level terms.": [
+                "V\u00e4ljas kuvab ainult tipptaseme termineid."
+            ],
+            "Show empty terms": [
+                "Kuva t\u00fchjad terminid"
+            ],
+            "Text when there are no terms": [
+                "Tekst, kui termineid pole"
+            ],
+            "Leave empty to show nothing.": [
+                "J\u00e4ta t\u00fchjaks, kui soovid midagi mitte kuvada."
+            ],
+            "Order and number": [
+                "J\u00e4rjekord ja number"
+            ],
+            "Order": [
+                "Telli"
+            ],
+            "Most terms to show": [
+                "Enim kuvatavaid termineid"
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                "0 n\u00e4itab k\u00f5iki. Kui neid on rohkem, kuvatakse need, kellel on k\u00f5ige rohkem postitusi."
+            ],
+            "Fewest posts a term needs": [
+                "V\u00e4hem postitusi semestril vaja"
+            ],
+            "Groups": [
+                "Grupid"
+            ],
+            "Group terms": [
+                "Grupi terminid"
+            ],
+            "Show groups": [
+                "N\u00e4ita gruppe"
+            ],
+            "Tag cloud sizes": [
+                "Sildipilve suurused"
+            ],
+            "Smallest text (em)": [
+                "V\u00e4ikseim tekst (em)"
+            ],
+            "Largest text (em)": [
+                "Suurim tekst (em)"
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                "Rohkemate postitustega terminid on suuremad. M\u00e4\u00e4rake m\u00f5lemad samaks ja \u00fche suuruse jaoks."
+            ],
+            "Spacing and markers": [
+                "Vahed ja markerid"
+            ],
+            "List marker": [
+                "Loendimarker"
+            ],
+            "Space between items (px)": [
+                "Elementide vaheline kaugus (px)"
+            ],
+            "Link colours": [
+                "Lingi v\u00e4rvid"
+            ],
+            "Link on hover": [
+                "Link h\u00f5ljub"
+            ]
+        }
+    }
+}

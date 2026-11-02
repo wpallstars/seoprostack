@@ -1,0 +1,91 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "admin\/js\/seoprostack-tabs.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_NL",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Activate": [
+                "Activeren"
+            ],
+            "%d item": [
+                "%d item",
+                "%d items"
+            ],
+            "Could not measure": [
+                "Kon niet meten"
+            ],
+            "Wait for the bulk action to finish, or stop it.": [
+                "Wacht tot de bulkactie is voltooid, of stop deze."
+            ],
+            "%d plugin": [
+                "%d-plugin",
+                "%d plugins"
+            ],
+            "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
+                "Moet ik %s verwijderen? Daarmee worden de bestanden verwijderd en kan de plugin ook zijn instellingen en gegevens wissen."
+            ],
+            "Cancelled.": [
+                "Geannuleerd."
+            ],
+            "Installing\u2026": [
+                "Installeren\u2026"
+            ],
+            "Activating\u2026": [
+                "Activeren\u2026"
+            ],
+            "Deactivating\u2026": [
+                "Deactiveren\u2026"
+            ],
+            "Uninstalling\u2026": [
+                "Verwijderen\u2026"
+            ],
+            "%s installed.": [
+                "%s ge\u00efnstalleerd."
+            ],
+            "%s activated.": [
+                "%s geactiveerd."
+            ],
+            "%s deactivated.": [
+                "%s is gedeactiveerd."
+            ],
+            "%s uninstalled.": [
+                "%s is verwijderd."
+            ],
+            "Stopping after this plugin\u2026": [
+                "Ik stop na deze plugin\u2026"
+            ],
+            "%d selected": [
+                "%d geselecteerd",
+                "%d geselecteerd"
+            ],
+            "Choose a bulk action.": [
+                "Kies een bulkactie."
+            ],
+            "Select at least one plugin.": [
+                "Selecteer ten minste \u00e9\u00e9n plugin."
+            ],
+            "Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.": [
+                "Wil je %d plugin verwijderen? Als deze actief is, wordt deze eerst gedeactiveerd. Hierdoor worden de bijbehorende bestanden verwijderd en kan de plugin ook zijn instellingen en gegevens wissen.",
+                "Wil je %d plugins verwijderen? Actieve plugins worden eerst gedeactiveerd. Hierdoor worden de bijbehorende bestanden verwijderd en kunnen de plugins hun instellingen en gegevens wissen."
+            ],
+            "%1$d of %2$d: %3$s": [
+                "%1$d van %2$d: %3$s"
+            ],
+            "Changed %1$d, skipped %2$d, failed %3$d.": [
+                "%1$d gewijzigd, %2$d overgeslagen, %3$d mislukt."
+            ],
+            "Stopped.": [
+                "Gestopt."
+            ],
+            "Done.": [
+                "Klaar."
+            ]
+        }
+    }
+}
