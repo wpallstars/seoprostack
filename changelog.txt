@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Developers: sync starter core files to 199ccac. Plugin Check and smoke tests share cached-image pulls and address Google's Docker Hub cache directly in GitHub Actions before falling back to Docker Hub. CI optionally logs in with existing Docker Hub secrets using an isolated temporary config, without changing a runner's saved credentials. All 82 core files match the starter (GitHub issue #1140).
 * Fix: Fixes for other plugins uses its query-loop stand-in REST server only through the last checked Kadence Blocks Pro release, 2.8.20.1. Undefined or newer versions leave the incoming pre-render result and REST server unchanged, so Kadence uses its own route definition, including any changed permissions or methods. Raise KADENCE_QUERY_CHECKED only after checking the new route definition (GitHub issue #1138).
 
 = 1.3.136 =
