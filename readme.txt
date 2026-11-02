@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.137
+Stable tag: 1.3.138
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,11 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.138 =
+* New: a flag language switcher beside Kadence's dark mode switch, for TranslatePress sites (off by default) (#1156).
 * Fix: cloud storage retries transient errors; one failed removal check no longer pauses the whole site (#1145).
-
-= 1.3.137 =
-* New: Dutch, German and French translations ship with the plugin (#1141).
-* Fix: newer Kadence Blocks Pro versions use their own REST route definition for query loops (#1138).
+* Fix: cloud storage recovers a watermark job whose cron event was lost (#1147), and retries failed uploads while other media jobs are busy (#1152).
 
 Older: `changelog.txt`.
