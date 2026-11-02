@@ -2527,8 +2527,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Remove or restore one attachment's files. A restore error that
      * belongs to this attachment alone marks it STUCK and the batch goes
-     * on; any other failure (service, credentials, uploads folder) pauses
-     * this step for an hour. Either way the error shows.
+     * on. An isolated retryable removal error keeps that picture; consecutive
+     * service errors, credentials or configuration pause this step for an hour.
+     * Either way the error shows.
      *
      * @param int $id Attachment ID.
      * @param bool $removing Remove (true) or bring back (false).
@@ -2536,8 +2537,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether the batch may go on.
      */
     private static function local_step($id, $removing, $deadline) {
+        static $service_failures = 0;
         $result = $removing ? self::remove_local($id, $deadline) : self::restore_attachment($id);
         if (!is_wp_error($result)) {
+            $service_failures = 0;
             return true;
         }
         if ('storage_budget' === $result->get_error_code()) {
@@ -2545,6 +2548,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         /* translators: 1: attachment ID, 2: error message */
         update_option(self::ERROR, sprintf(__('Attachment %1$d: %2$s', 'seoprostack'), $id, $result->get_error_message()), false);
+        if ($removing && SEOProStack_S3_Client::retryable($result) && ++$service_failures < 2) {
+            // One attachment must not hold up the whole library. Its files stay
+            // local; retry-failed or a changed connection can revisit the mark.
+            update_post_meta($id, self::LOCAL, 'kept:' . self::config()['signature']);
+            return true;
+        }
         if (!$removing && in_array($result->get_error_code(), self::STUCK_ERRORS, true)) {
             // Tried again by restore --all or --retry-failed, or under another connection.
             update_post_meta($id, self::STUCK, self::config()['signature']);
