@@ -71,6 +71,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
+* **Links skip redirects**: link straight to Rank Math's permanent on-site redirect targets.
 * **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
@@ -151,6 +152,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* Fix: Links skip redirects handles encoded paths and ignores cached Rank Math redirects when its Redirections module is unavailable (#1137).
+* Fix: redirect links with HTML entities and custom paths containing literal plus signs match correctly (#1137).
 
 = 1.3.140 =
 * New: translations for French (France, Belgium), Spanish (Spain, Mexico), Italian, Portuguese (Portugal, Brazil), Dutch (Netherlands), German (Austria, Switzerland), Polish, Romanian, Latvian and Estonian; the front-end labels (Like, Save, Share, shortlist) are reviewed in every language (#1161).

@@ -50,8 +50,9 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
     /**
      * Redirections for this request: exact (old path => where it goes) and
      * nocase (the same, for patterns that ignore case, by lower-case path).
+     * Custom additions and overrides also match their raw path first.
      *
-     * @var array{exact:array<string,string>,nocase:array<string,string>}|null
+     * @var array{exact:array<string,string>,nocase:array<string,string>,custom:array<string,string>}|null
      */
     private static $map = null;
 
@@ -102,19 +103,17 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
     /**
      * The redirections links skip.
      *
-     * @return array{exact:array<string,string>,nocase:array<string,string>}
+     * @return array{exact:array<string,string>,nocase:array<string,string>,custom:array<string,string>}
      */
     private static function map() {
         if (null !== self::$map) {
             return self::$map;
         }
-        $map = get_transient(self::CACHE);
-        if (!is_array($map) || !isset($map['exact'], $map['nocase'])) {
-            $map = self::read();
-            if (null === $map) {
-                // Rank Math is not loaded on this request: skip nothing, and keep no empty list.
-                $map = array('exact' => array(), 'nocase' => array());
-            } else {
+        $map = array('exact' => array(), 'nocase' => array());
+        if (did_action('rank_math/loaded') && class_exists('\RankMath\Helper') && \RankMath\Helper::is_module_active('redirections')) {
+            $map = get_transient(self::CACHE);
+            if (!is_array($map) || !isset($map['exact'], $map['nocase'])) {
+                $map = self::read();
                 set_transient(self::CACHE, $map, 10 * MINUTE_IN_SECONDS);
             }
         }
@@ -126,24 +125,22 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
          * @param array<string,string> $exact Redirects, from Rank Math.
          */
         $exact = apply_filters('seoprostack_redirect_links', (array) $map['exact']);
+        $exact = is_array($exact) ? array_map('strval', $exact) : array();
         self::$map = array(
-            'exact'  => is_array($exact) ? array_map('strval', $exact) : array(),
+            'exact'  => $exact,
             'nocase' => (array) $map['nocase'],
+            'custom' => array_diff_assoc($exact, (array) $map['exact']),
         );
         return self::$map;
     }
 
     /**
      * Rank Math's active, exact, permanent redirections from this site to
-     * this site; null while Rank Math or its Redirections module is not
-     * loaded.
+     * this site. Called only while Rank Math's Redirections module is active.
      *
-     * @return array{exact:array<string,string>,nocase:array<string,string>}|null
+     * @return array{exact:array<string,string>,nocase:array<string,string>}
      */
     private static function read() {
-        if (!did_action('rank_math/loaded') || !class_exists('\RankMath\Helper') || !\RankMath\Helper::is_module_active('redirections')) {
-            return null;
-        }
         global $wpdb;
         $rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Rank Math's own table, read at most every ten minutes and kept in a transient.
             $wpdb->prepare(
@@ -221,6 +218,12 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
             return null;
         }
         $map = self::map();
+        // Custom filter paths keep literal '+' and percent escapes distinct.
+        if (isset($map['custom'][$path])) {
+            return $map['custom'][$path];
+        }
+        // Rank Math decodes the request URI, not its stored source patterns.
+        $path = trim(urldecode($path), '/');
         if (isset($map['exact'][$path])) {
             return $map['exact'][$path];
         }
@@ -269,14 +272,19 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
      * @return bool
      */
     private static function mentions_old_address($html) {
+        // Let the tag processor decode entities before deciding which links match.
+        if (false !== strpos($html, '&')) {
+            return true;
+        }
         $map = self::map();
+        $decoded = urldecode($html);
         foreach (array_keys($map['exact']) as $path) {
-            if (false !== strpos($html, '/' . $path)) {
+            if (false !== strpos($html, '/' . $path) || false !== strpos($decoded, '/' . $path)) {
                 return true;
             }
         }
         foreach (array_keys($map['nocase']) as $path) {
-            if (false !== stripos($html, '/' . $path)) {
+            if (false !== stripos($html, '/' . $path) || false !== stripos($decoded, '/' . $path)) {
                 return true;
             }
         }
