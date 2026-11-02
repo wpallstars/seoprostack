@@ -168,6 +168,18 @@
 	max-width: calc(100vw - 4rem);
 }
 
+/*
+ * The script opens the list towards the side with room (data-placement) and
+ * caps its height to that space, so it never runs off the screen.
+ */
+.seoprostack-languages[data-placement="down"] .seoprostack-languages__menu {
+	inset-block: calc(100% + 0.375rem) auto;
+}
+
+.seoprostack-languages[data-placement="up"] .seoprostack-languages__menu {
+	inset-block: auto calc(100% + 0.375rem);
+}
+
 /* Kadence's own switcher and this one, side by side. */
 .site-header-item:has(> .seoprostack-languages),
 .site-footer-item:has(> .seoprostack-languages) {
