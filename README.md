@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.136-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.137-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.136
+Version: 1.3.137
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2303,7 +2303,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.137
 
 - New: Dutch (`nl_BE`), German (`de_DE`) and French (`fr_CA`) translations ship in `languages/` (`Domain Path: /languages`), 3,291 strings each, so sites in those languages show the plugin's screens, blocks and front-end text translated. Most are machine translations (Google Cloud Translation v2), marked with the translator comment "machine translation" until reviewed; placeholders, HTML and product names are kept. The text domain is registered on `init` before features start, block and admin scripts load the bundled JSON files, and a WordPress.org language pack still wins. `bash scripts/translations.sh` regenerates the `.pot` and compiles the `.mo` and `.json` files (#1141).
 - Fix: Kadence Blocks Pro versions newer than the checked 2.8.20.1 use their full REST server for query loops, so changes to Kadence's route permissions and methods are not replaced by an older definition (#1138).
