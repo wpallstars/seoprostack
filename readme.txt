@@ -152,6 +152,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: cloud storage retries transient errors; one failed removal check no longer pauses the whole site (#1145).
+
 = 1.3.137 =
 * New: Dutch, German and French translations ship with the plugin (#1141).
 * Fix: newer Kadence Blocks Pro versions use their own REST route definition for query loops (#1138).

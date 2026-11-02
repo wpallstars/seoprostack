@@ -199,6 +199,40 @@ final class SEOProStack_S3_Client {
      * @return array WordPress-shaped responses or WP_Error values, by key.
      */
     private function request_multiple($requests, $timeout = 20) {
+        $deadline = microtime(true) + $timeout;
+        $results = array();
+        for ($attempt = 1; $attempt <= 3; ++$attempt) {
+            $responses = $this->request_multiple_once($requests, max(0, $deadline - microtime(true)));
+            $pending = array();
+            foreach ($responses as $key => $response) {
+                // A retry cut short by the budget must not turn an earlier
+                // service failure into a harmless upload deferral.
+                $at_deadline = is_wp_error($response) && ('storage_budget' === $response->get_error_code() || ('storage_transport' === $response->get_error_code() && !empty($response->get_error_data()['at_deadline'])));
+                if (!$at_deadline || !self::retryable($results[$key] ?? null)) {
+                    $results[$key] = $response;
+                }
+                if (self::retryable($response)) {
+                    $pending[$key] = $requests[$key];
+                }
+            }
+            if (!$pending || !$this->retry_pause($attempt, $deadline)) {
+                break;
+            }
+            // Retry only failures, retaining the same digest-checked PUT bodies
+            // and the successful peers without allocating a second payload group.
+            $requests = $pending;
+        }
+        return $results;
+    }
+
+    /**
+     * Send one attempt within the remaining group budget.
+     *
+     * @param array $requests Signed request arrays or WP_Error values.
+     * @param float $timeout Remaining seconds for this group.
+     * @return array Checked responses by key.
+     */
+    private function request_multiple_once($requests, $timeout) {
         $class = class_exists('WpOrg\\Requests\\Requests') ? 'WpOrg\\Requests\\Requests' : 'Requests';
         $deadline = microtime(true) + $timeout;
         $batch = $this->prepare_parallel($requests, $class, $deadline);
@@ -359,9 +393,43 @@ final class SEOProStack_S3_Client {
         if (is_wp_error($request)) {
             return $request;
         }
-        // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- explicit probe or background batch, never a page view.
-        $response = wp_remote_request($request['url'], array('method' => $method, 'headers' => $request['headers'], 'body' => $body, 'timeout' => 20, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
-        return $this->checked_response($method, $response);
+        $deadline = microtime(true) + 20;
+        for ($attempt = 1; $attempt <= 3; ++$attempt) {
+            $response = $this->fallback_request($request, $deadline);
+            if (!self::retryable($response) || !$this->retry_pause($attempt, $deadline)) {
+                return $response;
+            }
+        }
+        return $response;
+    }
+
+    /**
+     * Recognise only service responses, never credentials or transport failures.
+     *
+     * @param mixed $response Checked response.
+     * @return bool Whether a short retry can help.
+     */
+    public static function retryable($response) {
+        return is_wp_error($response) && 'storage_http' === $response->get_error_code() && !empty($response->get_error_data()['retryable']);
+    }
+
+    /**
+     * Back off twice with jitter, leaving time to start the next attempt.
+     *
+     * @param int $attempt Attempt just completed (three at most).
+     * @param float $deadline End of the caller's budget.
+     * @return bool Whether another attempt fits.
+     */
+    private function retry_pause($attempt, $deadline) {
+        if ($attempt >= 3) {
+            return false;
+        }
+        $delay = (1 === $attempt ? 0.5 : 1.5) + wp_rand(0, 250) / 1000;
+        if (microtime(true) + $delay + 0.05 >= $deadline) {
+            return false;
+        }
+        usleep((int) ($delay * 1000000));
+        return microtime(true) < $deadline;
     }
 
     /**
@@ -432,9 +500,11 @@ final class SEOProStack_S3_Client {
         }
         // Only allow a short machine code, never the service's echoed request.
         $code = '';
+        $retryable = 429 === $status || ($status >= 500 && $status < 600);
         if (preg_match('/<Code>([A-Za-z0-9]{1,64})<\/Code>/', wp_remote_retrieve_body($response), $match)) {
+            $retryable = $retryable || in_array($match[1], array('SlowDown', 'InternalError', 'ServiceUnavailable'), true);
             $code = str_replace(array($this->config['key_id'], $this->config['secret']), '[redacted]', $match[1]);
         }
-        return new WP_Error('storage_http', sprintf('Storage HTTP %d%s', $status, $code ? ' (' . $code . ')' : ''), array('status' => (int) $status));
+        return new WP_Error('storage_http', sprintf('Storage HTTP %d%s', $status, $code ? ' (' . $code . ')' : ''), array('status' => (int) $status, 'retryable' => $retryable));
     }
 }
