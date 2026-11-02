@@ -6049,7 +6049,7 @@ msgstr "Aucune adresse lisible trouvée dans HTML de cette page."
 # machine translation
 #: includes/features/class-seoprostack-email-protection.php:382
 msgid "Email address hidden, enable JavaScript."
-msgstr "Adresse e-mail masquée, JavaScript activé."
+msgstr "Adresse e-mail masquée, activez JavaScript."
 
 # machine translation
 #: includes/features/class-seoprostack-external-links.php:35
