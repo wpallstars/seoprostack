@@ -205,7 +205,12 @@ final class SEOProStack_S3_Client {
             $responses = $this->request_multiple_once($requests, max(0, $deadline - microtime(true)));
             $pending = array();
             foreach ($responses as $key => $response) {
-                $results[$key] = $response;
+                // A retry cut short by the budget must not turn an earlier
+                // service failure into a harmless upload deferral.
+                $at_deadline = is_wp_error($response) && ('storage_budget' === $response->get_error_code() || ('storage_transport' === $response->get_error_code() && !empty($response->get_error_data()['at_deadline'])));
+                if (!$at_deadline || !self::retryable($results[$key] ?? null)) {
+                    $results[$key] = $response;
+                }
                 if (self::retryable($response)) {
                     $pending[$key] = $requests[$key];
                 }
