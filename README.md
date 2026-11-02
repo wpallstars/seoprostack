@@ -586,6 +586,16 @@ Makes TranslatePress's floating and shortcode language switchers follow the site
 - Covers the current and legacy switchers. Sizes, positions, flags, borders' widths, dropdowns and language links stay as TranslatePress sets them.
 - Only a small front-end stylesheet is added. No scripts, outside services or changes to TranslatePress's saved settings. Turning it off restores TranslatePress's own colours on the next page load.
 
+### Language switcher beside Kadence's dark mode switch (Content)
+
+A compact language button beside Kadence Pro's **Dark Mode** switch in the header, the mobile menu and the footer. **Off by default**; it shows only on Kadence (or a child theme) with TranslatePress publishing more than one language.
+
+- The button shows the current language's flag and code (`EN`, `FR`) with a small arrow. It opens a list of the site's languages, each with its flag and name, linking to the same page in that language. In the footer the list opens upwards, the button sits right of the dark mode switch, and the footer row is centred vertically.
+- Flags are 3:2 country flags shipped with the plugin (MIT, from flag-icons). A language's flag is its locale's country (`fr_CA` → Canada, `lv` → Latvia); English shows the site's own country when the `psdtheme_english_flag` option holds a two-letter code (`JE` on a Jersey site), otherwise its locale's. Filter: `seoprostack_language_flag`.
+- Keyboard and screen readers: a real button with `aria-expanded`; Escape and clicks outside close the list; arrow keys move through it. TranslatePress does not translate the switcher (`data-no-translation`).
+- Uses Kadence's palette, so it follows the light and dark mode switch. Only a small stylesheet and script load, and only on pages that show it.
+- Turn TranslatePress's floating switcher off and remove its shortcode from the header and footer, so only one switcher shows. A theme that prints its own switcher on the same Kadence actions (the Property Services Directory child theme up to 0.1.28) keeps it, and this one stays hidden.
+
 ### Readabler colours (Content)
 
 Gives Readabler's accessibility button and popup the site's palette colours, so they follow Kadence's light and dark mode switcher. **Off by default**; nothing changes without Readabler.
@@ -2306,6 +2316,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Language switcher beside Kadence's dark mode switch** (Content tab). With TranslatePress and more than one language, a compact flag-and-code button in the header, mobile menu and footer opens the site's languages with their flags; English shows the site's own country flag. The footer row is centred (#1156).
 - Fix: **Media in cloud storage** retries transient storage errors up to three times within its batch deadline, without resending successful peers. An isolated removal HEAD failure keeps that picture's files instead of pausing removal for the whole site; repeated service failures still pause it (#1145).
 - Fix: Media in cloud storage recovers a watermark job whose cron event was lost, so uploads do not wait forever. `wp seoprostack media-storage status` names the waiting job, warns after a minute without recorded progress and restores a missing watermark event (#1147).
 

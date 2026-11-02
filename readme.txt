@@ -50,7 +50,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Restrict content** by membership/role. **Menu item visibility** by login/role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Named lists and Saved panel**.
-* **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
+* **Spectra block replacements**, **TranslatePress colours**, a **flag language switcher** beside Kadence's dark mode switch, and **Kadence query filters**.
 * **WP Grid Builder colours** in Kadence dark mode; **palette colours for its switch**.
 * **Kadence colour check**: fixes Customizer contrast, with Restore.
 * **Fluent Forms by key**: form, panel and modal blocks.
