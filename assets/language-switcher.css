@@ -1,0 +1,240 @@
+/*
+ * Language switcher (includes/features/class-seoprostack-language-switcher.php).
+ * Kadence's palette variables, so dark mode follows Kadence Pro's palette swap.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
+ * From the Property Services Directory child theme (Provenance: wpas-2bec2bd6b77c93d7).
+ */
+
+.seoprostack-languages {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	margin-inline-start: 0.5rem;
+	font-size: 0.875rem;
+	line-height: 1.25;
+}
+
+.seoprostack-languages__button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 2.25rem;
+	margin: 0;
+	padding: 0.375rem 0.625rem;
+	border: 1px solid color-mix(in srgb, currentcolor 25%, transparent);
+	border-radius: 0.375rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+	cursor: pointer;
+	box-shadow: none;
+}
+
+.seoprostack-languages__button:hover,
+.seoprostack-languages__button[aria-expanded="true"] {
+	border-color: color-mix(in srgb, currentcolor 50%, transparent);
+	background: color-mix(in srgb, currentcolor 8%, transparent);
+	color: inherit;
+}
+
+.seoprostack-languages__button:focus-visible,
+.seoprostack-languages__item:focus-visible {
+	outline: 2px solid var(--global-palette1, #2b6cb0);
+	outline-offset: 2px;
+}
+
+.seoprostack-languages__flag {
+	display: block;
+	flex: none;
+	width: 1.3125rem;
+	height: 0.875rem;
+	border-radius: 2px;
+	box-shadow: 0 0 0 1px color-mix(in srgb, currentcolor 20%, transparent);
+	object-fit: cover;
+}
+
+.seoprostack-languages__flag--none {
+	background: color-mix(in srgb, currentcolor 15%, transparent);
+}
+
+.seoprostack-languages__chevron {
+	flex: none;
+	opacity: 0.7;
+	transition: transform 0.15s ease;
+}
+
+.seoprostack-languages__button[aria-expanded="true"] .seoprostack-languages__chevron {
+	transform: rotate(180deg);
+}
+
+.seoprostack-languages__menu {
+	position: absolute;
+	z-index: 1000;
+	inset-block-start: calc(100% + 0.375rem);
+	inset-inline-end: 0;
+	min-width: 14rem;
+
+	/* 14 languages need about 30rem; leave room on short screens. */
+	max-height: min(calc(100vh - 7rem), 32rem);
+	margin: 0;
+	padding: 0.25rem;
+	overflow-y: auto;
+	list-style: none;
+	border: 1px solid var(--global-palette7, #e2e8f0);
+	border-radius: 0.5rem;
+
+	/*
+	 * Scroll shadows: a list that still scrolls shows a shade at the edge with
+	 * more languages. The covers move with the content (local) and hide the
+	 * shades (scroll) at the list's ends. The shade is the text colour, so it
+	 * shows in dark mode too.
+	 */
+	background:
+		linear-gradient(var(--global-palette9, #fff) 30%, transparent) top / 100% 2rem no-repeat local,
+		linear-gradient(transparent, var(--global-palette9, #fff) 70%) bottom / 100% 2rem no-repeat local,
+		radial-gradient(farthest-side at 50% 0, color-mix(in srgb, currentcolor 35%, transparent), transparent) top / 100% 0.875rem no-repeat scroll,
+		radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, currentcolor 35%, transparent), transparent) bottom / 100% 0.875rem no-repeat scroll,
+		var(--global-palette9, #fff);
+	color: var(--global-palette4, #2d3748);
+	box-shadow: 0 10px 30px -10px rgb(0 0 0 / 30%);
+	text-align: start;
+}
+
+.seoprostack-languages__menu[hidden] {
+	display: none;
+}
+
+.seoprostack-languages__menu li {
+	margin: 0;
+	padding: 0;
+}
+
+.seoprostack-languages__item {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	padding: 0.5rem 0.625rem;
+	border-radius: 0.375rem;
+	color: inherit;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.seoprostack-languages__item:hover,
+.seoprostack-languages__item:focus-visible {
+	background: var(--global-palette8, #f7fafc);
+	color: var(--global-palette3, #1a202c);
+	text-decoration: none;
+}
+
+.seoprostack-languages__item[aria-current="true"] {
+	font-weight: 600;
+}
+
+.seoprostack-languages__name {
+	flex: 1 1 auto;
+}
+
+.seoprostack-languages__check {
+	flex: none;
+	color: var(--global-palette1, #2b6cb0);
+}
+
+/*
+ * Footer and mobile drawer: Kadence colours its switcher's container for the
+ * toggle icon (white or palette9), so take the text colour from the palette.
+ * Both sit at the bottom of their area, so the list opens upwards.
+ */
+.seoprostack-languages--footer .seoprostack-languages__button,
+.seoprostack-languages--mobile .seoprostack-languages__button {
+	color: var(--global-palette4, #2d3748);
+}
+
+.seoprostack-languages--footer .seoprostack-languages__menu,
+.seoprostack-languages--mobile .seoprostack-languages__menu {
+	inset-block: auto calc(100% + 0.375rem);
+	inset-inline: 0 auto;
+}
+
+.seoprostack-languages--mobile .seoprostack-languages__menu {
+	min-width: 12rem;
+	max-width: calc(100vw - 4rem);
+}
+
+/* Kadence's own switcher and this one, side by side. */
+.site-header-item:has(> .seoprostack-languages),
+.site-footer-item:has(> .seoprostack-languages) {
+	gap: 0.25rem;
+}
+
+/*
+ * Footer: Kadence's dark-mode item is a block whose switcher fills it, so
+ * this one would wrap below the toggle. Keep it to the right of the toggle,
+ * centred on it, and follow the item's alignment setting. The bottom row's
+ * columns are then centred on one another (the copyright beside them).
+ */
+.footer-dark-mode-inner:has(> .seoprostack-languages) {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.footer-dark-mode-inner > .seoprostack-languages {
+	margin-inline-start: 0;
+}
+
+.footer-dark-mode.content-align-center .footer-dark-mode-inner:has(> .seoprostack-languages) {
+	justify-content: center;
+}
+
+.footer-dark-mode.content-align-right .footer-dark-mode-inner:has(> .seoprostack-languages) {
+	justify-content: flex-end;
+}
+
+.site-footer-row:has(.footer-dark-mode-inner > .seoprostack-languages) {
+	align-items: center;
+}
+
+@media (width <= 1024px) {
+	.footer-dark-mode.content-tablet-align-center .footer-dark-mode-inner:has(> .seoprostack-languages) {
+		justify-content: center;
+	}
+
+	.footer-dark-mode.content-tablet-align-left .footer-dark-mode-inner:has(> .seoprostack-languages) {
+		justify-content: flex-start;
+	}
+
+	.footer-dark-mode.content-tablet-align-right .footer-dark-mode-inner:has(> .seoprostack-languages) {
+		justify-content: flex-end;
+	}
+}
+
+@media (width <= 767px) {
+	/* Stacked on phones (the row's columns one under another), centred like the copyright, unless set otherwise. */
+	.site-footer-row-mobile-column-layout-row .footer-dark-mode.content-mobile-align-default .footer-dark-mode-inner:has(> .seoprostack-languages),
+	.footer-dark-mode.content-mobile-align-center .footer-dark-mode-inner:has(> .seoprostack-languages) {
+		justify-content: center;
+	}
+
+	.footer-dark-mode.content-mobile-align-left .footer-dark-mode-inner:has(> .seoprostack-languages) {
+		justify-content: flex-start;
+	}
+
+	.footer-dark-mode.content-mobile-align-right .footer-dark-mode-inner:has(> .seoprostack-languages) {
+		justify-content: flex-end;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.seoprostack-languages__chevron {
+		transition: none;
+	}
+}

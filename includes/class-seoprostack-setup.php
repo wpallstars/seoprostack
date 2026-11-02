@@ -75,6 +75,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Editor_Tidy',
         'SEOProStack_Editor_Dev_Tab',
         'SEOProStack_Translatepress_Colours',
+        'SEOProStack_Language_Switcher',
         'SEOProStack_Readabler_Colours',
         'SEOProStack_Wpgb_Colours',
         'SEOProStack_Fluentforms_Colours',
