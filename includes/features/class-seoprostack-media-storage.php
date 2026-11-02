@@ -5133,13 +5133,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             WP_CLI::error('Use status, test, upload, restore, adopt, migrate, collisions or forget-previous.');
         }
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
+        $retry_ids = array();
         if (isset($assoc['retry-failed'])) {
             update_option(self::JOB . 'originalcursor', '', false);
-            self::retry_stranded($limit);
+            $retry_ids = self::retry_stranded($limit);
             foreach (self::jobs($limit, '', 'retry_') as $name) {
                 $job = get_option($name);
                 if (is_array($job) && 'retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
-                    self::queue((int) $job['id']);
+                    $id = (int) $job['id'];
+                    $record = get_post_meta($id, self::META, true);
+                    if (count($retry_ids) < $limit && empty($record['collision_refused']) && !self::removed_elsewhere($id)) {
+                        self::queue($id);
+                        $retry_ids[] = $id;
+                    }
                 } elseif (is_array($job) && 'original_retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
                     $job['next'] = 0;
                     update_option($name, $job, false);
@@ -5168,13 +5174,48 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
+        $retried = 0;
+        $uploaded = 0;
+        if ($retry_ids) {
+            // Explicit retries must not yield to an unrelated media-job queue.
+            // upload_attachment still guards each picture's pending watermark.
+            $lease = self::cli_lease();
+            $retry_start = microtime(true);
+            try {
+                foreach ($retry_ids as $id) {
+                    if (!self::more_time($retry_start, self::BUDGET)) {
+                        break;
+                    }
+                    ++$retried;
+                    if (self::upload_attachment($id, $retry_start)) {
+                        ++$uploaded;
+                    }
+                }
+            } finally {
+                self::release($lease);
+            }
+        }
+        $limit -= $retried;
         // Use the same lock, budget and watermark guard as cron.
         $start = microtime(true);
-        do {
+        while ($limit > 0) {
             $attempts = self::run_batch($limit);
             $limit -= $attempts;
-        } while ($attempts && $limit > 0 && self::more_time($start, 60));
+            if (!$attempts || !self::more_time($start, 60)) {
+                break;
+            }
+        }
         self::schedule();
+        if (isset($assoc['retry-failed'])) {
+            delete_transient(self::COUNTS);
+            $failed = self::counts()['failed'];
+            $message = sprintf('Retried %d attachment(s); %d uploaded; %d still failed; %d retries deferred.', $retried, $uploaded, $failed, count($retry_ids) - $uploaded);
+            if ($failed || count($retry_ids) > $uploaded) {
+                WP_CLI::error($message);
+            }
+            WP_CLI::success($message);
+            return;
+        }
         WP_CLI::success('Batch finished; remaining pictures continue in the background.');
     }
 
@@ -5183,18 +5224,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Page past refusals without loading the whole media library.
      *
      * @param int $limit Most attachments to requeue.
+     * @return int[] Requeued attachment IDs.
      */
     private static function retry_stranded($limit) {
         global $wpdb;
         $before = PHP_INT_MAX;
-        $queued = 0;
+        $queued = array();
         do {
             // Keep ID order: starting from meta_key would sort all matching rows
             // before LIMIT instead of walking the posts primary-key range.
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded ID-paged lookup; meta joins use post_id and jobs use option_name's unique index.
             $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
                 "SELECT STRAIGHT_JOIN p.ID FROM {$wpdb->posts} p FORCE INDEX (PRIMARY) INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value IN ('failed', 'waiting') INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s LEFT JOIN {$wpdb->options} j ON j.option_name = CONCAT(%s, p.ID) WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND p.ID < %d AND j.option_id IS NULL ORDER BY p.ID DESC LIMIT %d",
-                self::STATE, self::DONE, self::upload_marker(), self::JOB . 'retry_', 'image/%', $before, $limit - $queued
+                self::STATE, self::DONE, self::upload_marker(), self::JOB . 'retry_', 'image/%', $before, $limit - count($queued)
             )));
             foreach ($ids as $id) {
                 $before = $id;
@@ -5212,9 +5254,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     continue;
                 }
                 self::queue($id);
-                ++$queued;
+                $queued[] = $id;
             }
-        } while ($ids && $queued < $limit);
+        } while ($ids && count($queued) < $limit);
+        return $queued;
     }
 
     /**
