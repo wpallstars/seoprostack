@@ -1998,11 +1998,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * Schedule the next batch unless one is due.
      *
      * @param int $delay Seconds from now.
+     * @return bool Whether an event exists or was successfully scheduled.
      */
-    private static function schedule($delay) {
-        if (!wp_next_scheduled(self::HOOK)) {
-            wp_schedule_single_event(time() + (int) $delay, self::HOOK);
+    public static function schedule($delay) {
+        if (wp_next_scheduled(self::HOOK)) {
+            return true;
         }
+        return true === wp_schedule_single_event(time() + (int) $delay, self::HOOK);
     }
 
     /**
@@ -2107,7 +2109,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return;
         }
         try {
-            self::run_part($job);
+            self::run_part();
         } finally {
             SEOProStack_Media_Storage::release($lease);
         }
@@ -2115,11 +2117,18 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     /**
      * One bounded part of the batch, under the media lease.
-     *
-     * @param array $job The batch.
      */
-    private static function run_part(array $job) {
+    private static function run_part() {
         set_transient(self::LOCK, 1, self::BUDGET + 60);
+        // Another runner may have advanced or ended this non-autoloaded job
+        // since run_batch read it, before this request acquired the media lease.
+        wp_cache_delete(self::JOB, 'options');
+        wp_cache_delete('notoptions', 'options');
+        $job = self::job();
+        if (!$job || !empty($job['ended'])) {
+            delete_transient(self::LOCK);
+            return;
+        }
         if ('remove' !== $job['op']) {
             $mark = self::enabled() ? self::mark() : new WP_Error('watermark_off', __('Watermark pictures was switched off.', 'seoprostack'));
             if (is_wp_error($mark)) {
@@ -2150,6 +2159,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $job['done']++;
             update_option(self::JOB, $job, false);
             $job['error'] = self::apply($id, $job['op'], $job['counts'], (string) $job['error']);
+            $job['progress'] = time();
             // Marked, left alone or failed (and listed to retry): storage may go on.
             delete_post_meta($id, self::QUEUED_META);
             wp_cache_flush_runtime();

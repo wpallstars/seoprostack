@@ -2307,6 +2307,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Fix: **Media in cloud storage** retries transient storage errors up to three times within its batch deadline, without resending successful peers. An isolated removal HEAD failure keeps that picture's files instead of pausing removal for the whole site; repeated service failures still pause it (#1145).
+- Fix: Media in cloud storage recovers a watermark job whose cron event was lost, so uploads do not wait forever. `wp seoprostack media-storage status` names the waiting job, warns after a minute without recorded progress and restores a missing watermark event (#1147).
 
 ### 1.3.137
 

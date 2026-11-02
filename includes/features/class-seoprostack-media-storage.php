@@ -2402,6 +2402,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         self::schedule(60);
         $watermark = SEOProStack_Watermark_Images::job();
         if ($ready && $watermark && empty($watermark['ended'])) {
+            // A concurrent cron-option write can lose the watermark wake-up.
+            // Give it one bounded turn before taking the storage lease; uploads
+            // resume on the next storage turn, with their own time budget.
+            if (!wp_next_scheduled(SEOProStack_Watermark_Images::HOOK)) {
+                SEOProStack_Watermark_Images::run_batch();
+            }
             return 0;
         }
         $lease = self::lease();
@@ -5228,6 +5234,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         foreach (self::counts() as $state => $count) {
             WP_CLI::log($state . ': ' . $count);
         }
+        self::cli_watermark_wait();
         $config = self::config();
         WP_CLI::log('Originals bucket: ' . ($config['originals_bucket'] ?: 'not configured (originals stay local)'));
         WP_CLI::log($config['originals_error']);
@@ -5235,6 +5242,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             WP_CLI::log('originals ' . $state . ': ' . $count);
         }
         WP_CLI::log((string) get_option(self::ERROR, ''));
+    }
+
+    /**
+     * Explain a watermark wait and restore its missing cron wake-up.
+     */
+    private static function cli_watermark_wait() {
+        $job = SEOProStack_Watermark_Images::job();
+        if (!self::ready() || !$job || !empty($job['ended'])) {
+            return;
+        }
+        WP_CLI::log(sprintf('Uploads wait for watermark job %s: %d/%d pictures.', $job['op'], (int) $job['done'], (int) $job['total']));
+        $progress = (int) ($job['progress'] ?? $job['started'] ?? 0);
+        if ($progress && time() - $progress > 3 * SEOProStack_Watermark_Images::BUDGET) {
+            WP_CLI::warning(sprintf('Watermark job stalled: no recorded progress for %d seconds.', time() - $progress));
+        }
+        if (!wp_next_scheduled(SEOProStack_Watermark_Images::HOOK)) {
+            $scheduled = SEOProStack_Watermark_Images::schedule(0);
+            WP_CLI::warning($scheduled ? 'Watermark cron event was missing; scheduled again.' : 'Watermark cron event is missing and could not be scheduled.');
+        }
     }
 
     /**
