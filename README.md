@@ -2303,6 +2303,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: Media in cloud storage recovers a watermark job whose cron event was lost, so uploads do not wait forever. `wp seoprostack media-storage status` names the waiting job, warns after a minute without recorded progress and restores a missing watermark event (#1147).
+
 ### 1.3.137
 
 - New: Dutch (`nl_BE`), German (`de_DE`) and French (`fr_CA`) translations ship in `languages/` (`Domain Path: /languages`), 3,291 strings each, so sites in those languages show the plugin's screens, blocks and front-end text translated. Most are machine translations (Google Cloud Translation v2), marked with the translator comment "machine translation" until reviewed; placeholders, HTML and product names are kept. The text domain is registered on `init` before features start, block and admin scripts load the bundled JSON files, and a WordPress.org language pack still wins. `bash scripts/translations.sh` regenerates the `.pot` and compiles the `.mo` and `.json` files (#1141).
