@@ -1,0 +1,24 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/lists\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "de_DE",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Liked": [
+                "Gef\u00e4llt mir"
+            ],
+            "New list": [
+                "Neue Liste"
+            ],
+            "Each visitor sees their own lists here: Liked, and the lists they name, with Move to, Remove and the actions other plugins add.": [
+                "Hier sieht jeder Besucher seine eigenen Listen: \u201eGef\u00e4llt mir\u201c und die von ihm benannten Listen, mit den Optionen \u201eVerschieben nach\u201c, \u201eEntfernen\u201c und den Aktionen, die andere Plugins hinzuf\u00fcgen."
+            ]
+        }
+    }
+}

@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/form\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "de_DE",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Settings": [
+                "Einstellungen"
+            ],
+            "Form": [
+                "Formular"
+            ],
+            "Choose a form in the block settings.": [
+                "W\u00e4hlen Sie in den Blockeinstellungen ein Formular aus."
+            ],
+            "Title": [
+                "Titel"
+            ],
+            "Choose a form": [
+                "W\u00e4hlen Sie ein Formular"
+            ],
+            "%s (no form on this site)": [
+                "%s (kein Formular auf dieser Seite)"
+            ],
+            "Published Fluent forms that carry a key.": [
+                "Ver\u00f6ffentlichte Fluent Formulare, die einen Schl\u00fcssel enthalten."
+            ],
+            "No form has a key yet: wp seoprostack form-keys set <form-id> <key>.": [
+                "Noch kein Formular hat einen Schl\u00fcssel: wp seoprostack form-keys set <form-id> <key>."
+            ],
+            "In a panel": [
+                "In einem Panel"
+            ],
+            "A bordered box around the form, as the theme draws panels.": [
+                "Ein umrandeter Kasten umgibt das Formular, da das Thema Panels zeichnet."
+            ],
+            "Opens from links to %s.": [
+                "\u00d6ffnet sich \u00fcber Links zu %s."
+            ],
+            "Without Kadence Blocks Pro the form shows here, in a panel.": [
+                "Ohne Kadence Blocks Pro wird das Formular hier in einem Panel angezeigt."
+            ],
+            "Modal ID": [
+                "Modal-ID"
+            ],
+            "Links to #ID open the modal. Empty: the form key.": [
+                "Links zu #ID \u00f6ffnen das Modal. Leer: der Formularschl\u00fcssel."
+            ],
+            "Introduction": [
+                "Einf\u00fchrung"
+            ],
+            "Form modal": [
+                "Formularmodal"
+            ]
+        }
+    }
+}

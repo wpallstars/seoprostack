@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_BE",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Form": [
+                "Formulier"
+            ],
+            "Choose a form": [
+                "Kies een formulier"
+            ],
+            "%s (no form on this site)": [
+                "%s (geen formulier op deze site)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Na het verzenden van het formulier worden de volgende gegevens weergegeven: een bedankje, de opmerking met \"Kopieer beoordeling\" en beoordelingslinks voor %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Wordt na het verzenden van het formulier weergegeven: alleen bedankt. Stel de doelen van de korte links googlereview, facebookreview of trustpilotreview in om beoordelingslinks weer te geven."
+            ],
+            "Feedback form": [
+                "Feedbackformulier"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "Het sleutelformulier Fluent op deze pagina verzamelt de beoordeling en het commentaar."
+            ],
+            "Rating field name": [
+                "Naam van het beoordelingsveld"
+            ],
+            "Default: rating.": [
+                "Standaardwaarde: beoordeling."
+            ],
+            "Comment field name": [
+                "Naam van het commentaarveld"
+            ],
+            "Default: comment.": [
+                "Standaard: opmerking."
+            ],
+            "High rating from": [
+                "Hoge beoordeling van"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Alleen de formulering verandert: er worden nu links naar beoordelingen weergegeven voor elke score."
+            ],
+            "Wording": [
+                "Formulering"
+            ],
+            "Thanks, high rating": [
+                "Bedankt, hoge beoordeling."
+            ],
+            "Default: Thank you for your feedback!": [
+                "Standaard: Bedankt voor je feedback!"
+            ],
+            "Thanks, low rating": [
+                "Bedankt, lage beoordeling"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "Standaard: Bedankt dat u het ons hebt laten weten. We nemen contact met u op om het probleem op te lossen."
+            ],
+            "Review request, high rating": [
+                "Beoordelingsverzoek, hoge waardering"
+            ],
+            "Review request, low rating": [
+                "Verzoek om beoordeling, lage score"
+            ],
+            "Copy button": [
+                "Kopieerknop"
+            ],
+            "Default: Copy review": [
+                "Standaard: Kopie controleren"
+            ],
+            "Review links": [
+                "Reviewlinks"
+            ]
+        }
+    }
+}
