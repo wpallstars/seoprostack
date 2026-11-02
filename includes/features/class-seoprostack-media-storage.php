@@ -5133,13 +5133,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             WP_CLI::error('Use status, test, upload, restore, adopt, migrate, collisions or forget-previous.');
         }
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
+        $retry_ids = array();
         if (isset($assoc['retry-failed'])) {
             update_option(self::JOB . 'originalcursor', '', false);
-            self::retry_stranded($limit);
+            $retry_ids = self::retry_stranded($limit);
             foreach (self::jobs($limit, '', 'retry_') as $name) {
                 $job = get_option($name);
                 if (is_array($job) && 'retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
-                    self::queue((int) $job['id']);
+                    $id = (int) $job['id'];
+                    $record = get_post_meta($id, self::META, true);
+                    if (count($retry_ids) < $limit && empty($record['collision_refused']) && !self::removed_elsewhere($id)) {
+                        $retry_ids[] = $id;
+                    }
                 } elseif (is_array($job) && 'original_retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
                     $job['next'] = 0;
                     update_option($name, $job, false);
@@ -5168,33 +5173,81 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
+        $retries = self::cli_retry_uploads($retry_ids);
+        $limit -= $retries['retried'];
         // Use the same lock, budget and watermark guard as cron.
         $start = microtime(true);
-        do {
+        while ($limit > 0) {
             $attempts = self::run_batch($limit);
             $limit -= $attempts;
-        } while ($attempts && $limit > 0 && self::more_time($start, 60));
+            if (!$attempts || !self::more_time($start, 60)) {
+                break;
+            }
+        }
         self::schedule();
+        if (isset($assoc['retry-failed'])) {
+            delete_transient(self::COUNTS);
+            $failed = self::counts()['failed'];
+            $message = sprintf('Retried %d attachment(s); %d uploaded; %d still failed; %d retries incomplete.', $retries['retried'], $retries['uploaded'], $failed, count($retry_ids) - $retries['uploaded']);
+            if ($failed || count($retry_ids) > $retries['uploaded']) {
+                WP_CLI::error($message);
+            }
+            WP_CLI::success($message);
+            return;
+        }
         WP_CLI::success('Batch finished; remaining pictures continue in the background.');
     }
 
     /**
-     * Recover failed or unfinished uploads whose retry job was lost, newest first.
+     * Retry selected pictures before unrelated media jobs, within one batch budget.
+     *
+     * @param int[] $ids Selected attachment IDs.
+     * @return array{retried:int,uploaded:int} Retry outcomes.
+     */
+    private static function cli_retry_uploads($ids) {
+        $counts = array('retried' => 0, 'uploaded' => 0);
+        if (!$ids) {
+            return $counts;
+        }
+        $lease = self::cli_lease();
+        $start = microtime(true);
+        try {
+            foreach ($ids as $id) {
+                if (!self::more_time($start, self::BUDGET)) {
+                    break;
+                }
+                // Direct uploads ignore back-off; keep the old retry job and
+                // completion marker intact if a watermark guard defers them.
+                ++$counts['retried'];
+                // upload_attachment retains the per-picture watermark guard.
+                if (self::upload_attachment($id, $start)) {
+                    ++$counts['uploaded'];
+                }
+            }
+        } finally {
+            self::release($lease);
+        }
+        return $counts;
+    }
+
+    /**
+     * Find failed or unfinished uploads whose retry job was lost, newest first.
      * Page past refusals without loading the whole media library.
      *
-     * @param int $limit Most attachments to requeue.
+     * @param int $limit Most attachments to select.
+     * @return int[] Selected attachment IDs.
      */
     private static function retry_stranded($limit) {
         global $wpdb;
         $before = PHP_INT_MAX;
-        $queued = 0;
+        $queued = array();
         do {
             // Keep ID order: starting from meta_key would sort all matching rows
             // before LIMIT instead of walking the posts primary-key range.
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded ID-paged lookup; meta joins use post_id and jobs use option_name's unique index.
             $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
                 "SELECT STRAIGHT_JOIN p.ID FROM {$wpdb->posts} p FORCE INDEX (PRIMARY) INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value IN ('failed', 'waiting') INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s LEFT JOIN {$wpdb->options} j ON j.option_name = CONCAT(%s, p.ID) WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND p.ID < %d AND j.option_id IS NULL ORDER BY p.ID DESC LIMIT %d",
-                self::STATE, self::DONE, self::upload_marker(), self::JOB . 'retry_', 'image/%', $before, $limit - $queued
+                self::STATE, self::DONE, self::upload_marker(), self::JOB . 'retry_', 'image/%', $before, $limit - count($queued)
             )));
             foreach ($ids as $id) {
                 $before = $id;
@@ -5211,10 +5264,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 if (!empty($record['collision_refused']) || $legacy_refusal || self::removed_elsewhere($id)) {
                     continue;
                 }
-                self::queue($id);
-                ++$queued;
+                $queued[] = $id;
             }
-        } while ($ids && $queued < $limit);
+        } while ($ids && count($queued) < $limit);
+        return $queued;
     }
 
     /**
