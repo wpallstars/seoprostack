@@ -25,7 +25,7 @@
 	min-height: 2.25rem;
 	margin: 0;
 	padding: 0.375rem 0.625rem;
-	border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+	border: 1px solid color-mix(in srgb, currentcolor 25%, transparent);
 	border-radius: 0.375rem;
 	background: transparent;
 	color: inherit;
@@ -39,8 +39,8 @@
 
 .seoprostack-languages__button:hover,
 .seoprostack-languages__button[aria-expanded="true"] {
-	border-color: color-mix(in srgb, currentColor 50%, transparent);
-	background: color-mix(in srgb, currentColor 8%, transparent);
+	border-color: color-mix(in srgb, currentcolor 50%, transparent);
+	background: color-mix(in srgb, currentcolor 8%, transparent);
 	color: inherit;
 }
 
@@ -56,12 +56,12 @@
 	width: 1.3125rem;
 	height: 0.875rem;
 	border-radius: 2px;
-	box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 20%, transparent);
+	box-shadow: 0 0 0 1px color-mix(in srgb, currentcolor 20%, transparent);
 	object-fit: cover;
 }
 
 .seoprostack-languages__flag--none {
-	background: color-mix(in srgb, currentColor 15%, transparent);
+	background: color-mix(in srgb, currentcolor 15%, transparent);
 }
 
 .seoprostack-languages__chevron {
@@ -80,6 +80,7 @@
 	inset-block-start: calc(100% + 0.375rem);
 	inset-inline-end: 0;
 	min-width: 14rem;
+
 	/* 14 languages need about 30rem; leave room on short screens. */
 	max-height: min(calc(100vh - 7rem), 32rem);
 	margin: 0;
@@ -88,6 +89,7 @@
 	list-style: none;
 	border: 1px solid var(--global-palette7, #e2e8f0);
 	border-radius: 0.5rem;
+
 	/*
 	 * Scroll shadows: a list that still scrolls shows a shade at the edge with
 	 * more languages. The covers move with the content (local) and hide the
@@ -101,7 +103,7 @@
 		radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, currentcolor 35%, transparent), transparent) bottom / 100% 0.875rem no-repeat scroll,
 		var(--global-palette9, #fff);
 	color: var(--global-palette4, #2d3748);
-	box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.3);
+	box-shadow: 0 10px 30px -10px rgb(0 0 0 / 30%);
 	text-align: start;
 }
 
@@ -157,10 +159,8 @@
 
 .seoprostack-languages--footer .seoprostack-languages__menu,
 .seoprostack-languages--mobile .seoprostack-languages__menu {
-	inset-block-start: auto;
-	inset-block-end: calc(100% + 0.375rem);
-	inset-inline-end: auto;
-	inset-inline-start: 0;
+	inset-block: auto calc(100% + 0.375rem);
+	inset-inline: 0 auto;
 }
 
 .seoprostack-languages--mobile .seoprostack-languages__menu {
@@ -203,7 +203,7 @@
 	align-items: center;
 }
 
-@media (max-width: 1024px) {
+@media (width <= 1024px) {
 	.footer-dark-mode.content-tablet-align-center .footer-dark-mode-inner:has(> .seoprostack-languages) {
 		justify-content: center;
 	}
@@ -217,7 +217,7 @@
 	}
 }
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
 	/* Stacked on phones (the row's columns one under another), centred like the copyright, unless set otherwise. */
 	.site-footer-row-mobile-column-layout-row .footer-dark-mode.content-mobile-align-default .footer-dark-mode-inner:has(> .seoprostack-languages),
 	.footer-dark-mode.content-mobile-align-center .footer-dark-mode-inner:has(> .seoprostack-languages) {

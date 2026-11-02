@@ -151,27 +151,39 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
         }
         global $TRP_LANGUAGE; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase -- TranslatePress's global.
         $current   = is_string($TRP_LANGUAGE) ? $TRP_LANGUAGE : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
-        $own_flag  = preg_match('/^[A-Za-z]{2}$/', (string) get_option(self::ENGLISH_FLAG_OPTION, ''));
+        $own_flag  = 1 === preg_match('/^[A-Za-z]{2}$/', (string) get_option(self::ENGLISH_FLAG_OPTION, ''));
         $languages = array();
         foreach ($list as $locale => $item) {
-            $locale = (string) $locale;
-            if (!is_array($item) || empty($item['current_page_url'])) {
-                continue;
+            $language = self::language((string) $locale, $item, $current, $own_flag);
+            if (null !== $language) {
+                $languages[(string) $locale] = $language;
             }
-            $name = (string) ($item['language_name'] ?? $locale);
-            // "English (UK)" beside a site's own flag (Jersey's): "English".
-            if (0 === strpos($locale, 'en_') && $own_flag) {
-                $name = 'English';
-            }
-            $languages[$locale] = array(
-                'name'    => $name,
-                'url'     => (string) $item['current_page_url'],
-                'code'    => strtoupper((string) strtok($locale, '_')),
-                'flag'    => self::flag_url($locale),
-                'current' => $locale === $current,
-            );
         }
         return count($languages) > 1 ? $languages : array();
+    }
+
+    /**
+     * One of TranslatePress's languages, or null without an address.
+     *
+     * @param string $locale   TranslatePress language code.
+     * @param mixed  $item     Its trp_custom_language_switcher() entry.
+     * @param string $current  This request's language code.
+     * @param bool   $own_flag Whether English shows the site's own flag.
+     * @return array{name: string, url: string, code: string, flag: string, current: bool}|null
+     */
+    private static function language($locale, $item, $current, $own_flag) {
+        if (!is_array($item) || empty($item['current_page_url'])) {
+            return null;
+        }
+        // "English (UK)" beside a site's own flag (Jersey's): "English".
+        $name = $own_flag && 0 === strpos($locale, 'en_') ? 'English' : (string) ($item['language_name'] ?? $locale);
+        return array(
+            'name'    => $name,
+            'url'     => (string) $item['current_page_url'],
+            'code'    => strtoupper((string) strtok($locale, '_')),
+            'flag'    => self::flag_url($locale),
+            'current' => $locale === $current,
+        );
     }
 
     /**
