@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_CA",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Form": [
+                "Formulaire"
+            ],
+            "Choose a form": [
+                "Choisissez un formulaire"
+            ],
+            "%s (no form on this site)": [
+                "%s (aucun formulaire sur ce site)"
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                "Apr\u00e8s l'envoi du formulaire, les \u00e9l\u00e9ments suivants s'affichent\u00a0: remerciements, le commentaire avec \u00ab\u00a0Copie de l'avis\u00a0\u00bb et les liens d'avis pour %s."
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                "Un message de remerciement s'affiche apr\u00e8s l'envoi du formulaire. Configurez les cibles des liens courts googlereview, facebookreview ou trustpilotreview pour afficher les liens vers les avis."
+            ],
+            "Feedback form": [
+                "Formulaire de commentaires"
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                "Le formulaire Fluent saisi sur cette page permet de recueillir la note et les commentaires."
+            ],
+            "Rating field name": [
+                "Nom du champ d'\u00e9valuation"
+            ],
+            "Default: rating.": [
+                "Par d\u00e9faut\u00a0: note."
+            ],
+            "Comment field name": [
+                "Nom du champ de commentaire"
+            ],
+            "Default: comment.": [
+                "Par d\u00e9faut\u00a0: commentaire."
+            ],
+            "High rating from": [
+                "Note \u00e9lev\u00e9e de"
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                "Seul le libell\u00e9 change\u00a0: des liens vers les avis apparaissent pour chaque \u00e9valuation."
+            ],
+            "Wording": [
+                "Formulation"
+            ],
+            "Thanks, high rating": [
+                "Merci, excellente note"
+            ],
+            "Default: Thank you for your feedback!": [
+                "Par d\u00e9faut\u00a0: Merci pour vos commentaires\u00a0!"
+            ],
+            "Thanks, low rating": [
+                "Merci, mauvaise note"
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                "R\u00e9ponse par d\u00e9faut\u00a0: Merci de nous l'avoir signal\u00e9. Nous communiquerons avec vous pour rem\u00e9dier \u00e0 la situation."
+            ],
+            "Review request, high rating": [
+                "Demande d'\u00e9valuation, note \u00e9lev\u00e9e"
+            ],
+            "Review request, low rating": [
+                "Demande d'avis, note faible"
+            ],
+            "Copy button": [
+                "Bouton Copier"
+            ],
+            "Default: Copy review": [
+                "Par d\u00e9faut\u00a0: Copier l\u2019avis"
+            ],
+            "Review links": [
+                "Liens vers les avis"
+            ]
+        }
+    }
+}

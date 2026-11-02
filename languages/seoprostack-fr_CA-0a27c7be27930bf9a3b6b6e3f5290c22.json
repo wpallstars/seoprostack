@@ -1,0 +1,57 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/saved-posts\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_CA",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Saved": [
+                "Enregistr\u00e9"
+            ],
+            "Remove": [
+                "Retirer"
+            ],
+            "Shortlist": [
+                "Pr\u00e9s\u00e9lection"
+            ],
+            "Liked": [
+                "J'ai aim\u00e9"
+            ],
+            "Nothing saved yet.": [
+                "Rien n'est encore enregistr\u00e9."
+            ],
+            "List": [
+                "Liste"
+            ],
+            "A saved post": [
+                "Un message enregistr\u00e9"
+            ],
+            "Another saved post": [
+                "Un autre message enregistr\u00e9"
+            ],
+            "Saved posts": [
+                "Messages enregistr\u00e9s"
+            ],
+            "Show excerpts": [
+                "Afficher des extraits"
+            ],
+            "Show Remove buttons": [
+                "Afficher les boutons Supprimer"
+            ],
+            "Text when nothing is saved": [
+                "Texte lorsqu'aucune sauvegarde n'est effectu\u00e9e"
+            ],
+            "The post\u2019s excerpt.": [
+                "Extrait du billet."
+            ],
+            "Each visitor sees their own selected list.": [
+                "Chaque visiteur voit sa propre liste de s\u00e9lection."
+            ]
+        }
+    }
+}

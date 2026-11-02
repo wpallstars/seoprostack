@@ -1,0 +1,65 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/spectra\/convert.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "nl_BE",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Convert": [
+                "Omzetten"
+            ],
+            "Buttons": [
+                "Knoppen"
+            ],
+            "Heading": [
+                "Koptekst"
+            ],
+            "Converted %d Spectra block. Check it, then save.": [
+                "Geconverteerd %d Spectra-blok. Controleer het en sla het vervolgens op.",
+                "Geconverteerde %d Spectra-blokken. Controleer ze en sla ze vervolgens op."
+            ],
+            "%d Spectra block could not be converted and is left as it is.": [
+                "%d Spectra-blok kon niet worden geconverteerd en is ongewijzigd gebleven.",
+                "%d Spectra-blokken konden niet worden geconverteerd en zijn ongewijzigd gebleven."
+            ],
+            "a Heading block": [
+                "een kopblok"
+            ],
+            "Image": [
+                "Afbeelding"
+            ],
+            "an Image block": [
+                "een afbeeldingsblok"
+            ],
+            "a Buttons block": [
+                "een knoppenblok"
+            ],
+            "Testimonial": [
+                "Getuigenis"
+            ],
+            "Quote blocks": [
+                "Citaatblokken"
+            ],
+            "Taxonomy List": [
+                "Taxonomielijst"
+            ],
+            "a Term list block": [
+                "een lijstblok met termen"
+            ],
+            "core blocks": [
+                "kernblokken"
+            ],
+            "Convert all %d": [
+                "Converteer alle %d"
+            ],
+            "Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save.": [
+                "Spectra %1$s blok. Spectra is niet actief, dus Convert zet het om in %2$s. Er verandert niets totdat je opslaat."
+            ]
+        }
+    }
+}

@@ -1,0 +1,65 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/spectra\/convert.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_CA",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Convert": [
+                "Convertir"
+            ],
+            "Buttons": [
+                "Boutons"
+            ],
+            "Heading": [
+                "Titre"
+            ],
+            "Converted %d Spectra block. Check it, then save.": [
+                "Bloc Spectra %d converti. V\u00e9rifiez-le, puis enregistrez-le.",
+                "Blocs Spectra %d convertis. V\u00e9rifiez-les, puis enregistrez-les."
+            ],
+            "%d Spectra block could not be converted and is left as it is.": [
+                "Le bloc Spectra %d n'a pas pu \u00eatre converti et reste inchang\u00e9.",
+                "Les blocs Spectra %d n'ont pas pu \u00eatre convertis et demeurent inchang\u00e9s."
+            ],
+            "a Heading block": [
+                "bloc d'en-t\u00eate"
+            ],
+            "Image": [
+                "Image"
+            ],
+            "an Image block": [
+                "un bloc d'image"
+            ],
+            "a Buttons block": [
+                "un bloc de boutons"
+            ],
+            "Testimonial": [
+                "T\u00e9moignage"
+            ],
+            "Quote blocks": [
+                "blocs de citations"
+            ],
+            "Taxonomy List": [
+                "Liste taxonomique"
+            ],
+            "a Term list block": [
+                "bloc de liste de termes"
+            ],
+            "core blocks": [
+                "blocs de base"
+            ],
+            "Convert all %d": [
+                "Convertir tous %d"
+            ],
+            "Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save.": [
+                "Bloc Spectra %1$s. Spectra n'est pas actif, donc Convertir le transforme en %2$s. Rien ne change tant que vous n'enregistrez pas."
+            ]
+        }
+    }
+}

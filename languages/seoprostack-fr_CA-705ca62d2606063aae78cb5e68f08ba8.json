@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_CA",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Terms": [
+                "Termes"
+            ],
+            "None": [
+                "Aucun"
+            ],
+            "Columns": [
+                "Colonnes"
+            ],
+            "Link": [
+                "Lien"
+            ],
+            "Taxonomy": [
+                "Taxonomie"
+            ],
+            "Square": [
+                "Carr\u00e9"
+            ],
+            "Show as": [
+                "Afficher comme"
+            ],
+            "List": [
+                "Liste"
+            ],
+            "Grid": [
+                "Grille"
+            ],
+            "Tag cloud": [
+                "nuage de tags"
+            ],
+            "Comma-separated": [
+                "S\u00e9par\u00e9s par des virgules"
+            ],
+            "A\u2013Z index": [
+                "Index A\u2013Z"
+            ],
+            "Drop-down": [
+                "D\u00e9rouler"
+            ],
+            "All terms": [
+                "Tous les termes"
+            ],
+            "This post\u2019s terms": [
+                "Conditions d'utilisation de cet article"
+            ],
+            "Name": [
+                "Nom"
+            ],
+            "Most posts first": [
+                "La plupart des messages en premier"
+            ],
+            "Random": [
+                "Al\u00e9atoire"
+            ],
+            "Under headings": [
+                "Sous les rubriques"
+            ],
+            "Accordion": [
+                "Accord\u00e9on"
+            ],
+            "Tabs": [
+                "Onglets"
+            ],
+            "Theme default": [
+                "Th\u00e8me par d\u00e9faut"
+            ],
+            "Dot": [
+                "Pointe"
+            ],
+            "Circle": [
+                "Cercle"
+            ],
+            "Numbers": [
+                "Nombres"
+            ],
+            "No groups": [
+                "Pas de groupes"
+            ],
+            "By top-level term": [
+                "Par terme de niveau sup\u00e9rieur"
+            ],
+            "By Tag Groups group": [
+                "Groupe par \u00e9tiquettes"
+            ],
+            "Terms to show": [
+                "Conditions \u00e0 afficher"
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                "Les termes de la publication ou de la page sur laquelle se trouve le bloc, ou de chaque publication dans une boucle de requ\u00eate."
+            ],
+            "Show letter links": [
+                "Afficher les liens des lettres"
+            ],
+            "Show as boxes": [
+                "Afficher sous forme de bo\u00eetes"
+            ],
+            "Show post counts": [
+                "Afficher le nombre de messages"
+            ],
+            "Show child terms": [
+                "Afficher les conditions de l'enfant"
+            ],
+            "Off shows only top-level terms.": [
+                "L'affichage d\u00e9sactiv\u00e9 montre seulement les termes de premier niveau."
+            ],
+            "Show empty terms": [
+                "Afficher les termes vides"
+            ],
+            "Text when there are no terms": [
+                "Texte lorsqu'il n'y a pas de conditions"
+            ],
+            "Leave empty to show nothing.": [
+                "Laisser vide pour ne rien afficher."
+            ],
+            "Order and number": [
+                "Ordre et num\u00e9ro"
+            ],
+            "Order": [
+                "Commande"
+            ],
+            "Most terms to show": [
+                "La plupart des termes \u00e0 afficher"
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                "0 affiche tout. S'il y en a plus, ce sont les personnes ayant le plus de messages qui apparaissent."
+            ],
+            "Fewest posts a term needs": [
+                "Le nombre minimal de messages par mandat est requis"
+            ],
+            "Groups": [
+                "Groupes"
+            ],
+            "Group terms": [
+                "Conditions g\u00e9n\u00e9rales"
+            ],
+            "Show groups": [
+                "Afficher les groupes"
+            ],
+            "Tag cloud sizes": [
+                "Tailles des nuages de tags"
+            ],
+            "Smallest text (em)": [
+                "Texte plus petit (em)"
+            ],
+            "Largest text (em)": [
+                "Texte le plus grand (em)"
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                "Les termes ayant plus de publications sont plus grands. D\u00e9finissez la m\u00eame taille pour les deux."
+            ],
+            "Spacing and markers": [
+                "Espacement et marqueurs"
+            ],
+            "List marker": [
+                "Marqueur de liste"
+            ],
+            "Space between items (px)": [
+                "Espace entre les \u00e9l\u00e9ments (px)"
+            ],
+            "Link colours": [
+                "Couleurs de liaison"
+            ],
+            "Link on hover": [
+                "Lien au survol"
+            ]
+        }
+    }
+}

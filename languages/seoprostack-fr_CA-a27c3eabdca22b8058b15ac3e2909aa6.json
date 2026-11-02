@@ -1,0 +1,165 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "fr_CA",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
+            "Size": [
+                "Taille"
+            ],
+            "Embedded content": [
+                "Contenu int\u00e9gr\u00e9"
+            ],
+            "Page": [
+                "Page"
+            ],
+            "Share": [
+                "Partager"
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                "Entrez une adresse Web compl\u00e8te commen\u00e7ant par https:\/\/"
+            ],
+            "Title": [
+                "Titre"
+            ],
+            "Payments": [
+                "Paiements"
+            ],
+            "Run scripts": [
+                "Ex\u00e9cuter des scripts"
+            ],
+            "Treat as its own site (cookies, storage)": [
+                "Traiter comme un site \u00e0 part enti\u00e8re (t\u00e9moins, stockage)"
+            ],
+            "Submit forms": [
+                "Soumettre les formulaires"
+            ],
+            "Open pop-ups": [
+                "Ouvrir les fen\u00eatres contextuelles"
+            ],
+            "Pop-ups without restrictions": [
+                "Pop-ups sans restrictions"
+            ],
+            "Presentation mode": [
+                "Mode de pr\u00e9sentation"
+            ],
+            "Alerts and dialogs": [
+                "Alertes et bo\u00eetes de dialogue"
+            ],
+            "Downloads": [
+                "T\u00e9l\u00e9chargements"
+            ],
+            "Navigate this page when clicked": [
+                "Naviguez sur cette page en cliquant"
+            ],
+            "Autoplay": [
+                "Lecture automatique"
+            ],
+            "Camera": [
+                "Cam\u00e9ra"
+            ],
+            "Microphone": [
+                "Microphone"
+            ],
+            "Location": [
+                "Emplacement"
+            ],
+            "Copy to clipboard": [
+                "Copier dans le presse-papiers"
+            ],
+            "Protected media": [
+                "M\u00e9dias prot\u00e9g\u00e9s"
+            ],
+            "Picture-in-picture": [
+                "Image dans l'image"
+            ],
+            "Fixed size": [
+                "Taille fixe"
+            ],
+            "Only http and https addresses can be embedded.": [
+                "Seules les adresses http et https peuvent \u00eatre int\u00e9gr\u00e9es."
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                "Ce domaine ne figure pas dans la liste des domaines autoris\u00e9s dans Param\u00e8tres \u2192 SEO Pro Stack, il ne sera donc pas affich\u00e9."
+            ],
+            "iFrame": [
+                "iFrame"
+            ],
+            "Paste the address of the page to embed.": [
+                "Collez l'adresse de la page \u00e0 int\u00e9grer."
+            ],
+            "Page address": [
+                "Adresse de la page"
+            ],
+            "Embed": [
+                "Int\u00e9grer"
+            ],
+            "Change address": [
+                "Changer d'adresse"
+            ],
+            "Describes the embed for screen readers.": [
+                "D\u00e9crit l'int\u00e9gration pour les lecteurs d'\u00e9cran."
+            ],
+            "Pass page URL parameters": [
+                "Passer la page URL param\u00e8tres"
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                "Ajoute la cha\u00eene de requ\u00eate de cette page (par exemple, les balises UTM) \u00e0 l'adresse int\u00e9gr\u00e9e."
+            ],
+            "Aspect ratio": [
+                "Rapport d'aspect"
+            ],
+            "Width": [
+                "Largeur"
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                "Pixels (ex. 600) ou un pourcentage (ex. 100 %)."
+            ],
+            "Height (px)": [
+                "Hauteur (px)"
+            ],
+            "Show border": [
+                "Afficher la bordure"
+            ],
+            "Loading and permissions": [
+                "Chargement et autorisations"
+            ],
+            "Lazy load": [
+                "Chargement paresseux"
+            ],
+            "Load the page only when it scrolls into view.": [
+                "Charger la page seulement lorsqu'elle appara\u00eet \u00e0 l'\u00e9cran."
+            ],
+            "Allow full screen": [
+                "Autoriser le plein \u00e9cran"
+            ],
+            "Allow the embedded page to use": [
+                "Autoriser la page int\u00e9gr\u00e9e \u00e0 utiliser"
+            ],
+            "Referrer policy": [
+                "Politique de parrainage"
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                "Quelle partie de l'adresse de cette page est envoy\u00e9e au site int\u00e9gr\u00e9\u00a0?"
+            ],
+            "Sandbox": [
+                "Bac \u00e0 sable"
+            ],
+            "Sandbox the embedded page": [
+                "Bac \u00e0 sable la page int\u00e9gr\u00e9e"
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                "Recommand\u00e9. Cette page ne peut effectuer que les actions coch\u00e9es ci-dessous."
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                "La page int\u00e9gr\u00e9e n'est pas assujettie \u00e0 des restrictions. Ne d\u00e9sactivez cette option que pour les sites de confiance."
+            ]
+        }
+    }
+}
