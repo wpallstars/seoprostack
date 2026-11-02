@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.139 =
+* Fix: Language switcher: the list opens towards the side of its button with room. The header list still opens downwards and the footer and mobile-drawer lists upwards, but when the list does not fit there and the other side has more room it opens that way; its max-height is capped to the space it has (EDGE 14px from the screen edge, never under 120px or above the stylesheet's cap) through data-placement="up|down", so every language stays on screen and the list scrolls with its shade. Before, a mobile drawer whose button was less than the list's height from the top put the first languages above the screen (#1159).
+
 = 1.3.138 =
 * Fix: Media in cloud storage: upload --retry-failed retries failed uploads before background media jobs, instead of uploading nothing while those jobs have work; retry markers are kept when a bounded upload is deferred (#1152).
 * New: Language switcher beside Kadence's dark mode switch (Content tab, off by default). On Kadence with TranslatePress publishing two or more languages, it prints a flag-and-code button after Kadence Pro's header, mobile and footer dark-mode switches (priority 20) that opens a list of trp_custom_language_switcher() languages with 3:2 flags (assets/flags/, MIT flag-icons), hreflang and aria-current. English uses the psdtheme_english_flag country when set; filter seoprostack_language_flag. The footer row aligns its items to the centre. Hidden where PSDTHEME_Languages already hooks the same actions (#1156).

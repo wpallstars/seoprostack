@@ -12,8 +12,40 @@
 (function () {
 	'use strict';
 
+	// Space kept between the list and the screen edge (px), plus the list's offset from the button.
+	var EDGE = 14;
+	// A list never gets shorter than this; three languages and a scroll shade.
+	var MIN_HEIGHT = 120;
+
 	function items(menu) {
 		return Array.prototype.slice.call(menu.querySelectorAll('a'));
+	}
+
+	/*
+	 * Open towards the side with room. The header list opens downwards, the
+	 * footer and mobile-drawer lists upwards (their buttons sit at the bottom
+	 * of their area). When the list does not fit there and the other side has
+	 * more room it opens that way instead, and its height is capped to the
+	 * space it has, so every language stays on screen (the list scrolls).
+	 */
+	function place(root, button, menu) {
+		root.removeAttribute('data-placement');
+		menu.style.maxHeight = '';
+		var cap = parseFloat(window.getComputedStyle(menu).maxHeight) || Infinity;
+		var rect = button.getBoundingClientRect();
+		var view = window.innerHeight || document.documentElement.clientHeight;
+		var above = rect.top - EDGE;
+		var below = view - rect.bottom - EDGE;
+		var need = Math.min(menu.scrollHeight, cap);
+		var up = root.classList.contains('seoprostack-languages--footer') || root.classList.contains('seoprostack-languages--mobile');
+		var room = up ? above : below;
+		var other = up ? below : above;
+		if (room < need && other > room) {
+			up = !up;
+			room = other;
+		}
+		root.setAttribute('data-placement', up ? 'up' : 'down');
+		menu.style.maxHeight = Math.max(MIN_HEIGHT, Math.min(cap, room)) + 'px';
 	}
 
 	function setup(root) {
@@ -26,6 +58,7 @@
 		function open(focus) {
 			button.setAttribute('aria-expanded', 'true');
 			menu.hidden = false;
+			place(root, button, menu);
 			if (focus) {
 				var links = items(menu);
 				var current = menu.querySelector('[aria-current="true"]');
