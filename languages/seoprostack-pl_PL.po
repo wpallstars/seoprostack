@@ -3435,7 +3435,13 @@ msgid "Vulnerability data from %s."
 msgstr "Dane o podatnościach z %s."
 
 # machine translation
-#: includes/class-seoprostack-vulnerability-feed-report.php:216 includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
+#: includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
+msgid "Terms"
+msgstr "Warunki"
+
+# machine translation
+#: includes/class-seoprostack-vulnerability-feed-report.php:216
+msgctxt "licence terms link"
 msgid "Terms"
 msgstr "Warunki"
 

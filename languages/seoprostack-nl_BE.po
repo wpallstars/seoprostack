@@ -2805,9 +2805,14 @@ msgstr "Maak een gratis API-sleutel aan in je wordfence.com-account (Integration
 msgid "Vulnerability data from %s."
 msgstr "Kwetsbaarheidsgegevens van %s."
 
-#: includes/class-seoprostack-vulnerability-feed-report.php:216 includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
+#: includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
 msgid "Terms"
 msgstr "Termen"
+
+#: includes/class-seoprostack-vulnerability-feed-report.php:216
+msgctxt "licence terms link"
+msgid "Terms"
+msgstr "Voorwaarden"
 
 #: includes/class-seoprostack-vulnerability-feed-report.php:234
 msgid "Wordfence Intelligence"

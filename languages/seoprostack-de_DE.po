@@ -2805,9 +2805,14 @@ msgstr "Erstellen Sie in Ihrem Konto bei wordfence.com unter Integrationen einen
 msgid "Vulnerability data from %s."
 msgstr "Sicherheitslückendaten von %s."
 
-#: includes/class-seoprostack-vulnerability-feed-report.php:216 includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
+#: includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
 msgid "Terms"
 msgstr "Begriffe"
+
+#: includes/class-seoprostack-vulnerability-feed-report.php:216
+msgctxt "licence terms link"
+msgid "Terms"
+msgstr "Bedingungen"
 
 #: includes/class-seoprostack-vulnerability-feed-report.php:234
 msgid "Wordfence Intelligence"
