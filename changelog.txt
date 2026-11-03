@@ -3,10 +3,10 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = 1.3.143 =
+* Fix: vulnerability-report licence links have their own translated “Terms” label, so they say “Bedingungen” in German while taxonomy settings still say “Begriffe” (GitHub issue #1176).
 * Changed: in the footer, the Language switcher sits left of Kadence Pro's dark mode switch. Its kadence_footer_dark_mode callback runs at priority 5, before Kadence Pro's own (10), so it is first in markup and keyboard order; the header and mobile menu keep it right of the switch (priority 20). Same change as the Property Services Directory theme (wpallstars/propertyservicesdirectory GH#137).
 
 = 1.3.142 =
-* Fix: vulnerability-report licence links have their own translated “Terms” label, so they say “Bedingungen” in German while taxonomy settings still say “Begriffe” (GitHub issue #1176).
 * Fix: Load plugins only where needed also keeps what it learned when a plugin with a long identifier queues background work. The WP Background Processing library cuts its {identifier}_batch_{md5} keys to 64 characters, which can leave fewer than eight of the MD5's digits, or none; such a key of exactly 64 characters now counts as a record too, so saving it no longer restarts the learning for site pages (GitHub issue #1175).
 * Fix: Links skip redirects keeps custom redirect paths, added or overridden through its filter, out of the decoded lookup used for Rank Math's exact entries, so a custom path matches only as written; the HTML precheck reads both (GitHub issue #1169).
 * Fix: German, French (Canada) and Dutch (Belgium) translations of the Term list block's settings say taxonomy terms ("Begriffe", "termes", "termen") instead of conditions or terms of use, with clearer order, count and grouping labels; French (Canada) "Show" reads "Afficher" (GitHub issue #1171).
