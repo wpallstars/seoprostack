@@ -11,7 +11,7 @@
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
             "Terms": [
-                "Bedingungen"
+                "Begriffe"
             ],
             "None": [
                 "Keine"
@@ -50,10 +50,10 @@
                 "Runterfallen"
             ],
             "All terms": [
-                "Alle Bedingungen"
+                "Alle Begriffe"
             ],
             "This post\u2019s terms": [
-                "Bedingungen dieses Beitrags"
+                "Begriffe dieses Beitrags"
             ],
             "Name": [
                 "Name"
@@ -98,7 +98,7 @@
                 "Zu zeigende Begriffe"
             ],
             "The terms of the post or page the block is on, or of each post in a Query Loop.": [
-                "Die Bedingungen des Beitrags oder der Seite, auf der sich der Block befindet, oder jedes Beitrags in einer Abfrageschleife."
+                "Die Begriffe des Beitrags oder der Seite, auf der sich der Block befindet, oder jedes Beitrags in einer Abfrageschleife."
             ],
             "Show letter links": [
                 "Buchstabenverbindungen anzeigen"
@@ -119,25 +119,25 @@
                 "Leere Terme anzeigen"
             ],
             "Text when there are no terms": [
-                "Text, wenn keine Bedingungen vorhanden sind"
+                "Text, wenn keine Begriffe vorhanden sind"
             ],
             "Leave empty to show nothing.": [
                 "Lassen Sie das Feld leer, um nichts anzuzeigen."
             ],
             "Order and number": [
-                "Bestellung und Nummer"
+                "Sortierung und Anzahl"
             ],
             "Order": [
-                "Befehl"
+                "Sortierung"
             ],
             "Most terms to show": [
-                "Die meisten Begriffe anzeigen"
+                "Maximale Anzahl an Begriffen"
             ],
             "0 shows all. When there are more, those with the most posts are shown.": [
                 "0 zeigt alle Eintr\u00e4ge an. Sind mehrere Eintr\u00e4ge vorhanden, werden diejenigen mit den meisten Beitr\u00e4gen angezeigt."
             ],
             "Fewest posts a term needs": [
-                "Die geringste Anzahl an Beitr\u00e4gen, die ein Semester ben\u00f6tigt"
+                "Mindestanzahl an Beitr\u00e4gen pro Begriff"
             ],
             "Groups": [
                 "Gruppen"

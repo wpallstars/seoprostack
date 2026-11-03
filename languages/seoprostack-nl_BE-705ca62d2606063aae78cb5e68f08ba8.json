@@ -50,10 +50,10 @@
                 "Uitklapmenu"
             ],
             "All terms": [
-                "Alle voorwaarden"
+                "Alle termen"
             ],
             "This post\u2019s terms": [
-                "Voorwaarden van dit bericht"
+                "Termen van dit bericht"
             ],
             "Name": [
                 "Naam"
@@ -98,7 +98,7 @@
                 "Te tonen termen"
             ],
             "The terms of the post or page the block is on, or of each post in a Query Loop.": [
-                "De voorwaarden van het bericht of de pagina waarop het blok zich bevindt, of van elk bericht in een querylus."
+                "De termen van het bericht of de pagina waarop het blok zich bevindt, of van elk bericht in een querylus."
             ],
             "Show letter links": [
                 "Letterlinks weergeven"
@@ -131,19 +131,19 @@
                 "Volgorde"
             ],
             "Most terms to show": [
-                "De meeste termen om te laten zien"
+                "Maximaal aantal te tonen termen"
             ],
             "0 shows all. When there are more, those with the most posts are shown.": [
                 "0 toont alles. Als er meer zijn, worden degenen met de meeste berichten weergegeven."
             ],
             "Fewest posts a term needs": [
-                "Het minste aantal berichten per termijn vereist"
+                "Minimumaantal berichten per term"
             ],
             "Groups": [
                 "Groepen"
             ],
             "Group terms": [
-                "Groepsvoorwaarden"
+                "Termen groeperen"
             ],
             "Show groups": [
                 "Groepen weergeven"
