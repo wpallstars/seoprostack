@@ -18,6 +18,9 @@ final class SEOProStack_S3_Client {
     /** Connection, held only in memory. @var array<string,string> */
     private $config;
 
+    /** Curl multi handle kept for this client's groups, so connections are reused (an object on PHP 8). @var resource|null */
+    private $multi = null;
+
     /**
      * Set the trusted connection.
      *
@@ -82,12 +85,12 @@ final class SEOProStack_S3_Client {
      * Partition file metadata without loading bodies. An oversized file goes alone.
      *
      * @param array $files Object keys mapped to file information with size.
-     * @param int $concurrency Maximum requests, bounded to 1–32.
+     * @param int $concurrency Maximum requests, bounded to 1–128.
      * @param int $byte_cap Maximum payload bytes per group.
      * @return Generator Groups preserving object keys and order.
      */
     public static function file_groups($files, $concurrency, $byte_cap) {
-        $concurrency = max(1, min(32, (int) $concurrency));
+        $concurrency = max(1, min(128, (int) $concurrency));
         $byte_cap = max(1, (int) $byte_cap);
         $group = array();
         $bytes = 0;
@@ -171,7 +174,7 @@ final class SEOProStack_S3_Client {
      */
     public function heads($keys, $deadline = 0, $concurrency = 20) {
         $results = array();
-        foreach (array_chunk($keys, max(1, min(32, (int) $concurrency))) as $group) {
+        foreach (array_chunk($keys, max(1, min(128, (int) $concurrency))) as $group) {
             $requests = array();
             foreach ($group as $key) {
                 $requests[$key] = $this->signed_request('HEAD', $key);
@@ -186,6 +189,36 @@ final class SEOProStack_S3_Client {
             foreach ($this->request_multiple($requests, min(20, $remaining)) as $key => $response) {
                 $results[$key] = $this->head_info($response);
             }
+        }
+        return $results;
+    }
+
+    /**
+     * Read objects back in bounded groups with signed GETs and compare each
+     * byte for byte with its record; bodies are dropped after each group.
+     *
+     * @param array $objects Object keys mapped to size and sha256 digest.
+     * @param int $concurrency Maximum requests per group.
+     * @param int $byte_cap Maximum response bytes per group.
+     * @return array Object keys mapped to true, a storage_mismatch WP_Error, or the request's WP_Error.
+     */
+    public function confirm_files($objects, $concurrency = 20, $byte_cap = 33554432) {
+        $results = array();
+        foreach (self::file_groups($objects, $concurrency, $byte_cap) as $group) {
+            $requests = array();
+            foreach ($group as $key => $info) {
+                $requests[$key] = $this->signed_request('GET', $key);
+            }
+            foreach ($this->request_multiple($requests) as $key => $response) {
+                if (is_wp_error($response)) {
+                    $results[$key] = $response;
+                    continue;
+                }
+                $body = (string) wp_remote_retrieve_body($response);
+                $same = strlen($body) === (int) $group[$key]['size'] && hash_equals((string) $group[$key]['digest'], hash('sha256', $body));
+                $results[$key] = $same ? true : new WP_Error('storage_mismatch', __('A stored file did not match its record.', 'seoprostack'));
+            }
+            unset($requests, $response, $body);
         }
         return $results;
     }
@@ -239,6 +272,13 @@ final class SEOProStack_S3_Client {
         if (!$batch['parallel']) {
             return $batch['results'];
         }
+        if (self::can_wait()) {
+            $sent = $this->curl_multiple($batch['parallel'], $timeout, $deadline);
+            foreach ($batch['parallel'] as $key => $request) {
+                $batch['results'][$key] = $this->at_deadline($this->multiple_response($request['type'], $sent['responses'][$key]), $sent['finished'][$key], $deadline);
+            }
+            return $batch['results'];
+        }
         // When each request finished, so a transport error can be told apart
         // from one stopped by the group's time limit.
         $finished = array();
@@ -260,6 +300,134 @@ final class SEOProStack_S3_Client {
         }
         return $batch['results'];
     }
+
+    /** @return bool Whether PHP's curl can wait on its sockets (curl_multi_select). */
+    private static function can_wait() {
+        return function_exists('curl_multi_init') && function_exists('curl_multi_select') && function_exists('curl_multi_info_read') && defined('CURLOPT_PROTOCOLS');
+    }
+
+    // phpcs:disable WordPress.WP.AlternativeFunctions -- core's bundled Requests transport loops on curl_multi_exec() without curl_multi_select(), keeping a CPU core busy for the whole network wait (#1184). The same request arrays, signatures, CA bundle, timeouts, redirect policy and size limit apply; proxy-configured sites still use the WordPress HTTP API (prepare_parallel()).
+
+    /**
+     * Send signed requests together on one curl multi handle, waiting in the
+     * kernel (curl_multi_select) for the network instead of spinning. The
+     * handle stays open for this client, so later groups reuse connections.
+     *
+     * @param array $requests Signed request arrays by key.
+     * @param float $timeout Most seconds for this group.
+     * @param float $deadline End of the group's time.
+     * @return array{responses:array,finished:array} Response objects (null for a transport failure) and end times, by key.
+     */
+    private function curl_multiple($requests, $timeout, $deadline) {
+        if (!$this->multi) {
+            $this->multi = curl_multi_init();
+        }
+        $handles = array();
+        $bodies = array();
+        $headers = array();
+        foreach ($requests as $key => $request) {
+            $bodies[$key] = '';
+            $headers[$key] = array();
+            $handles[$key] = $this->curl_handle($request, $timeout, $bodies[$key], $headers[$key]);
+            curl_multi_add_handle($this->multi, $handles[$key]);
+        }
+        $codes = array();
+        $finished = array();
+        do {
+            do {
+                $status = curl_multi_exec($this->multi, $running);
+            } while (CURLM_CALL_MULTI_PERFORM === $status);
+            while (is_array($done = curl_multi_info_read($this->multi))) {
+                $key = array_search($done['handle'], $handles, true);
+                if (false !== $key) {
+                    $codes[$key] = (int) $done['result'];
+                    $finished[$key] = microtime(true);
+                }
+            }
+            // Each handle has its own time limit; the margin only guards the loop.
+            if (!$running || CURLM_OK !== $status || microtime(true) > $deadline + 5) {
+                break;
+            }
+            // -1: nothing to wait on yet (libcurl is resolving or connecting).
+            if (-1 === curl_multi_select($this->multi, min(1.0, max(0.01, $deadline - microtime(true))))) {
+                usleep(10000);
+            }
+        } while (true);
+        $ended = microtime(true);
+        $responses = array();
+        foreach ($handles as $key => $handle) {
+            $responses[$key] = null;
+            if (isset($codes[$key]) && CURLE_OK === $codes[$key]) {
+                $responses[$key] = (object) array('status_code' => (int) curl_getinfo($handle, CURLINFO_HTTP_CODE), 'headers' => $headers[$key], 'body' => $bodies[$key]);
+            }
+            $finished[$key] = $finished[$key] ?? $ended;
+            curl_multi_remove_handle($this->multi, $handle);
+        }
+        return array('responses' => $responses, 'finished' => $finished);
+    }
+
+    /**
+     * One request's easy handle: no redirects, http(s) only, peers verified
+     * with core's CA bundle, and a response body of at most 16 MB plus a byte.
+     *
+     * @param array $request Signed request.
+     * @param float $timeout Most seconds.
+     * @param string $body Receives the response body.
+     * @param array $headers Receives lower-case response headers.
+     * @return resource Easy handle (an object on PHP 8).
+     */
+    private function curl_handle($request, $timeout, &$body, &$headers) {
+        $lines = array('Expect:'); // No 100-continue round trip before each PUT body.
+        foreach ($request['headers'] as $name => $value) {
+            $lines[] = $name . ': ' . $value;
+        }
+        $handle = curl_init();
+        $options = array(
+            CURLOPT_URL => $request['url'],
+            CURLOPT_HTTPHEADER => $lines,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_CAINFO => ABSPATH . WPINC . '/certificates/ca-bundle.crt',
+            CURLOPT_NOSIGNAL => true,
+            CURLOPT_TIMEOUT_MS => max(1, (int) ($timeout * 1000)),
+            CURLOPT_CONNECTTIMEOUT_MS => max(1, (int) (min(10, $timeout) * 1000)),
+            CURLOPT_USERAGENT => 'WordPress/' . get_bloginfo('version') . '; SEO Pro Stack',
+            CURLOPT_HEADERFUNCTION => static function ($handle, $line) use (&$headers) {
+                $text = trim($line);
+                if (0 === stripos($text, 'HTTP/')) {
+                    // A new status line (after 100 Continue): only the last response counts.
+                    $headers = array();
+                } elseif (strpos($text, ':')) {
+                    list($name, $value) = explode(':', $text, 2);
+                    $name = strtolower(trim($name));
+                    $headers[$name] = isset($headers[$name]) ? $headers[$name] . ', ' . trim($value) : trim($value);
+                }
+                return strlen($line);
+            },
+            CURLOPT_WRITEFUNCTION => static function ($handle, $data) use (&$body) {
+                // Returning less than given stops the transfer: a transport error.
+                if (strlen($body) + strlen($data) > 16 * MB_IN_BYTES + 1) {
+                    return 0;
+                }
+                $body .= $data;
+                return strlen($data);
+            },
+        );
+        if ('HEAD' === $request['type']) {
+            $options[CURLOPT_NOBODY] = true;
+        } elseif ('GET' === $request['type']) {
+            $options[CURLOPT_HTTPGET] = true;
+        } else {
+            $options[CURLOPT_CUSTOMREQUEST] = $request['type'];
+            $options[CURLOPT_POSTFIELDS] = (string) $request['data'];
+        }
+        curl_setopt_array($handle, $options);
+        return $handle;
+    }
+
+    // phpcs:enable WordPress.WP.AlternativeFunctions
 
     /**
      * Mark a transport error that ended when the group's time ran out.

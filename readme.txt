@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.143
+Stable tag: 1.3.144
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -14,8 +14,6 @@ One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with
 == Description ==
 
 Free and open source: faster admin, easier publishing, safer logins. Details in the Read Me tab.
-
-Vulnerability-report licence links use translations for licence terms, separately from taxonomy terms.
 
 Safe features start on in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait for deactivation.
 
@@ -154,6 +152,12 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= 1.3.144 =
+* Changed: Media in cloud storage uploads, checks and removes several pictures together, so a far bucket drains several times faster (#1183).
+* Changed: storage requests wait on the network without keeping a CPU core busy (#1184).
+* Fix: vulnerability-report licence links have their own translated "Terms" label (#1176).
+* Fix: GitHub reports stay drafts until sent, with bounded bodies and email addresses redacted (#1180).
 
 = 1.3.143 =
 * Changed: in the footer, the Language switcher sits left of the dark mode switch.
