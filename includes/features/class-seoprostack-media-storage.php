@@ -2415,7 +2415,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return 0;
         }
         $start = microtime(true);
-        $limit = max(1, min(10, (int) $limit));
+        /** Filter the most attachments one storage batch prepares (1–100). @param int $limit Attachment limit. */
+        $limit = max(1, min(100, (int) apply_filters('seoprostack_media_storage_batch_limit', $limit)));
         $attempts = 0;
         try {
             if ($ready) {
@@ -2500,9 +2501,44 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (null === $removing) {
             return;
         }
-        foreach ($removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true) as $id) {
-            if (!self::more_time($start, $budget) || !self::local_step($id, $removing, $start + $budget)) {
-                return;
+        $deadline = $start + $budget;
+        $ids = $removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true);
+        if (!$removing) {
+            foreach ($ids as $id) {
+                if (!self::more_time($start, $budget) || !self::local_step($id, false, $deadline)) {
+                    return;
+                }
+            }
+        } else {
+            $prepared = array();
+            $keys = array();
+            $service_failures = 0;
+            foreach ($ids as $id) {
+                if (!self::more_time($start, $budget)) {
+                    break;
+                }
+                $removal = self::prepare_removal($id);
+                if (is_wp_error($removal)) {
+                    if (!self::local_result($id, true, $removal, $service_failures)) {
+                        return;
+                    }
+                    continue;
+                }
+                if (true === $removal) {
+                    self::local_result($id, true, true, $service_failures);
+                    continue;
+                }
+                $prepared[$id] = $removal;
+                $keys = array_merge($keys, array_keys($removal['files']));
+            }
+            if ($prepared) {
+                $heads = self::client()->heads(array_map('strval', $keys), $deadline, self::concurrency());
+                foreach ($prepared as $id => $removal) {
+                    $result = microtime(true) >= $deadline ? new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack')) : self::finish_removal($id, $removal, $heads, $deadline);
+                    if (!self::local_result($id, true, $result, $service_failures)) {
+                        return;
+                    }
+                }
             }
         }
         // Stuck pictures keep the flag: their files still show from the bucket.
@@ -2733,6 +2769,24 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return true|WP_Error WP_Error when the service could not confirm: try later.
      */
     private static function remove_local($id, $deadline) {
+        $removal = self::prepare_removal($id);
+        if (true === $removal || is_wp_error($removal)) {
+            return $removal;
+        }
+        $heads = self::client()->heads(array_map('strval', array_keys($removal['files'])), $deadline, self::concurrency());
+        if (microtime(true) >= $deadline) {
+            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+        }
+        return self::finish_removal($id, $removal, $heads, $deadline);
+    }
+
+    /**
+     * Recheck an attachment and collect its locally safe files before one shared HEAD phase.
+     *
+     * @param int $id Attachment ID.
+     * @return array|true|WP_Error A prepared removal, true when already safely kept, or an error.
+     */
+    private static function prepare_removal($id) {
         $config = self::config();
         $kept = 'kept:' . $config['signature'];
         self::fresh($id);
@@ -2749,15 +2803,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_post_meta($id, self::LOCAL, $kept);
             return true;
         }
-        $client = self::client();
-        $heads = $client->heads(array_map('strval', array_keys($files)), $deadline, self::concurrency());
-        if (microtime(true) >= $deadline) {
-            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
-        }
+        return array('config' => $config, 'generation' => $generation, 'record' => $record, 'files' => $files);
+    }
+
+    /**
+     * Confirm and remove one prepared attachment after the shared HEAD phase.
+     *
+     * @param int $id Attachment ID.
+     * @param array $removal Prepared removal from prepare_removal().
+     * @param array $heads Object information or errors by object key.
+     * @param float $deadline Latest safe removal time.
+     * @return true|WP_Error
+     */
+    private static function finish_removal($id, $removal, $heads, $deadline) {
+        $config = $removal['config'];
+        $generation = $removal['generation'];
+        $record = $removal['record'];
+        $files = $removal['files'];
         // Confirm the whole group before deletion, including a failure in its
         // last HEAD. Recheck each local digest again immediately before removal.
         foreach ($files as $key => $path) {
-            $confirmed = self::confirm_removal($heads[$key], $key, $record['files'][$key], $path);
+            $confirmed = self::confirm_removal($heads[$key] ?? new WP_Error('storage_transport', __('The storage service did not confirm this picture.', 'seoprostack')), $key, $record['files'][$key], $path);
             if (true !== $confirmed) {
                 return self::removal_stopped($id, $confirmed);
             }
