@@ -2389,10 +2389,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Run uploads and deletes off the page, waiting for watermark jobs.
      *
-     * @param int $limit Most upload attempts.
+     * @param int $limit Most attachments this batch prepares.
+     * @param int|null $upload_cap Most upload attempts requested by the caller, or null.
      * @return int Upload attempts.
      */
-    public static function run_batch($limit = 10) {
+    public static function run_batch($limit = 10, $upload_cap = null) {
         $ready = self::ready();
         // Switched off, the batch only brings removed files back.
         if (!$ready && !self::restoring() && !self::original_jobs_due()) {
@@ -2417,6 +2418,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $start = microtime(true);
         /** Filter the most attachments one storage batch prepares (1–100). @param int $limit Attachment limit. */
         $limit = max(1, min(100, (int) apply_filters('seoprostack_media_storage_batch_limit', $limit)));
+        // The CLI cap limits uploads only; local-copy work retains the batch filter.
+        $uploads = null === $upload_cap ? $limit : min($limit, max(1, (int) $upload_cap));
         $attempts = 0;
         try {
             if ($ready) {
@@ -2431,9 +2434,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 return 0;
             }
             if (self::original_jobs_due()) {
-                self::original_jobs($limit, $start);
+                self::original_jobs($uploads, $start);
             }
-            $attempts = $ready ? self::upload_batch($start, $limit) : 0;
+            $attempts = $ready ? self::upload_batch($start, $uploads) : 0;
         } finally {
             self::release($lease);
             self::purge_pages();
@@ -2512,23 +2515,28 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         } else {
             $prepared = array();
             $keys = array();
-            $service_failures = 0;
+            static $service_failures = 0;
             foreach ($ids as $id) {
-                if (!self::more_time($start, $budget)) {
+                // One bounded HEAD phase leaves time to act on its results.
+                if (count($prepared) >= self::concurrency() || !self::more_time($start, $budget)) {
                     break;
                 }
                 $removal = self::prepare_removal($id);
-                if (true === $removal) {
-                    self::local_result($id, true, true, $service_failures);
-                    continue;
-                }
                 $prepared[$id] = $removal;
-                $keys = array_merge($keys, array_keys($removal['files']));
+                if (true !== $removal) {
+                    $keys = array_merge($keys, array_keys($removal['files']));
+                }
             }
             if ($prepared) {
-                $heads = self::client()->heads(array_map('strval', $keys), $deadline, self::concurrency());
+                // Reserve part of this local-copies turn for finish_removal().
+                $head_deadline = max(microtime(true), $deadline - min(2, $budget / 2));
+                $heads = $keys ? self::client()->heads(array_map('strval', $keys), $head_deadline, self::concurrency()) : array();
                 foreach ($prepared as $id => $removal) {
-                    $result = microtime(true) >= $deadline ? new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack')) : self::finish_removal($id, $removal, $heads, $deadline);
+                    if (true === $removal) {
+                        $result = true;
+                    } else {
+                        $result = microtime(true) >= $deadline ? new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack')) : self::finish_removal($id, $removal, $heads, $deadline);
+                    }
                     if (!self::local_result($id, true, $result, $service_failures)) {
                         return;
                     }
@@ -2584,7 +2592,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $id Attachment ID.
      * @param bool $removing Remove (true) or bring back (false).
      * @param true|WP_Error $result remove_local() or restore_attachment().
-     * @param int $service_failures Consecutive retryable removal failures in this run.
+     * @param int $service_failures Consecutive retryable removal failures in this request.
      * @return bool Whether the batch may go on.
      */
     private static function local_result($id, $removing, $result, &$service_failures) {
@@ -5343,7 +5351,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // Use the same lock, budget and watermark guard as cron.
         $start = microtime(true);
         while ($limit > 0) {
-            $attempts = self::run_batch($limit);
+            $attempts = self::run_batch($limit, $limit);
             $limit -= $attempts;
             if (!$attempts || !self::more_time($start, 60)) {
                 break;
