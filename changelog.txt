@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Developers: sync starter core files to 1.0.50 (70b0366). Plugin Check and smoke tests share cached-image pulls and use Google's Docker Hub cache directly in CI. Optional Docker Hub login uses the starter's isolated job configuration, preserving the runner's context and proxies without touching its stored credentials. Deploy-lock cleanup removes only its own recorded lock. All 83 core files match the starter (GitHub issue #1140).
 * Fix: Links skip redirects checks Rank Math and its Redirections module before using cached mappings, while still accepting custom filter mappings without Rank Math. Encoded link paths, including the HTML precheck, are decoded once for matching as Rank Math decodes request URIs; stored source patterns are not decoded. The WordPress.org feature list now includes Links skip redirects (GitHub issue #1137).
 * Fix: Links skip redirects passes HTML containing possible entities to WordPress's tag processor before deciding whether an address matches. Custom filter additions and overrides match their raw path first, preserving literal plus signs and percent escapes; Rank Math still matches its decoded request path. Addresses remain subject to the existing on-site/no-query checks (#1137, review of PR #1148).
 
