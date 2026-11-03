@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.141
+Stable tag: 1.3.142
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,12 +153,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.142 =
 * Fix: Language switcher respects excluded translation paths and custom flags; themes can suppress duplicate output (#1170).
-
-= 1.3.141 =
-* New: Media in cloud storage lets plugins that upload pictures remove one picture's local copies at once, with the same checks (#1146).
-* Fix: Links skip redirects handles encoded paths and ignores cached Rank Math redirects when its Redirections module is unavailable (#1137).
-* Fix: redirect links with HTML entities and custom paths containing literal plus signs match correctly (#1137).
+* Fix: Load plugins only where needed keeps what it learned when plugins with long names queue background work (#1175).
+* Fix: Links skip redirects matches custom redirect paths only as written (#1169).
+* Fix: German, French (Canada) and Dutch (Belgium) Term list block labels (#1171).
 
 Older: `changelog.txt`.

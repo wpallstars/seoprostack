@@ -2,7 +2,11 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.142 =
+* Fix: Load plugins only where needed also keeps what it learned when a plugin with a long identifier queues background work. The WP Background Processing library cuts its {identifier}_batch_{md5} keys to 64 characters, which can leave fewer than eight of the MD5's digits, or none; such a key of exactly 64 characters now counts as a record too, so saving it no longer restarts the learning for site pages (GitHub issue #1175).
+* Fix: Links skip redirects keeps custom redirect paths, added or overridden through its filter, out of the decoded lookup used for Rank Math's exact entries, so a custom path matches only as written; the HTML precheck reads both (GitHub issue #1169).
+* Fix: German, French (Canada) and Dutch (Belgium) translations of the Term list block's settings say taxonomy terms ("Begriffe", "termes", "termen") instead of conditions or terms of use, with clearer order, count and grouping labels; French (Canada) "Show" reads "Afficher" (GitHub issue #1171).
+* Developers: sync starter core files to ba25117 (starter GH#619). scripts/deploy-sites.sh --apply and its dry run say when the host's deploy lock has no owner file yet, and that a run two minutes later takes it over, instead of naming a running deploy with "PID ?". In CI, the mirror.gcr.io image pull gives up after DOCKER_MIRROR_TIMEOUT seconds (default 180), so a stalled mirror falls back to Docker Hub instead of running until the job's time limit. All 83 core files match the starter (GitHub issue #1168).
 * Fix: Language switcher respects TranslatePress's trp_allow_tp_to_run filter before reading languages, so excluded paths show no switcher or assets. The seoprostack_language_switcher_skip filter lets other theme callbacks suppress it without changing the setting. Missing country flags fall back to each language's flag_link, including Media Library uploads, before the existing bundled TranslatePress fallback (#1170).
 
 = 1.3.141 =

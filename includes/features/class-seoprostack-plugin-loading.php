@@ -2198,8 +2198,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // Work queued by the WP Background Processing library, which
         // WooCommerce (privacy cleanup, emails, updates) and many plugins use:
         // {identifier}_batch_{md5}, cut to 64 characters, saved from any
-        // request (GitHub issue #1055).
-        if (preg_match('/_batch_[0-9a-f]{8,32}$/', $name)) {
+        // request (GitHub issue #1055). A long identifier leaves fewer than
+        // eight of the MD5's digits, or none, so a key of exactly 64
+        // characters may end in any number of them (GitHub issue #1175).
+        if (preg_match('/_batch_[0-9a-f]{8,32}$/', $name) || (64 === strlen($name) && preg_match('/_batch_[0-9a-f]{0,7}$/', $name))) {
             return true;
         }
         if (class_exists('SEOProStack_Hosting_Needs', false) && SEOProStack_Hosting_Needs::enabled()) {

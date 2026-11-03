@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.141-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.142-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.141
+Version: 1.3.142
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2316,9 +2316,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.142
 
 - Fix: the **Language switcher** respects TranslatePress's excluded paths and uploaded custom flags, and themes can suppress it with `seoprostack_language_switcher_skip` (#1170).
+- Fix: **Load plugins only where needed** keeps what it learned when a plugin with a long identifier queues background work: a WP Background Processing key cut to 64 characters, with fewer than eight digits after `_batch_`, counts as a record too (#1175).
+- Fix: **Links skip redirects** keeps custom redirect paths out of the decoded lookup used for Rank Math's exact entries, so a custom path matches only as written (#1169).
+- Fix: German, French (Canada) and Dutch (Belgium) labels of the **Term list** block's settings name taxonomy terms instead of conditions; French (Canada) "Show" reads "Afficher" (#1171).
+- Developers: starter core files synced: `scripts/deploy-sites.sh` reports a deploy lock with no owner file as such, and CI's `mirror.gcr.io` pull has a time limit (`DOCKER_MIRROR_TIMEOUT`, default 180 seconds) so the Docker Hub fallback runs (#1168).
 
 ### 1.3.141
 
