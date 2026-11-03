@@ -26,6 +26,8 @@ If this saves you time, headaches and costs, feel free to [buy me a coffee](http
 
 Version: 1.3.142
 
+Vulnerability-report licence links use translations for licence terms, separately from taxonomy terms (GitHub issue #1176).
+
 <!-- github-only:start -->
 ## Screenshots
 

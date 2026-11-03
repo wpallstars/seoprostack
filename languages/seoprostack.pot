@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SEO Pro Stack 1.3.136\n"
+"Project-Id-Version: SEO Pro Stack 1.3.142\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/seoprostack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -377,7 +377,7 @@ msgstr ""
 
 #: admin/includes/class-free-plugins-manager.php:112
 #: includes/features/class-seoprostack-admin-menu.php:2589
-#: includes/features/class-seoprostack-watermark-images.php:2312
+#: includes/features/class-seoprostack-watermark-images.php:2322
 msgid "Stop"
 msgstr ""
 
@@ -455,7 +455,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: admin/includes/class-link-cards.php:67
-#: includes/class-seoprostack-setup.php:747
+#: includes/class-seoprostack-setup.php:748
 msgid "No matches."
 msgstr ""
 
@@ -564,7 +564,7 @@ msgid "Minimal"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:57
-#: includes/class-seoprostack-setup.php:546
+#: includes/class-seoprostack-setup.php:547
 #: includes/features/class-seoprostack-admin-menu.php:479
 #: includes/features/class-seoprostack-hosting-needs.php:504
 msgid "Admin"
@@ -603,7 +603,7 @@ msgid "LMS"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:66
-#: includes/class-seoprostack-setup.php:558
+#: includes/class-seoprostack-setup.php:559
 #: includes/features/class-seoprostack-plugin-sizes.php:332
 msgid "Media"
 msgstr ""
@@ -626,7 +626,7 @@ msgid "Social"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:71
-#: includes/class-seoprostack-setup.php:566
+#: includes/class-seoprostack-setup.php:567
 msgid "Speed"
 msgstr ""
 
@@ -1229,7 +1229,7 @@ msgid "Text"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:468
-#: includes/class-seoprostack-setup.php:562
+#: includes/class-seoprostack-setup.php:563
 #: includes/features/class-seoprostack-linking.php:117
 #: includes/features/class-seoprostack-linking.php:236
 msgid "Links"
@@ -1768,7 +1768,7 @@ msgid "Integrity: %s"
 msgstr ""
 
 #: includes/class-seoprostack-integrity-report.php:132
-#: includes/class-seoprostack-setup.php:550
+#: includes/class-seoprostack-setup.php:551
 #: includes/class-seoprostack-vulnerability-feed-report.php:101
 #: includes/features/class-seoprostack-github-updates.php:319
 #: includes/features/class-seoprostack-hardening.php:817
@@ -2575,18 +2575,19 @@ msgstr ""
 #: includes/class-seoprostack-s3-client.php:140
 #: includes/class-seoprostack-s3-client.php:153
 #: includes/class-seoprostack-s3-client.php:182
-#: includes/class-seoprostack-s3-client.php:281
-#: includes/features/class-seoprostack-media-storage.php:2639
+#: includes/class-seoprostack-s3-client.php:315
+#: includes/features/class-seoprostack-media-storage.php:2755
+#: includes/features/class-seoprostack-media-storage.php:2767
 msgid "The storage batch will continue on its next turn."
 msgstr ""
 
-#: includes/class-seoprostack-s3-client.php:263
 #: includes/class-seoprostack-s3-client.php:297
-#: includes/class-seoprostack-s3-client.php:427
+#: includes/class-seoprostack-s3-client.php:331
+#: includes/class-seoprostack-s3-client.php:495
 msgid "The storage service could not be reached."
 msgstr ""
 
-#: includes/class-seoprostack-s3-client.php:412
+#: includes/class-seoprostack-s3-client.php:480
 msgid "Check the storage endpoint address."
 msgstr ""
 
@@ -2607,101 +2608,101 @@ msgstr ""
 msgid "Saved. Reload the page to see the change."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:547
+#: includes/class-seoprostack-setup.php:548
 msgid "The dashboard, admin bar, logins and emails."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:551
+#: includes/class-seoprostack-setup.php:552
 msgid "HTTPS, passwords, remote access and known vulnerabilities. Two-step login and login limits are FluentAuth’s."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:554
+#: includes/class-seoprostack-setup.php:555
 #: includes/features/class-seoprostack-admin-menu.php:475
 msgid "Content"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:555
+#: includes/class-seoprostack-setup.php:556
 msgid "Writing, editing and publishing posts."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:559
+#: includes/class-seoprostack-setup.php:560
 msgid "Images and other uploads."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:563
+#: includes/class-seoprostack-setup.php:564
 msgid "Redirects, removed pages and short links."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:567
+#: includes/class-seoprostack-setup.php:568
 msgid "Loading pages faster, for visitors and in the editor."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:570
+#: includes/class-seoprostack-setup.php:571
 msgid "Server"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:571
+#: includes/class-seoprostack-setup.php:572
 msgid "The database, server load, PHP memory and calls to other sites."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:574
+#: includes/class-seoprostack-setup.php:575
 #: includes/features/class-seoprostack-editor-access.php:164
 #: includes/features/class-seoprostack-vulnerability-report.php:53
 msgid "Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:575
+#: includes/class-seoprostack-setup.php:576
 msgid "The Plugins screen and plugin settings."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:578
+#: includes/class-seoprostack-setup.php:579
 msgid "Agency"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:579
+#: includes/class-seoprostack-setup.php:580
 msgid "Selling services and apps: orders, client updates and a client dashboard, with Fluent Forms, Fluent Boards, Fluent Support and friends."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:582
+#: includes/class-seoprostack-setup.php:583
 msgid "Maintenance"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:583
+#: includes/class-seoprostack-setup.php:584
 msgid "Updates, repairs and housekeeping."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:675
+#: includes/class-seoprostack-setup.php:676
 #: includes/features/class-seoprostack-speed-plan.php:399
 msgid "Recommended"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:678
+#: includes/class-seoprostack-setup.php:679
 msgid "Theme"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:685
+#: includes/class-seoprostack-setup.php:686
 msgid "Free Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:695
+#: includes/class-seoprostack-setup.php:696
 msgid "Pro Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:702
+#: includes/class-seoprostack-setup.php:703
 #: includes/features/class-seoprostack-hosting-needs.php:2331
 #: includes/features/class-seoprostack-hosting-needs.php:2339
 msgid "Hosting"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:709
+#: includes/class-seoprostack-setup.php:710
 msgid "Tools"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:746
+#: includes/class-seoprostack-setup.php:747
 msgid "Could not load this list. Please reload the page."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:748
+#: includes/class-seoprostack-setup.php:749
 msgid "Activated"
 msgstr ""
 
@@ -3008,8 +3009,7 @@ msgid "Vulnerability data from %s."
 msgstr ""
 
 #: includes/class-seoprostack-vulnerability-feed-report.php:216
-#: includes/features/class-seoprostack-field-content.php:97
-#: blocks/term-list/index.js:145
+msgctxt "licence terms link"
 msgid "Terms"
 msgstr ""
 
@@ -5304,6 +5304,11 @@ msgstr ""
 msgid "Values only"
 msgstr ""
 
+#: includes/features/class-seoprostack-field-content.php:97
+#: blocks/term-list/index.js:145
+msgid "Terms"
+msgstr ""
+
 #: includes/features/class-seoprostack-field-content.php:98
 msgid "Adds the post’s terms in these taxonomies after the fields, one paragraph per taxonomy, so search and SEO analysis read them too."
 msgstr ""
@@ -7279,6 +7284,20 @@ msgstr ""
 msgid "Kadence Pro swaps the switch’s two colours in dark mode: the button in the Dark Color in light mode is in the Light Color in dark mode. This keeps each colour in its place, so a switch set to its row’s background palette colour keeps sharing it in dark mode, and palette colours change with the dark palette. Fixed colours then stay the same in both modes. Changes made in the Customizer show in dark mode after saving."
 msgstr ""
 
+#: includes/features/class-seoprostack-language-switcher.php:93
+msgid "Language switcher beside Kadence’s dark mode switch"
+msgstr ""
+
+#: includes/features/class-seoprostack-language-switcher.php:94
+msgid "With TranslatePress and more than one language: a compact button with the language’s flag and code beside Kadence Pro’s Dark Mode switch in the header, mobile menu and footer, opening a list of the site’s languages with their flags and names. English shows the site’s own country flag. Turn TranslatePress’s floating switcher off, and remove its shortcode from the header and footer, so only one shows. Nothing shows on other themes or with one language."
+msgstr ""
+
+#. translators: %s: the current language's name
+#: includes/features/class-seoprostack-language-switcher.php:303
+#, php-format
+msgid "Language: %s"
+msgstr ""
+
 #: includes/features/class-seoprostack-licence-calls.php:111
 msgid "Ask before licence checks"
 msgstr ""
@@ -8077,7 +8096,7 @@ msgid "New link"
 msgstr ""
 
 #: includes/features/class-seoprostack-media-storage.php:84
-#: includes/features/class-seoprostack-media-storage.php:5041
+#: includes/features/class-seoprostack-media-storage.php:5161
 msgid "Media in cloud storage"
 msgstr ""
 
@@ -8118,200 +8137,205 @@ msgid "A previous picture did not match its recorded size and SHA-256."
 msgstr ""
 
 #. translators: 1: attachment ID, 2: error message
-#: includes/features/class-seoprostack-media-storage.php:2547
+#: includes/features/class-seoprostack-media-storage.php:2569
+#: includes/features/class-seoprostack-media-storage.php:2663
 #, php-format
 msgid "Attachment %1$d: %2$s"
 msgstr ""
 
+#: includes/features/class-seoprostack-media-storage.php:2640
+msgid "This picture’s local copies are kept after a failed check; upload --retry-failed looks at them again."
+msgstr ""
+
 #. translators: %d: HTTP status code, 0 when there was no answer
-#: includes/features/class-seoprostack-media-storage.php:2601
+#: includes/features/class-seoprostack-media-storage.php:2717
 #, php-format
 msgid "The public storage address did not serve a picture (HTTP %d), so local copies were kept. Check SEOPROSTACK_MEDIA_STORAGE_URL."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:2900
+#: includes/features/class-seoprostack-media-storage.php:3020
 msgid "A stored picture did not match its local file, so its local copies were kept."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3026
+#: includes/features/class-seoprostack-media-storage.php:3146
 msgid "Set the SEOPROSTACK_MEDIA_STORAGE constants to bring files back."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3029
+#: includes/features/class-seoprostack-media-storage.php:3149
 msgid "These files were removed while another storage connection was set. Set that connection again to bring them back."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3033
+#: includes/features/class-seoprostack-media-storage.php:3153
 msgid "The uploads folder could not be found."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3070
+#: includes/features/class-seoprostack-media-storage.php:3190
 msgid "A removed file’s record is not valid, so it was not brought back."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3079
-#: includes/features/class-seoprostack-media-storage.php:3145
+#: includes/features/class-seoprostack-media-storage.php:3199
+#: includes/features/class-seoprostack-media-storage.php:3265
 msgid "A picture could not be written back to the uploads folder."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3094
+#: includes/features/class-seoprostack-media-storage.php:3214
 msgid "A picture is too large to bring back with the PHP memory available."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3102
+#: includes/features/class-seoprostack-media-storage.php:3222
 msgid "A stored picture did not match its record, so it was not brought back."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3117
+#: includes/features/class-seoprostack-media-storage.php:3237
 msgid "A removed picture is missing from the bucket, so it was not brought back."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3394
+#: includes/features/class-seoprostack-media-storage.php:3514
 msgid "The kept original is in use by another request. Try again shortly."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3425
+#: includes/features/class-seoprostack-media-storage.php:3545
 msgid "Set the original private bucket connection again before using its kept originals. It must not be the public media bucket."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3441
+#: includes/features/class-seoprostack-media-storage.php:3561
 msgid "The kept original’s path is not valid."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3449
+#: includes/features/class-seoprostack-media-storage.php:3569
 msgid "The protected originals folder is not available."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3473
+#: includes/features/class-seoprostack-media-storage.php:3593
 msgid "The kept original’s record is incomplete."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3476
+#: includes/features/class-seoprostack-media-storage.php:3596
 msgid "The local original does not match its record; it was left unchanged."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3490
+#: includes/features/class-seoprostack-media-storage.php:3610
 msgid "The restored original does not match its record."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3515
+#: includes/features/class-seoprostack-media-storage.php:3635
 #: includes/features/class-seoprostack-watermark-images.php:1237
 msgid "Retry the kept original’s failed deletion before marking this picture again."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3528
+#: includes/features/class-seoprostack-media-storage.php:3648
 msgid "The kept original is missing or too large to upload safely."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3540
+#: includes/features/class-seoprostack-media-storage.php:3660
 msgid "The kept original’s record could not be saved."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3555
+#: includes/features/class-seoprostack-media-storage.php:3675
 msgid "The picture changed during its original’s upload; it will be retried."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3562
+#: includes/features/class-seoprostack-media-storage.php:3682
 msgid "The kept original’s upload could not be recorded; its local copy was kept."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3566
+#: includes/features/class-seoprostack-media-storage.php:3686
 msgid "The original has a pending deletion or its recovery inventory could not be saved; its local copy was kept."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3632
+#: includes/features/class-seoprostack-media-storage.php:3752
 msgid "The kept original could not be confirmed; its local copy was kept."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3636
+#: includes/features/class-seoprostack-media-storage.php:3756
 msgid "The local original could not be removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3679
+#: includes/features/class-seoprostack-media-storage.php:3799
 msgid "The kept original’s deletion could not be recorded."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:3929
+#: includes/features/class-seoprostack-media-storage.php:4049
 msgid "Some pictures’ local files were removed while another storage connection was set. Set that connection again and run wp seoprostack media-storage restore --all."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4887
+#: includes/features/class-seoprostack-media-storage.php:5007
 msgid "Switch on Media in cloud storage and set its constants first."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4896
+#: includes/features/class-seoprostack-media-storage.php:5016
 msgid "The probe size did not match."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4903
+#: includes/features/class-seoprostack-media-storage.php:5023
 msgid "Connection test passed."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4922
+#: includes/features/class-seoprostack-media-storage.php:5042
 msgid "You cannot manage these settings."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4942
+#: includes/features/class-seoprostack-media-storage.php:5062
 msgid "Missing or invalid constants: "
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4942
+#: includes/features/class-seoprostack-media-storage.php:5062
 msgid "The connection constants are set."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4950
+#: includes/features/class-seoprostack-media-storage.php:5070
 msgid "Set"
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4950
+#: includes/features/class-seoprostack-media-storage.php:5070
 msgid "Using the default"
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4950
+#: includes/features/class-seoprostack-media-storage.php:5070
 msgid "Not set"
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4958
+#: includes/features/class-seoprostack-media-storage.php:5078
 msgid "Use an HTTPS public storage address to avoid mixed content."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:4966
+#: includes/features/class-seoprostack-media-storage.php:5086
 msgid "Test connection"
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5006
+#: includes/features/class-seoprostack-media-storage.php:5126
 msgid "Some pictures have no local files. Set the constants again, or add the missing-file rule from the read me, so they keep showing."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5013
+#: includes/features/class-seoprostack-media-storage.php:5133
 msgid "Some removed files could not be brought back (see the error below), so those pictures still show from the bucket. Fix the cause, then run wp seoprostack media-storage restore --all."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5016
+#: includes/features/class-seoprostack-media-storage.php:5136
 msgid "Bringing removed files back in the background; until then, those pictures show from the bucket."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5036
+#: includes/features/class-seoprostack-media-storage.php:5156
 msgid "Uploaded; local files kept."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5036
+#: includes/features/class-seoprostack-media-storage.php:5156
 msgid "Waiting to upload."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5036
+#: includes/features/class-seoprostack-media-storage.php:5156
 msgid "Upload failed; local files are served."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5036
+#: includes/features/class-seoprostack-media-storage.php:5156
 msgid "Kept on this server."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5037
+#: includes/features/class-seoprostack-media-storage.php:5157
 msgid "Off or not configured; local files are served."
 msgstr ""
 
-#: includes/features/class-seoprostack-media-storage.php:5039
+#: includes/features/class-seoprostack-media-storage.php:5159
 msgid "Uploaded; local files removed, shown from cloud storage."
 msgstr ""
 
@@ -8480,164 +8504,164 @@ msgid "The picture changed while its copies were made, so it is converted again.
 msgstr ""
 
 #. translators: 1: site ID, 2: why the cleanup cannot run there.
-#: includes/features/class-seoprostack-nextgen-images.php:1639
+#: includes/features/class-seoprostack-nextgen-images.php:1664
 #, php-format
 msgid "Site %1$d: %2$s"
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1658
+#: includes/features/class-seoprostack-nextgen-images.php:1683
 msgid "CompressX is still active. Deactivate it first."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1662
+#: includes/features/class-seoprostack-nextgen-images.php:1687
 msgid "WebP and AVIF images is off or makes no format here."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1665
+#: includes/features/class-seoprostack-nextgen-images.php:1690
 msgid "A conversion batch is running. Try again in a few minutes."
 msgstr ""
 
 #. translators: %s: attachment IDs, comma-separated.
-#: includes/features/class-seoprostack-nextgen-images.php:1671
+#: includes/features/class-seoprostack-nextgen-images.php:1696
 #, php-format
 msgid "Copies of some pictures could not be made, or their conversion stopped (attachments %s). Make their copies again (Media → Library, Make WebP and AVIF copies), then run the cleanup again."
 msgstr ""
 
 #. translators: %d: number of pictures.
-#: includes/features/class-seoprostack-nextgen-images.php:1677
+#: includes/features/class-seoprostack-nextgen-images.php:1702
 #, php-format
 msgid "%d picture is waiting to be converted. Run wp seoprostack convert-images first."
 msgid_plural "%d pictures are waiting to be converted. Run wp seoprostack convert-images first."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1793
+#: includes/features/class-seoprostack-nextgen-images.php:1818
 msgid "The CompressX folder is not a regular folder. No files were removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1799
+#: includes/features/class-seoprostack-nextgen-images.php:1824
 msgid "The CompressX folder contains a link or a special file. No files were removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1805
+#: includes/features/class-seoprostack-nextgen-images.php:1830
 msgid "The CompressX folder could not be read. No files were removed."
 msgstr ""
 
 #. translators: %s: why the cleanup cannot run yet.
-#: includes/features/class-seoprostack-nextgen-images.php:1820
+#: includes/features/class-seoprostack-nextgen-images.php:1845
 #, php-format
 msgid "%s No files were removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1828
+#: includes/features/class-seoprostack-nextgen-images.php:1853
 msgid "The uploads rules file is not a regular file. No files were removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1835
+#: includes/features/class-seoprostack-nextgen-images.php:1860
 msgid "Replacement image rules could not be written. No files were removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1838
+#: includes/features/class-seoprostack-nextgen-images.php:1863
 msgid "The CompressX rules could not be removed. No files were removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1850
+#: includes/features/class-seoprostack-nextgen-images.php:1875
 msgid "Some CompressX files could not be removed. Check folder permissions and run cleanup again."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1889
+#: includes/features/class-seoprostack-nextgen-images.php:1914
 msgid "Every site’s pictures are below the main site’s uploads folder, so one set of rules there serves the whole network, for the formats any site uses. Each site converts its own pictures."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1904
+#: includes/features/class-seoprostack-nextgen-images.php:1929
 msgid "No copies are made: turn on a format this server can make."
 msgstr ""
 
 #. translators: 1: pictures with copies, 2: all pictures
-#: includes/features/class-seoprostack-nextgen-images.php:1911
+#: includes/features/class-seoprostack-nextgen-images.php:1936
 #, php-format
 msgid "%1$s of %2$s picture converted."
 msgid_plural "%1$s of %2$s pictures converted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1916
+#: includes/features/class-seoprostack-nextgen-images.php:1941
 msgid "The rest are converted in the background."
 msgstr ""
 
 #. translators: 1: number of leftover files, 2: their total size.
-#: includes/features/class-seoprostack-nextgen-images.php:1926
+#: includes/features/class-seoprostack-nextgen-images.php:1951
 #, php-format
 msgid "CompressX leftovers: %1$s files (%2$s). After conversion finishes on every site and CompressX is deactivated, remove them with WP-CLI: wp seoprostack convert-images --cleanup-compressx. Adopted copies are kept."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1938
+#: includes/features/class-seoprostack-nextgen-images.php:1963
 msgid "This site’s uploads folder is outside the main uploads folder, so browsers are sent the originals."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1940
+#: includes/features/class-seoprostack-nextgen-images.php:1965
 msgid "Nginx does not read .htaccess files. So browsers get the copies, add these lines to the site’s Nginx configuration and reload Nginx:"
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1945
+#: includes/features/class-seoprostack-nextgen-images.php:1970
 msgid "The rules are in the uploads folder’s .htaccess file, but a test request for a converted picture got the original, so browsers are sent the originals."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1947
+#: includes/features/class-seoprostack-nextgen-images.php:1972
 msgid "Browsers get the copies through rules in the uploads folder’s .htaccess file. A test request got a copy."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1949
+#: includes/features/class-seoprostack-nextgen-images.php:1974
 msgid "Browsers get the copies through rules in the uploads folder’s .htaccess file."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1953
+#: includes/features/class-seoprostack-nextgen-images.php:1978
 msgid "The uploads folder’s .htaccess file could not be changed. So browsers get the copies, add these lines to it:"
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1967
+#: includes/features/class-seoprostack-nextgen-images.php:1992
 msgid "Pages name each picture’s copies in a <picture> tag, so every address always sends the same file and CDNs can cache pictures."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1969
+#: includes/features/class-seoprostack-nextgen-images.php:1994
 msgid "If Nginx sends AVIF copies with the wrong type, add these lines to the site’s Nginx configuration and reload Nginx. Lines added earlier that choose the copy by the Accept header are no longer needed."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1972
+#: includes/features/class-seoprostack-nextgen-images.php:1997
 msgid "Other sites on the network still get copies at the originals’ addresses, so the shared rules in the uploads folder still choose by the Accept header."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1974
+#: includes/features/class-seoprostack-nextgen-images.php:1999
 msgid "A test request for a copy did not come back as AVIF or WebP, so browsers may not show it."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:1986
+#: includes/features/class-seoprostack-nextgen-images.php:2011
 msgid "LiteSpeed keeps .htaccess rules in memory: restart LiteSpeed in your hosting panel, or ask your host to. Checked again in a few minutes."
 msgstr ""
 
 #. translators: %s: Apache module names, such as mod_rewrite and mod_headers.
-#: includes/features/class-seoprostack-nextgen-images.php:1989
+#: includes/features/class-seoprostack-nextgen-images.php:2014
 #, php-format
 msgid "Check that the server reads .htaccess files in the uploads folder and has %s, or ask your host. Checked again in a few minutes."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:2007
+#: includes/features/class-seoprostack-nextgen-images.php:2032
 msgid "Waiting to be converted."
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:2009
+#: includes/features/class-seoprostack-nextgen-images.php:2034
 msgid "None made."
 msgstr ""
 
 #. translators: %s: format
-#: includes/features/class-seoprostack-nextgen-images.php:2018
+#: includes/features/class-seoprostack-nextgen-images.php:2043
 #, php-format
 msgid "%s not smaller"
 msgstr ""
 
 #. translators: %s: format
 #. translators: %s: number of failed calls
-#: includes/features/class-seoprostack-nextgen-images.php:2021
+#: includes/features/class-seoprostack-nextgen-images.php:2046
 #: includes/features/class-seoprostack-outbound-calls.php:881
 #, php-format
 msgid "%s failed"
@@ -8646,21 +8670,21 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: list of copies, 2: original file size
-#: includes/features/class-seoprostack-nextgen-images.php:2026
+#: includes/features/class-seoprostack-nextgen-images.php:2051
 #, php-format
 msgid "%1$s (original %2$s)"
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:2029
+#: includes/features/class-seoprostack-nextgen-images.php:2054
 msgid "WebP and AVIF"
 msgstr ""
 
-#: includes/features/class-seoprostack-nextgen-images.php:2044
+#: includes/features/class-seoprostack-nextgen-images.php:2069
 msgid "Make WebP and AVIF copies"
 msgstr ""
 
 #. translators: %d: number of pictures
-#: includes/features/class-seoprostack-nextgen-images.php:2092
+#: includes/features/class-seoprostack-nextgen-images.php:2117
 #, php-format
 msgid "%d picture converted."
 msgid_plural "%d pictures converted."
@@ -8668,7 +8692,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of pictures
-#: includes/features/class-seoprostack-nextgen-images.php:2095
+#: includes/features/class-seoprostack-nextgen-images.php:2120
 #, php-format
 msgid "%d more will be converted in the background."
 msgid_plural "%d more will be converted in the background."
@@ -9393,20 +9417,20 @@ msgstr ""
 msgid "%1$s: %2$s, %3$s"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3536
+#: includes/features/class-seoprostack-plugin-loading.php:3538
 msgid "Reload with every plugin and check the site again"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3537
+#: includes/features/class-seoprostack-plugin-loading.php:3539
 msgid "Reload with every plugin and check this screen again"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3570
+#: includes/features/class-seoprostack-plugin-loading.php:3572
 msgid "Reload with every plugin and check every screen again"
 msgstr ""
 
 #. translators: 1: plugins loaded, 2: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3605
+#: includes/features/class-seoprostack-plugin-loading.php:3607
 #, php-format
 msgid "%1$d of %2$d plugin loaded on this page"
 msgid_plural "%1$d of %2$d plugins loaded on this page"
@@ -9414,7 +9438,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: plugins loaded, 2: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3607
+#: includes/features/class-seoprostack-plugin-loading.php:3609
 #, php-format
 msgid "%1$d of %2$d plugin loaded on this screen"
 msgid_plural "%1$d of %2$d plugins loaded on this screen"
@@ -9422,7 +9446,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3632
+#: includes/features/class-seoprostack-plugin-loading.php:3634
 #, php-format
 msgid "%d plugin loaded while SEO Pro Stack checks this screen"
 msgid_plural "All %d plugins loaded while SEO Pro Stack checks this screen"
@@ -9430,7 +9454,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3636
+#: includes/features/class-seoprostack-plugin-loading.php:3638
 #, php-format
 msgid "%d plugin loads here: a plugin failed when fewer were loaded"
 msgid_plural "All %d plugins load here: a plugin failed when fewer were loaded"
@@ -9438,7 +9462,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3640
+#: includes/features/class-seoprostack-plugin-loading.php:3642
 #, php-format
 msgid "%d plugin loaded: this screen needs it"
 msgid_plural "All %d plugins loaded: this screen needs them all"
@@ -9446,7 +9470,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3644
+#: includes/features/class-seoprostack-plugin-loading.php:3646
 #, php-format
 msgid "%d plugin loaded while WordPress checks for updates"
 msgid_plural "All %d plugins loaded while WordPress checks for updates"
@@ -9454,7 +9478,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3648
+#: includes/features/class-seoprostack-plugin-loading.php:3650
 #, php-format
 msgid "This screen always loads its %d plugin"
 msgid_plural "This screen always loads all %d plugins"
@@ -9462,44 +9486,44 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: plugins loaded, 2: active plugins
-#: includes/features/class-seoprostack-plugin-loading.php:3689
+#: includes/features/class-seoprostack-plugin-loading.php:3691
 #, php-format
 msgid "%1$d of %2$d plugins"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3692
+#: includes/features/class-seoprostack-plugin-loading.php:3694
 msgid "The plugins you chose to skip on the site are not loaded. Choose to reload with every plugin."
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3693
+#: includes/features/class-seoprostack-plugin-loading.php:3695
 msgid "Only the plugins this screen needs are loaded. Choose to reload with every plugin."
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3719
+#: includes/features/class-seoprostack-plugin-loading.php:3721
 msgid "Reload this page with every plugin?"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3720
+#: includes/features/class-seoprostack-plugin-loading.php:3722
 msgid "Every active plugin loads on this page once, so it may take a little longer. SEO Pro Stack then checks again what each plugin adds to the site. If something is missing from the page, untick its plugin under \"Plugins to skip on the site\"."
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3721
+#: includes/features/class-seoprostack-plugin-loading.php:3723
 msgid "Reload this screen with every plugin?"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3722
+#: includes/features/class-seoprostack-plugin-loading.php:3724
 msgid "Every active plugin loads on this screen once, so it may take a little longer. SEO Pro Stack then checks again which plugins this screen needs. Use this when a box, field, block or menu item is missing here. Other screens do not change."
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3723
+#: includes/features/class-seoprostack-plugin-loading.php:3725
 msgid "Reload with every plugin and check every screen again?"
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3724
+#: includes/features/class-seoprostack-plugin-loading.php:3726
 msgid "SEO Pro Stack forgets which plugins each admin screen needs. This screen reloads with every plugin now. Every other screen also loads every plugin until an administrator next opens it and it is checked again, so the first visit to each screen is slower."
 msgstr ""
 
-#: includes/features/class-seoprostack-plugin-loading.php:3725
+#: includes/features/class-seoprostack-plugin-loading.php:3727
 msgid "Screens set to load every plugin after an error are checked again too. Your settings and always-load choices do not change."
 msgstr ""
 
@@ -10531,11 +10555,11 @@ msgstr ""
 msgid "Readabler’s accessibility button and popup take the site’s palette colours and follow the Kadence light and dark mode switcher. Readabler’s own colours return when this is off, and stay where the theme has no palette. Nothing changes without Readabler."
 msgstr ""
 
-#: includes/features/class-seoprostack-redirect-links.php:69
+#: includes/features/class-seoprostack-redirect-links.php:70
 msgid "Links skip redirects"
 msgstr ""
 
-#: includes/features/class-seoprostack-redirect-links.php:70
+#: includes/features/class-seoprostack-redirect-links.php:71
 msgid "Links in posts, pages, block widgets and menus to an old address that Rank Math permanently redirects to another page of this site point straight at that page, so visitors and search engines skip the redirect. What you saved is not changed, and redirects to other sites are left as they are."
 msgstr ""
 
@@ -12856,46 +12880,46 @@ msgstr ""
 msgid "Never watermark this picture"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2124
+#: includes/features/class-seoprostack-watermark-images.php:2133
 msgid "Watermark pictures was switched off."
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2181
+#: includes/features/class-seoprostack-watermark-images.php:2191
 msgid "Sorry, you are not allowed to change pictures."
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2236
+#: includes/features/class-seoprostack-watermark-images.php:2246
 msgid "Marking pictures"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2237
+#: includes/features/class-seoprostack-watermark-images.php:2247
 msgid "Marking pictures again with the current settings"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2238
+#: includes/features/class-seoprostack-watermark-images.php:2248
 msgid "Removing watermarks"
 msgstr ""
 
 #. translators: 1: what is being done, 2: pictures looked at, 3: all pictures
-#: includes/features/class-seoprostack-watermark-images.php:2245
+#: includes/features/class-seoprostack-watermark-images.php:2255
 #, php-format
 msgid "%1$s: %2$s of %3$s."
 msgstr ""
 
 #. translators: 1: what was being done, 2: pictures looked at, 3: all pictures
-#: includes/features/class-seoprostack-watermark-images.php:2248
+#: includes/features/class-seoprostack-watermark-images.php:2258
 #, php-format
 msgid "%1$s: stopped after %2$s of %3$s."
 msgstr ""
 
 #. translators: %s: what was done
-#: includes/features/class-seoprostack-watermark-images.php:2251
+#: includes/features/class-seoprostack-watermark-images.php:2261
 #, php-format
 msgid "%s: done."
 msgstr ""
 
 #. translators: %s: number of pictures
-#: includes/features/class-seoprostack-watermark-images.php:2255
+#: includes/features/class-seoprostack-watermark-images.php:2265
 #, php-format
 msgid "%s marked."
 msgid_plural "%s marked."
@@ -12903,7 +12927,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of pictures
-#: includes/features/class-seoprostack-watermark-images.php:2259
+#: includes/features/class-seoprostack-watermark-images.php:2269
 #, php-format
 msgid "%s unmarked."
 msgid_plural "%s unmarked."
@@ -12911,7 +12935,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of pictures
-#: includes/features/class-seoprostack-watermark-images.php:2263
+#: includes/features/class-seoprostack-watermark-images.php:2273
 #, php-format
 msgid "%s left alone."
 msgid_plural "%s left alone."
@@ -12919,7 +12943,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of pictures
-#: includes/features/class-seoprostack-watermark-images.php:2267
+#: includes/features/class-seoprostack-watermark-images.php:2277
 #, php-format
 msgid "%s could not be changed."
 msgid_plural "%s could not be changed."
@@ -12927,46 +12951,46 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: comma-separated attachment IDs, at most 100
-#: includes/features/class-seoprostack-watermark-images.php:2288
+#: includes/features/class-seoprostack-watermark-images.php:2298
 #, php-format
 msgid "Failed picture IDs: %s."
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2290
+#: includes/features/class-seoprostack-watermark-images.php:2300
 msgid "Only the first 100 failed pictures are listed and available to retry here."
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2314
-#: includes/features/class-seoprostack-watermark-images.php:2404
+#: includes/features/class-seoprostack-watermark-images.php:2324
+#: includes/features/class-seoprostack-watermark-images.php:2414
 msgid "Try these again"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2321
+#: includes/features/class-seoprostack-watermark-images.php:2331
 msgid "Mark every picture"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2324
+#: includes/features/class-seoprostack-watermark-images.php:2334
 msgid "Mark again only marked pictures"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2327
+#: includes/features/class-seoprostack-watermark-images.php:2337
 msgid "Remove every watermark"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2330
+#: includes/features/class-seoprostack-watermark-images.php:2340
 msgid "For the whole Media Library, in the background. Pictures without a kept original cannot be marked again or unmarked."
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2332
+#: includes/features/class-seoprostack-watermark-images.php:2342
 msgid "Remove the watermark from every marked picture, putting the kept originals back?"
 msgstr ""
 
-#: includes/features/class-seoprostack-watermark-images.php:2430
+#: includes/features/class-seoprostack-watermark-images.php:2440
 msgid "This server has no image library that can add watermarks (GD or Imagick)."
 msgstr ""
 
 #. translators: %d: number of pictures
-#: includes/features/class-seoprostack-watermark-images.php:2448
+#: includes/features/class-seoprostack-watermark-images.php:2458
 #, php-format
 msgid "%d picture has a watermark."
 msgid_plural "%d pictures have a watermark."
@@ -12974,7 +12998,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: Media Library address
-#: includes/features/class-seoprostack-watermark-images.php:2454
+#: includes/features/class-seoprostack-watermark-images.php:2464
 #, php-format
 msgid "To mark, mark again or unmark some pictures, select them in <a href=\"%s\">Media → Library</a> (list view) and choose a bulk action; what does not fit in 20 seconds carries on in the background."
 msgstr ""

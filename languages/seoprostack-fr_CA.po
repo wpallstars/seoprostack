@@ -2805,9 +2805,14 @@ msgstr "Créez une clé d’API gratuite dans votre compte wordfence.com (Intég
 msgid "Vulnerability data from %s."
 msgstr "Données de vulnérabilité de %s."
 
-#: includes/class-seoprostack-vulnerability-feed-report.php:216 includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
+#: includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
 msgid "Terms"
 msgstr "Termes"
+
+#: includes/class-seoprostack-vulnerability-feed-report.php:216
+msgctxt "licence terms link"
+msgid "Terms"
+msgstr "Conditions"
 
 #: includes/class-seoprostack-vulnerability-feed-report.php:234
 msgid "Wordfence Intelligence"

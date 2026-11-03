@@ -15,6 +15,8 @@ One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with
 
 Free and open source: faster admin, easier publishing, safer logins. Details in the Read Me tab.
 
+Vulnerability-report licence links use translations for licence terms, separately from taxonomy terms.
+
 Safe features start on in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait for deactivation.
 
 = A calmer, faster admin =
