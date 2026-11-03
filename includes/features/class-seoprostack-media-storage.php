@@ -2588,18 +2588,23 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * must not wait for the batch, which goes newest first. It takes the
      * storage lease without waiting, as upload_attachment() does: uploads,
      * watermark jobs and the batch share it, so removals still run one at a
-     * time across the site. Errors are recorded as the batch records them
-     * (local_step()): a retryable error keeps this picture's files, other
-     * service errors pause removal for an hour.
+     * time across the site. Errors show as the batch's do. A retryable
+     * service error leaves the picture for the next call or the batch (the
+     * batch keeps such a picture's files, so one picture cannot hold it up);
+     * other service errors pause removal for an hour, as in local_step().
      *
      * @param int $id Attachment ID.
      * @param float $deadline End of the caller's turn, as microtime(true).
      * @return bool|WP_Error True when its local copies are gone (or were
-     *                       already); false when not now, changing nothing
-     *                       (removal off or paused, not uploaded on this
-     *                       connection, its WebP or AVIF copies still to make,
-     *                       the lease busy, the turn over, or its files kept);
-     *                       WP_Error when the storage service failed.
+     *                       already). False when not now: removal off or
+     *                       paused, not uploaded on this connection, its WebP
+     *                       or AVIF copies still to make, the lease busy, the
+     *                       turn over, or the picture changed during removal
+     *                       (files already removed stay listed and are served
+     *                       from the bucket); call again later. WP_Error
+     *                       'storage_kept' when its files stay here after a
+     *                       failed check (upload --retry-failed looks again),
+     *                       or the storage service's error.
      */
     public static function remove_local_now($id, $deadline) {
         $id = (int) $id;
@@ -2616,31 +2621,53 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if ('uploaded' !== get_post_meta($id, self::STATE, true) || !self::removal_record($id)) {
                 return false;
             }
-            $local = get_post_meta($id, self::LOCAL, true);
-            if ($local === $signature || $local === 'kept:' . $signature) {
-                // The batch got there first, or kept the files after a check.
-                return $local === $signature;
+            if (get_post_meta($id, self::LOCAL, true) === $signature) {
+                // The batch got there first.
+                return true;
             }
             // WebP and AVIF copies are made from local files, before they go
             // (local_mode() waits for the whole library; this picture is enough).
             if (SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::is_waiting($id)) {
                 return false;
             }
-            $result = self::remove_local($id, (float) $deadline);
+            $result = get_post_meta($id, self::LOCAL, true) === 'kept:' . $signature ? true : self::remove_local($id, (float) $deadline);
             if (is_wp_error($result)) {
-                if ('storage_budget' === $result->get_error_code()) {
-                    return false;
-                }
-                $failures = 0;
-                self::local_result($id, true, $result, $failures);
-                return $result;
+                return self::remove_now_error($id, $result);
             }
             self::fresh($id);
-            return get_post_meta($id, self::LOCAL, true) === $signature;
+            $local = get_post_meta($id, self::LOCAL, true);
+            if ('kept:' . $signature === $local) {
+                return new WP_Error('storage_kept', __('This picture’s local copies are kept after a failed check; upload --retry-failed looks at them again.', 'seoprostack'));
+            }
+            return $local === $signature;
         } finally {
             self::release($lease);
             self::purge_pages();
         }
+    }
+
+    /**
+     * remove_local_now()'s answer to a removal error.
+     *
+     * @param int $id Attachment ID.
+     * @param WP_Error $error remove_local()'s error.
+     * @return false|WP_Error False when the turn ran out.
+     */
+    private static function remove_now_error($id, $error) {
+        if ('storage_budget' === $error->get_error_code()) {
+            return false;
+        }
+        if (SEOProStack_S3_Client::retryable($error)) {
+            // Not kept: the next call, or the batch, tries this picture again.
+            /* translators: 1: attachment ID, 2: error message */
+            update_option(self::ERROR, sprintf(__('Attachment %1$d: %2$s', 'seoprostack'), $id, $error->get_error_message()), false);
+            return $error;
+        }
+        $failures = 1;
+        self::local_result($id, true, $error, $failures);
+        // Wake the batch when the pause ends, in case no event is due by then.
+        self::schedule(max(0, (int) get_option(self::LOCAL_WAIT, 0) - time()));
+        return $error;
     }
 
     /**
@@ -2734,6 +2761,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (true !== $confirmed) {
                 return self::removal_stopped($id, $confirmed);
             }
+        }
+        // The public address check can take seconds: delete nothing after the turn.
+        if (microtime(true) >= $deadline) {
+            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
         }
         foreach ($files as $key => $path) {
             $info = $record['files'][$key];

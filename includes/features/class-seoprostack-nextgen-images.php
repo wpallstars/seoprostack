@@ -857,7 +857,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
 
     /**
      * Whether one attachment still waits for its copies, as waiting() would
-     * list it: a source type without this format and quality signature.
+     * list it (a source type without this format and quality signature), or
+     * a running batch is converting it: run_batch() marks it done and
+     * incomplete before it reads the files. A mark left by a batch that
+     * stopped PHP does not count once its lock has expired.
      *
      * @phpstan-impure Reads meta that the conversion batch changes.
      * @param int $attachment_id Attachment ID.
@@ -870,7 +873,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             return false;
         }
         wp_cache_delete($attachment_id, 'post_meta');
-        return get_post_meta($attachment_id, self::DONE, true) !== self::signature();
+        if (get_post_meta($attachment_id, self::DONE, true) !== self::signature()) {
+            return true;
+        }
+        $record = get_post_meta($attachment_id, self::META, true);
+        return is_array($record) && !empty($record['incomplete']) && (bool) get_transient(self::LOCK);
     }
 
     /**
