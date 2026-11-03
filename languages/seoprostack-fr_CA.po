@@ -12872,7 +12872,7 @@ msgstr "Par défaut (caché)"
 # machine translation
 #: includes/features/class-seoprostack-social-sharing.php:961 blocks/client-dashboard/index.js:32
 msgid "Show"
-msgstr "Spectacle"
+msgstr "Afficher"
 
 # machine translation
 #: includes/features/class-seoprostack-spectra-blocks.php:63
@@ -16013,7 +16013,7 @@ msgstr "Tous les termes"
 # machine translation
 #: blocks/term-list/index.js:40
 msgid "This post’s terms"
-msgstr "Conditions d'utilisation de cet article"
+msgstr "Termes de cet article"
 
 # machine translation
 #: blocks/term-list/index.js:44
@@ -16083,7 +16083,7 @@ msgstr "Groupe par étiquettes"
 # machine translation
 #: blocks/term-list/index.js:154
 msgid "Terms to show"
-msgstr "Conditions à afficher"
+msgstr "Termes à afficher"
 
 # machine translation
 #: blocks/term-list/index.js:157
@@ -16108,7 +16108,7 @@ msgstr "Afficher le nombre de messages"
 # machine translation
 #: blocks/term-list/index.js:195
 msgid "Show child terms"
-msgstr "Afficher les conditions de l'enfant"
+msgstr "Afficher les termes enfants"
 
 # machine translation
 #: blocks/term-list/index.js:196
@@ -16123,7 +16123,7 @@ msgstr "Afficher les termes vides"
 # machine translation
 #: blocks/term-list/index.js:208
 msgid "Text when there are no terms"
-msgstr "Texte lorsqu'il n'y a pas de conditions"
+msgstr "Texte lorsqu'il n'y a pas de termes"
 
 # machine translation
 #: blocks/term-list/index.js:209
@@ -16133,27 +16133,27 @@ msgstr "Laisser vide pour ne rien afficher."
 # machine translation
 #: blocks/term-list/index.js:215
 msgid "Order and number"
-msgstr "Ordre et numéro"
+msgstr "Ordre et nombre"
 
 # machine translation
 #: blocks/term-list/index.js:217
 msgid "Order"
-msgstr "Commande"
+msgstr "Ordre"
 
 # machine translation
 #: blocks/term-list/index.js:224
 msgid "Most terms to show"
-msgstr "La plupart des termes à afficher"
+msgstr "Nombre maximal de termes à afficher"
 
 # machine translation
 #: blocks/term-list/index.js:225
 msgid "0 shows all. When there are more, those with the most posts are shown."
-msgstr "0 affiche tout. S'il y en a plus, ce sont les personnes ayant le plus de messages qui apparaissent."
+msgstr "0 affiche tous les termes. S'il y en a davantage, ceux associés au plus grand nombre d'articles sont affichés."
 
 # machine translation
 #: blocks/term-list/index.js:233
 msgid "Fewest posts a term needs"
-msgstr "Le nombre minimal de messages par mandat est requis"
+msgstr "Nombre minimal d'articles par terme"
 
 # machine translation
 #: blocks/term-list/index.js:241
@@ -16163,7 +16163,7 @@ msgstr "Groupes"
 # machine translation
 #: blocks/term-list/index.js:243
 msgid "Group terms"
-msgstr "Conditions générales"
+msgstr "Regrouper les termes"
 
 # machine translation
 #: blocks/term-list/index.js:250

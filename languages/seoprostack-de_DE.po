@@ -2807,7 +2807,7 @@ msgstr "Sicherheitslückendaten von %s."
 
 #: includes/class-seoprostack-vulnerability-feed-report.php:216 includes/features/class-seoprostack-field-content.php:97 blocks/term-list/index.js:145
 msgid "Terms"
-msgstr "Bedingungen"
+msgstr "Begriffe"
 
 #: includes/class-seoprostack-vulnerability-feed-report.php:234
 msgid "Wordfence Intelligence"
@@ -16108,12 +16108,12 @@ msgstr "Runterfallen"
 # machine translation
 #: blocks/term-list/index.js:39
 msgid "All terms"
-msgstr "Alle Bedingungen"
+msgstr "Alle Begriffe"
 
 # machine translation
 #: blocks/term-list/index.js:40
 msgid "This post’s terms"
-msgstr "Bedingungen dieses Beitrags"
+msgstr "Begriffe dieses Beitrags"
 
 # machine translation
 #: blocks/term-list/index.js:44
@@ -16188,7 +16188,7 @@ msgstr "Zu zeigende Begriffe"
 # machine translation
 #: blocks/term-list/index.js:157
 msgid "The terms of the post or page the block is on, or of each post in a Query Loop."
-msgstr "Die Bedingungen des Beitrags oder der Seite, auf der sich der Block befindet, oder jedes Beitrags in einer Abfrageschleife."
+msgstr "Die Begriffe des Beitrags oder der Seite, auf der sich der Block befindet, oder jedes Beitrags in einer Abfrageschleife."
 
 # machine translation
 #: blocks/term-list/index.js:177
@@ -16223,7 +16223,7 @@ msgstr "Leere Terme anzeigen"
 # machine translation
 #: blocks/term-list/index.js:208
 msgid "Text when there are no terms"
-msgstr "Text, wenn keine Bedingungen vorhanden sind"
+msgstr "Text, wenn keine Begriffe vorhanden sind"
 
 # machine translation
 #: blocks/term-list/index.js:209
@@ -16233,17 +16233,17 @@ msgstr "Lassen Sie das Feld leer, um nichts anzuzeigen."
 # machine translation
 #: blocks/term-list/index.js:215
 msgid "Order and number"
-msgstr "Bestellung und Nummer"
+msgstr "Sortierung und Anzahl"
 
 # machine translation
 #: blocks/term-list/index.js:217
 msgid "Order"
-msgstr "Befehl"
+msgstr "Sortierung"
 
 # machine translation
 #: blocks/term-list/index.js:224
 msgid "Most terms to show"
-msgstr "Die meisten Begriffe anzeigen"
+msgstr "Maximale Anzahl an Begriffen"
 
 # machine translation
 #: blocks/term-list/index.js:225
@@ -16253,7 +16253,7 @@ msgstr "0 zeigt alle Einträge an. Sind mehrere Einträge vorhanden, werden diej
 # machine translation
 #: blocks/term-list/index.js:233
 msgid "Fewest posts a term needs"
-msgstr "Die geringste Anzahl an Beiträgen, die ein Semester benötigt"
+msgstr "Mindestanzahl an Beiträgen pro Begriff"
 
 # machine translation
 #: blocks/term-list/index.js:241

@@ -16241,12 +16241,12 @@ msgstr "Uitklapmenu"
 # machine translation
 #: blocks/term-list/index.js:39
 msgid "All terms"
-msgstr "Alle voorwaarden"
+msgstr "Alle termen"
 
 # machine translation
 #: blocks/term-list/index.js:40
 msgid "This post’s terms"
-msgstr "Voorwaarden van dit bericht"
+msgstr "Termen van dit bericht"
 
 # machine translation
 #: blocks/term-list/index.js:44
@@ -16321,7 +16321,7 @@ msgstr "Te tonen termen"
 # machine translation
 #: blocks/term-list/index.js:157
 msgid "The terms of the post or page the block is on, or of each post in a Query Loop."
-msgstr "De voorwaarden van het bericht of de pagina waarop het blok zich bevindt, of van elk bericht in een querylus."
+msgstr "De termen van het bericht of de pagina waarop het blok zich bevindt, of van elk bericht in een querylus."
 
 # machine translation
 #: blocks/term-list/index.js:177
@@ -16376,7 +16376,7 @@ msgstr "Volgorde"
 # machine translation
 #: blocks/term-list/index.js:224
 msgid "Most terms to show"
-msgstr "De meeste termen om te laten zien"
+msgstr "Maximaal aantal te tonen termen"
 
 # machine translation
 #: blocks/term-list/index.js:225
@@ -16386,7 +16386,7 @@ msgstr "0 toont alles. Als er meer zijn, worden degenen met de meeste berichten 
 # machine translation
 #: blocks/term-list/index.js:233
 msgid "Fewest posts a term needs"
-msgstr "Het minste aantal berichten per termijn vereist"
+msgstr "Minimumaantal berichten per term"
 
 # machine translation
 #: blocks/term-list/index.js:241
@@ -16396,7 +16396,7 @@ msgstr "Groepen"
 # machine translation
 #: blocks/term-list/index.js:243
 msgid "Group terms"
-msgstr "Groepsvoorwaarden"
+msgstr "Termen groeperen"
 
 # machine translation
 #: blocks/term-list/index.js:250

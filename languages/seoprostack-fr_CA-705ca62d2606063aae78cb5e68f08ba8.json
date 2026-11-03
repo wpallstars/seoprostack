@@ -53,7 +53,7 @@
                 "Tous les termes"
             ],
             "This post\u2019s terms": [
-                "Conditions d'utilisation de cet article"
+                "Termes de cet article"
             ],
             "Name": [
                 "Nom"
@@ -95,7 +95,7 @@
                 "Groupe par \u00e9tiquettes"
             ],
             "Terms to show": [
-                "Conditions \u00e0 afficher"
+                "Termes \u00e0 afficher"
             ],
             "The terms of the post or page the block is on, or of each post in a Query Loop.": [
                 "Les termes de la publication ou de la page sur laquelle se trouve le bloc, ou de chaque publication dans une boucle de requ\u00eate."
@@ -110,7 +110,7 @@
                 "Afficher le nombre de messages"
             ],
             "Show child terms": [
-                "Afficher les conditions de l'enfant"
+                "Afficher les termes enfants"
             ],
             "Off shows only top-level terms.": [
                 "L'affichage d\u00e9sactiv\u00e9 montre seulement les termes de premier niveau."
@@ -119,31 +119,31 @@
                 "Afficher les termes vides"
             ],
             "Text when there are no terms": [
-                "Texte lorsqu'il n'y a pas de conditions"
+                "Texte lorsqu'il n'y a pas de termes"
             ],
             "Leave empty to show nothing.": [
                 "Laisser vide pour ne rien afficher."
             ],
             "Order and number": [
-                "Ordre et num\u00e9ro"
+                "Ordre et nombre"
             ],
             "Order": [
-                "Commande"
+                "Ordre"
             ],
             "Most terms to show": [
-                "La plupart des termes \u00e0 afficher"
+                "Nombre maximal de termes \u00e0 afficher"
             ],
             "0 shows all. When there are more, those with the most posts are shown.": [
-                "0 affiche tout. S'il y en a plus, ce sont les personnes ayant le plus de messages qui apparaissent."
+                "0 affiche tous les termes. S'il y en a davantage, ceux associ\u00e9s au plus grand nombre d'articles sont affich\u00e9s."
             ],
             "Fewest posts a term needs": [
-                "Le nombre minimal de messages par mandat est requis"
+                "Nombre minimal d'articles par terme"
             ],
             "Groups": [
                 "Groupes"
             ],
             "Group terms": [
-                "Conditions g\u00e9n\u00e9rales"
+                "Regrouper les termes"
             ],
             "Show groups": [
                 "Afficher les groupes"
