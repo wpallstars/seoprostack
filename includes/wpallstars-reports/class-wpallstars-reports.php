@@ -64,8 +64,8 @@ final class WPAllStars_Reports { // phpcs:ignore WordPress.NamingConventions.Pre
     /** Longest details, in characters. */
     const DETAILS_MAX = 20000;
 
-    /** Longest GitHub issue body once percent-encoded, so the new-issue address stays short enough. */
-    const GITHUB_BODY_MAX = 3000;
+    /** Longest GitHub issue body, so the new-issue address stays short enough. */
+    const GITHUB_BODY_MAX = 6000;
 
     /** Report types. */
     const TYPES = array('problem', 'improvement');
@@ -524,21 +524,9 @@ final class WPAllStars_Reports { // phpcs:ignore WordPress.NamingConventions.Pre
         $footer = "\n\n---\n\n- " . implode("\n- ", self::versions($product))
             . "\n\nSent from a site's Tools → Report a problem screen after an administrator's review. The site's address, email and IP addresses, server paths and keys are left out.\n";
         $body   = self::redact($report['details'], true);
-        $marker = "\n\n[Shortened for GitHub.]";
-        if (strlen(rawurlencode($body . $footer)) > self::GITHUB_BODY_MAX) {
-            $room = self::GITHUB_BODY_MAX - strlen(rawurlencode($footer . $marker));
-            $low  = 0;
-            $high = min(mb_strlen($body), max(0, $room));
-            while ($low < $high) {
-                $middle    = intdiv($low + $high + 1, 2);
-                $shortened = rtrim(mb_substr($body, 0, $middle)) . $marker;
-                if (strlen(rawurlencode($shortened . $footer)) <= self::GITHUB_BODY_MAX) {
-                    $low = $middle;
-                } else {
-                    $high = $middle - 1;
-                }
-            }
-            $body = rtrim(mb_substr($body, 0, max(0, $low))) . $marker;
+        $room   = self::GITHUB_BODY_MAX - mb_strlen($footer);
+        if (mb_strlen($body) > $room) {
+            $body = rtrim(mb_substr($body, 0, max(0, $room - 30))) . "\n\n[Shortened for GitHub.]";
         }
         return $body . $footer;
     }
@@ -586,7 +574,6 @@ final class WPAllStars_Reports { // phpcs:ignore WordPress.NamingConventions.Pre
             '/\b(?=[A-Za-z0-9]*[0-9])(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{32,}\b/' => '[key removed]',
         );
         if ($public) {
-            $rules['/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i'] = '[email address]';
             foreach (self::site_hosts() as $host) {
                 $quoted                                                            = preg_quote($host, '#');
                 $rules['#\bhttps?://(?:www\.)?' . $quoted . '\b[^\s<>"\')\]]*#i'] = '[site address]';
@@ -600,6 +587,7 @@ final class WPAllStars_Reports { // phpcs:ignore WordPress.NamingConventions.Pre
                 $rules['#' . preg_quote($path, '#') . '#'] = '[site folder]';
             }
             $rules += array(
+                '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i'                   => '[email address]',
                 '/\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/' => '[IP address]',
                 '/\b(?:[0-9a-f]{1,4}:){3,7}[0-9a-f]{1,4}\b/i'                => '[IP address]',
                 '#(/(?:home|Users|var/www|srv|data)/)[^/\s]+#'               => '$1[folder]',
@@ -653,6 +641,7 @@ final class WPAllStars_Reports { // phpcs:ignore WordPress.NamingConventions.Pre
         }
         $product = $products[$report['product']];
         if ('github' === $product['channel']) {
+            self::mark_sent($report['id'], 'github');
             return self::github_url($report, $product);
         }
 
