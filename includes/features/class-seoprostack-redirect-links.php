@@ -50,7 +50,7 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
     /**
      * Redirections for this request: exact (old path => where it goes) and
      * nocase (the same, for patterns that ignore case, by lower-case path).
-     * Custom additions and overrides also match their raw path first.
+     * Custom additions and overrides match only their raw path.
      *
      * @var array{exact:array<string,string>,nocase:array<string,string>,custom:array<string,string>}|null
      */
@@ -127,7 +127,8 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
         $exact = apply_filters('seoprostack_redirect_links', (array) $map['exact']);
         $exact = is_array($exact) ? array_map('strval', $exact) : array();
         self::$map = array(
-            'exact'  => $exact,
+            // Only unchanged Rank Math entries take part in decoded lookups.
+            'exact'  => array_intersect_assoc($exact, (array) $map['exact']),
             'nocase' => (array) $map['nocase'],
             'custom' => array_diff_assoc($exact, (array) $map['exact']),
         );
@@ -278,7 +279,7 @@ class SEOProStack_Redirect_Links extends SEOProStack_Feature {
         }
         $map = self::map();
         $decoded = urldecode($html);
-        foreach (array_keys($map['exact']) as $path) {
+        foreach (array_keys($map['exact'] + $map['custom']) as $path) {
             if (false !== strpos($html, '/' . $path) || false !== strpos($decoded, '/' . $path)) {
                 return true;
             }
