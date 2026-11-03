@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: Language switcher respects TranslatePress's trp_allow_tp_to_run filter before reading languages, so excluded paths show no switcher or assets. The seoprostack_language_switcher_skip filter lets other theme callbacks suppress it without changing the setting. Missing country flags fall back to each language's flag_link, including Media Library uploads, before the existing bundled TranslatePress fallback (#1170).
+
 = 1.3.141 =
 * Fix: in French (fr_FR, fr_BE), Email protection's hidden-address text asks visitors to enable JavaScript ("activez JavaScript") instead of saying it is on ("JavaScript activé") (#1164).
 * New: Media in cloud storage has a public `SEOProStack_Media_Storage::remove_local_now($id, $deadline)`, so a plugin that uploads pictures (SEO Pro Directory's import jobs) can remove one uploaded picture's local copies at once instead of waiting for the site-wide batch, which goes newest first. It takes the storage lease without waiting, checks that removal is on and not paused, that the picture is uploaded on this connection and its WebP and AVIF copies are made and not being made, then removes its files with the batch's checks (size, SHA-256, HEAD, public address, generation, changes meanwhile). It returns true when the copies are gone, false when it cannot now (call again), WP_Error `storage_kept` when a failed check keeps the files, or the service's WP_Error. A retryable service error leaves the picture for the next call; other service errors pause removal for an hour and wake the batch when the pause ends. Uploads, watermark jobs and the batch share the lease, so removals still run one at a time across the site. Removal also stops before deleting when the public address check used up the turn (GitHub issue #1146).
