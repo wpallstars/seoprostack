@@ -333,37 +333,59 @@ final class SEOProStack_S3_Client {
         }
         $codes = array();
         $finished = array();
+        $this->curl_wait($handles, $deadline, $codes, $finished);
+        $ended = microtime(true);
+        $responses = array();
+        foreach ($handles as $key => $handle) {
+            $ok = isset($codes[$key]) && CURLE_OK === $codes[$key];
+            $responses[$key] = $ok ? (object) array('status_code' => (int) curl_getinfo($handle, CURLINFO_HTTP_CODE), 'headers' => $headers[$key], 'body' => $bodies[$key]) : null;
+            $finished[$key] = $finished[$key] ?? $ended;
+            curl_multi_remove_handle($this->multi, $handle);
+        }
+        return array('responses' => $responses, 'finished' => $finished);
+    }
+
+    /**
+     * Drive the multi handle until every transfer ends, sleeping in the
+     * kernel (curl_multi_select) while the network is busy.
+     *
+     * @param array $handles Easy handles by key.
+     * @param float $deadline End of the group's time.
+     * @param array $codes Receives curl result codes by key.
+     * @param array $finished Receives end times by key.
+     */
+    private function curl_wait($handles, $deadline, &$codes, &$finished) {
         do {
             do {
                 $status = curl_multi_exec($this->multi, $running);
             } while (CURLM_CALL_MULTI_PERFORM === $status);
-            while (is_array($done = curl_multi_info_read($this->multi))) {
-                $key = array_search($done['handle'], $handles, true);
-                if (false !== $key) {
-                    $codes[$key] = (int) $done['result'];
-                    $finished[$key] = microtime(true);
-                }
-            }
+            $this->curl_read_done($handles, $codes, $finished);
             // Each handle has its own time limit; the margin only guards the loop.
             if (!$running || CURLM_OK !== $status || microtime(true) > $deadline + 5) {
-                break;
+                return;
             }
             // -1: nothing to wait on yet (libcurl is resolving or connecting).
             if (-1 === curl_multi_select($this->multi, min(1.0, max(0.01, $deadline - microtime(true))))) {
                 usleep(10000);
             }
         } while (true);
-        $ended = microtime(true);
-        $responses = array();
-        foreach ($handles as $key => $handle) {
-            $responses[$key] = null;
-            if (isset($codes[$key]) && CURLE_OK === $codes[$key]) {
-                $responses[$key] = (object) array('status_code' => (int) curl_getinfo($handle, CURLINFO_HTTP_CODE), 'headers' => $headers[$key], 'body' => $bodies[$key]);
+    }
+
+    /**
+     * Record each transfer that has ended since the last call.
+     *
+     * @param array $handles Easy handles by key.
+     * @param array $codes Receives curl result codes by key.
+     * @param array $finished Receives end times by key.
+     */
+    private function curl_read_done($handles, &$codes, &$finished) {
+        while (is_array($done = curl_multi_info_read($this->multi))) {
+            $key = array_search($done['handle'], $handles, true);
+            if (false !== $key) {
+                $codes[$key] = (int) $done['result'];
+                $finished[$key] = microtime(true);
             }
-            $finished[$key] = $finished[$key] ?? $ended;
-            curl_multi_remove_handle($this->multi, $handle);
         }
-        return array('responses' => $responses, 'finished' => $finished);
     }
 
     /**
