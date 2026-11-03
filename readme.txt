@@ -159,13 +159,4 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 * Fix: vulnerability-report licence links have their own translated "Terms" label (#1176).
 * Fix: GitHub reports stay drafts until sent, with bounded bodies and email addresses redacted (#1180).
 
-= 1.3.143 =
-* Changed: in the footer, the Language switcher sits left of the dark mode switch.
-
-= 1.3.142 =
-* Fix: Language switcher respects excluded translation paths and custom flags; themes can suppress duplicate output (#1170).
-* Fix: Load plugins only where needed keeps what it learned when plugins with long names queue background work (#1175).
-* Fix: Links skip redirects matches custom redirect paths only as written (#1169).
-* Fix: German, French (Canada) and Dutch (Belgium) Term list block labels (#1171).
-
 Older: `changelog.txt`.
