@@ -71,6 +71,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $maps = array();
     /** Original leases held until the reader finishes this request. @var array<string,string> */
     private static $original_leases = array();
+    /** Kept originals read back and confirmed in this request, under their lock: digest by site and object key. @var array<string,string> */
+    private static $original_confirmed = array();
     /** Nested watermark/storage calls share one request-owned batch lease. @var array<string,array{value:string,depth:int}> */
     private static $batch_leases = array();
     /** Attachments whose local files this batch deleted: their posts' cached pages are purged. @var array<int,true> */
@@ -2389,10 +2391,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Run uploads and deletes off the page, waiting for watermark jobs.
      *
-     * @param int $limit Most upload attempts.
+     * @param int $limit Most attachments this batch prepares.
+     * @param int|null $upload_cap Most upload attempts requested by the caller, or null.
      * @return int Upload attempts.
      */
-    public static function run_batch($limit = 10) {
+    public static function run_batch($limit = 10, $upload_cap = null) {
         $ready = self::ready();
         // Switched off, the batch only brings removed files back.
         if (!$ready && !self::restoring() && !self::original_jobs_due()) {
@@ -2415,7 +2418,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return 0;
         }
         $start = microtime(true);
-        $limit = max(1, min(10, (int) $limit));
+        /** Filter the most attachments one storage batch prepares (1–100). @param int $limit Attachment limit. */
+        $limit = max(1, min(100, (int) apply_filters('seoprostack_media_storage_batch_limit', $limit)));
+        // The CLI cap limits uploads only; local-copy work retains the batch filter.
+        $uploads = null === $upload_cap ? $limit : min($limit, max(1, (int) $upload_cap));
         $attempts = 0;
         try {
             if ($ready) {
@@ -2430,9 +2436,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 return 0;
             }
             if (self::original_jobs_due()) {
-                self::original_jobs($limit, $start);
+                self::original_jobs($uploads, $start);
             }
-            $attempts = $ready ? self::upload_batch($start, $limit) : 0;
+            $attempts = $ready ? self::upload_batch($start, $uploads) : 0;
         } finally {
             self::release($lease);
             self::purge_pages();
@@ -2477,12 +2483,35 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function upload_batch($start, $limit) {
         $attempts = self::process_jobs($start, $limit);
         $ids = $attempts < $limit ? self::waiting($limit - $attempts) : array();
-        foreach ($ids as $id) {
-            if (!self::more_time($start, self::BUDGET)) {
-                break;
+        return $attempts + self::upload_attachments($ids, $start);
+    }
+
+    /**
+     * Upload pictures several at a time (parallel_pictures()), each set
+     * sharing its network phases, while the batch has time.
+     *
+     * @param int[] $ids Attachment IDs, in order.
+     * @param float $start Batch start.
+     * @return int Upload attempts.
+     */
+    private static function upload_attachments($ids, $start) {
+        $attempts = 0;
+        if (!$ids) {
+            return 0;
+        }
+        $lease = self::lease();
+        if (!$lease) {
+            return 0;
+        }
+        try {
+            foreach (array_chunk($ids, self::parallel_pictures()) as $set) {
+                if (!self::more_time($start, self::BUDGET)) {
+                    break;
+                }
+                $attempts += count(self::upload_many($set, $start));
             }
-            self::upload_attachment($id, $start);
-            ++$attempts;
+        } finally {
+            self::release($lease);
         }
         return $attempts;
     }
@@ -2500,10 +2529,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (null === $removing) {
             return;
         }
-        foreach ($removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true) as $id) {
-            if (!self::more_time($start, $budget) || !self::local_step($id, $removing, $start + $budget)) {
-                return;
+        $deadline = $start + $budget;
+        $ids = $removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true);
+        if (!$removing) {
+            foreach ($ids as $id) {
+                if (!self::more_time($start, $budget) || !self::local_step($id, false, $deadline)) {
+                    return;
+                }
             }
+        } elseif (!self::remove_locals($ids, $start, $budget)) {
+            return;
         }
         // Stuck pictures keep the flag: their files still show from the bucket.
         if (!$removing && !self::restorable(1)) {
@@ -2512,6 +2547,86 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::$serving = array();
             self::$maps = array();
         }
+    }
+
+    /**
+     * Remove several pictures' local copies with shared HEAD phases: each
+     * phase checks up to batch_requests() files from whole pictures, then
+     * every picture is confirmed and removed whole, as remove_local() does.
+     *
+     * @param int[] $ids Removable attachment IDs.
+     * @param float $start Batch start.
+     * @param int $budget This step's share of the batch, in seconds.
+     * @return bool Whether the batch may go on.
+     */
+    private static function remove_locals($ids, $start, $budget) {
+        static $service_failures = 0;
+        $deadline = $start + $budget;
+        $cap = self::batch_requests();
+        $ids = array_values(array_map('intval', $ids));
+        $removals = array();
+        while ($ids && self::more_time($start, $budget)) {
+            $keys = array();
+            $prepared = self::removal_phase($ids, $removals, $cap, $keys);
+            // Reserve part of this local-copies turn for finish_removal().
+            $head_deadline = max(microtime(true), $deadline - min(2, $budget / 2));
+            $heads = $keys ? self::client()->heads($keys, $head_deadline, $cap) : array();
+            foreach ($prepared as $id => $removal) {
+                if (!self::local_result($id, true, self::removal_result($id, $removal, $heads, $deadline), $service_failures)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Take whole pictures from the front of $ids until their files would pass
+     * $cap HEAD requests (the first picture always goes, whatever its size).
+     *
+     * @param int[] $ids Removable attachment IDs; taken pictures are shifted off.
+     * @param array $removals prepare_removal() results by ID, filled as needed.
+     * @param int $cap Most HEAD requests in the phase.
+     * @param string[] $keys Receives the phase's object keys.
+     * @return array prepare_removal() results for this phase, by ID.
+     */
+    private static function removal_phase(&$ids, &$removals, $cap, &$keys) {
+        $prepared = array();
+        while ($ids) {
+            $id = $ids[0];
+            if (!array_key_exists($id, $removals)) {
+                $removals[$id] = self::prepare_removal($id);
+            }
+            $removal = $removals[$id];
+            $files = true === $removal ? array() : array_map('strval', array_keys($removal['files']));
+            if ($prepared && count($keys) + count($files) > $cap) {
+                // Next phase: a picture's files are always checked together.
+                break;
+            }
+            array_shift($ids);
+            $prepared[$id] = $removal;
+            $keys = array_merge($keys, $files);
+        }
+        return $prepared;
+    }
+
+    /**
+     * One picture's removal after its phase's HEAD checks.
+     *
+     * @param int $id Attachment ID.
+     * @param array|true $removal prepare_removal() result.
+     * @param array $heads HEAD results by key.
+     * @param float $deadline End of this step's budget.
+     * @return true|WP_Error
+     */
+    private static function removal_result($id, $removal, $heads, $deadline) {
+        if (true === $removal) {
+            return true;
+        }
+        if (microtime(true) >= $deadline) {
+            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+        }
+        return self::finish_removal($id, $removal, $heads, $deadline);
     }
 
     /**
@@ -2554,7 +2669,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $id Attachment ID.
      * @param bool $removing Remove (true) or bring back (false).
      * @param true|WP_Error $result remove_local() or restore_attachment().
-     * @param int $service_failures Consecutive retryable removal failures in this run.
+     * @param int $service_failures Consecutive retryable removal failures in this request.
      * @return bool Whether the batch may go on.
      */
     private static function local_result($id, $removing, $result, &$service_failures) {
@@ -2733,6 +2848,24 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return true|WP_Error WP_Error when the service could not confirm: try later.
      */
     private static function remove_local($id, $deadline) {
+        $removal = self::prepare_removal($id);
+        if (true === $removal) {
+            return $removal;
+        }
+        $heads = self::client()->heads(array_map('strval', array_keys($removal['files'])), $deadline, self::concurrency());
+        if (microtime(true) >= $deadline) {
+            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+        }
+        return self::finish_removal($id, $removal, $heads, $deadline);
+    }
+
+    /**
+     * Recheck an attachment and collect its locally safe files before one shared HEAD phase.
+     *
+     * @param int $id Attachment ID.
+     * @return array|true A prepared removal, or true when already safely kept.
+     */
+    private static function prepare_removal($id) {
         $config = self::config();
         $kept = 'kept:' . $config['signature'];
         self::fresh($id);
@@ -2749,15 +2882,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_post_meta($id, self::LOCAL, $kept);
             return true;
         }
-        $client = self::client();
-        $heads = $client->heads(array_map('strval', array_keys($files)), $deadline, self::concurrency());
-        if (microtime(true) >= $deadline) {
-            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
-        }
+        return array('config' => $config, 'generation' => $generation, 'record' => $record, 'files' => $files);
+    }
+
+    /**
+     * Confirm and remove one prepared attachment after the shared HEAD phase.
+     *
+     * @param int $id Attachment ID.
+     * @param array $removal Prepared removal from prepare_removal().
+     * @param array $heads Object information or errors by object key.
+     * @param float $deadline Latest safe removal time.
+     * @return true|WP_Error
+     */
+    private static function finish_removal($id, $removal, $heads, $deadline) {
+        $config = $removal['config'];
+        $generation = $removal['generation'];
+        $record = $removal['record'];
+        $files = $removal['files'];
         // Confirm the whole group before deletion, including a failure in its
         // last HEAD. Recheck each local digest again immediately before removal.
         foreach ($files as $key => $path) {
-            $confirmed = self::confirm_removal($heads[$key], $key, $record['files'][$key], $path);
+            $confirmed = self::confirm_removal($heads[$key] ?? new WP_Error('storage_transport', __('The storage service did not confirm this picture.', 'seoprostack')), $key, $record['files'][$key], $path);
             if (true !== $confirmed) {
                 return self::removal_stopped($id, $confirmed);
             }
@@ -3447,14 +3592,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function process_jobs($start, $limit) {
         $config = self::config();
-        $attempts = 0;
+        $originals = array();
+        $uploads = array();
         $names = self::jobs(20, (string) get_option(self::CURSOR, ''));
         if (!$names) {
             $names = self::jobs();
         }
         foreach ($names as $name) {
-            if (!self::more_time($start, self::BUDGET)) {
-                return $attempts;
+            if (count($originals) + count($uploads) >= $limit) {
+                break;
             }
             $job = get_option($name);
             update_option(self::CURSOR, $name, false);
@@ -3462,27 +3608,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             if ('original_retry' === $job['kind']) {
-                if ($attempts >= $limit) {
-                    continue;
-                }
-                self::retry_original((int) $job['id']);
-                ++$attempts;
-                continue;
-            }
-            if ('retry' === $job['kind']) {
-                if ($attempts >= $limit) {
-                    continue;
-                }
+                $originals[] = (int) $job['id'];
+            } elseif ('retry' === $job['kind']) {
                 // The attempt replaces this job or removes it on completion.
                 // An early return must not strand a failed attachment.
-                self::upload_attachment((int) $job['id'], $start);
-                ++$attempts;
-                continue;
+                $uploads[] = (int) $job['id'];
             }
             // Retain legacy delete jobs without executing them. Only the explicit
             // forget-previous --delete-objects command may delete stored media.
         }
-        return $attempts;
+        if (!$originals) {
+            return self::upload_attachments($uploads, $start);
+        }
+        foreach (array_chunk($originals, self::parallel_pictures()) as $set) {
+            if (!self::more_time($start, self::BUDGET)) {
+                return count($originals);
+            }
+            self::retry_originals($set);
+        }
+        return count($originals) + self::upload_attachments($uploads, $start);
     }
 
     /** @return SEOProStack_S3_Client */
@@ -3627,6 +3771,100 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return true|WP_Error
      */
     private static function upload_original($id) {
+        return self::upload_originals(array($id))[$id];
+    }
+
+    /**
+     * Upload several pictures' kept originals with one shared PUT phase and
+     * one shared signed GET check of the bytes, then record each alone.
+     *
+     * @param int[] $ids Attachment IDs.
+     * @return array<int,true|WP_Error> Results by attachment ID.
+     */
+    private static function upload_originals($ids) {
+        $results = array();
+        $sending = array();
+        $files = array();
+        foreach ($ids as $id) {
+            $result = self::original_sort($id, $sending, $files);
+            if (null !== $result) {
+                $results[$id] = $result;
+            }
+        }
+        if (!$sending) {
+            return $results;
+        }
+        $client = reset($sending)['client'];
+        $put = $client->put_files($files, 'private, no-store', self::batch_requests(), self::group_byte_cap());
+        // Signed GETs check the actual bytes, not just a successful PUT.
+        $check = array();
+        foreach ($files as $key => $info) {
+            if (true === ($put[$key] ?? null)) {
+                $check[$key] = array('size' => $info['size'], 'digest' => $info['digest']);
+            }
+        }
+        $confirmed = $check ? $client->confirm_files($check, self::batch_requests(), self::group_byte_cap()) : array();
+        foreach ($sending as $id => $prepared) {
+            $results[$id] = self::original_sent($id, $prepared, $put, $confirmed);
+        }
+        return $results;
+    }
+
+    /**
+     * Prepare one kept original and queue it for the shared PUT phase.
+     *
+     * @param int $id Attachment ID.
+     * @param array $sending Receives queued original_prepare() results by ID.
+     * @param array $files Receives the PUT phase's files by object key.
+     * @return true|WP_Error|null Final result, or null when queued.
+     */
+    private static function original_sort($id, &$sending, &$files) {
+        $prepared = self::original_prepare($id);
+        if (!is_array($prepared)) {
+            return $prepared;
+        }
+        $record = $prepared['record'];
+        if (!empty($record['remote'])) {
+            return self::original_finish($id, $record);
+        }
+        if (isset($files[$record['backup']])) {
+            return new WP_Error('storage_original_busy', __('The kept original is in use by another request. Try again shortly.', 'seoprostack'));
+        }
+        $sending[$id] = $prepared;
+        $files[$record['backup']] = array('path' => $prepared['path'], 'type' => 'application/octet-stream', 'digest' => (string) $record['digest'], 'size' => (int) $record['size']);
+        return null;
+    }
+
+    /**
+     * One sent original's result after the shared PUT and GET phases.
+     *
+     * @param int $id Attachment ID.
+     * @param array $prepared original_prepare() result.
+     * @param array $put PUT results by key.
+     * @param array $confirmed confirm_files() results by key.
+     * @return true|WP_Error
+     */
+    private static function original_sent($id, $prepared, $put, $confirmed) {
+        $key = $prepared['record']['backup'];
+        $result = $put[$key] ?? new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
+        if (true !== $result) {
+            return $result;
+        }
+        $result = $confirmed[$key] ?? $result;
+        if (is_wp_error($result)) {
+            return 'storage_mismatch' === $result->get_error_code() ? new WP_Error('storage_restore_mismatch', __('A stored picture did not match its record, so it was not brought back.', 'seoprostack')) : self::download_error($result);
+        }
+        self::$original_confirmed[get_current_blog_id() . ':' . $key] = $prepared['record']['digest'];
+        return self::original_uploaded($id, $prepared['record']);
+    }
+
+    /**
+     * One kept original's checks and attempted record before its PUT.
+     *
+     * @param int $id Attachment ID.
+     * @return true|WP_Error|array Final result, or the record, client and path to send.
+     */
+    private static function original_prepare($id) {
         $record = SEOProStack_Watermark_Images::record($id);
         if (empty($record['backup']) || ('' === self::config()['originals_bucket'] && empty($record['remote']))) {
             return true;
@@ -3659,29 +3897,42 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (!self::save_original_record($id, $before, $record)) {
                 return new WP_Error('storage_original_record', __('The kept original’s record could not be saved.', 'seoprostack'));
             }
-            $result = $client->put_file($record['backup'], $path, 'application/octet-stream', 'private, no-store', (string) $record['digest']);
-            if (is_wp_error($result)) {
-                return $result;
-            }
-            // Signed GET checks the actual bytes, not just a successful PUT.
-            $body = self::download($record['backup'], $record, $client);
-            if (is_wp_error($body)) {
-                return $body;
-            }
-            unset($body);
-            self::fresh($id);
-            if (!self::original_record_is($id, $record)) {
-                self::delete_original($record);
-                return new WP_Error('storage_changed', __('The picture changed during its original’s upload; it will be retried.', 'seoprostack'));
-            }
-            $before = $record;
-            $record['remote'] = true;
-            $record['original_state'] = 'uploaded';
-            if (!self::save_original_record($id, $before, $record) || !self::attachment_exists($id)) {
-                self::delete_original($record);
-                return new WP_Error('storage_original_record', __('The kept original’s upload could not be recorded; its local copy was kept.', 'seoprostack'));
-            }
         }
+        return array('record' => $record, 'client' => $client, 'path' => $path);
+    }
+
+    /**
+     * Record a confirmed kept original as remote, unless the picture changed
+     * meanwhile, then finish it.
+     *
+     * @param int $id Attachment ID.
+     * @param array $record Attempted record.
+     * @return true|WP_Error
+     */
+    private static function original_uploaded($id, $record) {
+        self::fresh($id);
+        if (!self::original_record_is($id, $record)) {
+            self::delete_original($record);
+            return new WP_Error('storage_changed', __('The picture changed during its original’s upload; it will be retried.', 'seoprostack'));
+        }
+        $before = $record;
+        $record['remote'] = true;
+        $record['original_state'] = 'uploaded';
+        if (!self::save_original_record($id, $before, $record) || !self::attachment_exists($id)) {
+            self::delete_original($record);
+            return new WP_Error('storage_original_record', __('The kept original’s upload could not be recorded; its local copy was kept.', 'seoprostack'));
+        }
+        return self::original_finish($id, $record);
+    }
+
+    /**
+     * Keep the recovery inventory, then reclaim the local original.
+     *
+     * @param int $id Attachment ID.
+     * @param array $record Remote record.
+     * @return true|WP_Error
+     */
+    private static function original_finish($id, $record) {
         if (!self::remember_original($id, $record)) {
             return new WP_Error('storage_original_record', __('The original has a pending deletion or its recovery inventory could not be saved; its local copy was kept.', 'seoprostack'));
         }
@@ -3743,11 +3994,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (is_wp_error($client)) {
             return $client;
         }
-        $body = self::download($record['backup'], $record, $client);
-        if (is_wp_error($body)) {
-            return $body;
+        // Read back once: upload_originals() has just confirmed these bytes
+        // under the same original lock, held for the rest of this request.
+        if ((self::$original_confirmed[get_current_blog_id() . ':' . $record['backup']] ?? '') !== $record['digest']) {
+            $body = self::download($record['backup'], $record, $client);
+            if (is_wp_error($body)) {
+                return $body;
+            }
+            unset($body);
         }
-        unset($body);
         if (!self::original_matches($path, $record)) {
             return new WP_Error('storage_restore_mismatch', __('The kept original could not be confirmed; its local copy was kept.', 'seoprostack'));
         }
@@ -3879,26 +4134,45 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether the kept original completed successfully.
      */
     private static function retry_original($id) {
-        $name = self::JOB . 'retry_original_' . $id;
-        if (!self::attachment_exists($id)) {
-            delete_option($name);
-            return false;
+        return !empty(self::retry_originals(array($id))[$id]);
+    }
+
+    /**
+     * Retry several kept originals together (upload_originals()).
+     *
+     * @param int[] $ids Attachment IDs.
+     * @return array<int,bool> Whether each kept original completed successfully.
+     */
+    private static function retry_originals($ids) {
+        $done = array();
+        $sending = array();
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            $name = self::JOB . 'retry_original_' . $id;
+            if (!self::attachment_exists($id)) {
+                delete_option($name);
+                $done[$id] = false;
+                continue;
+            }
+            // Persist before I/O so even an interrupted private upload retries alone.
+            update_option($name, array('kind' => 'original_retry', 'id' => $id, 'signature' => self::config()['signature'], 'next' => time() + HOUR_IN_SECONDS), false);
+            $sending[] = $id;
         }
-        // Persist before I/O so even an interrupted private upload retries alone.
-        update_option($name, array('kind' => 'original_retry', 'id' => $id, 'signature' => self::config()['signature'], 'next' => time() + HOUR_IN_SECONDS), false);
-        $result = self::upload_original($id);
-        $record = SEOProStack_Watermark_Images::record($id);
-        if (!empty($record['backup']) && '' !== self::config()['originals_bucket']) {
-            $updated = $record;
-            $updated['original_state'] = is_wp_error($result) ? 'failed' : 'uploaded';
-            self::save_original_record($id, $record, $updated);
+        foreach ($sending ? self::upload_originals($sending) : array() as $id => $result) {
+            $record = SEOProStack_Watermark_Images::record($id);
+            if (!empty($record['backup']) && '' !== self::config()['originals_bucket']) {
+                $updated = $record;
+                $updated['original_state'] = is_wp_error($result) ? 'failed' : 'uploaded';
+                self::save_original_record($id, $record, $updated);
+            }
+            if (is_wp_error($result)) {
+                update_option(self::ERROR, $result->get_error_message(), false);
+            } else {
+                delete_option(self::JOB . 'retry_original_' . $id);
+            }
+            $done[$id] = !is_wp_error($result);
         }
-        if (is_wp_error($result)) {
-            update_option(self::ERROR, $result->get_error_message(), false);
-        } else {
-            delete_option($name);
-        }
-        return !is_wp_error($result);
+        return $done;
     }
 
     /** @return array<string,int> CLI-only paged counts through the meta_key index. */
@@ -3955,6 +4229,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function concurrency() {
         /** Filter concurrent storage requests (1–32). @param int $concurrency Maximum in-flight files. */
         return max(1, min(32, (int) apply_filters('seoprostack_media_storage_concurrency', 20)));
+    }
+
+    /**
+     * Requests one shared network phase sends together for several pictures
+     * (uploads, removal checks, kept originals). Never fewer than one
+     * picture's group, so a picture always fits.
+     *
+     * @return int Maximum in-flight requests across pictures.
+     */
+    private static function batch_requests() {
+        $concurrency = self::concurrency();
+        /** Filter the requests a batch sends together across pictures (up to 128). @param int $requests Default four times the concurrency, at most 64. */
+        return max($concurrency, min(128, (int) apply_filters('seoprostack_media_storage_batch_requests', min(64, 4 * $concurrency))));
+    }
+
+    /** @return int<1, 20> Pictures one upload phase prepares together. */
+    private static function parallel_pictures() {
+        /** Filter how many pictures upload together in one network phase (1–20). @param int $pictures Default 5. */
+        return max(1, min(20, (int) apply_filters('seoprostack_media_storage_parallel_pictures', 5)));
     }
 
     /** @return int Group payload allowance, reserving space for transport copies. */
@@ -4135,7 +4428,233 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool
      */
     private static function upload_locked($id, $start) {
+        $results = self::upload_many(array($id), $start);
+        return !empty($results[$id]);
+    }
+
+    /**
+     * Upload several attachments under the held lease, sharing network
+     * phases: each picture's checks and durable claims are made alone
+     * (upload_prepare(), upload_stage()), then one round sends a group from
+     * every picture that fits batch_requests() and the group byte cap, and
+     * each picture settles with its own results (upload_settle()). A failure
+     * stays with its picture; the others go on. Kept originals of the
+     * finished pictures go up together (retry_originals()), then each
+     * inventory is published (upload_finish()).
+     *
+     * @param int[] $ids Attachment IDs.
+     * @param float|null $start Batch start.
+     * @return array<int,bool> Attempted IDs mapped to whether all eligible files were copied.
+     */
+    private static function upload_many($ids, $start) {
+        $start = null === $start ? microtime(true) : (float) $start;
+        $done = array();
+        $active = self::upload_prepare_many($ids, $start, $done);
+        if (!$active) {
+            return $done;
+        }
+        $client = self::client();
+        $cap = self::batch_requests();
+        $byte_cap = self::group_byte_cap();
+        /** Filter the public object cache policy. @param string $policy Cache-Control. */
+        $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
+        while (array_filter(array_column($active, 'groups'))) {
+            $round = self::upload_round($active, $done, $start, $cap, $byte_cap);
+            if (!$round['staged']) {
+                break;
+            }
+            $results = $round['files'] ? $client->put_files($round['files'], $policy, $cap, $byte_cap, $start + self::BUDGET) : array();
+            foreach ($round['staged'] as $id => $group) {
+                if (!self::upload_settle($id, $active[$id], $group, $results)) {
+                    $done[$id] = false;
+                    unset($active[$id]);
+                }
+            }
+        }
+        return self::upload_end($active, $done, $start);
+    }
+
+    /**
+     * Prepare pictures in order while the batch has time.
+     *
+     * @param int[] $ids Attachment IDs.
+     * @param float $start Batch start.
+     * @param array $done Receives final results by ID.
+     * @return array Upload contexts by ID.
+     */
+    private static function upload_prepare_many($ids, $start, &$done) {
+        $active = array();
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if (!self::more_time($start, self::BUDGET)) {
+                break;
+            }
+            $prepared = self::upload_prepare($id);
+            if (is_array($prepared)) {
+                $active[$id] = $prepared;
+            } else {
+                $done[$id] = $prepared;
+            }
+        }
+        return $active;
+    }
+
+    /**
+     * Build one shared round: the next group of every picture that fits the
+     * request and byte caps (the first group always fits).
+     *
+     * @param array $active Upload contexts by ID, updated; stopped pictures are removed.
+     * @param array $done Receives final results by ID.
+     * @param float $start Batch start.
+     * @param int $cap Most requests in the round.
+     * @param int $byte_cap Most bytes in the round.
+     * @return array{files:array,bytes:int,staged:array} Files to send by key, their bytes, and each staged picture's group.
+     */
+    private static function upload_round(&$active, &$done, $start, $cap, $byte_cap) {
+        $round = array('files' => array(), 'bytes' => 0, 'staged' => array());
+        foreach ($active as $id => $context) {
+            if (!$context['groups']) {
+                continue;
+            }
+            if (!self::more_time($start, self::BUDGET)) {
+                self::defer_upload($id, $context['pending'], $context['old'], $context['job']);
+                $done[$id] = false;
+                unset($active[$id]);
+                continue;
+            }
+            if (!self::upload_join($id, $active[$id], $round, $cap, $byte_cap)) {
+                $done[$id] = false;
+                unset($active[$id]);
+            }
+        }
+        return $round;
+    }
+
+    /**
+     * Add a picture's next group to the round when it fits, claiming its keys.
+     *
+     * @param int $id Attachment ID.
+     * @param array $context Upload context, updated.
+     * @param array{files:array,bytes:int,staged:array} $round The round being built, updated.
+     * @param int $cap Most requests in the round.
+     * @param int $byte_cap Most bytes in the round.
+     * @return bool Whether this picture goes on (true also when it waits for the next round).
+     */
+    private static function upload_join($id, &$context, &$round, $cap, $byte_cap) {
+        $group = reset($context['groups']);
+        $size = array_sum(array_map('intval', array_column($group, 'size')));
+        if ($round['files'] && (count($round['files']) + count($group) > $cap || $round['bytes'] + $size > $byte_cap)) {
+            return true; // The next round; the first picture always fits.
+        }
+        array_shift($context['groups']);
+        $changed = self::upload_stage($id, $context, $group);
+        if (false === $changed) {
+            return false;
+        }
+        if (array_intersect_key($changed, $round['files'])) {
+            // Another picture of this round sends the same key.
+            self::collision_failed($id, $context['pending']);
+            return false;
+        }
+        $round['staged'][$id] = $group;
+        $round['files'] += $changed;
+        $round['bytes'] += $size;
+        return true;
+    }
+
+    /**
+     * After the last round: defer every picture when time is up, otherwise
+     * send their kept originals together and publish each inventory.
+     *
+     * @param array $active Upload contexts of pictures whose groups all succeeded.
+     * @param array $done Final results so far.
+     * @param float $start Batch start.
+     * @return array<int,bool> Final results by ID.
+     */
+    private static function upload_end($active, $done, $start) {
+        if (!$active) {
+            return $done;
+        }
+        if (!self::more_time($start, self::BUDGET)) {
+            foreach ($active as $id => $context) {
+                self::defer_upload($id, $context['pending'], $context['old'], $context['job']);
+                $done[$id] = false;
+            }
+            return $done;
+        }
+        self::retry_originals(array_keys($active));
+        foreach ($active as $id => $context) {
+            $done[$id] = self::upload_finish($id, $context);
+        }
+        return $done;
+    }
+
+    /**
+     * An inventory from another storage set-up: only explicit adopt/migrate
+     * may replace it. Mark the queue visited, preserving its source marker
+     * before overwriting DONE.
+     *
+     * @param int $id Attachment ID.
+     * @param array $inventory The old inventory.
+     */
+    private static function upload_visit_handover($id, $inventory) {
+        $generation = get_post_meta($id, self::GENERATION, true);
+        $marker = get_post_meta($id, self::DONE, true);
+        self::fresh($id);
+        if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::DONE, true) !== $marker) {
+            return;
+        }
+        if (self::upload_marker() !== $marker) {
+            $preserved = $inventory;
+            $preserved['handover_done'] = $marker;
+            $preserved['handover_generation'] = $generation;
+            if ($preserved !== $inventory && !update_post_meta($id, self::META, $preserved, $inventory)) {
+                return;
+            }
+            $inventory = $preserved;
+        }
+        self::archive_inventory($id, $inventory);
+        update_post_meta($id, self::DONE, self::upload_marker());
+    }
+
+    /**
+     * A picture whose public files are current but whose kept original still
+     * waits: send only the original, then mark the picture done.
+     *
+     * @param int $id Attachment ID.
+     * @param array $config Storage configuration.
+     * @param mixed $generation The picture's generation before any request.
+     * @param array $old The picture's own inventory before any request (empty when none).
+     * @return bool Whether the picture was marked done.
+     */
+    private static function upload_original_only($id, $config, $generation, $old) {
         global $wpdb;
+        $marker = $config['signature'] . ':avif';
+        if (!self::retry_original($id) || !self::attachment_exists($id)) {
+            return false;
+        }
+        // Network I/O must not mark a concurrent edit or replacement complete.
+        if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $old || get_post_meta($id, self::DONE, true) !== $marker) {
+            return false;
+        }
+        // Update only: update_post_meta would insert after a concurrent queue()
+        // deleted DONE, hiding that edit from the pending-upload selection.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic compare-and-update must never resurrect an invalidated marker.
+        $saved = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND CAST(meta_value AS BINARY) = %s", self::upload_marker(), $id, self::DONE, $marker));
+        self::fresh($id);
+        delete_transient(self::COUNTS);
+        self::forget($id);
+        return 1 === $saved;
+    }
+
+    /**
+     * One picture's checks and claims before any request: skip, mark only the
+     * kept original, or record the attempt and list its file groups.
+     *
+     * @param int $id Attachment ID.
+     * @return bool|array Final result, or the upload context.
+     */
+    private static function upload_prepare($id) {
         // A killed re-mark may leave clean intermediate sizes on disk. Never
         // publish them, even after its batch lease expires or the job stops.
         wp_cache_delete($id, 'post_meta');
@@ -4145,25 +4664,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $inventory = get_post_meta($id, self::META, true);
         if (is_array($inventory) && !empty($inventory['files']) && isset($inventory['signature']) && $inventory['signature'] !== self::config()['signature']) {
-            // Only explicit adopt/migrate may replace an old inventory. Mark the
-            // queue visited, preserving its source marker before overwriting DONE.
-            $generation = get_post_meta($id, self::GENERATION, true);
-            $marker = get_post_meta($id, self::DONE, true);
-            self::fresh($id);
-            if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::DONE, true) !== $marker) {
-                return false;
-            }
-            if (self::upload_marker() !== $marker) {
-                $preserved = $inventory;
-                $preserved['handover_done'] = $marker;
-                $preserved['handover_generation'] = $generation;
-                if ($preserved !== $inventory && !update_post_meta($id, self::META, $preserved, $inventory)) {
-                    return false;
-                }
-                $inventory = $preserved;
-            }
-            self::archive_inventory($id, $inventory);
-            update_post_meta($id, self::DONE, self::upload_marker());
+            self::upload_visit_handover($id, $inventory);
             return false;
         }
         if (!self::ready() || 0 !== strpos((string) get_post_mime_type($id), 'image/') || self::removed_elsewhere($id)) {
@@ -4174,22 +4675,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $generation = get_post_meta($id, self::GENERATION, true);
         $old = self::own_inventory($id);
         if (self::needs_original_only($id, $old)) {
-            $marker = $config['signature'] . ':avif';
-            if (!self::retry_original($id) || !self::attachment_exists($id)) {
-                return false;
-            }
-            // Network I/O must not mark a concurrent edit or replacement complete.
-            if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $old || get_post_meta($id, self::DONE, true) !== $marker) {
-                return false;
-            }
-            // Update only: update_post_meta would insert after a concurrent queue()
-            // deleted DONE, hiding that edit from the pending-upload selection.
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic compare-and-update must never resurrect an invalidated marker.
-            $saved = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND CAST(meta_value AS BINARY) = %s", self::upload_marker(), $id, self::DONE, $marker));
-            self::fresh($id);
-            delete_transient(self::COUNTS);
-            self::forget($id);
-            return 1 === $saved;
+            return self::upload_original_only($id, $config, $generation, $old);
         }
         $attempt = isset($old['attempts']) ? (int) $old['attempts'] + 1 : 1;
         // Tried first: even a fatal error moves the queue forward and retries later.
@@ -4226,95 +4712,138 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::collision_failed($id, $pending);
             return false;
         }
-        $start = null === $start ? microtime(true) : (float) $start;
-        $concurrency = self::concurrency();
-        $byte_cap = self::group_byte_cap();
-        $client = self::client(); // Loads the lazily included S3 client before grouping.
-        foreach (SEOProStack_S3_Client::file_groups($files, $concurrency, $byte_cap) as $group) {
-            if (!self::more_time($start, self::BUDGET)) {
-                self::defer_upload($id, $pending, $old, $job);
-                return false;
+        self::client(); // Loads the lazily included S3 client before grouping.
+        $groups = iterator_to_array(SEOProStack_S3_Client::file_groups($files, self::concurrency(), self::group_byte_cap()), false);
+        return compact('config', 'generation', 'old', 'attempt', 'job', 'record', 'pending', 'files', 'groups');
+    }
+
+    /**
+     * Claim one group's keys durably before any request, then recheck them.
+     *
+     * @param int $id Attachment ID.
+     * @param array $context Upload context from upload_prepare(), updated.
+     * @param array $group Object keys mapped to file information.
+     * @return array|false Changed files to send by key, or false when this picture stops.
+     */
+    private static function upload_stage($id, &$context, $group) {
+        $config = $context['config'];
+        $old = $context['old'];
+        $changed = array();
+        $context['eligible'] = array();
+        foreach ($group as $key => $info) {
+            if ($info['size'] > self::size_cap()) {
+                ++$context['record']['skipped'];
+                continue;
             }
-            $changed = array();
-            $eligible = array();
-            foreach ($group as $key => $info) {
-                if ($info['size'] > self::size_cap()) {
-                    ++$record['skipped'];
-                    continue;
-                }
-                $eligible[$key] = true;
-                $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
-                $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && !empty($info['digest']) && isset($previous['digest']) && $previous['digest'] === $info['digest'];
-                if (!$same) {
-                    // Persist the attempted key before PUT: deletion or a fatal error
-                    // must not lose an object whose server accepted the request.
-                    $attempted = $info;
-                    unset($attempted['path'], $attempted['type']);
-                    $attempted['confirmed'] = false;
-                    $pending['files'][$key] = $attempted;
-                    $changed[$key] = $info;
-                }
-            }
-            // Every attempted key is durable before any request in this group.
-            $saved = update_post_meta($id, self::META, $pending);
-            if (!$saved && get_post_meta($id, self::META, true) !== $pending) {
-                // The retry was recorded before building this inventory.
-                return false;
-            }
-            // Recheck after durable claims: a concurrent uploader may have claimed
-            // one of these keys since the whole-attachment preflight.
-            if (self::conflicting_files($id, $group)) {
-                self::collision_failed($id, $pending);
-                return false;
-            }
-            /** Filter the public object cache policy. @param string $policy Cache-Control. */
-            $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
-            $results = $client->put_files($changed, $policy, $concurrency, $byte_cap, $start + self::BUDGET);
-            $error = null;
-            foreach ($group as $key => $info) {
-                // Transport allocations must not change eligibility after PUT.
-                if (!isset($eligible[$key])) {
-                    continue;
-                }
-                if (isset($results[$key]) && is_wp_error($results[$key])) {
-                    // A short budget deferral must not hide a real peer failure.
-                    if (!is_wp_error($error) || 'storage_budget' !== $results[$key]->get_error_code()) {
-                        $error = $results[$key];
-                    }
-                    continue;
-                }
-                unset($info['path'], $info['type']);
-                $info['confirmed'] = true;
-                $record['files'][$key] = $info;
-                $pending['signature'] = $config['signature'];
-                $pending['files'][$key] = $info;
-                // A key brought back by an edit must not be removed by an old cleanup job.
-                delete_option(self::delete_job_name($config['signature'], $key));
-            }
-            // Record all successful peers even if another request failed, and
-            // retain every attempted key if deletion happened during the group.
-            if (!self::attachment_exists($id)) {
-                self::queue_delete($pending, array_map('strval', array_keys($pending['files'])));
-                delete_option(self::JOB . 'retry_' . $id);
-                return false;
-            }
-            update_post_meta($id, self::META, $pending);
-            if (is_wp_error($error)) {
-                if ('storage_budget' === $error->get_error_code()) {
-                    self::defer_upload($id, $pending, $old, $job);
-                    return false;
-                }
-                self::upload_failed($id, $pending, $error->get_error_message());
-                $job['next'] = time() + ($attempt < 2 ? HOUR_IN_SECONDS : ($attempt < 3 ? 6 : 24) * HOUR_IN_SECONDS);
-                update_option(self::JOB . 'retry_' . $id, $job, false);
-                return false;
+            $context['eligible'][$key] = true;
+            $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
+            $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && !empty($info['digest']) && isset($previous['digest']) && $previous['digest'] === $info['digest'];
+            if (!$same) {
+                // Persist the attempted key before PUT: deletion or a fatal error
+                // must not lose an object whose server accepted the request.
+                $attempted = $info;
+                unset($attempted['path'], $attempted['type']);
+                $attempted['confirmed'] = false;
+                $context['pending']['files'][$key] = $attempted;
+                $changed[$key] = $info;
             }
         }
-        if (!self::more_time($start, self::BUDGET)) {
-            self::defer_upload($id, $pending, $old, $job);
+        // Every attempted key is durable before any request in this group.
+        $saved = update_post_meta($id, self::META, $context['pending']);
+        if (!$saved && get_post_meta($id, self::META, true) !== $context['pending']) {
+            // The retry was recorded before building this inventory.
             return false;
         }
-        self::retry_original($id);
+        // Recheck after durable claims: a concurrent uploader, or another
+        // picture of this batch, may have claimed one of these keys since the
+        // whole-attachment preflight.
+        if (self::conflicting_files($id, $group)) {
+            self::collision_failed($id, $context['pending']);
+            return false;
+        }
+        return $changed;
+    }
+
+    /**
+     * The error a group reports: a short budget deferral must not hide a
+     * real peer failure.
+     *
+     * @param WP_Error|null $error The group's error so far.
+     * @param WP_Error $result This request's error.
+     * @return WP_Error
+     */
+    private static function group_error($error, $result) {
+        return is_wp_error($error) && 'storage_budget' === $result->get_error_code() ? $error : $result;
+    }
+
+    /**
+     * Record one group's results for its own picture.
+     *
+     * @param int $id Attachment ID.
+     * @param array $context Upload context, updated.
+     * @param array $group The group sent.
+     * @param array $results Results of the shared round, by object key.
+     * @return bool Whether this picture goes on.
+     */
+    private static function upload_settle($id, &$context, $group, $results) {
+        $config = $context['config'];
+        $error = null;
+        foreach ($group as $key => $info) {
+            // Transport allocations must not change eligibility after PUT.
+            if (!isset($context['eligible'][$key])) {
+                continue;
+            }
+            if (isset($results[$key]) && is_wp_error($results[$key])) {
+                $error = self::group_error($error, $results[$key]);
+                continue;
+            }
+            unset($info['path'], $info['type']);
+            $info['confirmed'] = true;
+            $context['record']['files'][$key] = $info;
+            $context['pending']['signature'] = $config['signature'];
+            $context['pending']['files'][$key] = $info;
+            // A key brought back by an edit must not be removed by an old cleanup job.
+            delete_option(self::delete_job_name($config['signature'], $key));
+        }
+        $pending = $context['pending'];
+        // Record all successful peers even if another request failed, and
+        // retain every attempted key if deletion happened during the group.
+        if (!self::attachment_exists($id)) {
+            self::queue_delete($pending, array_map('strval', array_keys($pending['files'])));
+            delete_option(self::JOB . 'retry_' . $id);
+            return false;
+        }
+        update_post_meta($id, self::META, $pending);
+        if (!is_wp_error($error)) {
+            return true;
+        }
+        if ('storage_budget' === $error->get_error_code()) {
+            self::defer_upload($id, $pending, $context['old'], $context['job']);
+            return false;
+        }
+        self::upload_failed($id, $pending, $error->get_error_message());
+        $job = $context['job'];
+        $attempt = $context['attempt'];
+        $job['next'] = time() + ($attempt < 2 ? HOUR_IN_SECONDS : ($attempt < 3 ? 6 : 24) * HOUR_IN_SECONDS);
+        update_option(self::JOB . 'retry_' . $id, $job, false);
+        return false;
+    }
+
+    /**
+     * Publish one picture's new inventory once all its groups are confirmed
+     * and its kept original has had its turn.
+     *
+     * @param int $id Attachment ID.
+     * @param array $context Upload context.
+     * @return bool Whether the inventory was published.
+     */
+    private static function upload_finish($id, $context) {
+        $config = $context['config'];
+        $generation = $context['generation'];
+        $old = $context['old'];
+        $record = $context['record'];
+        $pending = $context['pending'];
+        $files = $context['files'];
         $record['state'] = $record['files'] ? 'uploaded' : 'skipped';
         $record['attempts'] = 0;
         if (!$files) {
@@ -5283,7 +5812,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // Use the same lock, budget and watermark guard as cron.
         $start = microtime(true);
         while ($limit > 0) {
-            $attempts = self::run_batch($limit);
+            $attempts = self::run_batch($limit, $limit);
             $limit -= $attempts;
             if (!$attempts || !self::more_time($start, 60)) {
                 break;
@@ -5317,17 +5846,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $lease = self::cli_lease();
         $start = microtime(true);
         try {
-            foreach ($ids as $id) {
+            foreach (array_chunk($ids, self::parallel_pictures()) as $set) {
                 if (!self::more_time($start, self::BUDGET)) {
                     break;
                 }
                 // Direct uploads ignore back-off; keep the old retry job and
                 // completion marker intact if a watermark guard defers them.
-                ++$counts['retried'];
-                // upload_attachment retains the per-picture watermark guard.
-                if (self::upload_attachment($id, $start)) {
-                    ++$counts['uploaded'];
-                }
+                // upload_prepare() retains the per-picture watermark guard.
+                $results = self::upload_many($set, $start);
+                $counts['retried'] += count($results);
+                $counts['uploaded'] += count(array_filter($results));
             }
         } finally {
             self::release($lease);
