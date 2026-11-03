@@ -5,11 +5,12 @@
  *
  * In the header's top bar, the mobile menu and the footer (Kadence Pro's
  * kadence_header_dark_mode, kadence_mobile_dark_mode and
- * kadence_footer_dark_mode actions, after its own switch), so no Customizer
- * setting changes. A button with the current language's flag and code opens
- * a list of the site's languages, each with its flag and name, linking to the
- * same page in that language. In the footer it sits right of the switch, and
- * the footer row is centred vertically.
+ * kadence_footer_dark_mode actions: after its own switch in the header and
+ * mobile menu, before it in the footer), so no Customizer setting changes. A
+ * button with the current language's flag and code opens a list of the
+ * site's languages, each with its flag and name, linking to the same page in
+ * that language. In the footer it sits left of the switch, and the footer row
+ * is centred vertically.
  *
  * Shown only on Kadence (and its child themes) while TranslatePress is
  * active and publishes more than one language, and not where the theme
@@ -103,10 +104,12 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
         if (!self::enabled() || is_admin() || 'kadence' !== get_template()) {
             return;
         }
-        // After Kadence Pro's own dark-mode switch (10).
+        // After Kadence Pro's own dark-mode switch (10) in the header and
+        // mobile menu; before it in the footer, left of the switch in markup
+        // and keyboard order.
         add_action('kadence_header_dark_mode', array(__CLASS__, 'header'), 20);
         add_action('kadence_mobile_dark_mode', array(__CLASS__, 'mobile'), 20);
-        add_action('kadence_footer_dark_mode', array(__CLASS__, 'footer'), 20);
+        add_action('kadence_footer_dark_mode', array(__CLASS__, 'footer'), 5);
         add_action('wp_enqueue_scripts', array(__CLASS__, 'enqueue'), 30);
     }
 

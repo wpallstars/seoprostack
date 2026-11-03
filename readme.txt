@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.142
+Stable tag: 1.3.143
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= 1.3.143 =
+* Changed: in the footer, the Language switcher sits left of the dark mode switch.
 
 = 1.3.142 =
 * Fix: Language switcher respects excluded translation paths and custom flags; themes can suppress duplicate output (#1170).
