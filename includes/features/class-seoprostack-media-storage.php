@@ -2518,12 +2518,6 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     break;
                 }
                 $removal = self::prepare_removal($id);
-                if (is_wp_error($removal)) {
-                    if (!self::local_result($id, true, $removal, $service_failures)) {
-                        return;
-                    }
-                    continue;
-                }
                 if (true === $removal) {
                     self::local_result($id, true, true, $service_failures);
                     continue;
@@ -2770,7 +2764,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function remove_local($id, $deadline) {
         $removal = self::prepare_removal($id);
-        if (true === $removal || is_wp_error($removal)) {
+        if (true === $removal) {
             return $removal;
         }
         $heads = self::client()->heads(array_map('strval', array_keys($removal['files'])), $deadline, self::concurrency());
@@ -2784,7 +2778,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Recheck an attachment and collect its locally safe files before one shared HEAD phase.
      *
      * @param int $id Attachment ID.
-     * @return array|true|WP_Error A prepared removal, true when already safely kept, or an error.
+     * @return array|true A prepared removal, or true when already safely kept.
      */
     private static function prepare_removal($id) {
         $config = self::config();
