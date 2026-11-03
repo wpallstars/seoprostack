@@ -217,10 +217,16 @@ daemon configuration.
 Optionally set repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`
 for a Docker Hub account and read-only access token. Before Plugin Check and
 each smoke test, CI logs in with `docker login --password-stdin` only when
-both are present, giving fallback pulls the account's higher limit. Login
-uses a private temporary Docker config and always logs out afterward, leaving
-a self-hosted runner's existing credentials alone. Without the secrets
-(including forks), it skips login; the explicit mirror needs no secret.
+both are present, giving fallback pulls the account's higher limit.
+`scripts/ci-docker-login.sh` logs in with a Docker config of the job's own:
+the runner's settings (its Docker context, proxies) without its credential
+settings, and Docker Hub kept in that config's own file, so the login never
+reaches a self-hosted runner's credential helper or stored credentials, and
+jobs never share a login. A runner with a Docker config needs `jq` for the
+copy; without it the job skips login. After a skipped or failed login, pulls
+use the runner's own Docker config, as before; a login that worked is
+removed when the job ends. Without the secrets (including forks), it skips
+login; the explicit mirror needs no secret.
 
 `{PREFIX}_DB_IMAGE` overrides MariaDB in both scripts; `{PREFIX}_CLI_IMAGE`
 overrides WP-CLI in Plugin Check. Smoke-test WordPress images follow `--php`.
@@ -609,8 +615,10 @@ money and most code-review services are paid. Until then, work moves fast:
 - Draft pull requests run only the lint job. Lint reads whether the pull
   request is still a draft when it ends, so a run that started just before
   it was marked ready, or a re-run of one, still runs the release and smoke
-  tests. A new push cancels the run for the previous one, but a draft run
-  never cancels a ready one.
+  tests. Draft and ready runs are in separate concurrency groups: a new
+  push cancels an earlier run of the same kind only. A draft run never
+  cancels a ready one, and a ready run does not cancel a draft run still
+  going, which finishes as well.
 - The build zips and Plugin Check reports are kept for seven days on each
   run (artifact `<repository>-build-…`) for testing a branch on a site.
 - Review apps that are already installed (CodeRabbit, qlty, Socket) give
