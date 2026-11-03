@@ -120,6 +120,14 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
         if (has_action('kadence_header_dark_mode', array(self::THEME_SWITCHER, 'header'))) {
             return false;
         }
+        /**
+         * Skip this switcher when a theme prints its own under another callback.
+         *
+         * @param bool $skip Whether to suppress output and its assets.
+         */
+        if (apply_filters('seoprostack_language_switcher_skip', false)) {
+            return false;
+        }
         return (bool) self::languages();
     }
 
@@ -143,6 +151,9 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
      */
     private static function read_languages() {
         if (!function_exists('trp_custom_language_switcher')) {
+            return array();
+        }
+        if (!apply_filters('trp_allow_tp_to_run', true)) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- TranslatePress's path-exclusion filter.
             return array();
         }
         $list = trp_custom_language_switcher();
@@ -181,7 +192,7 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
             'name'    => $name,
             'url'     => (string) $item['current_page_url'],
             'code'    => strtoupper((string) strtok($locale, '_')),
-            'flag'    => self::flag_url($locale),
+            'flag'    => self::flag_url($locale, (string) ($item['flag_link'] ?? '')),
             'current' => $locale === $current,
         );
     }
@@ -216,17 +227,21 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
 
     /**
      * A locale's flag image address: the plugin's 3:2 flag for its country,
-     * else TranslatePress's own for the locale, else ''.
+     * else TranslatePress's supplied flag, then its bundled flag, else ''.
      *
-     * @param string $locale TranslatePress language code.
+     * @param string $locale   TranslatePress language code.
+     * @param string $fallback TranslatePress's flag_link (may be an uploaded flag).
      * @return string
      */
-    public static function flag_url($locale) {
+    public static function flag_url($locale, $fallback = '') {
         $country = self::country($locale);
         if (preg_match('/^[A-Z]{2}$/', $country) && is_readable(SEOPROSTACK_DIR . self::FLAG_DIR . $country . '.svg')) {
             return SEOPROSTACK_URL . self::FLAG_DIR . $country . '.svg';
         }
-        $file = 'assets/flags/4x3/' . preg_replace('/[^A-Za-z0-9_]/', '', (string) $locale) . '.svg';
+        if ('' !== $fallback) {
+            return $fallback;
+        }
+        $file = 'assets/flags/4x3/' . preg_replace('/\W/', '', (string) $locale) . '.svg';
         if (defined('TRP_PLUGIN_DIR') && defined('TRP_PLUGIN_URL') && is_readable(TRP_PLUGIN_DIR . $file)) {
             return TRP_PLUGIN_URL . $file;
         }

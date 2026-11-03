@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Language switcher respects excluded translation paths and custom flags; themes can suppress duplicate output (#1170).
+
 = 1.3.141 =
 * New: Media in cloud storage lets plugins that upload pictures remove one picture's local copies at once, with the same checks (#1146).
 * Fix: Links skip redirects handles encoded paths and ignores cached Rank Math redirects when its Redirections module is unavailable (#1137).

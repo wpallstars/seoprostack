@@ -595,6 +595,7 @@ A compact language button beside Kadence Pro's **Dark Mode** switch in the heade
 - Keyboard and screen readers: a real button with `aria-expanded`; Escape and clicks outside close the list; arrow keys move through it. TranslatePress does not translate the switcher (`data-no-translation`).
 - Uses Kadence's palette, so it follows the light and dark mode switch. Only a small stylesheet and script load, and only on pages that show it.
 - Turn TranslatePress's floating switcher off and remove its shortcode from the header and footer, so only one switcher shows. A theme that prints its own switcher on the same Kadence actions (the Property Services Directory child theme up to 0.1.28) keeps it, and this one stays hidden.
+- Other themes can hide this switcher and its assets without changing the setting: `add_filter( 'seoprostack_language_switcher_skip', '__return_true' );`. Pages excluded by TranslatePress also show no switcher. When no country flag ships with SEO Pro Stack, the language's TranslatePress flag is used, including uploaded custom flags.
 
 ### Readabler colours (Content)
 
@@ -2314,6 +2315,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Fix: the **Language switcher** respects TranslatePress's excluded paths and uploaded custom flags, and themes can suppress it with `seoprostack_language_switcher_skip` (#1170).
 
 ### 1.3.141
 
