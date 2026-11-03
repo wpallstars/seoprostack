@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.140-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.141-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.140
+Version: 1.3.141
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1505,6 +1505,7 @@ Set `SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET` to a **separate private bucket*
 - Cached pages: a page cached while its pictures were still here keeps their local addresses, which answer 404 once the files go. So when a batch deletes a picture's local files, the post the picture is attached to has its cached page purged, once per batch, and so does the picture's own page while the site has attachment pages: LiteSpeed Cache's `litespeed_purge_post` (which also purges the archives its settings list; the picture's page by its post tag) and WP-Optimize's single-page purge when its page cache is on. The batch never purges every page. Other pages that show the picture (used in another post, or a featured image on a page it is not attached to) keep their cache entry until it expires; purge them by hand if one shows broken pictures. Other page caches can purge on `seoprostack_page_cache_purge_post` (GitHub issue #976).
 - Bringing files back: `wp seoprostack media-storage restore --attachment=<id>` or `--all` downloads each removed file with a signed `GET`, checks its size and SHA-256 against the record, writes it next to a temporary name, then renames it into place with its recorded modified time (so WebP copies stay newer than their files). An existing local file is never overwritten. Restored pictures keep their files here until they change, or until the switch is turned on again. Restore uses the batch lease, so a batch never removes a file while it comes back.
 - Just in time: the files come back before anything reads them. That covers the image editor (`load_image_to_edit_path`), size regeneration (`wp media regenerate`, Regenerate Thumbnails, core's REST edit and post-process steps, the upload size step and WP-Cron jobs, through `wp_get_original_image_path`), **WebP and AVIF images** conversion, and **Watermark pictures** marking and removal, including the mark picture itself. A changed picture's next upload brings back its removed files before collecting them. Code that only names the file never downloads it: media grid views, REST media responses and updates, and other WP-CLI commands. **Replace media files** forgets the old removed files instead of downloading them, because it replaces them.
+- For plugins that upload pictures (such as import jobs that wait for their pictures' local copies to go): `SEOProStack_Media_Storage::remove_local_now($attachment_id, $deadline)` removes one uploaded picture's local copies at once, instead of waiting for the batch, which goes newest first. `$deadline` is the end of the caller's turn as `microtime(true)`. It makes every check above and records `_seoprostack_storage_removed` and `_seoprostack_storage_local` as the batch does. It returns `true` when the local copies are gone (or already were), `false` when it cannot now and changes nothing (removal off or paused, the picture not yet uploaded on this connection, its WebP and AVIF copies still to make, the storage lease busy, the deadline reached, or its files kept after a failed check), or a `WP_Error` when the storage service failed, recorded as the batch records it. It does not wait for the lease, which uploads, watermark jobs and the batch share, so removals still run one at a time across the site: call it again on a later turn after `false`.
 - Switching **Remove local copies after upload** or **Media in cloud storage** off brings every removed file back in background batches. Removed pictures keep their bucket addresses until then, even with the feature off. The card says while this runs. After the short retries, an isolated retryable removal HEAD failure keeps that picture's local files and lets the batch continue; `upload --retry-failed` checks it again. Two consecutive attachment failures in the same run, an unreachable bucket, or credential or configuration errors still pause the step for an hour and show the error. A restore that fails for one picture only (removed under another connection, too large for PHP memory, missing from the bucket, or not matching its record) shows the error with the attachment ID, and the batch moves on; that picture keeps showing from the bucket and is tried again by `restore --all`, by `upload --retry-failed`, or under another connection.
 - **Before deactivating or deleting SEO Pro Stack**, run `wp seoprostack media-storage restore --all`. Without the plugin, or with a constant missing, nothing serves removed files. Their addresses then answer 404 unless the server sends missing uploads to the bucket. Optional missing-file rule, with `https://media.example.com` standing for `SEOPROSTACK_MEDIA_STORAGE_URL` and `/prefix` for the prefix (leave it out if there is none):
 
@@ -2314,8 +2315,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.141
 
+- Fix: in French (France, Belgium), a hidden email address now asks visitors to enable JavaScript ("activez JavaScript") instead of saying it is on (#1164).
+- New: **Media in cloud storage** has `SEOProStack_Media_Storage::remove_local_now()`, so a plugin that uploads pictures (SEO Pro Directory's import jobs) can remove one picture's local copies at once, with the batch's checks, instead of waiting for the batch, which removes the newest pictures first (#1146).
 - Fix: Links skip redirects matches encoded link paths as Rank Math does and ignores its cached redirects when Rank Math or its Redirections module is unavailable. Custom redirect filters still work without Rank Math (GitHub issue #1137).
 - Fix: Links skip redirects lets WordPress decode HTML entities before rejecting a link and keeps literal `+` and percent escapes in custom filter paths distinct from decoded Rank Math paths (#1137).
 

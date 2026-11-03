@@ -856,6 +856,24 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Whether one attachment still waits for its copies, as waiting() would
+     * list it: a source type without this format and quality signature.
+     *
+     * @phpstan-impure Reads meta that the conversion batch changes.
+     * @param int $attachment_id Attachment ID.
+     * @return bool
+     */
+    public static function is_waiting($attachment_id) {
+        $attachment_id = (int) $attachment_id;
+        $types = self::source_types();
+        if (!$types || !in_array(get_post_mime_type($attachment_id), $types, true)) {
+            return false;
+        }
+        wp_cache_delete($attachment_id, 'post_meta');
+        return get_post_meta($attachment_id, self::DONE, true) !== self::signature();
+    }
+
+    /**
      * Attachments waiting for copies, newest first.
      *
      * @param int $limit Most to return.

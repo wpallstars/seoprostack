@@ -2545,6 +2545,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function local_step($id, $removing, $deadline) {
         static $service_failures = 0;
         $result = $removing ? self::remove_local($id, $deadline) : self::restore_attachment($id);
+        return self::local_result($id, $removing, $result, $service_failures);
+    }
+
+    /**
+     * Record one local-copies result as local_step() describes.
+     *
+     * @param int $id Attachment ID.
+     * @param bool $removing Remove (true) or bring back (false).
+     * @param true|WP_Error $result remove_local() or restore_attachment().
+     * @param int $service_failures Consecutive retryable removal failures in this run.
+     * @return bool Whether the batch may go on.
+     */
+    private static function local_result($id, $removing, $result, &$service_failures) {
         if (!is_wp_error($result)) {
             $service_failures = 0;
             return true;
@@ -2567,6 +2580,67 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         update_option(self::LOCAL_WAIT, time() + HOUR_IN_SECONDS, false);
         return false;
+    }
+
+    /**
+     * Remove one uploaded attachment's local copies now, with every check
+     * the batch makes (remove_local()), for plugins that upload pictures and
+     * must not wait for the batch, which goes newest first. It takes the
+     * storage lease without waiting, as upload_attachment() does: uploads,
+     * watermark jobs and the batch share it, so removals still run one at a
+     * time across the site. Errors are recorded as the batch records them
+     * (local_step()): a retryable error keeps this picture's files, other
+     * service errors pause removal for an hour.
+     *
+     * @param int $id Attachment ID.
+     * @param float $deadline End of the caller's turn, as microtime(true).
+     * @return bool|WP_Error True when its local copies are gone (or were
+     *                       already); false when not now, changing nothing
+     *                       (removal off or paused, not uploaded on this
+     *                       connection, its WebP or AVIF copies still to make,
+     *                       the lease busy, the turn over, or its files kept);
+     *                       WP_Error when the storage service failed.
+     */
+    public static function remove_local_now($id, $deadline) {
+        $id = (int) $id;
+        if ($id <= 0 || microtime(true) >= (float) $deadline || !self::removing() || (int) get_option(self::LOCAL_WAIT, 0) > time()) {
+            return false;
+        }
+        $lease = self::lease();
+        if ('' === $lease) {
+            return false;
+        }
+        try {
+            $signature = self::config()['signature'];
+            self::fresh($id);
+            if ('uploaded' !== get_post_meta($id, self::STATE, true) || !self::removal_record($id)) {
+                return false;
+            }
+            $local = get_post_meta($id, self::LOCAL, true);
+            if ($local === $signature || $local === 'kept:' . $signature) {
+                // The batch got there first, or kept the files after a check.
+                return $local === $signature;
+            }
+            // WebP and AVIF copies are made from local files, before they go
+            // (local_mode() waits for the whole library; this picture is enough).
+            if (SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::is_waiting($id)) {
+                return false;
+            }
+            $result = self::remove_local($id, (float) $deadline);
+            if (is_wp_error($result)) {
+                if ('storage_budget' === $result->get_error_code()) {
+                    return false;
+                }
+                $failures = 0;
+                self::local_result($id, true, $result, $failures);
+                return $result;
+            }
+            self::fresh($id);
+            return get_post_meta($id, self::LOCAL, true) === $signature;
+        } finally {
+            self::release($lease);
+            self::purge_pages();
+        }
     }
 
     /**

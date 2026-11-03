@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.140
+Stable tag: 1.3.141
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,19 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.141 =
+* New: Media in cloud storage lets plugins that upload pictures remove one picture's local copies at once, with the same checks (#1146).
 * Fix: Links skip redirects handles encoded paths and ignores cached Rank Math redirects when its Redirections module is unavailable (#1137).
 * Fix: redirect links with HTML entities and custom paths containing literal plus signs match correctly (#1137).
-
-= 1.3.140 =
-* New: translations for French (France, Belgium), Spanish (Spain, Mexico), Italian, Portuguese (Portugal, Brazil), Dutch (Netherlands), German (Austria, Switzerland), Polish, Romanian, Latvian and Estonian; the front-end labels (Like, Save, Share, shortlist) are reviewed in every language (#1161).
-
-= 1.3.139 =
-* Fix: the language switcher's list stays on screen in the mobile menu (#1159).
-
-= 1.3.138 =
-* New: a flag language switcher beside Kadence's dark mode switch, for TranslatePress sites (off by default) (#1156).
-* Fix: cloud storage retries transient errors; one failed removal check no longer pauses the whole site (#1145).
-* Fix: cloud storage recovers a watermark job whose cron event was lost (#1147), and retries failed uploads while other media jobs are busy (#1152).
 
 Older: `changelog.txt`.
