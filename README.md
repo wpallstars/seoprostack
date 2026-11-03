@@ -590,7 +590,7 @@ Makes TranslatePress's floating and shortcode language switchers follow the site
 
 A compact language button beside Kadence Pro's **Dark Mode** switch in the header, the mobile menu and the footer. **Off by default**; it shows only on Kadence (or a child theme) with TranslatePress publishing more than one language.
 
-- The button shows the current language's flag and code (`EN`, `FR`) with a small arrow. It opens a list of the site's languages, each with its flag and name, linking to the same page in that language. In the footer the list opens upwards, the button sits right of the dark mode switch, and the footer row is centred vertically.
+- The button shows the current language's flag and code (`EN`, `FR`) with a small arrow. It opens a list of the site's languages, each with its flag and name, linking to the same page in that language. In the footer the list opens upwards, the button sits left of the dark mode switch (first in keyboard order too), and the footer row is centred vertically.
 - Flags are 3:2 country flags shipped with the plugin (MIT, from flag-icons). A language's flag is its locale's country (`fr_CA` → Canada, `lv` → Latvia); English shows the site's own country when the `psdtheme_english_flag` option holds a two-letter code (`JE` on a Jersey site), otherwise its locale's. Filter: `seoprostack_language_flag`.
 - Keyboard and screen readers: a real button with `aria-expanded`; Escape and clicks outside close the list; arrow keys move through it. TranslatePress does not translate the switcher (`data-no-translation`).
 - Uses Kadence's palette, so it follows the light and dark mode switch. Only a small stylesheet and script load, and only on pages that show it.
@@ -2315,6 +2315,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.143
+
+- Changed: in the footer, the **Language switcher** sits left of Kadence Pro's dark mode switch, first in keyboard order too; the header and mobile menu keep it right of the switch (the same change as the Property Services Directory theme's GH#137).
 
 ### 1.3.142
 
