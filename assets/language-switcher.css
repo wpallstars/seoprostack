@@ -188,7 +188,7 @@
 
 /*
  * Footer: Kadence's dark-mode item is a block whose switcher fills it, so
- * this one would wrap below the toggle. Keep it to the right of the toggle,
+ * this one would wrap below the toggle. Keep it to the left of the toggle,
  * centred on it, and follow the item's alignment setting. The bottom row's
  * columns are then centred on one another (the copyright beside them).
  */
