@@ -10,6 +10,12 @@ plugins: the reference point the owner iterates on. Format and merge rules:
 the Plugins screen (Plugin presets, Plugins tab) or with
 `wp seoprostack presets list|diff|apply|reset|undo`. These are the only places
 SEO Pro Stack writes other plugins' settings, and only when someone asks.
+**Keep recommended settings** (a child of Plugin presets, off by default, so
+someone asks by switching it on) applies the presets of active plugins in
+WP-Cron, and a preset's later changes, except settings changed by hand and
+settings under `manual` (`includes/class-seoprostack-presets-keep.php`;
+`wp seoprostack presets keep --dry-run`). A preset change therefore reaches
+every site with it on: check it as carefully as a code change.
 
 To add or update a preset, on a throwaway site (never a live one):
 
@@ -48,6 +54,11 @@ To add or update a preset, on a throwaway site (never a live one):
     "<key that names each record>"}`, and the preset names records by that
     key: never replace such a list whole. A Pro version in its own folder
     gets `"also": {"<folder>": "<name>"}` instead of a copy of the file.
+    Settings that change what visitors see (a chatbot, an accessibility
+    button, form challenges, course rules, page schema, order tracking) go in
+    `"manual": ["<setting path or option name>"]`, so Keep recommended
+    settings leaves them for Apply preset; a path covers the settings under
+    it. `scripts/preflight-release.sh` fails on one the preset does not set.
 7. Check on a second fresh site: `diff`, `apply`, confirm the plugin behaves
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.

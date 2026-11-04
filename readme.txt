@@ -86,7 +86,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Plugins and set-up =
 
-* **Plugin presets** and **starter data**: opt-in, with undo.
+* **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) applies them, and later changes, on its own.
 * **Site templates**: WP-CLI apply, compare and undo; plugin updates keep edited parts.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within time limits, using CPU.
