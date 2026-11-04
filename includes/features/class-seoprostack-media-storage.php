@@ -1815,6 +1815,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // ownership or invalidating the records still serving their pages.
             $destinations = get_option(self::DESTINATIONS, array());
             if (($destinations['inventory_version'] ?? '') !== self::upload_marker()) {
+                update_option(self::JOB . 'originalcursor', '', false);
                 self::schedule();
                 $destinations['inventory_version'] = self::upload_marker();
                 update_option(self::DESTINATIONS, $destinations, false);
@@ -4202,6 +4203,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 $before = (int) $id;
                 $record = SEOProStack_Watermark_Images::record($before);
                 if (empty($record['backup'])) {
+                    continue;
+                }
+                $delete = get_option(self::JOB . 'original_' . hash('sha256', ($record['original_signature'] ?? '') . $record['backup']));
+                if (is_array($delete) && !empty($delete['delete']) && self::foreign_original_delete($delete['record'] ?? array())) {
                     continue;
                 }
                 $state = !empty($record['original_delete_failed']) || ($record['original_state'] ?? '') === 'failed' ? 'failed' : (!empty($record['remote']) ? 'uploaded' : 'waiting');
