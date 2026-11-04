@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.149-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.150-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.149
+Version: 1.3.150
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2368,7 +2368,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.150
 
 - Faster: **Keep pages cached** opens pages in the order visitors reach them: the home page, the pages in the header's menus and links, then the footer's, then the home page's other links (Kadence buttons, info boxes and post lists included), then the rest of the site. Where neither LiteSpeed Cache's crawler nor WP-Optimize's preload is on, it opens the rest itself, up to 1,000 pages, instead of the newest 50; WP-Optimize's preload now starts after these pages instead of competing with them (#1224).
 - Faster: plugins that import pictures into cloud storage can remove many pictures' local copies in one pass with `SEOProStack_Media_Storage::remove_local_many()`, instead of one at a time (#1223).
