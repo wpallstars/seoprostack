@@ -506,11 +506,12 @@ final class SEOProStack_Litespeed_Crawler {
     /**
      * Start a crawler turn now, as LiteSpeed Cache's Manually run button
      * does: a background request, which carries on from the current page,
-     * or starts a full crawl when the last one finished.
+     * or starts a full crawl when the last one finished. Keep pages cached
+     * also starts it after filling the main pages again.
      *
      * @return bool Whether LiteSpeed Cache's code was there to start it.
      */
-    private static function start() {
+    public static function start() {
         if (!is_callable(array('\LiteSpeed\Task', 'async_call'))) {
             return false;
         }
