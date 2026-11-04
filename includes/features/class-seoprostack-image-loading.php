@@ -200,33 +200,49 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      */
     private static function kadence_background(array $block) {
         $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        if (!self::kadence_row_everywhere($block, $attrs)) {
+            return '';
+        }
+        $url = self::kadence_row_picture($attrs);
+        return is_string($url) && preg_match('#^(?:https?:)?//#i', $url) ? $url : '';
+    }
+
+    /**
+     * Whether a block is a Kadence Blocks row (kbVersion 2 or later) shown,
+     * with the same background, on every device: not hidden on one, with
+     * no tablet or phone background of its own and no dynamic background.
+     *
+     * @param array $block Parsed block.
+     * @param array $attrs Its attributes.
+     * @return bool
+     */
+    private static function kadence_row_everywhere(array $block, array $attrs) {
         if (empty($block['blockName']) || 'kadence/rowlayout' !== $block['blockName'] || empty($attrs['kbVersion']) || (int) $attrs['kbVersion'] < 2) {
-            return '';
+            return false;
         }
-        foreach (array('vsdesk', 'vstablet', 'vsmobile') as $hidden) {
-            if (!empty($attrs[$hidden])) {
-                return '';
-            }
-        }
-        foreach (array('tabletBackground', 'mobileBackground') as $device) {
-            if (!empty($attrs[$device][0]['enable'])) {
-                return '';
-            }
-        }
-        if (!empty($attrs['kadenceDynamic']['bgImg']['enable'])) {
-            return '';
-        }
+        return empty($attrs['vsdesk']) && empty($attrs['vstablet']) && empty($attrs['vsmobile'])
+            && empty($attrs['tabletBackground'][0]['enable']) && empty($attrs['mobileBackground'][0]['enable'])
+            && empty($attrs['kadenceDynamic']['bgImg']['enable']);
+    }
+
+    /**
+     * A Kadence Blocks row's first background picture: its first slide's,
+     * or its normal tab's unless that is parallax. '' when none.
+     *
+     * @param array $attrs Row attributes.
+     * @return mixed
+     */
+    private static function kadence_row_picture(array $attrs) {
         $tab = isset($attrs['backgroundSettingTab']) ? $attrs['backgroundSettingTab'] : 'normal';
-        $url = '';
         if ('slider' === $tab) {
             // Kadence's default is one slide.
-            if (!isset($attrs['backgroundSliderCount']) || (int) $attrs['backgroundSliderCount'] >= 1) {
-                $url = isset($attrs['backgroundSlider'][0]['bgImg']) ? $attrs['backgroundSlider'][0]['bgImg'] : '';
-            }
-        } elseif ('normal' === $tab && (!isset($attrs['bgImgAttachment']) || 'parallax' !== $attrs['bgImgAttachment'])) {
-            $url = isset($attrs['bgImg']) ? $attrs['bgImg'] : '';
+            $slides = isset($attrs['backgroundSliderCount']) ? (int) $attrs['backgroundSliderCount'] : 1;
+            return $slides >= 1 && isset($attrs['backgroundSlider'][0]['bgImg']) ? $attrs['backgroundSlider'][0]['bgImg'] : '';
         }
-        return is_string($url) && preg_match('#^(?:https?:)?//#i', $url) ? $url : '';
+        if ('normal' === $tab && (!isset($attrs['bgImgAttachment']) || 'parallax' !== $attrs['bgImgAttachment'])) {
+            return isset($attrs['bgImg']) ? $attrs['bgImg'] : '';
+        }
+        return '';
     }
 
     /**

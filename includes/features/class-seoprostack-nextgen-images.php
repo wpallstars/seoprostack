@@ -1173,15 +1173,34 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return array{0:string,1:string}
      */
     public static function first_copy($url) {
-        if (self::names_copies() && self::css_url($url)) {
+        $copies = self::names_copies() ? self::css_copies($url) : array();
+        return $copies ? $copies[0] : array($url, '');
+    }
+
+    /**
+     * A background picture's copies, best first, as address and MIME type,
+     * among the formats switched on. None when an address could not go in
+     * CSS's url('…') as it is.
+     *
+     * @param string $url Picture address.
+     * @return array<int,array{0:string,1:string}>
+     */
+    private static function css_copies($url) {
+        static $copies = array();
+        if (isset($copies[$url])) {
+            return $copies[$url];
+        }
+        $list = array();
+        if (self::css_url($url)) {
             foreach (self::FORMATS as $format => $mime) {
                 $copy = SEOProStack_Settings::get('nextgen_' . $format) ? self::copy_url($url, $format) : '';
                 if ('' !== $copy && self::css_url($copy)) {
-                    return array($copy, $mime);
+                    $list[] = array($copy, $mime);
                 }
             }
         }
-        return array($url, '');
+        $copies[$url] = $list;
+        return $list;
     }
 
     /**
@@ -1202,20 +1221,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return string
      */
     private static function image_set($url) {
-        static $sets = array();
-        if (!isset($sets[$url])) {
-            $list = array();
-            if (self::css_url($url)) {
-                foreach (self::FORMATS as $format => $mime) {
-                    $copy = SEOProStack_Settings::get('nextgen_' . $format) ? self::copy_url($url, $format) : '';
-                    if ('' !== $copy && self::css_url($copy)) {
-                        $list[] = "url('" . $copy . "') type('" . $mime . "')";
-                    }
-                }
-            }
-            $sets[$url] = $list ? 'image-set(' . implode(', ', $list) . ", url('" . $url . "'))" : '';
+        $list = array();
+        foreach (self::css_copies($url) as $copy) {
+            $list[] = "url('" . $copy[0] . "') type('" . $copy[1] . "')";
         }
-        return $sets[$url];
+        return $list ? 'image-set(' . implode(', ', $list) . ", url('" . $url . "'))" : '';
     }
 
     /**
@@ -1232,19 +1242,40 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!is_string($css) || false === stripos($css, 'background-image')) {
             return $css;
         }
-        $out = preg_replace_callback(
-            '/background-image\s*:\s*url\(\s*([\'"]?)([^\'"()\s]++)\1\s*\)(\s*!\s*important)?+(?=\s*(?:;|\}|$))(?!\s*;\s*background-image\s*:\s*image-set\()/i',
-            function ($m) {
-                $set = self::image_set($m[2]);
-                if ('' === $set) {
-                    return $m[0];
-                }
-                // The last group is only there when it matched !important.
-                return $m[0] . ';background-image:' . $set . (isset($m[3]) ? '!important' : '');
+        $replaced = 0;
+        $out      = preg_replace_callback(
+            '/background-image\s*:\s*url\(\s*([\'"]?)([^\'"()\s]++)\1\s*\)(\s*!\s*important)?+/i',
+            function ($m) use ($css) {
+                return self::with_image_set($css, $m);
             },
-            $css
+            $css,
+            -1,
+            $replaced,
+            PREG_OFFSET_CAPTURE
         );
         return is_string($out) ? $out : $css;
+    }
+
+    /**
+     * One background-image: url() declaration, with the image-set() after
+     * it. Unchanged unless the declaration ends there (only a picture in
+     * it), or when an image-set() follows already (a second run).
+     *
+     * @param string $css Style sheet being changed.
+     * @param array  $m   The declaration's match, with offsets.
+     * @return string
+     */
+    private static function with_image_set($css, array $m) {
+        $end = $m[0][1] + strlen($m[0][0]);
+        if (!preg_match('/\G\s*(?:;|\}|$)/', $css, $next, 0, $end) || preg_match('/\G\s*;\s*background-image\s*:\s*image-set\(/i', $css, $next, 0, $end)) {
+            return $m[0][0];
+        }
+        $set = self::image_set($m[2][0]);
+        if ('' === $set) {
+            return $m[0][0];
+        }
+        // The last group is there only when it matched !important.
+        return $m[0][0] . ';background-image:' . $set . (isset($m[3]) && -1 !== $m[3][1] ? '!important' : '');
     }
 
     /**
