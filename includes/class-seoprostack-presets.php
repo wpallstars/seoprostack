@@ -69,6 +69,10 @@ if (!defined('ABSPATH')) {
  *             never added.
  * - also:     optional, other plugin folders the preset is for too (a Pro
  *             version in its own folder): folder => plugin name.
+ * - manual:   optional, settings that change what visitors see, which Keep
+ *             recommended settings (SEOProStack_Presets_Keep) never applies
+ *             on its own: they stay for Apply preset. Setting paths or
+ *             option names; a path covers the settings under it.
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -266,6 +270,7 @@ final class SEOProStack_Presets {
             'settings' => array(),
             'cache'    => array('groups' => array(), 'keys' => array()),
             'records'  => array(),
+            'manual'   => isset($preset['manual']) && is_array($preset['manual']) ? array_values(array_filter($preset['manual'], 'is_string')) : array(),
         );
         foreach (isset($preset['records']) && is_array($preset['records']) ? $preset['records'] : array() as $name => $key) {
             if (is_string($name) && '' !== $name && is_string($key) && '' !== $key) {
@@ -517,7 +522,7 @@ final class SEOProStack_Presets {
      * @param mixed $b Value.
      * @return bool
      */
-    private static function same($a, $b) {
+    public static function same($a, $b) {
         if (is_array($a) && is_array($b)) {
             if (count($a) !== count($b)) {
                 return false;
@@ -638,6 +643,47 @@ final class SEOProStack_Presets {
             }
         }
         return $diffs;
+    }
+
+    /**
+     * Every setting a preset names, whether it differs or not, walked as
+     * differences() walks them.
+     *
+     * @param string $slug Plugin folder.
+     * @return array<string,array{0:mixed,1:mixed}> Path => stored, wanted.
+     */
+    public static function paths($slug) {
+        $preset = self::get($slug);
+        $paths  = array();
+        foreach ($preset ? $preset['options'] : array() as $name => $wanted) {
+            list(, $current) = self::read($name);
+            $pair = self::pair($preset, $name, $current, $wanted);
+            if (null !== $pair) {
+                self::paths_into($paths, $name, $pair[0], $pair[1]);
+            }
+        }
+        return $paths;
+    }
+
+    /**
+     * Collect every setting under a path, as diff_into() names them.
+     *
+     * @param array  $paths   Settings, by path.
+     * @param string $path    Path of the value.
+     * @param mixed  $current Stored value.
+     * @param mixed  $wanted  Wanted value.
+     */
+    private static function paths_into(array &$paths, $path, $current, $wanted) {
+        if (is_array($wanted) && !self::is_list($wanted) && (is_array($current) || null === $current)) {
+            $current = (array) $current;
+            foreach ($wanted as $key => $value) {
+                if (!self::is_secret($key)) {
+                    self::paths_into($paths, $path . '.' . $key, array_key_exists($key, $current) ? $current[$key] : null, $value);
+                }
+            }
+            return;
+        }
+        $paths[$path] = array($current, is_array($wanted) ? self::merge(null, $wanted) : $wanted);
     }
 
     /**

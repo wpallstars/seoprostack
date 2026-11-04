@@ -9,6 +9,10 @@
     "records": {
         "mwai_chatbots": "botId"
     },
+    "manual": [
+        "mwai_chatbots",
+        "mwai_options"
+    ],
     "options": {
         "mwai_options": {
             "botId": "default"

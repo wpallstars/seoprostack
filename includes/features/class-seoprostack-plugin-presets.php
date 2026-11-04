@@ -37,6 +37,9 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
 
     const KEY = 'plugin_presets';
 
+    /** Child: apply presets and changed defaults on their own (SEOProStack_Presets_Keep). */
+    const KEEP = 'plugin_presets_keep';
+
     /** admin-post action. */
     const ACTION = 'seoprostack_plugin_preset';
 
@@ -62,13 +65,33 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
                 'label'       => __('Plugin presets', 'seoprostack'),
                 'description' => __('On the Plugins screen, see whether a plugin’s settings match SEO Pro Stack’s choice, apply all or only the ones you tick, reset them to the plugin’s defaults or undo the last change. For FluentCRM and Fluent Boards, add example lists, tags, fields and boards to start from. Each asks first. Licence keys, API keys and passwords are never stored or changed.', 'seoprostack'),
             ),
+            self::KEEP => array(
+                'type'        => 'bool',
+                // Off: it changes other plugins' settings, so someone asks by switching it on.
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Keep recommended settings', 'seoprostack'),
+                'description' => __('Apply the presets of active plugins and SEO Pro Stack’s recommended settings without asking, a minute after this is switched on, after updates and daily, and again when a release changes them. A setting you change by hand stays as you set it. Settings visitors see, such as a chatbot, an accessibility button or course rules, still wait for Apply preset. The first time, features that are on by default but off here are switched on. On a network, apply it to every site from Network Admin. WP-CLI: wp seoprostack presets keep --dry-run.', 'seoprostack'),
+            ),
         );
+    }
+
+    /**
+     * Plugin deactivated: no Keep recommended settings runs left scheduled.
+     */
+    public static function deactivate() {
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets-keep.php';
+        SEOProStack_Presets_Keep::deactivate();
     }
 
     /**
      * Register hooks.
      */
     public static function boot() {
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets-keep.php';
+        SEOProStack_Presets_Keep::init();
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'rank_math_identity'));
         add_filter('rank_math/schema/add_global_entities', array(__CLASS__, 'rank_math_page_entities'), 5);
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {

@@ -127,6 +127,34 @@ class SEOProStack_Presets_CLI {
     }
 
     /**
+     * Keep recommended settings now, as its daily run does: apply the presets
+     * of active plugins and SEO Pro Stack's changed defaults, except settings
+     * changed by hand and settings the presets leave for Apply preset. Runs
+     * whether or not Keep recommended settings is on.
+     *
+     * ## OPTIONS
+     *
+     * [--dry-run]
+     * : List what would change without changing it.
+     *
+     * @param array $args       Arguments.
+     * @param array $assoc_args Options.
+     */
+    public function keep($args, $assoc_args) {
+        unset($args);
+        $dry   = (bool) WP_CLI\Utils\get_flag_value($assoc_args, 'dry-run');
+        $lines = SEOProStack_Presets_Keep::lines($dry);
+        foreach ($lines as $line) {
+            WP_CLI::log($line);
+        }
+        if (!$lines) {
+            WP_CLI::success('Nothing to change.');
+            return;
+        }
+        WP_CLI::success(sprintf($dry ? '%d would change.' : '%d changed.', count($lines)));
+    }
+
+    /**
      * Put back the settings from before the last apply or reset.
      *
      * ## OPTIONS
