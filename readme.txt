@@ -156,5 +156,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.149 =
 * Faster: watermarks, WebP and AVIF copies and cloud uploads run on different pictures at once (#1196).
+* Fix: cloud storage no longer copies a new upload while it is watermarked (#1220).
 
 Older: `changelog.txt`.

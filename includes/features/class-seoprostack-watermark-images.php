@@ -140,6 +140,14 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     private static $claims = array();
 
     /**
+     * This request's new uploads, claimed when inserted until their mark is
+     * done (claim_upload()): attachment ID => token.
+     *
+     * @var array<int,string>
+     */
+    private static $upload_claims = array();
+
+    /**
      * The batch as last read from the database for queue checks, and when.
      *
      * @var array{at:float,job:array}
@@ -341,6 +349,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return;
         }
         add_filter('rest_request_before_callbacks', array(__CLASS__, 'note_client_processing'), 10, 3);
+        add_action('add_attachment', array(__CLASS__, 'claim_upload'));
         // After Resize large uploads (90), which may delete the original.
         add_filter('wp_generate_attachment_metadata', array(__CLASS__, 'after_generate'), 95, 3);
     }
@@ -838,9 +847,59 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     }
 
     /**
+     * A new upload that may be marked: claim it as soon as it is inserted,
+     * before WordPress makes its sizes. WordPress saves the picture's details
+     * after each size it makes, so a storage or WebP and AVIF batch in
+     * another request could otherwise take the picture before
+     * after_generate() claims it, and copy files while they are marked
+     * (#1220). The claim ends when after_generate() is done with it, when
+     * this request inserts another upload (one at a time: that one's sizes
+     * are made), or when this request ends; one left by a PHP that stopped
+     * expires (CLAIM_TTL).
+     *
+     * @param int $attachment_id Attachment ID.
+     */
+    public static function claim_upload($attachment_id) {
+        $id = (int) $attachment_id;
+        if (!$id || self::$lock || self::$client_processed || isset(self::$claims[$id])
+            || !SEOProStack_Settings::get('watermark_images_new')
+            || !in_array(get_post_mime_type($id), self::TYPES, true)) {
+            return;
+        }
+        self::unclaim_uploads();
+        self::$upload_claims[$id] = self::claim($id);
+        if (!has_action('shutdown', array(__CLASS__, 'unclaim_uploads'))) {
+            add_action('shutdown', array(__CLASS__, 'unclaim_uploads'));
+        }
+    }
+
+    /**
+     * End this request's claims on new uploads (claim_upload()).
+     */
+    public static function unclaim_uploads() {
+        foreach (self::$upload_claims as $id => $token) {
+            self::unclaim($id, $token);
+        }
+        self::$upload_claims = array();
+    }
+
+    /**
+     * End this request's claim on one new upload, if it has one.
+     *
+     * @param int $id Attachment ID.
+     */
+    private static function unclaim_upload($id) {
+        if (isset(self::$upload_claims[$id])) {
+            self::unclaim($id, self::$upload_claims[$id]);
+            unset(self::$upload_claims[$id]);
+        }
+    }
+
+    /**
      * After WordPress has made every size of a picture: mark new uploads.
      * Sizes made again later from a marked picture carry the watermark
-     * already, so they are only noted.
+     * already, so they are only noted. A new upload's claim from its
+     * insertion (claim_upload()) ends here, marked or not.
      *
      * @param array  $metadata      Metadata.
      * @param int    $attachment_id Attachment ID.
@@ -848,6 +907,22 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return array
      */
     public static function after_generate($metadata, $attachment_id, $context = 'create') {
+        try {
+            return self::generated($metadata, (int) $attachment_id, $context);
+        } finally {
+            self::unclaim_upload((int) $attachment_id);
+        }
+    }
+
+    /**
+     * after_generate(), within the new upload's claim, if it has one.
+     *
+     * @param array  $metadata      Metadata.
+     * @param int    $attachment_id Attachment ID.
+     * @param string $context       create or update.
+     * @return array
+     */
+    private static function generated($metadata, $attachment_id, $context) {
         if (self::$lock || self::$client_processed || !is_array($metadata)) {
             return $metadata;
         }
@@ -877,6 +952,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             // queued barrier does not (mark_queued()).
             $token = self::claim((int) $attachment_id);
             try {
+                // This claim is the request's own now (claimed_elsewhere()
+                // leaves out only the latest), so the one from insertion goes.
+                self::unclaim_upload((int) $attachment_id);
                 return self::after_generate_locked($metadata, $attachment_id, $context, true);
             } finally {
                 // Inline marking has finished (or failed), so storage may go on.
@@ -2496,15 +2574,21 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 $read = self::read_job();
                 return !$read || !empty($read[0]['ended']) ? 'end' : 'wait';
             }
-            $unleased = 'add' === $claim['op'] && self::enabled() && !self::record($claim['id']);
-            if ($unleased) {
-                // Removed files come back under the lease; the claim then keeps
-                // removal and uploads away until the mark is done.
-                SEOProStack_Media_Storage::ensure_local($claim['id']);
-                SEOProStack_Media_Storage::release($lease);
-                $lease = '';
+            $error = '';
+            if ('' === $claim['token']) {
+                // A new upload its own request is marking (claim_upload()).
+                $counts['sps_wm_skipped']++;
+            } else {
+                $unleased = 'add' === $claim['op'] && self::enabled() && !self::record($claim['id']);
+                if ($unleased) {
+                    // Removed files come back under the lease; the claim then keeps
+                    // removal and uploads away until the mark is done.
+                    SEOProStack_Media_Storage::ensure_local($claim['id']);
+                    SEOProStack_Media_Storage::release($lease);
+                    $lease = '';
+                }
+                $error = self::apply($claim['id'], $claim['op'], $counts, '', $unleased);
             }
-            $error = self::apply($claim['id'], $claim['op'], $counts, '', $unleased);
         } finally {
             if ('' !== $lease) {
                 SEOProStack_Media_Storage::release($lease);
@@ -2529,7 +2613,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         });
         // Marked, left alone or failed (and listed to retry): storage may go on.
         delete_post_meta($claim['id'], self::QUEUED_META);
-        self::unclaim($claim['id'], $claim['token']);
+        if ('' !== $claim['token']) {
+            self::unclaim($claim['id'], $claim['token']);
+        }
         wp_cache_flush_runtime();
         return 'done';
     }
@@ -2573,7 +2659,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$id || !$job || !empty($job['ended']) || (int) $job['last'] !== $id) {
             return null;
         }
-        return array('id' => $id, 'op' => $op, 'token' => self::claim($id));
+        // A new upload claimed by its own request (claim_upload()) is marked
+        // there: taken without a claim (token ''), so the batch leaves it.
+        wp_cache_delete($id, 'post_meta');
+        return array('id' => $id, 'op' => $op, 'token' => self::claimed($id) ? '' : self::claim($id));
     }
 
     /**
