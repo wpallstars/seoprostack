@@ -40,6 +40,8 @@ check_presets_starters() {
 			const named = (data && data.settings) || {};
 			for (const p of paths) if (!named[p] || !named[p].label) problems.push("ERROR " + file + " has no settings label for " + p);
 			for (const p of Object.keys(named)) if (!paths.has(p)) problems.push("ERROR " + file + " names a setting it does not set: " + p);
+			// Keep recommended settings leaves these to Apply preset: each must cover a setting the preset sets.
+			for (const m of (data && data.manual) || []) if (![...paths].some((p) => p === m || p.startsWith(m + "."))) problems.push("ERROR " + file + " lists a manual setting it does not set: " + m);
 		}
 		let settings = 0;
 		for (const [file, data] of starters) {

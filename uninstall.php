@@ -170,6 +170,12 @@ function seoprostack_uninstall_site() {
     // Plugin presets' undo copies. Settings presets changed in other plugins
     // are those plugins' settings now, and stay.
     $options[] = 'seoprostack_plugin_presets_undo';
+    // Keep recommended settings: values it last wrote and the defaults it
+    // last saw. The settings stay as they are.
+    $options[] = 'seoprostack_presets_kept';
+    $options[] = 'seoprostack_defaults_kept';
+    wp_unschedule_hook('seoprostack_keep_settings');
+    wp_unschedule_hook('seoprostack_keep_settings_daily');
     // Restore statements only: uninstall never changes database indexes.
     $options[] = 'seoprostack_database_keys_log';
     // Add database keys: its log (the keys it added were removed above).
