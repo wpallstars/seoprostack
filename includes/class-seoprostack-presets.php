@@ -524,20 +524,31 @@ final class SEOProStack_Presets {
      */
     public static function same($a, $b) {
         if (is_array($a) && is_array($b)) {
-            if (count($a) !== count($b)) {
-                return false;
-            }
-            foreach ($a as $key => $item) {
-                if (!array_key_exists($key, $b) || !self::same($item, $b[$key])) {
-                    return false;
-                }
-            }
-            return true;
+            return self::same_lists($a, $b);
         }
         if (is_scalar($a) && is_scalar($b)) {
             return $a === $b || (string) $a === (string) $b;
         }
         return $a === $b;
+    }
+
+    /**
+     * Whether two arrays hold the same keys with the same values.
+     *
+     * @param array $a Value.
+     * @param array $b Value.
+     * @return bool
+     */
+    private static function same_lists(array $a, array $b) {
+        if (count($a) !== count($b)) {
+            return false;
+        }
+        foreach ($a as $key => $item) {
+            if (!array_key_exists($key, $b) || !self::same($item, $b[$key])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
