@@ -155,6 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.149 =
+* Faster: watermarks, WebP and AVIF copies and cloud uploads run on different pictures at once (#1196).
 * Faster: Load the CSS each page uses first also loads the Kadence theme's local fonts stylesheet without blocking and puts Kadence Pro's dark mode script in the page (#1218).
 
 Older: `changelog.txt`.

@@ -259,7 +259,7 @@ class SEOProStack_Media_Jobs {
         // The indexed refusal rows are authoritative even if PHP died between
         // changing one and committing this journal. Counters never go negative.
         $job['failed'] = self::failure_count($kind);
-        $specific = array('watermark_never', 'watermark_no_original', 'watermark_small', 'watermark_changed', 'watermark_original_changed', 'watermark_incomplete', 'storage_original_read');
+        $specific = array('watermark_never', 'watermark_no_original', 'watermark_small', 'watermark_changed', 'watermark_original_changed', 'watermark_incomplete', 'watermark_busy', 'storage_original_read');
         $job['recent'][] = is_wp_error($result) && !in_array($result->get_error_code(), $specific, true) ? 1 : 0;
         $job['recent'] = array_slice($job['recent'], -20);
         $job['inflight'] = 0;
