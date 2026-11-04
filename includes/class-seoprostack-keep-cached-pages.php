@@ -17,17 +17,20 @@ if (!defined('ABSPATH')) {
 
 final class SEOProStack_Keep_Cached_Pages {
 
-    /** Most main pages (home, posts page, menus) per site. */
-    const MAIN_MAX = 20;
-
-    /** Most pages per site with the newest pages and posts. */
-    const MORE_MAX = 50;
+    /**
+     * Most main pages per site: the home page, the header's and footer's
+     * menus and links, the home page's other links and the posts page.
+     */
+    const MAIN_MAX = 50;
 
     /** The same, per site, when every site of a network is filled. */
     const NETWORK_MAIN_MAX = 10;
     const NETWORK_MORE_MAX = 25;
 
-    /** Most addresses at once. */
+    /**
+     * Most addresses at once, and most pages of one site where no crawler
+     * covers the rest of it.
+     */
     const MAX = 1000;
 
     /**
@@ -40,7 +43,7 @@ final class SEOProStack_Keep_Cached_Pages {
         if ($network && is_multisite()) {
             return self::network(0, 0, 0, 0)['urls'];
         }
-        return self::of_site(self::MAIN_MAX, SEOProStack_Keep_Cached_Requests::covered() ? self::MAIN_MAX : self::MORE_MAX);
+        return self::of_site(self::MAIN_MAX, SEOProStack_Keep_Cached_Requests::covered() ? self::MAIN_MAX : self::MAX, true);
     }
 
     /**
@@ -61,58 +64,184 @@ final class SEOProStack_Keep_Cached_Pages {
     }
 
     /**
-     * This site's pages to open: the home page, the posts page and the
-     * pages in the theme's menus, then the newest pages and posts.
+     * This site's pages to open, in the order visitors reach them: the home
+     * page, the header's menus and links, the footer's, the home page's
+     * other links and the posts page; then the rest of the site (pages,
+     * posts, then other public types, newest first).
      *
-     * @param int $main  Most main pages.
-     * @param int $total Most pages in all.
+     * @param int  $main      Most main pages.
+     * @param int  $total     Most pages in all.
+     * @param bool $read_home Read the home page for its links (not on a network fill).
      * @return string[]
      */
-    private static function of_site($main, $total) {
-        $urls       = array(home_url('/'));
+    private static function of_site($main, $total, $read_home) {
+        $home       = home_url('/');
+        $menus      = self::menu_urls();
+        $links      = $read_home ? self::page_links($home) : array('header' => array(), 'footer' => array(), 'other' => array());
         $posts_page = (int) get_option('page_for_posts');
-        if ($posts_page && 'page' === get_option('show_on_front')) {
-            $urls[] = (string) get_permalink($posts_page);
-        }
-        $urls = self::clean(array_merge($urls, self::menu_urls()), $main);
+        $posts      = $posts_page && 'page' === get_option('show_on_front') ? array((string) get_permalink($posts_page)) : array();
+        $urls       = self::clean(array_merge(array($home), $menus['header'], $links['header'], $menus['footer'], $links['footer'], $links['other'], $posts), $main);
         if (count($urls) >= $total) {
             return $urls;
         }
-        // One query per type keeps to core's type_status_date index.
-        $each = (int) ceil(($total - count($urls)) / 2);
-        foreach (array('page', 'post') as $type) {
-            $urls = array_merge($urls, array_map('strval', array_map('get_permalink', get_posts(array(
+        return self::clean(array_merge($urls, self::rest_urls($total)), $total);
+    }
+
+    /**
+     * The rest of the site: published pages, then posts, then other public
+     * post types, newest first. One query per type keeps to core's
+     * type_status_date index.
+     *
+     * @param int $most Most addresses (main pages among them are left out by clean()).
+     * @return string[]
+     */
+    private static function rest_urls($most) {
+        $urls  = array();
+        $types = array_values(array_filter(array_diff(get_post_types(array('public' => true)), array('attachment')), 'is_post_type_viewable'));
+        $types = array_values(array_unique(array_merge(array_intersect(array('page', 'post'), $types), $types)));
+        foreach ($types as $type) {
+            $left = $most - count($urls);
+            if ($left <= 0) {
+                break;
+            }
+            $ids = get_posts(array(
                 'post_type'              => $type,
                 'post_status'            => 'publish',
                 'has_password'           => false,
-                'posts_per_page'         => $each,
+                'posts_per_page'         => $left,
                 'orderby'                => 'date',
                 'order'                  => 'DESC',
                 'fields'                 => 'ids',
                 'no_found_rows'          => true,
                 'update_post_meta_cache' => false,
                 'update_post_term_cache' => false,
-            )))));
+            ));
+            foreach (array_chunk(array_map('intval', $ids), 200) as $chunk) {
+                $urls = array_merge($urls, self::permalinks($chunk));
+            }
         }
-        return self::clean($urls, $total);
+        return $urls;
     }
 
     /**
-     * Addresses in the menus assigned to the theme's menu locations.
+     * Permalinks of published posts, from the columns permalinks use: up to
+     * 1,000 posts' content is not loaded into memory or the object cache.
      *
+     * @param int[] $ids Post IDs, in order.
      * @return string[]
      */
+    private static function permalinks(array $ids) {
+        global $wpdb;
+        $in = implode(',', array_fill(0, count($ids), '%d'));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- primary-key lookup of the columns permalinks read, once per fill; $in holds one placeholder per ID.
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT ID, post_author, post_date, post_date_gmt, post_status, post_name, post_parent, post_type, menu_order FROM {$wpdb->posts} WHERE ID IN ($in)", $ids), OBJECT_K);
+        $urls = array();
+        foreach ($ids as $id) {
+            if (isset($rows[$id])) {
+                $row              = $rows[$id];
+                $row->ID          = (int) $row->ID;
+                $row->post_parent = (int) $row->post_parent;
+                $row->menu_order  = (int) $row->menu_order;
+                // As loaded: get_post() then uses this object as it is.
+                $row->filter      = 'raw';
+                $urls[]           = (string) get_permalink(new WP_Post($row));
+            }
+        }
+        return $urls;
+    }
+
+    /**
+     * Addresses in the menus assigned to the theme's menu locations, the
+     * header's first: a location whose name has "footer" in it is the
+     * footer's, any other the header's (Kadence: primary, secondary and
+     * mobile, then footer). Locations go in the order the theme registers
+     * them; a menu in two locations counts once, in the first.
+     *
+     * @return array{header:string[],footer:string[]}
+     */
     private static function menu_urls() {
-        $urls  = array();
-        $menus = array_unique(array_filter(array_map('intval', (array) get_nav_menu_locations())));
-        foreach ($menus as $menu) {
+        $urls      = array('header' => array(), 'footer' => array());
+        $locations = array_map('intval', (array) get_nav_menu_locations());
+        $order     = array_unique(array_merge(array_keys((array) get_registered_nav_menus()), array_keys($locations)));
+        $seen      = array();
+        foreach ($order as $location) {
+            $menu = isset($locations[$location]) ? $locations[$location] : 0;
+            if ($menu <= 0 || isset($seen[$menu])) {
+                continue;
+            }
+            $seen[$menu] = true;
+            $part        = false !== stripos((string) $location, 'footer') ? 'footer' : 'header';
             foreach ((array) wp_get_nav_menu_items($menu, array('update_post_term_cache' => false)) as $item) {
                 if (is_object($item) && !empty($item->url)) {
-                    $urls[] = (string) $item->url;
+                    $urls[$part][] = (string) $item->url;
                 }
             }
         }
         return $urls;
+    }
+
+    /**
+     * The links in a page's HTML, in document order: those in the site's
+     * header (Kadence's #masthead or .site-header, a block theme's header
+     * template part), those in its footer (#colophon, .site-footer, the
+     * footer template part) and the others. Addresses are made absolute;
+     * clean() keeps only this site's pages.
+     *
+     * @param string $url Page address.
+     * @return array{header:string[],footer:string[],other:string[]}
+     */
+    private static function page_links($url) {
+        $links = array('header' => array(), 'footer' => array(), 'other' => array());
+        $html  = SEOProStack_Keep_Cached_Requests::page_html($url);
+        if ('' === $html || !class_exists('WP_HTML_Tag_Processor')) {
+            return $links;
+        }
+        $tags   = new WP_HTML_Tag_Processor($html);
+        $part   = 'other';
+        $region = '';
+        $depth  = 0;
+        while ($tags->next_tag(array('tag_closers' => 'visit'))) {
+            $tag    = (string) $tags->get_tag();
+            $closer = $tags->is_tag_closer();
+            if ('' !== $region && $tag === $region) {
+                // A header inside the site's header (rare) closes before it.
+                $depth += $closer ? -1 : 1;
+                if ($depth <= 0) {
+                    $part   = 'other';
+                    $region = '';
+                }
+                continue;
+            }
+            if ($closer) {
+                continue;
+            }
+            if ('' === $region && ('HEADER' === $tag || 'FOOTER' === $tag) && self::site_part($tags)) {
+                $part   = 'HEADER' === $tag ? 'header' : 'footer';
+                $region = $tag;
+                $depth  = 1;
+            } elseif ('A' === $tag) {
+                $href = $tags->get_attribute('href');
+                if (is_string($href) && '' !== trim($href)) {
+                    $links[$part][] = WP_Http::make_absolute_url(trim($href), $url);
+                }
+            }
+        }
+        return $links;
+    }
+
+    /**
+     * Whether a header or footer element is the site's own, not a post's.
+     *
+     * @param WP_HTML_Tag_Processor $tags At a header or footer opener.
+     * @return bool
+     */
+    private static function site_part(WP_HTML_Tag_Processor $tags) {
+        if (in_array($tags->get_attribute('id'), array('masthead', 'colophon'), true)) {
+            return true;
+        }
+        $class = $tags->get_attribute('class');
+        $names = is_string($class) ? preg_split('/\s+/', $class, -1, PREG_SPLIT_NO_EMPTY) : array();
+        return (bool) array_intersect(array('site-header', 'site-footer', 'wp-block-template-part'), (array) $names);
     }
 
     /**
@@ -137,7 +266,7 @@ final class SEOProStack_Keep_Cached_Pages {
             switch_to_blog($id);
             self::rewrite_init();
             if (self::fills_here()) {
-                foreach (self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MORE_MAX) as $url) {
+                foreach (self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MORE_MAX, false) as $url) {
                     $urls[]       = $url;
                     $blogs[$url] = $id;
                 }
