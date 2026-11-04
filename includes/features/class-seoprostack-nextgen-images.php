@@ -380,6 +380,23 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * AVIF encoder speed. This deliberately stays out of quality_key(): a
+     * speed change affects conversion time, not whether an existing copy is
+     * still usable.
+     *
+     * @return int
+     */
+    public static function avif_speed() {
+        /**
+         * Filters the AVIF encoder speed for next-generation image copies.
+         *
+         * @param int $speed libheif and GD speed, from 0 (slowest) to 9 (fastest).
+         */
+        $speed = apply_filters('seoprostack_nextgen_avif_speed', 7);
+        return max(0, min(9, (int) $speed));
+    }
+
+    /**
      * Quality for one copy. With Quality by picture size on, small pictures
      * get more (flaws show in thumbnails) and large ones less (they are
      * usually shown smaller than they are), as CompressX's smart mode does.
@@ -616,8 +633,24 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             }
         }
 
-        $mime   = self::FORMATS[$format];
+        $mime    = self::FORMATS[$format];
+        $editors = function ($classes) {
+            require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-imagick.php';
+            require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-gd.php';
+            foreach ((array) $classes as $key => $class) {
+                if ('WP_Image_Editor_Imagick' === $class) {
+                    $classes[$key] = 'SEOProStack_Nextgen_Imagick';
+                } elseif ('WP_Image_Editor_GD' === $class) {
+                    $classes[$key] = 'SEOProStack_Nextgen_GD';
+                }
+            }
+            return $classes;
+        };
+        // Use WordPress's selected editor, with AVIF-capable variants only for
+        // this save. Other custom editor classes remain in their own order.
+        add_filter('wp_image_editors', $editors, PHP_INT_MAX);
         $editor = wp_get_image_editor($path, array('output_mime_type' => $mime));
+        remove_filter('wp_image_editors', $editors, PHP_INT_MAX);
         if (is_wp_error($editor)) {
             return -1;
         }
