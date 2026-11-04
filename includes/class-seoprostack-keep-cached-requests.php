@@ -106,11 +106,15 @@ final class SEOProStack_Keep_Cached_Requests {
      * where the page cache keeps a mobile copy, and straight to this
      * server when LiteSpeed Cache's Server IP is set.
      *
-     * @param string $url    Page address.
+     * @param string $url   Page address.
      * @param bool   $mobile Also as a phone.
+     * @param int    $blog  Site that owns this address, on a network.
      * @return array[] Each user agent's code and cache header (for WP-CLI).
      */
-    public static function open($url, $mobile) {
+    public static function open($url, $mobile, $blog = 0) {
+        if ($blog) {
+            switch_to_blog($blog);
+        }
         $resolve = self::resolver($url);
         $answers = array();
         if ($resolve) {
@@ -128,6 +132,9 @@ final class SEOProStack_Keep_Cached_Requests {
         }
         if ($resolve) {
             remove_action('http_api_curl', $resolve);
+        }
+        if ($blog) {
+            restore_current_blog();
         }
         return $answers;
     }

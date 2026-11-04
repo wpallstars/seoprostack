@@ -216,8 +216,8 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         }
         $start = microtime(true);
         $queue = SEOProStack_Keep_Cached_Queue::get();
-        if ($queue['full']) {
-            $queue = SEOProStack_Keep_Cached_Queue::plan($queue);
+        if ($queue['full'] && count($queue['urls']) < SEOProStack_Keep_Cached_Pages::MAX) {
+            $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, self::BUDGET);
         }
         $mobile = SEOProStack_Keep_Cached_Requests::mobile_copy();
         $opened = array();
@@ -225,7 +225,7 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             if ($opened && !self::more_time($start, self::BUDGET)) {
                 break;
             }
-            SEOProStack_Keep_Cached_Requests::open($url, $mobile);
+            SEOProStack_Keep_Cached_Requests::open($url, $mobile, isset($queue['blogs'][$url]) ? $queue['blogs'][$url] : 0);
             $opened[] = $url;
         }
         SEOProStack_Keep_Cached_Queue::done($opened, (int) floor($start));
