@@ -161,8 +161,14 @@ final class SEOProStack_Keep_Cached_Pages {
      */
     private static function next_site($after) {
         global $wpdb;
-        $query = $wpdb->prepare("SELECT blog_id FROM {$wpdb->blogs} WHERE site_id = %d AND blog_id >= %d AND archived = 0 AND deleted = 0 AND spam = 0 ORDER BY blog_id ASC LIMIT 1", get_current_network_id(), $after); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->blogs is WordPress's table name.
-        return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- a bounded, indexed site cursor avoids offset scans on large networks.
+        $cursor = static function ($clauses) use ($after, $wpdb) {
+            $clauses['where'] .= $wpdb->prepare(' AND blog_id >= %d', $after);
+            return $clauses;
+        };
+        add_filter('sites_clauses', $cursor);
+        $sites = get_sites(array('fields' => 'ids', 'number' => 1, 'orderby' => 'id', 'order' => 'ASC', 'archived' => 0, 'deleted' => 0, 'spam' => 0));
+        remove_filter('sites_clauses', $cursor);
+        return $sites ? (int) $sites[0] : 0;
     }
 
     /**
