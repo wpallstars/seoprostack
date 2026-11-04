@@ -156,6 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Faster: Keep pages cached fills the header's pages first, then the footer's, the home page's links and the rest of the site (#1224).
+* Faster: cloud storage removes many imported pictures' local copies in one pass (#1223).
 
 = 1.3.149 =
 * Faster: watermarks, WebP/AVIF copies and cloud uploads run at once (#1196).
