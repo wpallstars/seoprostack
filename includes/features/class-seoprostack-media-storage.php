@@ -1815,6 +1815,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // ownership or invalidating the records still serving their pages.
             $destinations = get_option(self::DESTINATIONS, array());
             if (($destinations['inventory_version'] ?? '') !== self::upload_marker()) {
+                update_option(self::JOB . 'originalcursor', '', false);
                 self::schedule();
                 $destinations['inventory_version'] = self::upload_marker();
                 update_option(self::DESTINATIONS, $destinations, false);
@@ -4068,6 +4069,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         return $result;
     }
 
+    /**
+     * Whether a queued deletion belongs to a former private originals connection.
+     *
+     * @param array $record Kept-original record.
+     * @return bool
+     */
+    private static function foreign_original_delete($record) {
+        return !empty($record['original_signature']) && $record['original_signature'] !== self::original_signature();
+    }
+
     /** @return bool Whether a bounded inventory traversal remains. */
     private static function original_jobs_due() {
         $config = self::config();
@@ -4105,6 +4116,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
             $record = $job['record'];
             if (!empty($job['delete'])) {
+                // The object is in a former private bucket. Leave its durable
+                // tombstone alone: original_client() must never reach there.
+                if (self::foreign_original_delete($record)) {
+                    continue;
+                }
                 $result = self::delete_original($record);
                 $id = (int) ($record['original_attachment'] ?? 0);
                 $current = SEOProStack_Watermark_Images::record($id);
@@ -4178,7 +4194,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /** @return array<string,int> CLI-only paged counts through the meta_key index. */
     private static function original_counts() {
         global $wpdb;
-        $counts = array('uploaded' => 0, 'waiting' => 0, 'failed' => 0, 'local removed' => 0);
+        $counts = array('uploaded' => 0, 'waiting' => 0, 'failed' => 0, 'local removed' => 0, 'deletes for another connection' => 0);
         $before = PHP_INT_MAX;
         do {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded CLI inventory through meta_key.
@@ -4187,6 +4203,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 $before = (int) $id;
                 $record = SEOProStack_Watermark_Images::record($before);
                 if (empty($record['backup'])) {
+                    continue;
+                }
+                $delete = get_option(self::JOB . 'original_' . hash('sha256', ($record['original_signature'] ?? '') . $record['backup']));
+                if (is_array($delete) && !empty($delete['delete']) && self::foreign_original_delete($delete['record'] ?? array())) {
                     continue;
                 }
                 $state = !empty($record['original_delete_failed']) || ($record['original_state'] ?? '') === 'failed' ? 'failed' : (!empty($record['remote']) ? 'uploaded' : 'waiting');
@@ -4204,6 +4224,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 $after = $name;
                 $job = get_option($name);
                 if (is_array($job) && !empty($job['delete'])) {
+                    if (self::foreign_original_delete($job['record'] ?? array())) {
+                        ++$counts['deletes for another connection'];
+                        continue;
+                    }
                     $record = SEOProStack_Watermark_Images::record((int) ($job['record']['original_attachment'] ?? 0));
                     if (empty($record['original_delete_failed'])) {
                         ++$counts['failed'];
