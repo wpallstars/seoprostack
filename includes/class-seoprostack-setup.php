@@ -118,6 +118,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Keep_Pages_Cached',
         'SEOProStack_Used_Css',
         'SEOProStack_Delay_Scripts',
+        'SEOProStack_Fluentforms_Turnstile',
         'SEOProStack_Delayed_Analytics',
         'SEOProStack_Image_Loading',
         'SEOProStack_Wp_Extras',
