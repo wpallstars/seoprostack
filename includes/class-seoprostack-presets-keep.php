@@ -75,7 +75,17 @@ final class SEOProStack_Presets_Keep {
      * @return bool
      */
     public static function enabled() {
-        return (bool) SEOProStack_Settings::get(SEOProStack_Plugin_Presets::KEY) && (bool) SEOProStack_Settings::get(SEOProStack_Plugin_Presets::KEEP);
+        return self::is_on(SEOProStack_Settings::all());
+    }
+
+    /**
+     * Whether settings have Plugin presets and Keep recommended settings on.
+     *
+     * @param array $settings Settings, as features read them.
+     * @return bool
+     */
+    private static function is_on(array $settings) {
+        return !empty($settings[SEOProStack_Plugin_Presets::KEY]) && !empty($settings[SEOProStack_Plugin_Presets::KEEP]);
     }
 
     /**
@@ -86,13 +96,12 @@ final class SEOProStack_Presets_Keep {
      * @param array $new Settings after.
      */
     public static function settings_changed($old, $new) {
-        $was = !empty($old[SEOProStack_Plugin_Presets::KEY]) && !empty($old[SEOProStack_Plugin_Presets::KEEP]);
-        $now = !empty($new[SEOProStack_Plugin_Presets::KEY]) && !empty($new[SEOProStack_Plugin_Presets::KEEP]);
+        $was = self::is_on((array) $old);
+        $now = self::is_on((array) $new);
         if ($now && !$was) {
             self::soon();
         } elseif ($was && !$now) {
-            wp_clear_scheduled_hook(self::HOOK);
-            wp_clear_scheduled_hook(self::DAILY);
+            self::deactivate();
         }
     }
 
@@ -181,24 +190,8 @@ final class SEOProStack_Presets_Keep {
      * @return string[]|WP_Error Paths changed (or that would be).
      */
     private static function keep($slug, $dry) {
-        $preset = SEOProStack_Presets::get($slug);
-        $kept   = self::kept();
-        $mine   = isset($kept[$slug]) && is_array($kept[$slug]) ? $kept[$slug] : array();
-        $apply  = array();
-        $record = array();
-        foreach (SEOProStack_Presets::paths($slug) as $path => $values) {
-            if (self::manual($preset, (string) $path)) {
-                continue;
-            }
-            if (array_key_exists($path, $mine) && !SEOProStack_Presets::same($mine[$path], $values[0])) {
-                $record[$path] = $mine[$path]; // Changed by hand: left alone.
-                continue;
-            }
-            if (!SEOProStack_Presets::same($values[0], $values[1])) {
-                $apply[] = (string) $path;
-            }
-            $record[$path] = $values[1];
-        }
+        $kept = self::kept();
+        list($apply, $record) = self::plan($slug, isset($kept[$slug]) && is_array($kept[$slug]) ? $kept[$slug] : array());
         if ($dry) {
             return $apply;
         }
@@ -209,6 +202,34 @@ final class SEOProStack_Presets_Keep {
         $kept[$slug] = $record;
         update_option(self::KEPT, $kept, false);
         return $apply;
+    }
+
+    /**
+     * The settings of one preset to apply, and what each will be once they are.
+     *
+     * @param string $slug Plugin folder.
+     * @param array  $mine Path => value last written.
+     * @return array{0:string[],1:array} Paths to apply; path => value to remember.
+     */
+    private static function plan($slug, array $mine) {
+        $preset = SEOProStack_Presets::get($slug);
+        $apply  = array();
+        $record = array();
+        foreach (SEOProStack_Presets::paths($slug) as $path => $values) {
+            $path = (string) $path;
+            if (self::manual($preset, $path)) {
+                continue;
+            }
+            if (array_key_exists($path, $mine) && !SEOProStack_Presets::same($mine[$path], $values[0])) {
+                $record[$path] = $mine[$path]; // Changed by hand: left alone.
+                continue;
+            }
+            if (!SEOProStack_Presets::same($values[0], $values[1])) {
+                $apply[] = $path;
+            }
+            $record[$path] = $values[1];
+        }
+        return array($apply, $record);
     }
 
     /**

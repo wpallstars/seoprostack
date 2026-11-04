@@ -655,7 +655,10 @@ final class SEOProStack_Presets {
     public static function paths($slug) {
         $preset = self::get($slug);
         $paths  = array();
-        foreach ($preset ? $preset['options'] : array() as $name => $wanted) {
+        if (!$preset) {
+            return $paths;
+        }
+        foreach ($preset['options'] as $name => $wanted) {
             list(, $current) = self::read($name);
             $pair = self::pair($preset, $name, $current, $wanted);
             if (null !== $pair) {

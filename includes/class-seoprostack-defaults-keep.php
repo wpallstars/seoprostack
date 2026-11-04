@@ -76,22 +76,43 @@ final class SEOProStack_Defaults_Keep {
             if (SEOProStack_Network_Settings::is_enforced($key)) {
                 continue;
             }
-            $value = array_key_exists($key, $own) ? $own[$key] : $default;
-            if (null === $kept) {
-                if (isset($schema[$key]['type']) && 'bool' === $schema[$key]['type'] && true === $default && !$value) {
-                    $changes[$key] = true;
-                }
-                continue;
-            }
-            // A setting new since the last run already has its default unless someone set it.
-            if (!array_key_exists($key, $kept)) {
-                continue;
-            }
-            $old = $kept[$key];
-            if (!SEOProStack_Settings::same($old, $default, $key) && SEOProStack_Settings::same($value, $old, $key) && !SEOProStack_Settings::same($value, $default, $key)) {
-                $changes[$key] = $default;
+            $value  = array_key_exists($key, $own) ? $own[$key] : $default;
+            $change = null === $kept ? self::first_change($schema[$key], $default, $value) : self::later_change($key, $default, $value, $kept);
+            if (null !== $change) {
+                $changes[$key] = $change[0];
             }
         }
         return $changes;
+    }
+
+    /**
+     * First run: a switch that is on by default but off here is switched on.
+     *
+     * @param array $field   Setting's schema.
+     * @param mixed $default Default now.
+     * @param mixed $value   Value here.
+     * @return array{0:mixed}|null The new value, wrapped; null for no change.
+     */
+    private static function first_change(array $field, $default, $value) {
+        $switch = isset($field['type']) && 'bool' === $field['type'];
+        return $switch && true === $default && !$value ? array(true) : null;
+    }
+
+    /**
+     * Later runs: a setting still at a default that changed gets the new one.
+     * A setting new since the last run already has its default unless
+     * someone set it, so it is left alone.
+     *
+     * @param string $key     Setting key.
+     * @param mixed  $default Default now.
+     * @param mixed  $value   Value here.
+     * @param array  $kept    Defaults when last run.
+     * @return array{0:mixed}|null The new value, wrapped; null for no change.
+     */
+    private static function later_change($key, $default, $value, array $kept) {
+        if (!array_key_exists($key, $kept) || SEOProStack_Settings::same($kept[$key], $default, $key)) {
+            return null;
+        }
+        return SEOProStack_Settings::same($value, $kept[$key], $key) ? array($default) : null;
     }
 }
