@@ -14,6 +14,10 @@
  *   (`wp_content_img_tag`, `wp_get_attachment_image_attributes`,
  *   `wp_iframe_tag_add_loading_attr`).
  *
+ * When a post or page opens with a Kadence Blocks row with a background
+ * picture, the picture is preloaded at high priority from the head
+ * (GH#1204), as browsers otherwise find backgrounds only after the CSS.
+ *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
  * by rewriting the page with JavaScript, such as LiteSpeed Cache and
@@ -67,7 +71,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Image loading', 'seoprostack'),
-                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages.', 'seoprostack'),
+                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, with the page.', 'seoprostack'),
                 'replaces'    => array('nazy-load' => 'Flying Images'),
             ),
             'image_loading_eager' => array(
@@ -129,6 +133,95 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 20, 2);
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
+        if (defined('KADENCE_BLOCKS_VERSION')) {
+            // With core's preload links, before the styles (8).
+            add_action('wp_head', array(__CLASS__, 'kadence_preload'), 1);
+        }
+    }
+
+    /**
+     * When a post or page opens with a Kadence Blocks row that has a
+     * background picture (or a background slider, whose first slide shows
+     * first), fetch the picture with the page at high priority (GH#1204).
+     * Browsers otherwise find a background only once the CSS is in, so on
+     * a hero row it was often the page's slowest paint (LCP). The AVIF or
+     * WebP copy when pages name copies, as the row's CSS then does.
+     *
+     * Left alone, so no device fetches a picture it does not show: rows
+     * hidden on a device, with their own tablet or phone background, a
+     * parallax or dynamic background, or Kadence's old row markup.
+     */
+    public static function kadence_preload() {
+        if (!is_singular() || is_feed() || is_embed()) {
+            return;
+        }
+        $post = get_queried_object();
+        if (!$post instanceof WP_Post || post_password_required($post)) {
+            return;
+        }
+        // Cheap check first: the content must open with a row.
+        $content = ltrim($post->post_content);
+        if (0 !== strpos($content, '<!-- wp:kadence/rowlayout ')) {
+            return;
+        }
+        $blocks = parse_blocks($content);
+        $url    = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
+        if ('' === $url) {
+            return;
+        }
+        $type = '';
+        if (class_exists('SEOProStack_Nextgen_Images')) {
+            list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
+        }
+        printf(
+            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">' . "\n",
+            esc_url($url),
+            '' !== $type ? ' type="' . esc_attr($type) . '"' : ''
+        );
+        // One picture at high priority: core would otherwise give it to the
+        // first large picture it meets, often the header's logo.
+        self::$high_priority = true;
+        if (function_exists('wp_high_priority_element_flag')) {
+            wp_high_priority_element_flag(false);
+        }
+    }
+
+    /**
+     * The background picture a Kadence Blocks row shows on every device
+     * from the start, or ''.
+     *
+     * @param array $block Parsed block.
+     * @return string
+     */
+    private static function kadence_background(array $block) {
+        $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        if (empty($block['blockName']) || 'kadence/rowlayout' !== $block['blockName'] || empty($attrs['kbVersion']) || (int) $attrs['kbVersion'] < 2) {
+            return '';
+        }
+        foreach (array('vsdesk', 'vstablet', 'vsmobile') as $hidden) {
+            if (!empty($attrs[$hidden])) {
+                return '';
+            }
+        }
+        foreach (array('tabletBackground', 'mobileBackground') as $device) {
+            if (!empty($attrs[$device][0]['enable'])) {
+                return '';
+            }
+        }
+        if (!empty($attrs['kadenceDynamic']['bgImg']['enable'])) {
+            return '';
+        }
+        $tab = isset($attrs['backgroundSettingTab']) ? $attrs['backgroundSettingTab'] : 'normal';
+        $url = '';
+        if ('slider' === $tab) {
+            // Kadence's default is one slide.
+            if (!isset($attrs['backgroundSliderCount']) || (int) $attrs['backgroundSliderCount'] >= 1) {
+                $url = isset($attrs['backgroundSlider'][0]['bgImg']) ? $attrs['backgroundSlider'][0]['bgImg'] : '';
+            }
+        } elseif ('normal' === $tab && (!isset($attrs['bgImgAttachment']) || 'parallax' !== $attrs['bgImgAttachment'])) {
+            $url = isset($attrs['bgImg']) ? $attrs['bgImg'] : '';
+        }
+        return is_string($url) && preg_match('#^(?:https?:)?//#i', $url) ? $url : '';
     }
 
     /**

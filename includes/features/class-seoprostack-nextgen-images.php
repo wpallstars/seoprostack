@@ -15,8 +15,9 @@
  *
  * Copies at their own addresses (GitHub issue #779) instead wraps pictures
  * in posts, pages, rendered blocks and attachment images (featured images,
- * logos) in a <picture> tag naming the copies, and the rules only give the
- * copies their types. Every address then always sends one file, so CDNs
+ * logos) in a <picture> tag naming the copies, names them in image-set()
+ * for Kadence Blocks' background pictures (GH#1204), and the rules only
+ * give the copies their types. Every address then always sends one file, so CDNs
  * that ignore "Vary: Accept" can cache pictures without the private header.
  *
  * Pictures are converted in the background with WP-Cron: new uploads, edited
@@ -156,7 +157,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 'default'     => false,
                 'parent'      => self::KEY,
                 'label'       => __('Copies at their own addresses', 'seoprostack'),
-                'description' => __('Pages name each picture’s AVIF and WebP copy in a <picture> tag and the browser picks one, so every address always sends the same file and CDNs, Cloudflare’s free plan included, can cache every picture. Pictures in posts, pages, block widgets, block templates, Kadence Elements, featured images and logos, including cover block images; pictures set in CSS stay in their original format. Check pages afterwards: theme styles written for a picture’s direct parent may need changing.', 'seoprostack'),
+                'description' => __('Pages name each picture’s AVIF and WebP copy in a <picture> tag and the browser picks one, so every address always sends the same file and CDNs, Cloudflare’s free plan included, can cache every picture. Pictures in posts, pages, block widgets, block templates, Kadence Elements, featured images and logos, including cover block images, and Kadence Blocks’ row, column and slider backgrounds; other pictures set in CSS stay in their original format. Check pages afterwards: theme styles written for a picture’s direct parent may need changing.', 'seoprostack'),
             ),
         );
     }
@@ -284,6 +285,15 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             // Also blocks outside the_content: template parts and Kadence Elements.
             // pictures() skips HTML without images and leaves existing pictures alone.
             add_filter('render_block', array(__CLASS__, 'pictures'), 30);
+            // Kadence Blocks' background pictures (GH#1204): rows, columns
+            // and slider slides, in the CSS Kadence prints and its styles.
+            if (defined('KADENCE_BLOCKS_VERSION')) {
+                add_filter('kadence_blocks_row_slider_attrs', array(__CLASS__, 'kadence_attrs'), 20);
+                add_filter('kadence_blocks_row_wrapper_args', array(__CLASS__, 'kadence_attrs'), 20);
+                add_filter('render_block_kadence/rowlayout', array(__CLASS__, 'kadence_block_css'), 20);
+                add_filter('render_block_kadence/column', array(__CLASS__, 'kadence_block_css'), 20);
+                add_action('wp_print_styles', array(__CLASS__, 'kadence_head_css'));
+            }
         }
 
         if (is_admin()) {
@@ -1108,13 +1118,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $copies = 0;
         foreach ($candidates as $candidate) {
             list($url, $descriptor) = $candidate;
-            $remote = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::format_url($url, $format) : '';
-            $path = self::upload_path($url);
-            if ('' !== $remote) {
-                $url = $remote;
-                ++$copies;
-            } elseif ('' !== $path && is_file($path . '.' . $format)) {
-                $url .= '.' . $format;
+            $copy = self::copy_url($url, $format);
+            if ('' !== $copy) {
+                $url = $copy;
                 ++$copies;
             }
             $list[] = $url . $descriptor;
@@ -1128,6 +1134,160 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         // flex or grid layout and took a gap. Hiding them leaves only the
         // <img>; the browser still picks among them.
         return '<source type="' . esc_attr($mime) . '" srcset="' . esc_attr(implode(', ', $list)) . '"' . $sizes . ' style="display:none">';
+    }
+
+    /**
+     * The address of a picture's copy in one format: cloud storage's copy,
+     * else the file next to the picture in the uploads folder. '' when it
+     * has none.
+     *
+     * @param string $url    Picture address.
+     * @param string $format avif or webp.
+     * @return string
+     */
+    public static function copy_url($url, $format) {
+        $remote = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::format_url($url, $format) : '';
+        if ('' !== $remote) {
+            return $remote;
+        }
+        $path = self::upload_path($url);
+        return '' !== $path && is_file($path . '.' . $format) ? $url . '.' . $format : '';
+    }
+
+    /**
+     * Whether pages name the copies (Copies at their own addresses), so
+     * background pictures set in CSS name them too.
+     *
+     * @return bool
+     */
+    public static function names_copies() {
+        return self::enabled() && self::picture_mode();
+    }
+
+    /**
+     * The address browsers take first for a background picture, with its
+     * MIME type: its AVIF, else its WebP copy, among the formats switched
+     * on, when pages name copies. Else the picture's own address and ''.
+     *
+     * @param string $url Picture address.
+     * @return array{0:string,1:string}
+     */
+    public static function first_copy($url) {
+        if (self::names_copies() && self::css_url($url)) {
+            foreach (self::FORMATS as $format => $mime) {
+                $copy = SEOProStack_Settings::get('nextgen_' . $format) ? self::copy_url($url, $format) : '';
+                if ('' !== $copy && self::css_url($copy)) {
+                    return array($copy, $mime);
+                }
+            }
+        }
+        return array($url, '');
+    }
+
+    /**
+     * Whether an address can go in CSS's url('…') as it is.
+     *
+     * @param string $url Address.
+     * @return bool
+     */
+    private static function css_url($url) {
+        return is_string($url) && '' !== $url && !preg_match('/[\s\'"()<>\\\\]/', $url);
+    }
+
+    /**
+     * image-set() naming a background picture's copies, then the picture.
+     * Browsers take the first type they can show. '' when it has no copy.
+     *
+     * @param string $url Picture address.
+     * @return string
+     */
+    private static function image_set($url) {
+        static $sets = array();
+        if (!isset($sets[$url])) {
+            $list = array();
+            if (self::css_url($url)) {
+                foreach (self::FORMATS as $format => $mime) {
+                    $copy = SEOProStack_Settings::get('nextgen_' . $format) ? self::copy_url($url, $format) : '';
+                    if ('' !== $copy && self::css_url($copy)) {
+                        $list[] = "url('" . $copy . "') type('" . $mime . "')";
+                    }
+                }
+            }
+            $sets[$url] = $list ? 'image-set(' . implode(', ', $list) . ", url('" . $url . "'))" : '';
+        }
+        return $sets[$url];
+    }
+
+    /**
+     * After each background-image: url() of a picture with copies, a second
+     * background-image naming them in image-set(). Browsers that support it
+     * take a copy; the rest drop it and keep the url() (GH#1204). Only
+     * declarations of one picture are changed, and running twice changes
+     * nothing.
+     *
+     * @param mixed $css Style sheet, or a style attribute's value.
+     * @return mixed
+     */
+    public static function css_image_sets($css) {
+        if (!is_string($css) || false === stripos($css, 'background-image')) {
+            return $css;
+        }
+        $out = preg_replace_callback(
+            '/background-image\s*:\s*url\(\s*([\'"]?)([^\'"()\s]++)\1\s*\)(\s*!\s*important)?+(?=\s*(?:;|\}|$))(?!\s*;\s*background-image\s*:\s*image-set\()/i',
+            function ($m) {
+                $set = self::image_set($m[2]);
+                if ('' === $set) {
+                    return $m[0];
+                }
+                return $m[0] . ';background-image:' . $set . (isset($m[3]) && '' !== $m[3] ? '!important' : '');
+            },
+            $css
+        );
+        return is_string($out) ? $out : $css;
+    }
+
+    /**
+     * Kadence Blocks' background slider slides, and rows whose background
+     * is set inline: name the copies in the style attribute.
+     *
+     * @param mixed $attrs HTML attributes.
+     * @return mixed
+     */
+    public static function kadence_attrs($attrs) {
+        if (is_array($attrs) && isset($attrs['style']) && is_string($attrs['style']) && self::picture_request()) {
+            $attrs['style'] = self::css_image_sets($attrs['style']);
+        }
+        return $attrs;
+    }
+
+    /**
+     * The CSS Kadence Blocks prints just before a row or column that was not
+     * styled in the head.
+     *
+     * @param mixed $html Block HTML.
+     * @return mixed
+     */
+    public static function kadence_block_css($html) {
+        if (!is_string($html) || 0 !== strpos($html, '<style>') || !self::picture_request()) {
+            return $html;
+        }
+        $end = strpos($html, '</style>');
+        if (false === $end) {
+            return $html;
+        }
+        return '<style>' . self::css_image_sets(substr($html, 7, $end - 7)) . substr($html, $end);
+    }
+
+    /**
+     * The block CSS Kadence Blocks prints in the head, just before it is
+     * printed.
+     */
+    public static function kadence_head_css() {
+        $styles = wp_styles();
+        $after  = $styles->get_data('kadence_blocks_css', 'after');
+        if (is_array($after) && $after) {
+            $styles->add_data('kadence_blocks_css', 'after', array_map(array(__CLASS__, 'css_image_sets'), $after));
+        }
     }
 
     /**
