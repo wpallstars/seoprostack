@@ -372,10 +372,11 @@ function seoprostack_uninstall_site() {
     }
     wp_unschedule_hook('seoprostack_merge_version');
 
-    // Generated avatars, and on the main site uploaded profile pictures; and
-    // Dark mode's copies of other plugins' stylesheets (SEOProStack_Dark_Fallback).
+    // Generated avatars, and on the main site uploaded profile pictures;
+    // Dark mode's copies of other plugins' stylesheets (SEOProStack_Dark_Fallback);
+    // and Used CSS's parsed stylesheets (SEOProStack_Used_Css_Sheet).
     $uploads = wp_get_upload_dir();
-    foreach (array('seoprostack-avatars', 'seoprostack-dark') as $folder) {
+    foreach (array('seoprostack-avatars', 'seoprostack-dark', 'seoprostack-used-css') as $folder) {
         if (empty($uploads['error']) && !empty($uploads['basedir']) && is_dir($uploads['basedir'] . '/' . $folder)) {
             require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
             require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';

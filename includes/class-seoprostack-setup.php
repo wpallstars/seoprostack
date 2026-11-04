@@ -116,6 +116,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Speed_Plan',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Keep_Pages_Cached',
+        'SEOProStack_Used_Css',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',
         'SEOProStack_Image_Loading',
