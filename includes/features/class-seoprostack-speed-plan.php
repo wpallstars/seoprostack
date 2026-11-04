@@ -166,7 +166,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             );
         }
 
-        $items['used_css'] = self::used_css_item();
+        $items['used_css'] = SEOProStack_Used_Css::plan();
 
         $comments = number_format_i18n($sizes['comments']);
         $posts    = number_format_i18n($sizes['posts']);
@@ -253,22 +253,6 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             }
         }
         return $items;
-    }
-
-    /**
-     * Used CSS: recommended where its stylesheets are in use.
-     *
-     * @return array{state:string,why:string,cost:string}
-     */
-    private static function used_css_item() {
-        if (!SEOProStack_Used_Css::applies()) {
-            return array('state' => 'skip', 'why' => __('For the Kadence theme, Kadence Blocks or Fluent Forms, none of which is active.', 'seoprostack'), 'cost' => '');
-        }
-        return array(
-            'state' => 'recommended',
-            'why'   => __('The Kadence theme, Kadence Blocks or Fluent Forms is active: each page waits for all their stylesheets before it shows anything.', 'seoprostack'),
-            'cost'  => __('Pages not in the page cache take a few milliseconds more to build. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
-        );
     }
 
     /**
