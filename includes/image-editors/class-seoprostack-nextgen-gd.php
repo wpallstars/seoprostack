@@ -23,7 +23,7 @@ class SEOProStack_Nextgen_GD extends WP_Image_Editor_GD {
     /**
      * Save AVIF with GD's fourth imageavif() speed argument.
      *
-     * @param resource|GdImage $image     Image to save.
+     * @param resource $image     Image to save.
      * @param string|null      $filename  Destination file.
      * @param string|null      $mime_type Destination MIME type.
      * @return array|WP_Error
@@ -40,10 +40,13 @@ class SEOProStack_Nextgen_GD extends WP_Image_Editor_GD {
             // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook.
             imageinterlace($image, apply_filters('image_save_progressive', false, $mime_type));
         }
-        if (!function_exists('imageavif') || !$this->make_image($filename, 'imageavif', array($image, $filename, $this->get_quality(), SEOProStack_Nextgen_Images::avif_speed()))) {
+        if (!function_exists('imageavif') || !imageavif($image, $filename, $this->get_quality(), SEOProStack_Nextgen_Images::avif_speed())) {
             return new WP_Error('image_save_error', __('Image Editor Save Failed', 'seoprostack'));
         }
         $stat  = stat(dirname($filename));
+        if (false === $stat) {
+            return new WP_Error('image_save_error', __('Image Editor Save Failed', 'seoprostack'));
+        }
         $perms = $stat['mode'] & 0000666;
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- WordPress's own GD save behavior.
         chmod($filename, $perms);
