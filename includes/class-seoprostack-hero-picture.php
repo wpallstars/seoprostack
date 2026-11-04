@@ -53,8 +53,9 @@ class SEOProStack_Hero_Picture {
     }
 
     /**
-     * An attachment's metadata, when the row's address can go in CSS and
-     * the metadata has its file and size; null when not.
+     * An attachment's metadata, when the row's address can go in CSS, the
+     * metadata has its file and size, and the address is in its folder;
+     * null when not.
      *
      * @param int   $id  Attachment ID.
      * @param mixed $url Address the row names.
@@ -62,7 +63,23 @@ class SEOProStack_Hero_Picture {
      */
     private static function meta($id, $url) {
         $meta = $id > 0 && self::css_url($url) ? wp_get_attachment_metadata($id) : false;
-        return is_array($meta) && !empty($meta['file']) && !empty($meta['width']) && !empty($meta['height']) ? $meta : null;
+        return is_array($meta) && !empty($meta['file']) && !empty($meta['width']) && !empty($meta['height']) && self::in_folder($meta['file'], $url) ? $meta : null;
+    }
+
+    /**
+     * Whether an address is in the attachment's uploads folder (its year
+     * and month, when uploads use them), so a file of the same name in
+     * another folder is not taken for it. Only the folder's end is
+     * compared: a CDN or cloud storage can serve it under another start.
+     *
+     * @param string $file Attachment file, relative to uploads.
+     * @param string $url  Address the row names.
+     * @return bool
+     */
+    private static function in_folder($file, $url) {
+        $dir  = dirname((string) $file);
+        $tail = '.' === $dir ? '' : '/' . $dir;
+        return '' === $tail || substr(dirname(rawurldecode((string) wp_parse_url($url, PHP_URL_PATH))), -strlen($tail)) === $tail;
     }
 
     /**

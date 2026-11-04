@@ -13,17 +13,19 @@
  * own picture: never less sharp than before. The copy is preloaded at high
  * priority (its AVIF or WebP copy when pages name copies) and set on the
  * row, or on each slide of a background slider with its own picture's
- * copy. If the row grows later (fonts, a turned phone, a wider window), a
- * larger copy replaces it, never a smaller one.
+ * copy. If the row grows later (fonts, a turned phone, a wider window) or
+ * the screen's pixels get denser (another display, zoom), a larger copy
+ * replaces it, never a smaller one. The copies come from the attachment
+ * the row names, only when its address is in that attachment's folder.
  *
  * Only `background-size: cover` and `contain`; anything else keeps the
  * row's picture. Until the script after the row runs, a class on <html>
  * hides the row's background, so the full picture is not fetched as well.
- * A script adds the class, so without JavaScript nothing is hidden, and it
- * goes when the page is read (DOMContentLoaded) even if the script after
- * the row did not run. A script run late (delayed by an optimiser) does
- * nothing. Classic themes only: block themes render the content before the
- * head.
+ * A script adds the class, so without JavaScript nothing is hidden (and
+ * the row's own picture is preloaded, in <noscript>), and it goes when the
+ * page is read (DOMContentLoaded) even if the script after the row did not
+ * run. A script run late (delayed by an optimiser) does nothing. Classic
+ * themes only: block themes render the content before the head.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -179,6 +181,14 @@ class SEOProStack_Kadence_Hero {
         $selector = 'html.' . self::HIDE . ' .kb-row-layout-id' . $id . ($slider ? '>.kb-blocks-bg-slider .kb-bg-slide' : '');
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the ID is letters, digits, - and _ (start()).
         echo '<style id="seoprostack-hero-css">' . $selector . '{background-image:none!important}</style>' . "\n";
+        // Without JavaScript the row shows its own picture: preloaded, as
+        // when it has no smaller copies. With it, browsers skip this.
+        $own = $pictures[0]['c'][count($pictures[0]['c']) - 1];
+        printf(
+            '<noscript><link rel="preload" as="image" href="%s"%s fetchpriority="high"></noscript>' . "\n",
+            esc_url('' !== $own[3] ? $own[3] : $own[1]),
+            '' !== $own[4] ? ' type="' . esc_attr($own[4]) . '"' : ''
+        );
         $data = array(
             'id' => $id,
             's'  => $slider,
@@ -239,15 +249,19 @@ class SEOProStack_Kadence_Hero {
         l.setAttribute('fetchpriority', 'high');
         l.href = c[3] || c[1];
         d.head.appendChild(l);
-        // Larger when the row grows; never smaller.
-        if (w.ResizeObserver) {
-            new w.ResizeObserver(function () {
-                for (var q = 0, j; q < h.p.length; q++) {
-                    j = pick(h.p[q]);
-                    if (j > h.p[q].i) { set(h.p[q], j); }
-                }
-            }).observe(box);
+        // Larger when the row grows, or when the screen's pixels get denser
+        // (the window moved to another display, or zoomed); never smaller.
+        function grow() {
+            for (var q = 0, j; q < h.p.length; q++) {
+                j = pick(h.p[q]);
+                if (j > h.p[q].i) { set(h.p[q], j); }
+            }
         }
+        if (w.ResizeObserver) { new w.ResizeObserver(grow).observe(box); }
+        (function watch() {
+            var m = w.matchMedia && w.matchMedia('(resolution: ' + (w.devicePixelRatio || 1) + 'dppx)');
+            if (m && m.addEventListener) { m.addEventListener('change', function () { grow(); watch(); }, { once: true }); }
+        })();
     }
 })(document, window, SPS_HERO_DATA);
 JS;
