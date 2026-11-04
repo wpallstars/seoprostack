@@ -2649,8 +2649,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Remove or restore one attachment's files. A restore error that
      * belongs to this attachment alone marks it STUCK and the batch goes
-     * on. An isolated retryable removal error keeps that picture; consecutive
-     * service errors, credentials or configuration pause this step for an hour.
+     * on. An isolated retryable removal error or busy kept original keeps that
+     * picture; consecutive service errors, credentials or configuration pause
+     * this step for an hour.
      * Either way the error shows.
      *
      * @param int $id Attachment ID.
@@ -2683,6 +2684,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         /* translators: 1: attachment ID, 2: error message */
         update_option(self::ERROR, sprintf(__('Attachment %1$d: %2$s', 'seoprostack'), $id, $result->get_error_message()), false);
+        if ($removing && 'storage_original_busy' === $result->get_error_code()) {
+            // The attachment's kept original is in use. Leave its files local
+            // without marking it kept, so the next removal pass revisits it.
+            return true;
+        }
         if ($removing && SEOProStack_S3_Client::retryable($result) && ++$service_failures < 2) {
             // One attachment must not hold up the whole library. Its files stay
             // local; retry-failed or a changed connection can revisit the mark.
