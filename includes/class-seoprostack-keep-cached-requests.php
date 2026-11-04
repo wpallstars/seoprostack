@@ -170,6 +170,47 @@ final class SEOProStack_Keep_Cached_Requests {
     }
 
     /**
+     * A page's HTML, to read its links, as a visitor who is not logged in
+     * gets it. On a LiteSpeed page cache it is opened as open() opens it
+     * (LiteSpeed Cache's crawler first, so the page is cached as well), and
+     * once more as a visitor when LiteSpeed answers its crawler 201 for a
+     * page it holds already, which it sends without the page.
+     *
+     * @param string $url Page address.
+     * @return string The HTML, or '' when the page did not answer 200.
+     */
+    public static function page_html($url) {
+        $resolve = self::resolver($url);
+        if ($resolve) {
+            add_action('http_api_curl', $resolve);
+        }
+        $agents = array(self::AGENT);
+        if ('litespeed' === self::page_cache() && !self::$crawler_off) {
+            array_unshift($agents, SEOProStack_Litespeed::CRAWLER_AGENT . ' ' . self::AGENT);
+        }
+        $html = '';
+        foreach ($agents as $agent) {
+            $response = self::request($url, $agent, 4 * MB_IN_BYTES);
+            $code     = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
+            if (200 === $code) {
+                $html = (string) wp_remote_retrieve_body($response);
+                break;
+            }
+            if (428 === $code) {
+                // As in open(): the host turned LiteSpeed Cache's crawler off.
+                self::$crawler_off = true;
+            } elseif (201 !== $code) {
+                // Refused, missing or no answer: no links this time.
+                break;
+            }
+        }
+        if ($resolve) {
+            remove_action('http_api_curl', $resolve);
+        }
+        return $html;
+    }
+
+    /**
      * Open the page once with this user agent.
      *
      * @param string $url   Page address.
@@ -177,14 +218,30 @@ final class SEOProStack_Keep_Cached_Requests {
      * @return array{code:int|string,cache:string}
      */
     private static function get($url, $agent) {
-        return self::answer(wp_remote_get($url, array(
+        return self::answer(self::request($url, $agent));
+    }
+
+    /**
+     * One request for the page with this user agent.
+     *
+     * @param string $url   Page address.
+     * @param string $agent User agent.
+     * @param int    $limit Most bytes of the page to read, or 0 for all.
+     * @return array|WP_Error
+     */
+    private static function request($url, $agent, $limit = 0) {
+        $args = array(
             'timeout'     => self::TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- in WP-Cron, never on a visitor's page: an uncached page can take several seconds to build.
             'redirection' => 0,
             'user-agent'  => $agent,
             'headers'     => array('Accept' => 'text/html,application/xhtml+xml'),
             // Core's filter for requests to the site itself, as its loopback test uses.
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
-        )));
+        );
+        if ($limit) {
+            $args['limit_response_size'] = $limit;
+        }
+        return wp_remote_get($url, $args);
     }
 
     /**

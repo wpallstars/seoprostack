@@ -10,13 +10,15 @@
  *
  * After the cache is emptied, this opens the site's main pages in WP-Cron,
  * one at a time, as a visitor who is not logged in, so the cache holds them
- * again within minutes:
- * - the home page, the posts page and the pages in the theme's menus;
- * - the newest pages and posts too, where no crawler covers the rest;
+ * again within minutes, in the order visitors reach them:
+ * - the home page, the header's menus and links, the footer's, the home
+ *   page's other links and the posts page;
+ * - the rest of the site too (pages, posts, other public types, newest
+ *   first, up to 1,000 pages), where no crawler covers it;
  * - then LiteSpeed Cache's crawler, where it is on, as its own Crawl now
  *   does: after a finished crawl it otherwise waits for its next full
  *   crawl, up to a day away (SEOProStack_Litespeed_Crawler);
- * - and WP-Optimize's own preload, as its Purge button schedules it, where
+ * - or WP-Optimize's own preload, as its Purge button schedules it, where
  *   its preload after purge or scheduled preload is on.
  * After a post is published or updated, its page and the home page are
  * opened again a minute later; after it is unpublished, the home page
@@ -78,7 +80,7 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Keep pages cached', 'seoprostack'),
-                'description' => __('After the page cache is emptied (updates, Purge All, menu or Customizer changes) or a post is published, open the home page, the menu pages and the newest posts in the background, one at a time, so visitors get cached pages again within minutes instead of waiting for each page to be built. Where LiteSpeed Cache’s crawler or WP-Optimize’s preload is on, it is started for the rest of the site.', 'seoprostack'),
+                'description' => __('After the page cache is emptied (updates, Purge All, menu or Customizer changes) or a post is published, open the site’s pages in the background, one at a time, so visitors get cached pages again within minutes instead of waiting for each page to be built: the home page, the header menu’s pages, the footer menu’s, the home page’s other links, then the rest of the site. Where LiteSpeed Cache’s crawler or WP-Optimize’s preload is on, it is started for the rest of the site after them.', 'seoprostack'),
             ),
         );
     }
@@ -127,15 +129,12 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     }
 
     /**
-     * WP-Optimize emptied its page cache: start its own preload where it
-     * has one on, as its Purge button does, and fill the main pages. Its
-     * cache folder holds every site of a network.
+     * WP-Optimize emptied its page cache: fill the main pages, then start
+     * its own preload where it has one on, as its Purge button does, for
+     * the rest of the site. Its cache folder holds every site of a network.
      */
     public static function wp_optimize_purged() {
-        if (SEOProStack_Keep_Cached_Requests::wp_optimize_preloads() && !wp_next_scheduled('wpo_page_cache_run_preload')) {
-            wp_schedule_single_event(time() + 30, 'wpo_page_cache_run_preload');
-        }
-        SEOProStack_Keep_Cached_Queue::fill_later(is_multisite());
+        SEOProStack_Keep_Cached_Queue::fill_later(is_multisite(), SEOProStack_Keep_Cached_Requests::wp_optimize_preloads());
     }
 
     /**
