@@ -100,6 +100,8 @@ class SEOProStack_Fluentforms_Turnstile extends SEOProStack_Feature {
      * Whether the script is Fluent Forms' own Turnstile, from a version that
      * waits for it: its explicit-render api.js, registered with Fluent Forms'
      * version, so another plugin's script under the same handle is left alone.
+     * The address itself is never changed: the loader adds the one WordPress
+     * would have printed.
      *
      * @param string $src Script address.
      * @return bool
@@ -110,7 +112,7 @@ class SEOProStack_Fluentforms_Turnstile extends SEOProStack_Feature {
         }
         $parts = wp_parse_url($src);
         if (!is_array($parts) || !isset($parts['host'], $parts['path'], $parts['query'])
-            || 'challenges.cloudflare.com' !== $parts['host'] || '/turnstile/v0/api.js' !== $parts['path']) {
+            || '/turnstile/v0/api.js' !== $parts['path']) {
             return false;
         }
         parse_str($parts['query'], $query);
