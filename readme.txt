@@ -155,7 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.146 =
-* Improved: AVIF copies use WordPress's encoder speed 7 (#1201).
 * Fix: Keep pages cached gets past LiteSpeed's bot protection and delivers purges made from WP-CLI and cron (#1202).
 * Fix: Media in cloud storage keeps a former bucket's originals (#1188).
 
