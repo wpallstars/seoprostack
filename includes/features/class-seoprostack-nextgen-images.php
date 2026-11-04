@@ -1239,7 +1239,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 if ('' === $set) {
                     return $m[0];
                 }
-                return $m[0] . ';background-image:' . $set . (isset($m[3]) && '' !== $m[3] ? '!important' : '');
+                // The last group is only there when it matched !important.
+                return $m[0] . ';background-image:' . $set . (isset($m[3]) ? '!important' : '');
             },
             $css
         );
