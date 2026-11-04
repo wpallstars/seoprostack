@@ -302,8 +302,10 @@ function seoprostack_uninstall_site() {
     // deleted is left behind instead of being selected again forever.
     $after = '';
     do {
+        // Also the runner slots and conversion claims of WebP and AVIF images
+        // and watermark batches, left by a batch that stopped PHP.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed one-off cleanup in bounded batches.
-        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s) AND option_name > %s ORDER BY option_name LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%', $wpdb->esc_like('seoprostack_storage_url_') . '%', $after));
+        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s) AND option_name > %s ORDER BY option_name LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%', $wpdb->esc_like('seoprostack_storage_url_') . '%', $wpdb->esc_like('seoprostack_nextgen_slot_') . '%', $wpdb->esc_like('seoprostack_nextgen_claim_') . '%', $wpdb->esc_like('seoprostack_watermark_slot_') . '%', $after));
         foreach ($jobs as $option) {
             delete_option($option);
             $after = $option;
@@ -315,6 +317,7 @@ function seoprostack_uninstall_site() {
     // is kept; only the records linking them to pictures go.
     delete_post_meta_by_key('_seoprostack_watermark');
     delete_post_meta_by_key('_seoprostack_watermark_queued');
+    delete_post_meta_by_key('_seoprostack_watermark_claim');
     // Background batch of watermarks.
     wp_unschedule_hook('seoprostack_watermark_batch');
     delete_option('seoprostack_watermark_job');
