@@ -37,17 +37,25 @@ final class SEOProStack_Keep_Cached_Queue {
     const GAP = 60;
 
     /**
+     * Batches in a row the server may refuse (or a purge may still wait)
+     * before the rest is left to LiteSpeed Cache's crawler. Each waits a
+     * GAP longer than the one before.
+     */
+    const STOPS = 5;
+
+    /**
      * Pages waiting, with defaults.
      *
      * @return array urls, blogs (address => site ID), added (address => when a
      *               saved post queued it), full (work out the pages first), network
      *               (for every site), site (the next network site), crawl (start
      *               LiteSpeed Cache's crawler after), since (first purge not yet
-     *               worked out), purges (count), opened (count).
+     *               worked out), purges (count), opened (count), stops (batches
+     *               stopped in a row).
      */
     public static function get() {
         $queue = get_option(self::OPTION, array());
-        $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'blogs' => array(), 'added' => array(), 'site' => 0, 'since' => 0, 'purges' => 0, 'opened' => 0);
+        $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'blogs' => array(), 'added' => array(), 'site' => 0, 'since' => 0, 'purges' => 0, 'opened' => 0, 'stops' => 0);
         return array(
             'urls'    => array_values(array_filter((array) $queue['urls'], 'is_string')),
             'blogs'   => array_map('intval', (array) $queue['blogs']),
@@ -59,6 +67,7 @@ final class SEOProStack_Keep_Cached_Queue {
             'since'   => (int) $queue['since'],
             'purges'  => (int) $queue['purges'],
             'opened'  => (int) $queue['opened'],
+            'stops'   => (int) $queue['stops'],
         );
     }
 
@@ -145,24 +154,43 @@ final class SEOProStack_Keep_Cached_Queue {
      * opened them before the save; then schedule the next batch, or start
      * LiteSpeed Cache's crawler when all are done.
      *
-     * @param string[] $opened Pages opened.
-     * @param int      $began  When the batch began.
+     * A batch the server refused, or that waited for a purge to reach the
+     * cache, is stopped: the next waits a GAP longer for each such batch in
+     * a row that opened nothing, and after STOPS of them the rest is left
+     * to LiteSpeed Cache's crawler. A refused page goes to the end, so one
+     * page the server always refuses cannot hold up the others.
+     *
+     * @param string[] $opened  Pages opened.
+     * @param int      $began   When the batch began.
+     * @param bool     $stopped Stopped early: refused, or a purge still waiting.
+     * @param string   $refused The page the server refused, if any.
      */
-    public static function done(array $opened, $began) {
+    public static function done(array $opened, $began, $stopped = false, $refused = '') {
         $latest = self::get();
         $again  = array_keys(array_filter($latest['added'], static function ($time) use ($began) {
             return $time >= $began;
         }));
         $latest['urls']    = array_values(array_diff($latest['urls'], array_diff($opened, $again)));
+        if ('' !== $refused && in_array($refused, $latest['urls'], true)) {
+            $latest['urls']   = array_values(array_diff($latest['urls'], array($refused)));
+            $latest['urls'][] = $refused;
+        }
         $latest['blogs']   = array_intersect_key($latest['blogs'], array_flip($latest['urls']));
         $latest['opened'] += count($opened);
-        if ($latest['urls'] || $latest['full']) {
-            self::save($latest, self::GAP, false);
+        $stops             = 0;
+        if ($stopped) {
+            $stops = $opened ? 1 : $latest['stops'] + 1;
+        }
+        $latest['stops'] = $stops;
+        $gave_up         = $stops > self::STOPS;
+        if (($latest['urls'] || $latest['full']) && !$gave_up) {
+            self::save($latest, self::GAP * ($stops ? $stops : 1), false);
             return;
         }
         delete_option(self::OPTION);
-        update_option(self::LAST, array('time' => time(), 'opened' => $latest['opened']), false);
-        if ($latest['crawl'] && class_exists('SEOProStack_Litespeed_Crawler')) {
+        update_option(self::LAST, array('time' => time(), 'opened' => $latest['opened'], 'stopped' => $gave_up), false);
+        $crawl = $latest['crawl'] || ($gave_up && SEOProStack_Keep_Cached_Requests::litespeed_crawler());
+        if ($crawl && class_exists('SEOProStack_Litespeed_Crawler')) {
             SEOProStack_Litespeed_Crawler::start();
         }
     }
