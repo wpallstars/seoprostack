@@ -70,9 +70,12 @@ final class SEOProStack_Litespeed {
      */
     const DELIVER_TIMEOUT = 30;
 
+    /** Request argument marking a request that set out while a purge waited. */
+    const DELIVERY_ARG = 'seoprostack_delivers_purge';
+
     /**
      * Purges a request to admin-ajax.php from this command-line run set out
-     * with, by site, then queue option, until a request answers.
+     * with, by site, then queue option, until such a request answers.
      *
      * @var array<int, array<string, string>>
      */
@@ -125,8 +128,9 @@ final class SEOProStack_Litespeed {
         if (!$queued) {
             return $args;
         }
-        $blog              = get_current_blog_id();
-        self::$held[$blog] = $queued + (isset(self::$held[$blog]) ? self::$held[$blog] : array());
+        $blog                     = get_current_blog_id();
+        self::$held[$blog]        = $queued + (isset(self::$held[$blog]) ? self::$held[$blog] : array());
+        $args[self::DELIVERY_ARG] = true;
         if (!isset($args['timeout']) || (float) $args['timeout'] < self::DELIVER_TIMEOUT) {
             $args['timeout'] = self::DELIVER_TIMEOUT; // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
         }
@@ -136,7 +140,9 @@ final class SEOProStack_Litespeed {
     /**
      * After a request that set out with a purge: an answer below 500 came
      * back through the server, which applied the purge with it; none (a
-     * timeout) or a server error may have lost it.
+     * timeout) or a server error may have lost it. A request that set out
+     * with none (the queue already taken) is no answer for it: LiteSpeed
+     * Cache tries again at the end of the run, after a lost purge.
      *
      * @since 1.3.147
      * @param array|WP_Error $response Response or error.
@@ -146,9 +152,9 @@ final class SEOProStack_Litespeed {
      * @param string         $url      Request address.
      */
     public static function delivery_answered($response, $context, $class, $args, $url) {
-        unset($class, $args);
+        unset($class, $url);
         $blog = get_current_blog_id();
-        if ('response' !== $context || empty(self::$held[$blog]) || !self::is_delivery($url)) {
+        if ('response' !== $context || empty($args[self::DELIVERY_ARG]) || empty(self::$held[$blog])) {
             return;
         }
         $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
