@@ -155,7 +155,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.147 =
-* Faster: a Kadence Blocks hero background loads with the page; with Copies at their own addresses on, as its AVIF or WebP copy (#1204).
+* Faster: Kadence Blocks hero backgrounds load with the page (#1204).
+* Improved: AVIF copies are made at encoder speed 7, as in WordPress (#1201).
 * Fix: LiteSpeed purges made from WP-CLI and cron are no longer lost on a busy server (#1207).
 
 Older: `changelog.txt`.
