@@ -28,7 +28,11 @@
  *
  * Batches run for about 20 seconds, a minute apart. Where the page cache
  * keeps a separate copy for phones, pages are opened as a phone too, and
- * requests go straight to this server when its Server IP is set.
+ * requests go straight to this server when its Server IP is set. On a
+ * LiteSpeed page cache they go as LiteSpeed Cache's crawler, which
+ * LiteSpeed's bot protection lets through, after any purge LiteSpeed Cache
+ * still holds has reached the cache; when the server refuses pages anyway,
+ * batches wait longer, then leave the rest to the crawler.
  *
  * The pages: SEOProStack_Keep_Cached_Pages. The queue and batches:
  * SEOProStack_Keep_Cached_Queue. The page cache and requests:
@@ -207,7 +211,11 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
 
     /**
      * One batch: work out the pages if the cache was emptied, then open as
-     * many as fit in the batch's time.
+     * many as fit in the batch's time. On a LiteSpeed page cache, a purge
+     * LiteSpeed Cache still holds (WP-CLI, or WP-Cron run from the command
+     * line) is delivered first, so the pages opened are new ones; while it
+     * cannot be, or when the server refuses a page (bot protection, limits),
+     * the batch stops and tries again later.
      */
     public static function run() {
         if (!self::enabled()) {
@@ -215,19 +223,28 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             return;
         }
         $start = microtime(true);
+        if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
+            SEOProStack_Keep_Cached_Queue::done(array(), (int) floor($start), true);
+            return;
+        }
         $queue = SEOProStack_Keep_Cached_Queue::get();
         if ($queue['full'] && count($queue['urls']) < SEOProStack_Keep_Cached_Pages::MAX) {
             $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, self::BUDGET);
         }
-        $mobile = SEOProStack_Keep_Cached_Requests::mobile_copy();
-        $opened = array();
+        $mobile  = SEOProStack_Keep_Cached_Requests::mobile_copy();
+        $opened  = array();
+        $refused = '';
         foreach ($queue['urls'] as $url) {
             if ($opened && !self::more_time($start, self::BUDGET)) {
                 break;
             }
-            SEOProStack_Keep_Cached_Requests::open($url, $mobile, isset($queue['blogs'][$url]) ? $queue['blogs'][$url] : 0);
+            $answers = SEOProStack_Keep_Cached_Requests::open($url, $mobile, isset($queue['blogs'][$url]) ? $queue['blogs'][$url] : 0);
+            if (SEOProStack_Keep_Cached_Requests::refused($answers)) {
+                $refused = $url;
+                break;
+            }
             $opened[] = $url;
         }
-        SEOProStack_Keep_Cached_Queue::done($opened, (int) floor($start));
+        SEOProStack_Keep_Cached_Queue::done($opened, (int) floor($start), '' !== $refused, $refused);
     }
 }

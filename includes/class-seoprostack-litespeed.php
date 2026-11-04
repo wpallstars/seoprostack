@@ -22,6 +22,8 @@
  *   as when settings are saved on its screen.
  * - Saves object cache settings for Hosting needs (a server that answers,
  *   Cache WP-Admin) the same way, only when someone asks.
+ * - Delivers purges made from the command line that LiteSpeed's bot
+ *   protection kept from reaching the cache (deliver_purge()).
  * - Notes in Free Plugins that WP-Optimize is not needed on LiteSpeed
  *   servers, and is for its page cache elsewhere.
  *
@@ -50,6 +52,15 @@ final class SEOProStack_Litespeed {
     const PREFIX = 'litespeed.conf.';
 
     /**
+     * Start of the user agent of LiteSpeed Cache's crawler
+     * (\LiteSpeed\Crawler::FAST_USER_AGENT). LiteSpeed's bot protection
+     * (reCAPTCHA, which some hosts turn on when the server is busy) lets it
+     * through, and LiteSpeed Cache leaves the visitor's cache copy (vary)
+     * alone for it, so requests that fill the page cache start with it.
+     */
+    const CRAWLER_AGENT = 'lscache_runner';
+
+    /**
      * Register hooks.
      */
     public static function init() {
@@ -59,6 +70,77 @@ final class SEOProStack_Litespeed {
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'save_through_plugin'), 10, 2);
         add_filter('seoprostack_free_plugin_note', array(__CLASS__, 'free_plugin_note'), 10, 2);
         add_action('after_plugin_row', array(__CLASS__, 'wp_optimize_row_note'));
+        if ('cli' === PHP_SAPI) {
+            // After LiteSpeed Cache's own delivery, at shutdown 0.
+            add_action('shutdown', array(__CLASS__, 'deliver_purge_at_end'), 20);
+        }
+    }
+
+    /**
+     * At the end of a command-line run: deliver a purge LiteSpeed Cache's
+     * own delivery could not.
+     *
+     * @since 1.3.146
+     */
+    public static function deliver_purge_at_end() {
+        self::deliver_purge();
+    }
+
+    /**
+     * Deliver a purge LiteSpeed Cache still holds for this site. From the
+     * command line (WP-CLI, or WP-Cron run by a host's cron job) it stores
+     * each purge and, as the run ends, opens admin-ajax.php so the server
+     * applies it (\LiteSpeed\Core::kick_purge_queue()). That request goes
+     * with WordPress's user agent; where LiteSpeed's bot protection refuses
+     * it, the purge waits for the next visitor who reaches PHP, and cached
+     * pages stay out of date until then. This opens admin-ajax.php again as
+     * LiteSpeed Cache's crawler, and straight to this server when its Server
+     * IP is set.
+     *
+     * @since 1.3.146
+     * @return bool Whether no purge is waiting now (a web request delivers
+     *              its own, as it ends).
+     */
+    public static function deliver_purge() {
+        if ('cli' !== PHP_SAPI || !self::is_server() || !self::purge_waiting()) {
+            return true;
+        }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php';
+        $url     = admin_url('admin-ajax.php');
+        $resolve = SEOProStack_Keep_Cached_Requests::resolver($url);
+        if ($resolve) {
+            add_action('http_api_curl', $resolve);
+        }
+        wp_remote_get($url, array(
+            'timeout'    => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
+            'user-agent' => self::CRAWLER_AGENT . ' SEOProStack',
+            // Core's filter for requests to the site itself, as its loopback test uses.
+            'sslverify'  => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+        ));
+        if ($resolve) {
+            remove_action('http_api_curl', $resolve);
+        }
+        return !self::purge_waiting();
+    }
+
+    /**
+     * Whether LiteSpeed Cache holds a purge for this site (its purge queue
+     * options, -1 when delivered). Read from the database: the request that
+     * delivers it runs in another process, and the options are autoloaded.
+     *
+     * @phpstan-impure Another process changes the answer.
+     * @return bool
+     */
+    private static function purge_waiting() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the cached copy is what is out of date.
+        $values = $wpdb->get_col($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name IN (%s, %s)", 'litespeed.purge.queue', 'litespeed.purge.queue2'));
+        foreach ((array) $values as $value) {
+            if ('' !== (string) $value && '-1' !== (string) $value) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

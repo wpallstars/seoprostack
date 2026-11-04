@@ -25,6 +25,12 @@ final class SEOProStack_Keep_Cached_Requests {
     const AGENT  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 SEOProStack-KeepCached';
     const MOBILE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 SEOProStack-KeepCached';
 
+    /** Answers that mean the server refuses requests for now (bot protection, limits, maintenance). */
+    const REFUSED = array(403, 429, 503);
+
+    /** The server answered 428 to LiteSpeed Cache's crawler: the host turned it off. */
+    private static $crawler_off = false;
+
     /**
      * The page cache on the current site: LiteSpeed Cache's on a LiteSpeed
      * server, or WP-Optimize's. Counted as active even when "Load plugins
@@ -104,7 +110,9 @@ final class SEOProStack_Keep_Cached_Requests {
     /**
      * Open one page as a visitor who is not logged in: also as a phone
      * where the page cache keeps a mobile copy, and straight to this
-     * server when LiteSpeed Cache's Server IP is set.
+     * server when LiteSpeed Cache's Server IP is set. On a LiteSpeed page
+     * cache, as LiteSpeed Cache's crawler does (its user agent first), so
+     * LiteSpeed's bot protection lets the request through.
      *
      * @param string $url   Page address.
      * @param bool   $mobile Also as a phone.
@@ -116,19 +124,23 @@ final class SEOProStack_Keep_Cached_Requests {
             switch_to_blog($blog);
         }
         $resolve = self::resolver($url);
+        $crawler = 'litespeed' === self::page_cache();
         $answers = array();
         if ($resolve) {
             add_action('http_api_curl', $resolve);
         }
         foreach ($mobile ? array(self::AGENT, self::MOBILE) : array(self::AGENT) as $agent) {
-            $answers[] = self::answer(wp_remote_get($url, array(
-                'timeout'     => self::TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- in WP-Cron, never on a visitor's page: an uncached page can take several seconds to build.
-                'redirection' => 0,
-                'user-agent'  => $agent,
-                'headers'     => array('Accept' => 'text/html,application/xhtml+xml'),
-                // Core's filter for requests to the site itself, as its loopback test uses.
-                'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
-            )));
+            $answer = null;
+            if ($crawler && !self::$crawler_off) {
+                // The phone's user agent still matches LiteSpeed Cache's mobile rule.
+                $answer = self::get($url, SEOProStack_Litespeed::CRAWLER_AGENT . ' ' . $agent);
+                self::$crawler_off = 428 === $answer['code'];
+                if (201 === $answer['code'] && '' === $answer['cache']) {
+                    // LiteSpeed answers its crawler 201, without the page, when it holds the page already.
+                    $answer['cache'] = 'hit';
+                }
+            }
+            $answers[] = null === $answer || self::$crawler_off ? self::get($url, $agent) : $answer;
         }
         if ($resolve) {
             remove_action('http_api_curl', $resolve);
@@ -137,6 +149,42 @@ final class SEOProStack_Keep_Cached_Requests {
             restore_current_blog();
         }
         return $answers;
+    }
+
+    /**
+     * Whether the server refused any of these answers for now, so the
+     * rest should wait: LiteSpeed's bot protection (403, and a plain 403
+     * for a while after too many failed checks), a limit (429) or
+     * maintenance (503).
+     *
+     * @param array[] $answers From open().
+     * @return bool
+     */
+    public static function refused(array $answers) {
+        foreach ($answers as $answer) {
+            if (in_array($answer['code'], self::REFUSED, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Open the page once with this user agent.
+     *
+     * @param string $url   Page address.
+     * @param string $agent User agent.
+     * @return array{code:int|string,cache:string}
+     */
+    private static function get($url, $agent) {
+        return self::answer(wp_remote_get($url, array(
+            'timeout'     => self::TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- in WP-Cron, never on a visitor's page: an uncached page can take several seconds to build.
+            'redirection' => 0,
+            'user-agent'  => $agent,
+            'headers'     => array('Accept' => 'text/html,application/xhtml+xml'),
+            // Core's filter for requests to the site itself, as its loopback test uses.
+            'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+        )));
     }
 
     /**
@@ -162,7 +210,7 @@ final class SEOProStack_Keep_Cached_Requests {
      * @param string $url Page address.
      * @return callable|null http_api_curl callback, or null to use DNS.
      */
-    private static function resolver($url) {
+    public static function resolver($url) {
         if ('litespeed' !== self::page_cache() || !defined('CURLOPT_RESOLVE')) {
             return null;
         }

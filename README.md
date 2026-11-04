@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.145-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.146-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.145
+Version: 1.3.146
 
 <!-- github-only:start -->
 ## Screenshots
@@ -865,8 +865,9 @@ With **Also in the admin** on, clicking a link to another admin screen also answ
 - Then LiteSpeed Cache's crawler starts, where it is on, as its **Crawl now** would: after a finished crawl it otherwise waits for its next full crawl, up to a day away. WP-Optimize's own preload starts as its **Purge** button starts it, where its preload after purge or scheduled preload is on.
 - A minute after a post is published or updated, its page, the home page and the posts page are opened again; after it is unpublished, the home page and the posts page (LiteSpeed Cache; WP-Optimize does this itself with preload after purge on).
 - Batches run for about 20 seconds, a minute apart. Only the site's own pages are opened: no query strings, files, feeds, admin, login, or WooCommerce basket, checkout and account pages. Requests go straight to this server when LiteSpeed Cache's **Server IP** is set, as its crawler does.
+- On a LiteSpeed server, pages are opened as LiteSpeed Cache's crawler (its `lscache_runner` user agent first), which LiteSpeed's bot protection lets through; some hosts turn that protection on when the server is busy, and it would otherwise answer the site's own requests with a challenge (403). A purge made from the command line (WP-CLI, or WP-Cron run by the host's cron job) that the protection kept from reaching the cache is delivered first, also at the end of each command-line run, so cached pages are not left out of date until a visitor's request delivers it. When the server still refuses pages (403, 429 or 503), batches wait a minute longer each time and, after five in a row, leave the rest to LiteSpeed Cache's crawler.
 - On a network, a purge of every site (from Network Admin or a network update, as LiteSpeed Cache decides it, and any WP-Optimize purge, whose cache holds every site) fills each site's main pages where this is on, up to 25 per site. It works through sites in order across batches, even on a large network, and uses each subsite's own LiteSpeed **Server IP**.
-- `wp seoprostack keep-cached [--network] [--dry-run]` opens the pages now and shows each answer, with LiteSpeed's `x-litespeed-cache` header (`miss` the first time, `hit` the next).
+- `wp seoprostack keep-cached [--network] [--dry-run]` opens the pages now and shows each answer, with LiteSpeed's `x-litespeed-cache` header (`200 miss` the first time; then `201 hit`, LiteSpeed's answer to its crawler for a page it already holds, sent without the page).
 - Nothing happens without LiteSpeed Cache on a LiteSpeed server or WP-Optimize's page cache. Pages waiting are kept in `seoprostack_keep_pages_cached_queue` and the last fill in `seoprostack_keep_pages_cached_last` (neither autoloaded), removed on uninstall.
 
 ### Load the CSS each page uses first (Speed)
@@ -2353,6 +2354,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.146
+
+- Fix: **Keep pages cached** on LiteSpeed servers opens pages as LiteSpeed Cache's crawler (`lscache_runner` first in the user agent), which LiteSpeed's bot protection lets through: with the protection on, some hosts answered the site's own requests with a challenge (403), so pages that were not cached stayed that way. Pages LiteSpeed already holds now answer `201` without the page, as for LiteSpeed Cache's crawler. A purge made from WP-CLI or a host's cron job that the protection kept from reaching the cache is delivered before each batch and at the end of each command-line run, so cached pages are no longer left out of date until a visitor's request delivers it. When the server still refuses pages (403, 429 or 503), batches wait a minute longer each time and, after five in a row, leave the rest to LiteSpeed Cache's crawler (#1202).
+- Fix: **Media in cloud storage** leaves queued deletions of kept originals in a former private originals bucket alone, and its WP-CLI status counts them (#1188).
 
 ### 1.3.145
 

@@ -57,13 +57,22 @@ final class SEOProStack_Keep_Cached_CLI {
             WP_CLI::success(sprintf('%d pages.', count($urls)));
             return;
         }
-        $mobile = SEOProStack_Keep_Cached_Requests::mobile_copy();
+        if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
+            WP_CLI::warning('LiteSpeed Cache still holds a purge the server did not take: pages may answer from the cache as before it.');
+        }
+        $mobile  = SEOProStack_Keep_Cached_Requests::mobile_copy();
+        $refused = 0;
         foreach ($urls as $url) {
             $answers = array();
-            foreach (SEOProStack_Keep_Cached_Requests::open($url, $mobile) as $answer) {
+            $opened  = SEOProStack_Keep_Cached_Requests::open($url, $mobile);
+            foreach ($opened as $answer) {
                 $answers[] = trim($answer['code'] . ' ' . $answer['cache']);
             }
+            $refused += SEOProStack_Keep_Cached_Requests::refused($opened) ? 1 : 0;
             WP_CLI::log($url . ' ' . implode(' | ', $answers));
+        }
+        if ($refused) {
+            WP_CLI::warning(sprintf('The server refused %d pages for now (403, 429 or 503): bot protection, a limit or maintenance.', $refused));
         }
         if (!$network && SEOProStack_Keep_Cached_Requests::litespeed_crawler() && class_exists('SEOProStack_Litespeed_Crawler')) {
             if (SEOProStack_Litespeed_Crawler::start()) {
