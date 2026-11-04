@@ -150,14 +150,21 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      *
      * Left alone, so no device fetches a picture it does not show: rows
      * hidden on a device, with their own tablet or phone background, a
-     * parallax or dynamic background, or Kadence's old row markup.
+     * parallax or dynamic background, or Kadence's old row markup. Also
+     * left alone when the theme shows the featured image, which comes
+     * before the content: core keeps its high priority for that picture.
+     *
+     * The head comes before the rest of the page, so a header picture with
+     * fetchpriority="high" in its own markup cannot be seen from here, and
+     * keeps it. Core no longer adds high priority to one, such as a large
+     * logo.
      */
     public static function kadence_preload() {
         if (!is_singular() || is_feed() || is_embed()) {
             return;
         }
         $post = get_queried_object();
-        if (!$post instanceof WP_Post || post_password_required($post)) {
+        if (!$post instanceof WP_Post || post_password_required($post) || self::feature_shown($post)) {
             return;
         }
         // Cheap check first: the content must open with a row.
@@ -189,6 +196,25 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (function_exists('wp_high_priority_element_flag')) {
             wp_high_priority_element_flag(false);
         }
+    }
+
+    /**
+     * Whether the theme shows the post's featured image (above, behind or
+     * below the title, all before the content). With the Kadence theme its
+     * setting for the post decides (pages default to hiding it, posts to
+     * showing it); other themes are taken to show it.
+     *
+     * @param WP_Post $post Post.
+     * @return bool
+     */
+    private static function feature_shown(WP_Post $post) {
+        if (!has_post_thumbnail($post)) {
+            return false;
+        }
+        if ('kadence' === get_template() && function_exists('Kadence\kadence')) {
+            return (bool) \Kadence\kadence()->show_feature();
+        }
+        return true;
     }
 
     /**
