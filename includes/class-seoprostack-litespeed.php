@@ -23,7 +23,8 @@
  * - Saves object cache settings for Hosting needs (a server that answers,
  *   Cache WP-Admin) the same way, only when someone asks.
  * - Delivers purges made from the command line that LiteSpeed's bot
- *   protection kept from reaching the cache (deliver_purge()).
+ *   protection kept from reaching the cache, or that a request took and
+ *   then gave up waiting on a busy server (deliver_purge()).
  * - Notes in Free Plugins that WP-Optimize is not needed on LiteSpeed
  *   servers, and is for its page cache elsewhere.
  *
@@ -60,6 +61,31 @@ final class SEOProStack_Litespeed {
      */
     const CRAWLER_AGENT = 'lscache_runner';
 
+    /** LiteSpeed Cache's purge queue options (\LiteSpeed\Purge::DB_QUEUE, DB_QUEUE2). */
+    const QUEUES = array('litespeed.purge.queue', 'litespeed.purge.queue2');
+
+    /**
+     * Seconds a request that delivers a purge waits for the server.
+     * WordPress's 5 is not enough on a busy shared server (#1207).
+     */
+    const DELIVER_TIMEOUT = 30;
+
+    /**
+     * Purges a request to admin-ajax.php from this command-line run set out
+     * with, by site, then queue option, until a request answers.
+     *
+     * @var array<int, array<string, string>>
+     */
+    private static $held = array();
+
+    /**
+     * Sites where a request set out with a purge and got no answer, so the
+     * server may never have applied it.
+     *
+     * @var array<int, bool>
+     */
+    private static $failed = array();
+
     /**
      * Register hooks.
      */
@@ -71,9 +97,78 @@ final class SEOProStack_Litespeed {
         add_filter('seoprostack_free_plugin_note', array(__CLASS__, 'free_plugin_note'), 10, 2);
         add_action('after_plugin_row', array(__CLASS__, 'wp_optimize_row_note'));
         if ('cli' === PHP_SAPI) {
+            add_filter('http_request_args', array(__CLASS__, 'delivery_args'), 10, 2);
+            add_action('http_api_debug', array(__CLASS__, 'delivery_answered'), 10, 5);
             // After LiteSpeed Cache's own delivery, at shutdown 0.
             add_action('shutdown', array(__CLASS__, 'deliver_purge_at_end'), 20);
         }
+    }
+
+    /**
+     * From the command line, a request to admin-ajax.php while LiteSpeed
+     * Cache holds a purge delivers it, whoever sends it (LiteSpeed Cache's
+     * own \LiteSpeed\Core::kick_purge_queue() or deliver_purge()): note the
+     * purge and wait longer for the server. The page load that takes the
+     * purge empties the queue before it answers; a client that gives up
+     * first leaves the server without the purge, and the queue empty.
+     *
+     * @since 1.3.147
+     * @param array  $args Request arguments.
+     * @param string $url  Request address.
+     * @return array
+     */
+    public static function delivery_args($args, $url) {
+        if (!self::is_delivery($url)) {
+            return $args;
+        }
+        $queued = self::queued();
+        if (!$queued) {
+            return $args;
+        }
+        $blog              = get_current_blog_id();
+        self::$held[$blog] = $queued + (isset(self::$held[$blog]) ? self::$held[$blog] : array());
+        if (!isset($args['timeout']) || (float) $args['timeout'] < self::DELIVER_TIMEOUT) {
+            $args['timeout'] = self::DELIVER_TIMEOUT; // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
+        }
+        return $args;
+    }
+
+    /**
+     * After a request that set out with a purge: an answer below 500 came
+     * back through the server, which applied the purge with it; none (a
+     * timeout) or a server error may have lost it.
+     *
+     * @since 1.3.147
+     * @param array|WP_Error $response Response or error.
+     * @param string         $context  'response'.
+     * @param string         $class    Transport class.
+     * @param array          $args     Request arguments.
+     * @param string         $url      Request address.
+     */
+    public static function delivery_answered($response, $context, $class, $args, $url) {
+        unset($class, $args);
+        $blog = get_current_blog_id();
+        if ('response' !== $context || empty(self::$held[$blog]) || !self::is_delivery($url)) {
+            return;
+        }
+        $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
+        if ($code > 0 && $code < 500) {
+            unset(self::$held[$blog], self::$failed[$blog]);
+            return;
+        }
+        self::$failed[$blog] = true;
+    }
+
+    /**
+     * Whether a request address is this site's admin-ajax.php, as LiteSpeed
+     * Cache's delivery opens it.
+     *
+     * @param string $url Request address.
+     * @return bool
+     */
+    private static function is_delivery($url) {
+        $path = (string) wp_parse_url((string) $url, PHP_URL_PATH);
+        return '/admin-ajax.php' === substr($path, -15) && 0 === strpos((string) $url, admin_url());
     }
 
     /**
@@ -97,13 +192,25 @@ final class SEOProStack_Litespeed {
      * LiteSpeed Cache's crawler, and straight to this server when its Server
      * IP is set.
      *
+     * A request that took the purge without an answer (it gave up waiting
+     * on a busy server) emptied the queue, but the server never applied the
+     * purge: it is stored again first, and again after this request if that
+     * gets no answer either, so the next request delivers it (#1207).
+     *
      * @since 1.3.146
      * @return bool Whether no purge is waiting now (a web request delivers
      *              its own, as it ends).
      */
     public static function deliver_purge() {
-        if ('cli' !== PHP_SAPI || !self::is_server() || !self::purge_waiting()) {
+        if ('cli' !== PHP_SAPI || !self::is_server()) {
             return true;
+        }
+        $blog = get_current_blog_id();
+        if (!self::purge_waiting()) {
+            if (empty(self::$failed[$blog])) {
+                return true;
+            }
+            self::store_again($blog);
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php';
         $url     = admin_url('admin-ajax.php');
@@ -112,7 +219,7 @@ final class SEOProStack_Litespeed {
             add_action('http_api_curl', $resolve);
         }
         wp_remote_get($url, array(
-            'timeout'    => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
+            'timeout'    => self::DELIVER_TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
             'user-agent' => self::CRAWLER_AGENT . ' SEOProStack',
             // Core's filter for requests to the site itself, as its loopback test uses.
             'sslverify'  => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
@@ -120,27 +227,73 @@ final class SEOProStack_Litespeed {
         if ($resolve) {
             remove_action('http_api_curl', $resolve);
         }
+        if (!empty(self::$failed[$blog]) && !self::purge_waiting()) {
+            self::store_again($blog);
+        }
         return !self::purge_waiting();
     }
 
     /**
-     * Whether LiteSpeed Cache holds a purge for this site (its purge queue
-     * options, -1 when delivered). Read from the database: the request that
-     * delivers it runs in another process, and the options are autoloaded.
+     * Store again, for this site, the purges a request took without an
+     * answer. Only queues now empty are written, so a newer purge is kept.
+     * This run's cached copy of each option still holds the purge, so
+     * update_option() is shown the emptied queue, and writes it through any
+     * object cache too.
+     *
+     * @param int $blog Site ID.
+     */
+    private static function store_again($blog) {
+        $queued = self::queued();
+        foreach (isset(self::$held[$blog]) ? self::$held[$blog] : array() as $option => $value) {
+            if (isset($queued[$option])) {
+                continue;
+            }
+            add_filter('pre_option_' . $option, array(__CLASS__, 'queue_taken'));
+            update_option($option, $value);
+            remove_filter('pre_option_' . $option, array(__CLASS__, 'queue_taken'));
+        }
+        unset(self::$failed[$blog]);
+    }
+
+    /**
+     * A purge queue as the request that took it left it.
+     *
+     * @return string
+     */
+    public static function queue_taken() {
+        return '-1';
+    }
+
+    /**
+     * Whether LiteSpeed Cache holds a purge for this site.
      *
      * @phpstan-impure Another process changes the answer.
      * @return bool
      */
     private static function purge_waiting() {
+        return (bool) self::queued();
+    }
+
+    /**
+     * The purges LiteSpeed Cache holds for this site, by queue option (-1
+     * when delivered). Read from the database: the request that delivers
+     * them runs in another process, and the options are autoloaded.
+     *
+     * @phpstan-impure Another process changes the answer.
+     * @return array<string, string>
+     */
+    private static function queued() {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the cached copy is what is out of date.
-        $values = $wpdb->get_col($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name IN (%s, %s)", 'litespeed.purge.queue', 'litespeed.purge.queue2'));
-        foreach ((array) $values as $value) {
-            if ('' !== (string) $value && '-1' !== (string) $value) {
-                return true;
+        $rows   = $wpdb->get_results($wpdb->prepare("SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN (%s, %s)", self::QUEUES[0], self::QUEUES[1]));
+        $queued = array();
+        foreach ((array) $rows as $row) {
+            $value = (string) $row->option_value;
+            if ('' !== $value && '-1' !== $value) {
+                $queued[(string) $row->option_name] = $value;
             }
         }
-        return false;
+        return $queued;
     }
 
     /**
