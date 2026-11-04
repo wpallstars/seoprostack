@@ -27,9 +27,6 @@ final class SEOProStack_Keep_Cached_Pages {
     const NETWORK_MAIN_MAX = 10;
     const NETWORK_MORE_MAX = 25;
 
-    /** Most sites filled on a network. */
-    const NETWORK_SITES = 200;
-
     /** Most addresses at once. */
     const MAX = 1000;
 
@@ -41,9 +38,26 @@ final class SEOProStack_Keep_Cached_Pages {
      */
     public static function to_open($network) {
         if ($network && is_multisite()) {
-            return self::network();
+            return self::network(0, 0, 0, 0)['urls'];
         }
         return self::of_site(self::MAIN_MAX, SEOProStack_Keep_Cached_Requests::covered() ? self::MAIN_MAX : self::MORE_MAX);
+    }
+
+    /**
+     * Plan network sites until the batch budget or queue capacity is reached.
+     *
+     * @param bool  $network Every site of the network.
+     * @param int   $site    Network site ID to plan next.
+     * @param float $start   Batch start time.
+     * @param int   $budget  Batch time budget.
+     * @param int   $waiting Addresses already waiting.
+     * @return array{urls:string[],blogs:array<string,int>,site:int,done:bool}
+     */
+    public static function plan_network($network, $site, $start, $budget, $waiting) {
+        if ($network && is_multisite()) {
+            return self::network($site, $start, $budget, $waiting);
+        }
+        return array('urls' => self::to_open(false), 'blogs' => array(), 'site' => 0, 'done' => true);
     }
 
     /**
@@ -105,23 +119,50 @@ final class SEOProStack_Keep_Cached_Pages {
      * Pages of every site of the network where Keep pages cached is on and
      * a page cache is kept, each site's worked out on that site.
      *
-     * @return string[]
+     * @param int   $site    Network site ID to plan next.
+     * @param float $start   Batch start time.
+     * @param int   $budget  Batch time budget.
+     * @param int   $waiting Addresses already waiting.
+     * @return array{urls:string[],blogs:array<string,int>,site:int,done:bool}
      */
-    private static function network() {
-        $urls = array();
-        foreach (get_sites(array('fields' => 'ids', 'number' => self::NETWORK_SITES, 'archived' => 0, 'deleted' => 0, 'spam' => 0)) as $id) {
-            if (count($urls) >= self::MAX) {
-                break;
+    private static function network($site, $start, $budget, $waiting) {
+        $urls  = array();
+        $blogs = array();
+        while (self::NETWORK_MORE_MAX <= self::MAX - $waiting - count($urls) && (!$start || microtime(true) - $start < $budget)) {
+            $id = self::next_site($site);
+            if (!$id) {
+                self::rewrite_init();
+                return array('urls' => $urls, 'blogs' => $blogs, 'site' => 0, 'done' => true);
             }
-            switch_to_blog((int) $id);
+            switch_to_blog($id);
             self::rewrite_init();
             if (self::fills_here()) {
-                $urls = array_merge($urls, self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MORE_MAX));
+                foreach (self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MORE_MAX) as $url) {
+                    $urls[]       = $url;
+                    $blogs[$url] = $id;
+                }
             }
             restore_current_blog();
+            $site = self::next_site($id + 1);
+            if (!$site) {
+                self::rewrite_init();
+                return array('urls' => $urls, 'blogs' => $blogs, 'site' => 0, 'done' => true);
+            }
         }
         self::rewrite_init();
-        return $urls;
+        return array('urls' => $urls, 'blogs' => $blogs, 'site' => $site, 'done' => false);
+    }
+
+    /**
+     * The next active site in this network after an ID.
+     *
+     * @param int $after Site ID to start at or after.
+     * @return int
+     */
+    private static function next_site($after) {
+        global $wpdb;
+        $query = $wpdb->prepare("SELECT blog_id FROM {$wpdb->blogs} WHERE site_id = %d AND blog_id >= %d AND archived = 0 AND deleted = 0 AND spam = 0 ORDER BY blog_id ASC LIMIT 1", get_current_network_id(), $after); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->blogs is WordPress's table name.
+        return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- a bounded, indexed site cursor avoids offset scans on large networks.
     }
 
     /**
