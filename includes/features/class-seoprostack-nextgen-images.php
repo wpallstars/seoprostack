@@ -1367,6 +1367,18 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * A background picture's CSS value naming its copies, image-set() as
+     * css_image_sets() writes it for Kadence Blocks rows, when pages name
+     * copies; '' when they do not or it has none (GH#1221).
+     *
+     * @param string $url Picture address.
+     * @return string
+     */
+    public static function background_set($url) {
+        return self::names_copies() && is_string($url) ? self::image_set($url) : '';
+    }
+
+    /**
      * A background picture's copies, best first, as address and MIME type,
      * among the formats switched on. None when an address could not go in
      * CSS's url('…') as it is.
