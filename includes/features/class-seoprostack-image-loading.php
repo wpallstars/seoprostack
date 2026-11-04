@@ -16,7 +16,8 @@
  *
  * When a post or page opens with a Kadence Blocks row with a background
  * picture, the picture is preloaded at high priority from the head
- * (GH#1204), as browsers otherwise find backgrounds only after the CSS.
+ * (GH#1204), as browsers otherwise find backgrounds only after the CSS;
+ * at the size the screen needs when it has smaller copies (GH#1221).
  *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
@@ -71,7 +72,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Image loading', 'seoprostack'),
-                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, with the page.', 'seoprostack'),
+                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, at the size the screen needs.', 'seoprostack'),
                 'replaces'    => array('nazy-load' => 'Flying Images'),
             ),
             'image_loading_eager' => array(
@@ -146,7 +147,10 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * first), fetch the picture with the page at high priority (GH#1204).
      * Browsers otherwise find a background only once the CSS is in, so on
      * a hero row it was often the page's slowest paint (LCP). The AVIF or
-     * WebP copy when pages name copies, as the row's CSS then does.
+     * WebP copy when pages name copies, as the row's CSS then does. When the
+     * picture has smaller copies of the same proportions, the browser
+     * measures the row and fetches the smallest that is enough instead,
+     * never less sharp (SEOProStack_Kadence_Hero, GH#1221).
      *
      * Left alone, so no device fetches a picture it does not show: rows
      * hidden on a device, with their own tablet or phone background, a
@@ -177,15 +181,20 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if ('' === $url) {
             return;
         }
-        $type = '';
-        if (class_exists('SEOProStack_Nextgen_Images')) {
-            list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
+        // The size each screen needs, when the picture has smaller copies:
+        // the browser measures the row and preloads it (GH#1221).
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-hero.php';
+        if (!SEOProStack_Kadence_Hero::start($blocks[0]['attrs'], $post)) {
+            $type = '';
+            if (class_exists('SEOProStack_Nextgen_Images')) {
+                list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
+            }
+            printf(
+                '<link rel="preload" as="image" href="%s"%s fetchpriority="high">' . "\n",
+                esc_url($url),
+                '' !== $type ? ' type="' . esc_attr($type) . '"' : ''
+            );
         }
-        printf(
-            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">' . "\n",
-            esc_url($url),
-            '' !== $type ? ' type="' . esc_attr($type) . '"' : ''
-        );
         // One picture at high priority: core would otherwise give it to the
         // first large picture it meets, often the header's logo.
         self::$high_priority = true;

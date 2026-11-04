@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.149
+Stable tag: 1.3.150
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,13 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Faster: Keep pages cached fills the header's pages first, then the footer's, the home page's links and the rest of the site (#1224).
-* Faster: cloud storage removes many imported pictures' local copies in one pass (#1223).
-
-= 1.3.149 =
-* Faster: watermarks, WebP/AVIF copies and cloud uploads run at once (#1196).
-* Faster: Used CSS also covers Kadence's local fonts and Kadence Pro's dark mode script (#1218).
-* Fix: cloud storage waits for a new upload's watermark (#1220).
+= 1.3.150 =
+* Faster: Keep pages cached fills the header's links first, then the footer's (#1224).
+* Faster: cloud storage removes many pictures' local copies at once (#1223).
+* Faster: a Kadence hero background comes at the size each screen needs (#1221).
 
 Older: `changelog.txt`.
