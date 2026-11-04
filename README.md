@@ -97,7 +97,7 @@ the format is in `site-templates/README.md`.
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
 - **Security:** Email protection, Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
-- **Speed:** Recommended speed settings, Load pages before the click, Keep pages cached (nothing happens without LiteSpeed Cache or WP-Optimize's page cache), Load the CSS each page uses first (off by default; for Kadence, Kadence Blocks and Fluent Forms), Image loading, Remove WordPress extras, Lighter WooCommerce pages, Faster editor with Kadence Blocks, Faster Kadence icon picker and Leave out Rank Math’s stats bar (the last four do nothing without those plugins).
+- **Speed:** Recommended speed settings, Load pages before the click, Keep pages cached (nothing happens without LiteSpeed Cache or WP-Optimize's page cache), Load the CSS each page uses first (off by default; for Kadence, Kadence Blocks and Fluent Forms), Image loading, Remove WordPress extras, Lighter WooCommerce pages, Faster editor with Kadence Blocks, Faster Kadence icon picker, Leave out Rank Math’s stats bar and Load Fluent Forms’ Turnstile when a form comes near (the last five do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first; Keep recommended settings, off by default, applies them on its own) and Plugins menu in the admin bar.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Editors use the business plugins, Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen, Avatars without Gravatar and Kadence author box fields (nothing changes without the Kadence theme).
@@ -843,7 +843,7 @@ WordPress keeps every revision of every post. This keeps the newest few (10 by d
 
 On by default; it changes nothing until you click. Below the Speed tab’s settings, a plan from this site’s own size and plugins: which of SEO Pro Stack’s speed and server settings to turn on, why for this site, and what each costs, with the reason when one is not recommended here.
 
-- Recommended when turned off here: the features on by default because they are safe on any site (Load plugins only where needed, Load pages before the click, Keep pages cached with LiteSpeed Cache or WP-Optimize's page cache, Image loading, Remove WordPress extras, Fewer Heartbeat requests, Clean the database weekly; Lighter WooCommerce pages with WooCommerce, Faster editor with Kadence Blocks and Faster Kadence icon picker with Kadence Blocks, Leave out Rank Math’s stats bar with Rank Math, Load large settings only where they are used on single sites).
+- Recommended when turned off here: the features on by default because they are safe on any site (Load plugins only where needed, Load pages before the click, Keep pages cached with LiteSpeed Cache or WP-Optimize's page cache, Image loading, Remove WordPress extras, Fewer Heartbeat requests, Clean the database weekly; Lighter WooCommerce pages with WooCommerce, Faster editor with Kadence Blocks and Faster Kadence icon picker with Kadence Blocks, Leave out Rank Math’s stats bar with Rank Math, Load Fluent Forms’ Turnstile when a form comes near with Fluent Forms, Load large settings only where they are used on single sites).
 - Recommended where the Kadence theme, Kadence Blocks or Fluent Forms is active: **Load the CSS each page uses first**.
 - Recommended from the site’s size, using the database’s own row estimates: **Remember admin counts** from about 100,000 comments or posts-table entries without a persistent object cache; **Faster page counts on long lists** from about 50,000 posts-table entries; **Count terms and comments in the background** from 1,000 products or about 100,000 category and tag links; **Add database keys** from about 500,000 custom field rows (it then offers the keys under **Tools → Add database keys**, each added only on click there).
 - Not in the plan, as they need your choices: Delay scripts until interaction and Delayed Google Analytics.
@@ -888,6 +888,12 @@ On a test page with Kadence's header, Kadence Blocks rows, tabs and an accordion
 ### Delay scripts until interaction (Speed)
 
 Scripts whose tag or code contains a keyword you list (for example a chat widget) are held back until the visitor moves, scrolls, taps or types, or until a time limit passes, then run in their original order. Pages can be excluded by address. Add `data-seoprostack-nodelay` to a script tag to never delay it. Logged-in users, previews and feeds are not affected.
+
+### Load Fluent Forms’ Turnstile when a form comes near (Speed)
+
+On by default (#1210). Fluent Forms adds Cloudflare Turnstile to every page with a form that uses it, and each form's widget then loads a Cloudflare challenge of about 213 KB, plus Turnstile's own 28 KB script, competing with the top of the page even when the form is far down it or in a closed modal. Instead, a small script in its place loads Turnstile when a form with it comes within 600 px of the screen (so also when a modal with one opens) or one of its fields gets focus, as when someone tabs into it. Fluent Forms then shows the widgets as before. A form in the first screen loads it straight away. If someone submits before Turnstile has answered, Fluent Forms asks them to try again, as it does whenever Turnstile has no answer yet.
+
+Only Fluent Forms' own Turnstile script in its standard forms, from Fluent Forms 6.2.17, which waits for a script that arrives later; with older versions, conversational forms and other plugins' Turnstile, nothing changes. reCAPTCHA and hCaptcha are not changed.
 
 ### Delayed Google Analytics (Speed)
 
@@ -2356,6 +2362,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- Faster, on by default: **Load Fluent Forms’ Turnstile when a form comes near** (Speed). Fluent Forms loads Cloudflare Turnstile, a challenge of about 213 KB for each form, with every page that has a form using it, even when the form is far down the page or in a closed modal. It now loads when a form comes near the screen or one of its fields gets focus, so the top of the page loads first. Needs Fluent Forms 6.2.17 or later (#1210).
 
 ### 1.3.147
 
