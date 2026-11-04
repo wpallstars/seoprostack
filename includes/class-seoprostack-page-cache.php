@@ -88,6 +88,33 @@ final class SEOProStack_Page_Cache {
     }
 
     /**
+     * Purge every cached page now, as after an update: a setting changed
+     * what every page holds. A cache plugin that is active but not loaded
+     * on this request ("Load plugins only where needed") is purged on the
+     * next request that loads it.
+     *
+     * @since 1.3.145
+     */
+    public static function purge_all() {
+        $left = array();
+        foreach (self::CACHES as $file => $method) {
+            if (SEOProStack_Plugin_Loader::is_active($file) && !self::$method()) {
+                $left[] = $file;
+            }
+        }
+        if (!$left) {
+            return;
+        }
+        $state   = get_option(self::OPTION, array());
+        $state   = is_array($state) ? $state : array();
+        $waiting = isset($state['waiting']) ? (array) $state['waiting'] : array();
+        update_option(self::OPTION, array(
+            'version' => isset($state['version']) ? $state['version'] : SEOPROSTACK_VERSION,
+            'waiting' => array_values(array_unique(array_merge($waiting, $left))),
+        ), true);
+    }
+
+    /**
      * Purge the cached pages of these posts only, through each cache's own
      * code: LiteSpeed Cache's litespeed_purge_post (which also purges the
      * archives its settings list), or for an attachment's page its post tag,
