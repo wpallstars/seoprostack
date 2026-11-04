@@ -82,7 +82,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'unit'        => __('pictures', 'seoprostack'),
                 'parent'      => self::KEY,
                 'label'       => __('Load straight away', 'seoprostack'),
-                'description' => __('The first pictures on a post or page load without waiting, so what shows first is not delayed. A featured image counts as the first. WordPress’s default is 3; 0 lazy-loads them all.', 'seoprostack'),
+                'description' => __('The first pictures on a post or page load without waiting, so what shows first is not delayed. A featured image, or the background picture of a Kadence Blocks row the page opens with, counts as the first. WordPress’s default is 3; 0 lazy-loads them all.', 'seoprostack'),
             ),
             'image_loading_exclude' => array(
                 'type'        => 'lines',
@@ -182,6 +182,10 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         // One picture at high priority: core would otherwise give it to the
         // first large picture it meets, often the header's logo.
         self::$high_priority = true;
+        // The row is the top of the page: its picture is the first of those
+        // that load straight away, as a featured image is, so one fewer
+        // picture below it competes with it.
+        ++self::$pictures;
         if (function_exists('wp_high_priority_element_flag')) {
             wp_high_priority_element_flag(false);
         }
