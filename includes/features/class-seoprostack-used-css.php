@@ -24,10 +24,12 @@
  * SEOProStack_Used_Css_Links.
  *
  * Steps aside where LiteSpeed Cache combines CSS or makes its own unused or
- * critical CSS; other plugins that rewrite stylesheet addresses (minify)
- * leave nothing for it to match. Turning it on or off, or changing its
- * lists, empties the page cache (SEOProStack_Page_Cache), and Keep pages
- * cached fills it again.
+ * critical CSS, and where a content security policy blocks its inline
+ * `<style>` or onload (SEOProStack_Used_Css_Policy); other plugins that
+ * rewrite stylesheet addresses (minify) leave nothing for it to match.
+ * Turning it on or off, or changing its lists, empties LiteSpeed Cache's or
+ * WP-Optimize's page cache (SEOProStack_Page_Cache), and Keep pages cached
+ * fills it again.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -47,6 +49,7 @@ require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-parser.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-sheet.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-links.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-match.php';
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-page.php';
 
 class SEOProStack_Used_Css extends SEOProStack_Feature {
@@ -67,7 +70,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'speed',
                 'label'       => __('Load the CSS each page uses first', 'seoprostack'),
-                'description' => __('For the Kadence theme, Kadence Blocks, Fluent Forms and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties the page cache. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
+                'description' => __('For the Kadence theme, Kadence Blocks, Fluent Forms and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
             ),
             self::EXCLUDE_KEY => array(
                 'type'        => 'lines',
@@ -140,7 +143,8 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
      * @return array{state:string,why:string,cost:string}
      */
     public static function plan() {
-        if (!self::kadence_theme() && !defined('KADENCE_BLOCKS_VERSION') && !defined('FLUENTFORM')) {
+        // Active plugins as stored: one skipped on this screen still counts.
+        if (!self::kadence_theme() && !array_intersect_key(self::active_plugins(), array_flip(SEOProStack_Used_Css_Links::PLUGINS))) {
             return array('state' => 'skip', 'why' => __('For the Kadence theme, Kadence Blocks or Fluent Forms, none of which is active.', 'seoprostack'), 'cost' => '');
         }
         return array(

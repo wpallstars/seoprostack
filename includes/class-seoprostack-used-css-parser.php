@@ -8,8 +8,8 @@
  * or an element) or `['g' => '@media ...', 'c' => rules]`. Rules in
  * `@media`, `@supports`, `@container`, `@layer` and `@scope` are read the
  * same way; `@font-face`, `@keyframes` and the like, and `@import` and
- * `@layer` statements, are always kept. Relative url()s become absolute
- * from the site's root, as the rules move into the page.
+ * `@layer` statements, are always kept. Relative url()s and @import paths
+ * become absolute from the site's root, as the rules move into the page.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -29,6 +29,18 @@ final class SEOProStack_Used_Css_Parser {
     /** Blocks whose rules are read one by one. */
     const GROUPS = '/^@(?:media|supports|container|layer|scope)\b/i';
 
+    /**
+     * A quoted string, escapes and all. Possessive, so long strings such as
+     * data: URIs stay within PCRE's stack.
+     */
+    const QUOTED = '(["\'])(?:\\\\.|(?!\1)[^\\\\])*+\1';
+
+    /** A string (kept) or a comment. */
+    const COMMENTS = '~' . self::QUOTED . '|/\*.*?\*/~s';
+
+    /** A string (kept) or a run of white space. */
+    const SPACES = '~' . self::QUOTED . '|\s+~';
+
     /** Folder (URL path) of the stylesheet, for its url()s. */
     private $base;
 
@@ -40,9 +52,8 @@ final class SEOProStack_Used_Css_Parser {
      * @return array|null Null when it cannot be read, so it is left as it is.
      */
     public static function parse($css, $base = '') {
-        // Comments out, strings kept (a string may hold "/*"). Possessive, so
-        // long strings such as data: URIs stay within PCRE's stack.
-        $css = preg_replace_callback('~(["\'])(?:\\\\.|(?!\1)[^\\\\])*+\1|/\*.*?\*/~s', function ($m) {
+        // Comments out, strings kept (a string may hold "/*").
+        $css = preg_replace_callback(self::COMMENTS, function ($m) {
             return '/' === $m[0][0] ? '' : $m[0];
         }, (string) $css);
         if (!is_string($css)) {
@@ -106,6 +117,10 @@ final class SEOProStack_Used_Css_Parser {
         if (';' !== $end || !preg_match('/^@(?!charset\b)/i', $prelude)) {
             return array();
         }
+        // @import "file.css": relative to the stylesheet, as url() is.
+        $prelude = (string) preg_replace_callback('/^(@import\s+)(["\'])([^"\']*)\2/i', function ($m) {
+            return $m[1] . '"' . str_replace('"', '%22', $this->absolute($m[3])) . '"';
+        }, $prelude);
         return array(array('k' => $this->urls($prelude) . ';'));
     }
 
@@ -117,7 +132,11 @@ final class SEOProStack_Used_Css_Parser {
      * @return array
      */
     private function node($prelude, $body) {
-        $prelude = (string) preg_replace('/\s+/', ' ', $prelude);
+        // White space on one line, but as it is inside strings ([title="a  b"]).
+        $spaced  = preg_replace_callback(self::SPACES, function ($m) {
+            return '"' === $m[0][0] || '\'' === $m[0][0] ? $m[0] : ' ';
+        }, $prelude);
+        $prelude = is_string($spaced) ? $spaced : $prelude;
         if ('@' !== $prelude[0]) {
             return $this->rule($prelude, $body);
         }
@@ -159,12 +178,24 @@ final class SEOProStack_Used_Css_Parser {
             return $css;
         }
         return (string) preg_replace_callback('/url\(\s*([\'"]?)([^\'")]+)\1\s*\)/i', function ($m) {
-            $url = trim($m[2]);
-            if (preg_match('#^(?:[a-z][a-z0-9+.-]*:|/|\#)#i', $url)) {
-                return $m[0];
-            }
-            return 'url("' . str_replace('"', '%22', self::resolve($this->base . '/' . $url)) . '")';
+            $url = $this->absolute($m[2]);
+            return trim($m[2]) === $url ? $m[0] : 'url("' . str_replace('"', '%22', $url) . '")';
         }, $css);
+    }
+
+    /**
+     * An address relative to the stylesheet, from the site's root; any other
+     * (with a scheme, from the root, or #fragment) as it is.
+     *
+     * @param string $url Address.
+     * @return string
+     */
+    private function absolute($url) {
+        $url = trim($url);
+        if ('' === $this->base || '' === $url || preg_match('#^(?:[a-z][a-z0-9+.-]*:|/|\#)#i', $url)) {
+            return $url;
+        }
+        return self::resolve($this->base . '/' . $url);
     }
 
     /**

@@ -22,8 +22,12 @@ if (!defined('ABSPATH')) {
 
 final class SEOProStack_Used_Css_Page {
 
-    /** Comments, scripts and the like are passed over: links there are not the page's. */
-    const TAGS = '#<!--.*?-->|<(script|noscript|template|textarea)\b[^>]*>.*?</\1\s*>|<link\b[^>]*>#is';
+    /**
+     * Comments, scripts and the like are passed over: links there are not the
+     * page's. A link ends at the first `>` outside quotes; a quoted value
+     * holding `<` (or never closed) leaves the link as it is.
+     */
+    const TAGS = '#<!--.*?-->|<(script|noscript|template|textarea)\b[^>]*>.*?</\1\s*>|<link\b(?:[^>"\']++|"[^"<]*+"|\'[^\'<]*+\')*+>#is';
 
     /** Which rules this page can use. */
     private $match;
@@ -45,7 +49,7 @@ final class SEOProStack_Used_Css_Page {
      * @return string
      */
     public static function rewrite($html) {
-        if (false === stripos($html, '<link') || !self::is_html($html)) {
+        if (false === stripos($html, '<link') || !self::is_html($html) || !SEOProStack_Used_Css_Policy::allows($html)) {
             return $html;
         }
         $page = new self($html);
@@ -113,7 +117,7 @@ final class SEOProStack_Used_Css_Page {
      */
     private function link($tag) {
         $attrs = SEOProStack_Used_Css_Links::attributes($tag);
-        $media = isset($attrs['media']) ? trim($attrs['media']) : 'all';
+        $media = isset($attrs['media']) ? trim((string) preg_replace('/\s+/', ' ', $attrs['media'])) : 'all';
         if (!SEOProStack_Used_Css_Links::candidate($attrs, $media)) {
             return $tag;
         }

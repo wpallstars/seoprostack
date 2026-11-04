@@ -53,7 +53,8 @@ final class SEOProStack_Used_Css_Selector {
     }
 
     /**
-     * A selector list's selectors (commas inside brackets kept).
+     * A selector list's selectors (commas inside brackets, and escaped ones
+     * such as the one in `.a\,b`, kept).
      *
      * @param string $list Selector list.
      * @return string[]
@@ -63,7 +64,8 @@ final class SEOProStack_Used_Css_Selector {
         $depth = 0;
         $start = 0;
         $len   = strlen($list);
-        for ($i = 0; $i < $len; $i++) {
+        $i     = 0;
+        while ($i < $len) {
             $ch = $list[$i];
             if ('(' === $ch || '[' === $ch) {
                 $depth++;
@@ -73,6 +75,7 @@ final class SEOProStack_Used_Css_Selector {
                 $parts[] = substr($list, $start, $i - $start);
                 $start   = $i + 1;
             }
+            $i += '\\' === $ch ? 2 : 1; // An escape takes the next character with it.
         }
         $parts[] = substr($list, $start);
         return $parts;

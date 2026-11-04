@@ -61,8 +61,9 @@ final class SEOProStack_Used_Css_Links {
         if (isset($attrs['onload']) || isset($attrs['disabled'])) {
             return false;
         }
-        // Media goes into a script attribute: plain media queries only; print never held up the page.
-        return (bool) preg_match('/^[\w\s(),:.\/-]+$/', $media) && 'print' !== strtolower($media);
+        // Media goes into a script string: plain media queries with plain
+        // spaces only (a line break would end the string); print never held up the page.
+        return (bool) preg_match('/^[\w (),:.\/-]+$/', $media) && 'print' !== strtolower($media);
     }
 
     /**
@@ -114,7 +115,7 @@ final class SEOProStack_Used_Css_Links {
         if (!is_array($parts) || empty($parts['path'])) {
             return '';
         }
-        if (!empty($parts['host']) && !self::local_host($parts['host'])) {
+        if (!empty($parts['host']) && !self::local_host($parts)) {
             return '';
         }
         $path = rawurldecode($parts['path']);
@@ -122,19 +123,40 @@ final class SEOProStack_Used_Css_Links {
     }
 
     /**
-     * Whether a host is this site's.
+     * Whether an address's host and port are this site's.
      *
-     * @param string $host Host.
+     * @param array $parts Address parts (wp_parse_url()), with a host.
      * @return bool
      */
-    private static function local_host($host) {
-        $host = strtolower($host);
+    private static function local_host(array $parts) {
+        $host = strtolower($parts['host']);
+        $port = self::port($parts);
         foreach (array(home_url(), site_url(), content_url()) as $url) {
-            if (strtolower((string) wp_parse_url($url, PHP_URL_HOST)) === $host) {
+            $site = wp_parse_url($url);
+            if (!is_array($site) || empty($site['host']) || strtolower($site['host']) !== $host) {
+                continue;
+            }
+            // An address without a scheme (//host/...) uses the page's, so its port is the site's.
+            if (null === $port || self::port($site) === $port) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * An address's port: its own, or its scheme's.
+     *
+     * @param array $parts Address parts (wp_parse_url()).
+     * @return int|null Null when it has neither.
+     */
+    private static function port(array $parts) {
+        if (!empty($parts['port'])) {
+            return (int) $parts['port'];
+        }
+        $ports  = array('http' => 80, 'https' => 443);
+        $scheme = isset($parts['scheme']) ? strtolower($parts['scheme']) : '';
+        return isset($ports[$scheme]) ? $ports[$scheme] : null;
     }
 
     /**

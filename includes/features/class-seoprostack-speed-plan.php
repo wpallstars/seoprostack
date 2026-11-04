@@ -137,6 +137,9 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
         $schema = SEOProStack_Settings::schema();
         $sizes  = self::sizes();
         $items  = array();
+        // Active plugins as stored: Load plugins only where needed may skip
+        // one on this screen, or on the request that applies the plan.
+        $active = self::active_plugins();
 
         // On by default, as they are safe on any site: key => whether it
         // applies here, and why not.
@@ -146,10 +149,10 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'keep_pages_cached'         => array('' !== SEOProStack_Keep_Pages_Cached::page_cache(), __('For LiteSpeed Cache on a LiteSpeed server, or WP-Optimize’s page cache: neither is on.', 'seoprostack')),
             'image_loading'             => array(true, ''),
             'wp_extras'                 => array(true, ''),
-            'woo_light'                 => array(class_exists('WooCommerce', false), __('For shops: WooCommerce is not active.', 'seoprostack')),
-            'kadence_library_on_demand' => array(defined('KADENCE_BLOCKS_VERSION'), __('For Kadence Blocks, which is not active.', 'seoprostack')),
-            'kadence_icon_picker'       => array(defined('KADENCE_BLOCKS_VERSION'), __('For Kadence Blocks, which is not active.', 'seoprostack')),
-            'rank_math_no_stats_bar'    => array(did_action('rank_math/loaded') > 0, __('For Rank Math, which is not active.', 'seoprostack')),
+            'woo_light'                 => array(isset($active['woocommerce']), __('For shops: WooCommerce is not active.', 'seoprostack')),
+            'kadence_library_on_demand' => array(isset($active['kadence-blocks']), __('For Kadence Blocks, which is not active.', 'seoprostack')),
+            'kadence_icon_picker'       => array(isset($active['kadence-blocks']), __('For Kadence Blocks, which is not active.', 'seoprostack')),
+            'rank_math_no_stats_bar'    => array(isset($active['seo-by-rank-math']), __('For Rank Math, which is not active.', 'seoprostack')),
             'heartbeat_limit'           => array(true, ''),
             'database_cleanup'          => array(true, ''),
             'autoload_options'          => array(!is_multisite(), __('For single sites.', 'seoprostack')),
