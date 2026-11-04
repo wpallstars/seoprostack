@@ -18,9 +18,9 @@
  *   crawl, up to a day away (SEOProStack_Litespeed_Crawler);
  * - and WP-Optimize's own preload, as its Purge button schedules it, where
  *   its preload after purge or scheduled preload is on.
- * After a post is published, updated or unpublished, its page and the home
- * page are opened again a minute later (LiteSpeed Cache; WP-Optimize does
- * that itself with preload after purge on).
+ * After a post is published or updated, its page and the home page are
+ * opened again a minute later; after it is unpublished, the home page
+ * (LiteSpeed Cache; WP-Optimize does that itself with preload after purge on).
  *
  * On a network, a purge of every site (Network Admin, updates, as LiteSpeed
  * Cache decides it; any WP-Optimize purge) fills each site's main pages,
@@ -135,8 +135,8 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     }
 
     /**
-     * A post was published, updated or unpublished: open its page and the
-     * home page again once the cache has dropped them. WP-Optimize with its
+     * A post was published, updated or unpublished: open the home page, and
+     * its page while published, again once the cache has dropped them. WP-Optimize with its
      * preload after purge on does that itself.
      *
      * @param string  $new  New status.
@@ -228,6 +228,6 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             SEOProStack_Keep_Cached_Requests::open($url, $mobile);
             $opened[] = $url;
         }
-        SEOProStack_Keep_Cached_Queue::done($opened);
+        SEOProStack_Keep_Cached_Queue::done($opened, (int) floor($start));
     }
 }

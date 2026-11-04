@@ -39,15 +39,17 @@ final class SEOProStack_Keep_Cached_Queue {
     /**
      * Pages waiting, with defaults.
      *
-     * @return array urls, full (work out the pages first), network (for every site),
-     *               crawl (start LiteSpeed Cache's crawler after), since (first purge
-     *               not yet worked out), purges (count), opened (count).
+     * @return array urls, added (address => when a saved post queued it), full (work
+     *               out the pages first), network (for every site), crawl (start
+     *               LiteSpeed Cache's crawler after), since (first purge not yet
+     *               worked out), purges (count), opened (count).
      */
     public static function get() {
         $queue = get_option(self::OPTION, array());
-        $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'since' => 0, 'purges' => 0, 'opened' => 0);
+        $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'added' => array(), 'since' => 0, 'purges' => 0, 'opened' => 0);
         return array(
             'urls'    => array_values(array_filter((array) $queue['urls'], 'is_string')),
+            'added'   => array_map('intval', (array) $queue['added']),
             'full'    => !empty($queue['full']),
             'network' => !empty($queue['network']),
             'crawl'   => !empty($queue['crawl']),
@@ -82,6 +84,9 @@ final class SEOProStack_Keep_Cached_Queue {
     public static function add(array $urls, $delay) {
         $queue         = self::get();
         $queue['urls'] = self::merge($queue['urls'], $urls);
+        foreach ($urls as $url) {
+            $queue['added'][$url] = time();
+        }
         self::save($queue, $delay, false);
     }
 
@@ -93,7 +98,8 @@ final class SEOProStack_Keep_Cached_Queue {
      * @param bool  $later Move a batch due sooner to $delay, so it runs after this purge reached the cache.
      */
     private static function save(array $queue, $delay, $later) {
-        $queue['urls'] = array_slice($queue['urls'], 0, SEOProStack_Keep_Cached_Pages::MAX);
+        $queue['urls']  = array_slice($queue['urls'], 0, SEOProStack_Keep_Cached_Pages::MAX);
+        $queue['added'] = array_intersect_key($queue['added'], array_flip($queue['urls']));
         update_option(self::OPTION, $queue, false);
         $next = wp_next_scheduled(self::HOOK);
         if ($next && $later && $next < time() + $delay) {
@@ -126,14 +132,20 @@ final class SEOProStack_Keep_Cached_Queue {
 
     /**
      * After a batch: take the opened pages off the queue as it is now (a
-     * purge or a saved post may have changed it meanwhile), then schedule
-     * the next batch, or start LiteSpeed Cache's crawler when all are done.
+     * purge or a saved post may have changed it meanwhile), except pages a
+     * post saved since the batch began queued again, as the batch may have
+     * opened them before the save; then schedule the next batch, or start
+     * LiteSpeed Cache's crawler when all are done.
      *
      * @param string[] $opened Pages opened.
+     * @param int      $began  When the batch began.
      */
-    public static function done(array $opened) {
-        $latest            = self::get();
-        $latest['urls']    = array_values(array_diff($latest['urls'], $opened));
+    public static function done(array $opened, $began) {
+        $latest = self::get();
+        $again  = array_keys(array_filter($latest['added'], static function ($time) use ($began) {
+            return $time >= $began;
+        }));
+        $latest['urls']    = array_values(array_diff($latest['urls'], array_diff($opened, $again)));
         $latest['opened'] += count($opened);
         if ($latest['urls'] || $latest['full']) {
             self::save($latest, self::GAP, false);

@@ -66,8 +66,11 @@ final class SEOProStack_Keep_Cached_CLI {
             WP_CLI::log($url . ' ' . implode(' | ', $answers));
         }
         if (!$network && SEOProStack_Keep_Cached_Requests::litespeed_crawler() && class_exists('SEOProStack_Litespeed_Crawler')) {
-            SEOProStack_Litespeed_Crawler::start();
-            WP_CLI::log('LiteSpeed Cache crawler started.');
+            if (SEOProStack_Litespeed_Crawler::start()) {
+                WP_CLI::log('LiteSpeed Cache crawler started.');
+            } else {
+                WP_CLI::warning('LiteSpeed Cache crawler not started: LiteSpeed Cache is not loaded in this run.');
+            }
         }
         WP_CLI::success(sprintf('%d pages opened.', count($urls)));
     }

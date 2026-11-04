@@ -83,16 +83,21 @@ final class SEOProStack_Keep_Cached_Requests {
     }
 
     /**
-     * One of WP-Optimize's page cache settings, through its own code.
+     * One of WP-Optimize's page cache settings, through its own code; when
+     * "Load plugins only where needed" skipped it on this request, from the
+     * option its code reads (a network option on multisite).
      *
      * @param string $key Setting.
      * @return bool
      */
     private static function wp_optimize_config($key) {
-        if (!class_exists('WPO_Cache_Config') || !is_callable(array('WPO_Cache_Config', 'instance'))) {
+        if (class_exists('WPO_Cache_Config') && is_callable(array('WPO_Cache_Config', 'instance'))) {
+            $config = WPO_Cache_Config::instance()->get();
+        } elseif (SEOProStack_Plugin_Loader::is_active('wp-optimize/wp-optimize.php') || SEOProStack_Plugin_Loader::is_active('wp-optimize-premium/wp-optimize.php')) {
+            $config = is_multisite() ? get_site_option('wpo_cache_config') : get_option('wpo_cache_config');
+        } else {
             return false;
         }
-        $config = WPO_Cache_Config::instance()->get();
         return is_array($config) && !empty($config[$key]);
     }
 

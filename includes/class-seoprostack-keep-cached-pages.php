@@ -186,7 +186,8 @@ final class SEOProStack_Keep_Cached_Pages {
             return false;
         }
         $path = isset($parts['path']) ? $parts['path'] : '/';
-        return !preg_match('#/(wp-admin|wp-login\.php|feed)(/|$)#', $path) && !preg_match('/\.[a-z0-9]{2,5}$/i', $path);
+        // Files are skipped; .html and .htm stay, as permalinks can end in them.
+        return !preg_match('#/(wp-admin|wp-login\.php|feed)(/|$)#', $path) && !preg_match('/\.(?!html?$)[a-z0-9]{2,5}$/i', $path);
     }
 
     /**
