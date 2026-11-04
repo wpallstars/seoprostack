@@ -2366,6 +2366,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Faster: **Keep pages cached** opens pages in the order visitors reach them: the home page, the pages in the header's menus and links, then the footer's, then the home page's other links (Kadence buttons, info boxes and post lists included), then the rest of the site. Where neither LiteSpeed Cache's crawler nor WP-Optimize's preload is on, it opens the rest itself, up to 1,000 pages, instead of the newest 50; WP-Optimize's preload now starts after these pages instead of competing with them (#1224).
+
 ### 1.3.149
 
 - Faster: watermarking, WebP and AVIF copies and cloud storage uploads now work on different pictures at once. While a **Watermark pictures** batch runs, only the pictures it has still to mark wait; WebP and AVIF copies are no longer made for them before their mark, and the batch no longer holds the media storage lease while it marks a picture with no mark yet, so uploads run between pictures. Sites with more than one process running background batches and cores to spare can let more than one watermark or conversion batch run at once with the `seoprostack_watermark_runners` and `seoprostack_nextgen_runners` filters (default 1, at most 8) (#1196).
