@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.144-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.145-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.144
+Version: 1.3.145
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2354,9 +2354,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.145
 
-- New, on by default: **Keep pages cached** (Speed tab). After updates, Purge All, menu or Customizer changes empty LiteSpeed Cache's or WP-Optimize's page cache, the home page, menu pages and newest posts are opened again in the background within minutes, then LiteSpeed Cache's crawler or WP-Optimize's preload starts for the rest; a published or updated post's page and the home page are opened again a minute later. `wp seoprostack keep-cached` fills it now (#1192).
+- New, on by default: **Keep pages cached** (Speed tab). After updates, Purge All, menu or Customizer changes empty LiteSpeed Cache's or WP-Optimize's page cache, the home page, menu pages and newest posts are opened again in the background within minutes, then LiteSpeed Cache's crawler or WP-Optimize's preload starts for the rest; a published or updated post's page and the home page are opened again a minute later. `wp seoprostack keep-cached` fills it now (#1192). On a network, it works through every site in steps, even past the 1,000-page queue, and opens each page through its own site's LiteSpeed Server IP (#1197).
 - New, off by default: **Keep recommended settings** (Plugins tab, under Plugin presets; on a network, apply it to every site from Network Admin). In WP-Cron, after it is switched on, after updates, after a plugin with a preset is activated and daily, it applies the presets of active plugins and SEO Pro Stack's own changed defaults, and again when a later release changes them. A setting changed by hand stays as it was set; settings visitors see (AI Engine's chatbot, Turnstile on Fluent Forms, Readabler's button and popup, Tutor LMS's course rules, Rank Math's page schema, WooCommerce's Order attribution) wait for Apply preset. The first time, features that are on by default but off on the site are switched on. Presets take a `manual` list for those settings. `wp seoprostack presets keep [--dry-run]` runs it now. Options `seoprostack_presets_kept` and `seoprostack_defaults_kept` are not autoloaded and are removed on uninstall with the cron hooks (#1193).
 - New, off by default: **Load the CSS each page uses first** (Speed tab). For the Kadence theme, Kadence Blocks, Fluent Forms and WordPress's block styles, each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, worked out on the site's own server with no cloud service. Recommended speed settings recommends it where one of those is active (#1194).
 

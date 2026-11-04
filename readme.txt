@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.144
+Stable tag: 1.3.145
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,10 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.144 =
-* Changed: Media in cloud storage uploads, checks and removes several pictures together, so a far bucket drains several times faster (#1183).
-* Changed: storage requests wait on the network without keeping a CPU core busy (#1184).
-* Fix: vulnerability-report licence links have their own translated "Terms" label (#1176).
-* Fix: GitHub reports stay drafts until sent, with bounded bodies and email addresses redacted (#1180).
+= 1.3.145 =
+* New (on): Keep pages cached refills the page cache after purges (#1192).
+* New: Keep recommended settings keeps presets applied (#1193).
+* New: Load the CSS each page uses first (#1194).
 
 Older: `changelog.txt`.
