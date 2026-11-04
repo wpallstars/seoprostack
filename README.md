@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.147-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.148-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.147
+Version: 1.3.148
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2363,9 +2363,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.148
 
 - Faster, on by default: **Load Fluent Forms’ Turnstile when a form comes near** (Speed). Fluent Forms loads Cloudflare Turnstile, a challenge of about 213 KB for each form, with every page that has a form using it, even when the form is far down the page or in a closed modal. It now loads when a form comes near the screen or one of its fields gets focus, so the top of the page loads first. Needs Fluent Forms 6.2.17 or later (#1210).
+- Faster: with **Watermark pictures** → **Mark new uploads**, a new upload is marked as it is made even while a media batch is running, instead of going to the background job that WebP and AVIF copies and cloud storage then waited for, so bulk imports no longer run at that job's pace. Storage still waits until the mark is done; uploads finished in the browser keep the background job (#1211).
+- Fix: with **Media in cloud storage** → **Remove local copies after upload**, a picture whose kept original another request is briefly using no longer pauses removing local copies for the whole site for an hour. That picture stays local and the next pass takes it (#1208).
 
 ### 1.3.147
 
