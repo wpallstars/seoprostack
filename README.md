@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.148-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.149-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.148
+Version: 1.3.149
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1462,7 +1462,7 @@ Adds **Replace file** to Media Library items (row action in list view, and a but
 
 Saves a smaller WebP and AVIF copy of every JPEG and PNG picture in the Media Library, and of every size of it, next to the file (`photo.jpg.webp`, `photo.jpg.avif`; WebP pictures get an AVIF copy). Browsers that accept those formats are sent the copy at the same address, so pages, the editors and the Media Library keep the original addresses and nothing else changes. Originals are never changed.
 
-- Pictures are converted in the background with WP-Cron, newest first, 20 seconds at a time: new uploads, edited and replaced pictures, and every existing picture. The settings panel shows progress; the attachment details show each copy’s size. Batches also stop in time for PHP’s time limit, which covers every WP-Cron job run in the same request, and restart it where the host allows; one batch runs at a time.
+- Pictures are converted in the background with WP-Cron, newest first, 20 seconds at a time: new uploads, edited and replaced pictures, and every existing picture. The settings panel shows progress; the attachment details show each copy’s size. Batches also stop in time for PHP’s time limit, which covers every WP-Cron job run in the same request, and restart it where the host allows. Pictures whose watermark is still to come (Watermark pictures) wait for it, so they are converted once, marked. One batch converts at a time by default; where more than one process runs batches (WP-Cron beside `wp cron event run seoprostack_nextgen_batch` loops) and the server has cores to spare, `add_filter('seoprostack_nextgen_runners', fn () => 2);` lets up to that many (at most 8) convert at once, each claiming the picture it converts (options `seoprostack_nextgen_slot_N` and `seoprostack_nextgen_claim_{ID}`, which expire if PHP stops).
 - A copy is only kept when it is smaller than the original. Animated WebP and PNG pictures are left alone. Pictures are turned upright.
 - A picture whose sizes or file change while it is converted is not recorded: WordPress saves a picture's details after each size it makes, so a conversion running beside an upload, a size regeneration or a watermark refresh could read only the first sizes. Each save changes post meta `_seoprostack_nextgen_generation`; a conversion that sees a change, or different sizes, when it finishes leaves the picture waiting, and the next one keeps the copies made (they are up to date) and lists every size. Before 1.3.115 such a picture was marked converted with some sizes missing from its record, so their copies were never sent, nor uploaded by [Media in cloud storage](#media-in-cloud-storage-media).
 - Quality: WebP 90 and AVIF 70 by default (80 and 60 in 0.10.1 and earlier; saved settings are kept). Each picture records the quality its copies were made with (post meta `_seoprostack_nextgen`), so changing a quality, or **Quality by picture size**, converts the copies of that format again in the background; copies of the other format are passed over. Copies made by 0.10.1 and earlier are made again once, because WordPress’s own default quality (86 for WebP, 82 for AVIF) replaced the setting when the format changed on save; the setting is now applied through `wp_editor_set_quality`. PNG conversion can be turned off.
@@ -1602,6 +1602,8 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 - Dry runs do not download removed pictures, write files or change the cursor, even with `--from-start`. They list candidates without animation checks; a real run checks animations. If the mark itself is missing locally, a dry run stops rather than downloading it: restore the mark first. Refreshes verify the kept original's size and SHA-256 and reuse its backup and private-bucket object, without deleting or uploading the unchanged original again.
 - Existing pictures: **Add watermark** and **Remove watermark** row and bulk actions in Media → Library (list view), the same link under **Watermark** in a picture’s details in tile view (core’s tile view has no bulk actions for plugins; it is left out of a post editor’s media window, where the link would leave the editor), or `wp seoprostack watermark-images [--remove] [--dry-run]`. Adding to a marked picture marks it again from its original with the current settings. **Mark new uploads** can be turned off to mark only chosen pictures. A bulk action works for 20 seconds, then hands the rest to a background batch, unless one is already running (the notice says how many were left).
 - Whole library, from the settings panel: **Mark every picture**, **Mark again with these settings** (after changing the watermark) and **Remove every watermark** start a background batch with WP-Cron, 20 seconds at a time, working through pictures in ID order so new uploads during the batch are included. The panel shows progress every few seconds, with **Stop**; the result stays until the next batch. One batch runs at a time. Job in option `seoprostack_watermark_job`, hook `seoprostack_watermark_batch`.
+- While a batch runs, WebP and AVIF copies and cloud storage uploads go on for every picture it has already dealt with or will leave alone; only pictures still to be marked wait for their mark, so the three no longer run one after another. A picture with no mark yet is marked without holding the media storage lease, under its own claim (`_seoprostack_watermark_claim` post meta, which expires after 10 minutes if PHP stops), so uploads and local copy removal run between pictures and leave it alone meanwhile. Pictures that already have a mark are marked again under the lease, as before.
+- More than one part of the batch can mark at once, each on its own pictures, where more than one process runs it (WP-Cron beside `wp cron event run seoprostack_watermark_batch` loops, or several WP-CLI processes) and the server has cores to spare: `add_filter('seoprostack_watermark_runners', fn () => 3);` (default 1, at most 8; runner slots in options `seoprostack_watermark_slot_1` to `_8`). Changes to the job are compare-and-swap writes, so runners, bulk actions and **Stop** never undo each other's changes.
 - Replacing a picture’s file marks the new file; deleting a picture deletes its kept original. WebP and AVIF copies are made again from marked pictures.
 - Uses Imagick or GD, whichever WordPress uses.
 - Imports Easy Watermark’s image watermark (preferring one added to new uploads): the picture, position, opacity, scale and backup choice, and switches on if Easy Watermark is active with it added to uploads. Text watermarks are not imported. Pictures Easy Watermark already marked are left alone.
@@ -2362,6 +2364,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.149
+
+- Faster: watermarking, WebP and AVIF copies and cloud storage uploads now work on different pictures at once. While a **Watermark pictures** batch runs, only the pictures it has still to mark wait; WebP and AVIF copies are no longer made for them before their mark, and the batch no longer holds the media storage lease while it marks a picture with no mark yet, so uploads run between pictures. Sites with more than one process running background batches and cores to spare can let more than one watermark or conversion batch run at once with the `seoprostack_watermark_runners` and `seoprostack_nextgen_runners` filters (default 1, at most 8) (#1196).
 
 ### 1.3.148
 

@@ -58,8 +58,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     /** WP-Cron hook for background batches. */
     const HOOK = 'seoprostack_nextgen_batch';
 
-    /** Transient: a background batch is running. */
-    const LOCK = 'seoprostack_nextgen_lock';
+    /** Option prefix of the background batch's runner slots (1 to runners()). */
+    const SLOT = 'seoprostack_nextgen_slot_';
+
+    /** Option prefix: a batch converts this attachment now (a lease row, so only one does). */
+    const CLAIM = 'seoprostack_nextgen_claim_';
 
     /** Network (site) option: sites using the rules, and the rules' status. */
     const RULES = 'seoprostack_nextgen_rules';
@@ -903,7 +906,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * list it (a source type without this format and quality signature), or
      * a running batch is converting it: run_batch() marks it done and
      * incomplete before it reads the files. A mark left by a batch that
-     * stopped PHP does not count once its lock has expired.
+     * stopped PHP does not count once its claim has expired.
      *
      * @phpstan-impure Reads meta that the conversion batch changes.
      * @param int $attachment_id Attachment ID.
@@ -920,7 +923,121 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             return true;
         }
         $record = get_post_meta($attachment_id, self::META, true);
-        return is_array($record) && !empty($record['incomplete']) && (bool) get_transient(self::LOCK);
+        return is_array($record) && !empty($record['incomplete']) && self::live_lease(self::CLAIM . $attachment_id);
+    }
+
+    /**
+     * Whether a lease row (SEOProStack_Media_Storage::lease()) is held and
+     * has not expired. Read past the options cache, as lease() does.
+     *
+     * @param string $name Option name.
+     * @return bool
+     */
+    private static function live_lease($name) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lease rows are never cached; option_name's unique index.
+        $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name));
+        return '' !== $held && (int) strtok($held, ' ') >= time();
+    }
+
+    /**
+     * Whether a background batch is running on this site.
+     *
+     * @return bool
+     */
+    private static function running() {
+        for ($i = 1; $i <= 8; $i++) {
+            if (self::live_lease(self::SLOT . $i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Most background batches that convert at once on this site, each
+     * claiming its own pictures (default 1, at most 8). More help only where
+     * more than one process runs the batch (WP-Cron beside WP-CLI loops, or
+     * several WP-CLI processes) and the server has cores to spare: each
+     * converts one file at a time, and AVIF takes most of that time.
+     *
+     * @return int
+     */
+    private static function runners() {
+        /**
+         * Filter how many WebP and AVIF batches may convert at once.
+         *
+         * @param int $runners Default 1; 1 to 8.
+         */
+        return max(1, min(8, (int) apply_filters('seoprostack_nextgen_runners', 1)));
+    }
+
+    /**
+     * Attachments for this batch to convert, newest first: waiting(), less
+     * those it has dealt with and those whose watermark is still to come
+     * (SEOProStack_Watermark_Images::mark_queued()), which marking would make
+     * it convert again. ID-paged, so a long run of those cannot starve older
+     * pictures, and bounded to a few pages per call.
+     *
+     * @param int   $limit  Most to return.
+     * @param int[] $passed Attachments this batch has dealt with.
+     * @return int[]
+     */
+    private static function convertible($limit, array $passed) {
+        global $wpdb;
+        $types = self::source_types();
+        if (!$types) {
+            return array();
+        }
+        $types  = self::type_args($types);
+        $marks  = class_exists('SEOProStack_Watermark_Images');
+        $cursor = $marks ? SEOProStack_Watermark_Images::library_cursor() : -1;
+        $before = PHP_INT_MAX;
+        $found  = array();
+        $pages  = 0;
+        do {
+            if ($cursor < 0) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- ID-paged queue lookup, as waiting().
+                $page = $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type IN (%s, %s, %s) AND m.meta_id IS NULL AND p.ID < %d ORDER BY p.ID DESC LIMIT 50",
+                    self::DONE,
+                    self::signature(),
+                    $types[0],
+                    $types[1],
+                    $types[2],
+                    $before
+                ));
+            } else {
+                // Mark every picture is running: pictures after its cursor
+                // with no mark yet are still to be marked.
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- ID-paged queue lookup; the watermark join uses the post_id index.
+                $page = $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s LEFT JOIN {$wpdb->postmeta} w ON w.post_id = p.ID AND w.meta_key = %s WHERE p.post_type = 'attachment' AND p.post_mime_type IN (%s, %s, %s) AND m.meta_id IS NULL AND (p.ID <= %d OR w.meta_id IS NOT NULL) AND p.ID < %d ORDER BY p.ID DESC LIMIT 50",
+                    self::DONE,
+                    self::signature(),
+                    SEOProStack_Watermark_Images::META,
+                    $types[0],
+                    $types[1],
+                    $types[2],
+                    $cursor,
+                    $before
+                ));
+            }
+            $page = array_map('intval', $page);
+            // One query for the page's meta, which mark_queued() reads.
+            update_meta_cache('post', $page);
+            foreach ($page as $id) {
+                $before = $id;
+                if (in_array($id, $passed, true) || ($marks && SEOProStack_Watermark_Images::mark_queued($id))) {
+                    continue;
+                }
+                $found[] = $id;
+                if (count($found) >= $limit) {
+                    return $found;
+                }
+            }
+        } while (50 === count($page) && ++$pages < 10);
+        return $found;
     }
 
     /**
@@ -981,7 +1098,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
 
     /**
      * Convert waiting pictures for up to BUDGET seconds, then schedule the
-     * next batch if any are left.
+     * next batch if any are left. Up to runners() batches convert at once,
+     * each claiming the picture it converts; pictures whose watermark is
+     * still to come wait for it.
      */
     public static function run_batch() {
         if (!self::enabled()) {
@@ -990,39 +1109,76 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         // Next batch first, so a picture that stops PHP (a broken file, too
         // little memory) does not stop the queue.
         self::schedule(60);
-        // One batch at a time; one that stops PHP frees it after a while.
-        if (get_transient(self::LOCK)) {
+        // A free runner slot; one left by a batch that stopped PHP expires.
+        $slot    = '';
+        $name    = '';
+        $runners = self::runners();
+        for ($i = 1; $i <= $runners && '' === $slot; $i++) {
+            $name = self::SLOT . $i;
+            $slot = SEOProStack_Media_Storage::lease($name);
+        }
+        if ('' === $slot) {
             return;
         }
-        set_transient(self::LOCK, 1, self::BUDGET + 60);
-        $start = microtime(true);
-        // Pictures that changed while they were converted wait for the next
-        // batch: their sizes may still be being made.
-        $deferred = array();
-        do {
-            $ids = array_diff(self::waiting(10 + count($deferred)), $deferred);
-            foreach ($ids as $id) {
-                if (!self::more_time($start, self::BUDGET)) {
-                    break 2;
-                }
-                // Marked as tried first: if PHP stops on it, it is not tried
-                // again at the head of every batch.
-                $record = get_post_meta($id, self::META, true);
-                $record = is_array($record) ? $record : array();
-                $record['incomplete'] = true;
-                update_post_meta($id, self::META, $record);
-                update_post_meta($id, self::DONE, self::signature());
-                $result = self::convert_attachment($id);
-                if (is_wp_error($result) && 'nextgen_changed' === $result->get_error_code()) {
-                    $deferred[] = $id;
-                }
-            }
-        } while ($ids);
-        delete_transient(self::LOCK);
-        if (!self::waiting(1)) {
+        try {
+            self::convert_part();
+        } finally {
+            SEOProStack_Media_Storage::release($slot, $name);
+        }
+        if (!self::waiting(1) && !self::running()) {
             wp_clear_scheduled_hook(self::HOOK);
             self::remove_compressx_block();
         }
+    }
+
+    /**
+     * One batch's pictures, under its runner slot.
+     */
+    private static function convert_part() {
+        $start = microtime(true);
+        // Pictures this batch dealt with, and those that changed while they
+        // were converted: their sizes may still be being made, so they wait
+        // for the next batch.
+        $passed = array();
+        do {
+            $ids = self::convertible(10, $passed);
+            foreach ($ids as $id) {
+                if (!self::more_time($start, self::BUDGET)) {
+                    return;
+                }
+                $passed[] = $id;
+                $claim    = SEOProStack_Media_Storage::lease(self::CLAIM . $id);
+                if ('' === $claim) {
+                    // Another batch converts it now.
+                    continue;
+                }
+                try {
+                    self::convert_claimed($id);
+                } finally {
+                    SEOProStack_Media_Storage::release($claim, self::CLAIM . $id);
+                }
+            }
+        } while ($ids);
+    }
+
+    /**
+     * Convert one claimed picture, unless another batch did meanwhile.
+     *
+     * @param int $id Attachment ID.
+     */
+    private static function convert_claimed($id) {
+        wp_cache_delete($id, 'post_meta');
+        if (self::signature() === get_post_meta($id, self::DONE, true)) {
+            return;
+        }
+        // Marked as tried first: if PHP stops on it, it is not tried
+        // again at the head of every batch.
+        $record = get_post_meta($id, self::META, true);
+        $record = is_array($record) ? $record : array();
+        $record['incomplete'] = true;
+        update_post_meta($id, self::META, $record);
+        update_post_meta($id, self::DONE, self::signature());
+        self::convert_attachment($id);
     }
 
     /**
@@ -1911,7 +2067,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!self::switched_on() || !self::formats()) {
             return __('WebP and AVIF images is off or makes no format here.', 'seoprostack');
         }
-        if (get_transient(self::LOCK)) {
+        if (self::running()) {
             return __('A conversion batch is running. Try again in a few minutes.', 'seoprostack');
         }
         // Before the queue: this can queue again pictures whose file is back.

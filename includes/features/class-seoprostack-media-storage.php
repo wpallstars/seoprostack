@@ -2237,13 +2237,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $before = PHP_INT_MAX;
         $waiting = array();
         $signature = self::config()['signature'];
+        // While Mark every picture runs, the pictures after its cursor with no
+        // mark yet are still to be marked: leave them out here, not one by one.
+        $cursor = SEOProStack_Watermark_Images::library_cursor();
         do {
             $remaining = $limit - count($waiting);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded, ID-paged queue lookup, matching the nextgen queue.
-            $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
-                "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL AND p.ID < %d ORDER BY p.ID DESC LIMIT %d",
-                self::DONE, self::upload_marker(), 'image/%', $before, $remaining
-            )));
+            if ($cursor < 0) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded, ID-paged queue lookup, matching the nextgen queue.
+                $ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL AND p.ID < %d ORDER BY p.ID DESC LIMIT %d",
+                    self::DONE, self::upload_marker(), 'image/%', $before, $remaining
+                ));
+            } else {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded, ID-paged queue lookup; the watermark join uses the post_id index.
+                $ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s LEFT JOIN {$wpdb->postmeta} w ON w.post_id = p.ID AND w.meta_key = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL AND (p.ID <= %d OR w.meta_id IS NOT NULL) AND p.ID < %d ORDER BY p.ID DESC LIMIT %d",
+                    self::DONE, self::upload_marker(), SEOProStack_Watermark_Images::META, 'image/%', $cursor, $before, $remaining
+                ));
+            }
+            $ids = array_map('intval', $ids);
             foreach ($ids as $id) {
                 $before = $id;
                 $watermark = SEOProStack_Watermark_Images::record($id);
@@ -2352,6 +2364,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // A re-mark without cloud storage has nothing to upload.
             return 'remark' === $kind ? true : new WP_Error('storage_off', 'Media in cloud storage is not ready.');
         }
+        wp_cache_delete((int) $id, 'post_meta');
+        if (SEOProStack_Watermark_Images::claimed($id)) {
+            // A watermark runner is changing its files: retried in the job's tail.
+            return new WP_Error('watermark_busy', 'A watermark batch is marking this picture; it is tried again later.');
+        }
         $start = microtime(true);
         if ('adopt' === $kind) {
             $result = self::handover_attachment($id, false, false, true, $start);
@@ -2390,7 +2407,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Run uploads and deletes off the page, waiting for watermark jobs.
+     * Run uploads and deletes off the page. While a watermark job runs, the
+     * pictures it has still to mark wait (waiting(), upload_prepare()), and
+     * the others go on.
      *
      * @param int $limit Most attachments this batch prepares.
      * @param int|null $upload_cap Most upload attempts requested by the caller, or null.
@@ -2405,16 +2424,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         self::schedule(60);
         $watermark = SEOProStack_Watermark_Images::job();
-        if ($ready && $watermark && empty($watermark['ended'])) {
-            // A concurrent cron-option write can lose the watermark wake-up.
-            // Give it one bounded turn before taking the storage lease; uploads
-            // resume on the next storage turn, with their own time budget.
-            if (!wp_next_scheduled(SEOProStack_Watermark_Images::HOOK)) {
-                SEOProStack_Watermark_Images::run_batch();
+        $marking   = $ready && $watermark && empty($watermark['ended']);
+        // A concurrent cron-option write can lose the watermark wake-up
+        // (GitHub issue #1147): give it one bounded turn before taking the
+        // storage lease. Under a PHP time limit (a web cron request), uploads
+        // resume on the next storage turn, with their own time budget.
+        if ($marking && !wp_next_scheduled(SEOProStack_Watermark_Images::HOOK)) {
+            SEOProStack_Watermark_Images::run_batch();
+            if ((int) ini_get('max_execution_time') > 0) {
+                return 0;
             }
-            return 0;
         }
-        $lease = self::lease();
+        // Watermark runners take the lease for a moment per picture: wait
+        // out such a moment rather than lose the turn.
+        $lease = $marking ? self::lease_wait(3) : self::lease();
         if ('' === $lease) {
             return 0;
         }
@@ -2876,6 +2899,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config = self::config();
         $kept = 'kept:' . $config['signature'];
         self::fresh($id);
+        if (SEOProStack_Watermark_Images::claimed($id)) {
+            // Being marked outside the lease: its files are changing. Not
+            // marked kept, so a later removal pass looks at it again.
+            return true;
+        }
         $generation = get_post_meta($id, self::GENERATION, true);
         $record = self::removal_record($id);
         if (!$record || null === self::removed_record($id)) {
@@ -3461,10 +3489,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * end. WP-CLI and WP-Cron wait up to a minute; page requests a few
      * seconds, so they never run into PHP's time limit.
      *
+     * @param int $patience Most seconds to wait; 0 for the defaults above.
      * @return string The lease; empty when the wait ran out.
      */
-    public static function lease_wait() {
-        $patience = (defined('WP_CLI') && WP_CLI) || wp_doing_cron() ? 60 : 5;
+    public static function lease_wait($patience = 0) {
+        $patience = $patience > 0 ? (int) $patience : ((defined('WP_CLI') && WP_CLI) || wp_doing_cron() ? 60 : 5);
         $until = microtime(true) + $patience;
         do {
             $lease = self::lease();
@@ -5968,7 +5997,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::ready() || !$job || !empty($job['ended'])) {
             return;
         }
-        WP_CLI::log(sprintf('Uploads wait for watermark job %s: %d/%d pictures.', $job['op'], (int) $job['done'], (int) $job['total']));
+        WP_CLI::log(sprintf('Uploads of pictures still to be marked wait for watermark job %s: %d/%d pictures.', $job['op'], (int) $job['done'], (int) $job['total']));
         $progress = (int) ($job['progress'] ?? $job['started'] ?? 0);
         if ($progress && time() - $progress > 3 * SEOProStack_Watermark_Images::BUDGET) {
             WP_CLI::warning(sprintf('Watermark job stalled: no recorded progress for %d seconds.', time() - $progress));

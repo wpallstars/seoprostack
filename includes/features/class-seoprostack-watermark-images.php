@@ -49,6 +49,20 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     const QUEUED_META = '_seoprostack_watermark_queued';
 
+    /**
+     * Post meta, one row per claim: "{expiry} {token}" while a batch runner
+     * or a new upload's request marks the picture outside the media lease.
+     * Media in cloud storage, WebP and AVIF images and other markers leave
+     * it alone meanwhile; a claim left by a PHP that stopped expires.
+     */
+    const CLAIM_META = '_seoprostack_watermark_claim';
+
+    /** Seconds a claim lasts. */
+    const CLAIM_TTL = 600;
+
+    /** Option prefix of the background batch's runner slots (1 to runners()). */
+    const SLOT = 'seoprostack_watermark_slot_';
+
     /** Option: name of the folder in uploads that holds the originals. */
     const DIR_OPTION = 'seoprostack_watermark_dir';
 
@@ -75,9 +89,6 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     /** admin-post.php action and nonce action of whole-library batches. */
     const JOB_ACTION = 'seoprostack_watermark_job';
-
-    /** Transient: a batch part is running. */
-    const LOCK = 'seoprostack_watermark_lock';
 
     /** Picture types that can be marked. */
     const TYPES = array('image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif');
@@ -120,6 +131,20 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @var string
      */
     private static $crop_path = '';
+
+    /**
+     * This request's claims: attachment ID => token (claim()).
+     *
+     * @var array<int,string>
+     */
+    private static $claims = array();
+
+    /**
+     * The batch as last read from the database for queue checks, and when.
+     *
+     * @var array{at:float,job:array}
+     */
+    private static $job_read = array('at' => 0.0, 'job' => array());
 
     /**
      * Settings.
@@ -845,16 +870,17 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 return self::after_generate_locked($metadata, $attachment_id, $context, true);
             }
             // A new upload cannot be claimed by another batch, so mark it in
-            // this request while the barrier keeps storage from publishing
-            // clean files mid-mark.
-            // Set the barrier before changing files: the running storage batch
-            // may otherwise reach this new upload while it is being marked.
-            update_post_meta((int) $attachment_id, self::QUEUED_META, time());
+            // this request while the claim keeps storage from publishing
+            // clean files mid-mark. Claimed before changing files: the running
+            // storage batch may otherwise reach this new upload while it is
+            // being marked. A claim holds with no batch running, which the
+            // queued barrier does not (mark_queued()).
+            $token = self::claim((int) $attachment_id);
             try {
                 return self::after_generate_locked($metadata, $attachment_id, $context, true);
             } finally {
                 // Inline marking has finished (or failed), so storage may go on.
-                delete_post_meta((int) $attachment_id, self::QUEUED_META);
+                self::unclaim((int) $attachment_id, $token);
             }
         }
         try {
@@ -987,7 +1013,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     }
 
     /**
-     * Mark files under the shared storage/watermark lease.
+     * Mark files under the shared storage/watermark lease, or under this
+     * request's claim on the picture (claim()).
      *
      * @param int $attachment_id ID.
      * @param array $metadata Metadata.
@@ -995,6 +1022,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     private static function mark_locked($attachment_id, array $metadata) {
         $attachment_id = (int) $attachment_id;
+        $busy          = self::claimed_elsewhere($attachment_id);
+        if ($busy) {
+            return $busy;
+        }
         $why_not       = self::unmarkable($attachment_id);
         if ($why_not) {
             return $why_not;
@@ -1213,6 +1244,39 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Mark a picture that has no mark yet without the media lease, so
+     * uploads, removals and other runners go on meanwhile. The caller holds
+     * this request's claim on it (claim()), which Media in cloud storage,
+     * WebP and AVIF images and other markers respect, and brought its
+     * removed files back under the lease. A picture marked meanwhile is
+     * marked again from its original under the lease, as add() does.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return string|WP_Error added, small or marked.
+     */
+    private static function add_unleased($attachment_id) {
+        $attachment_id = (int) $attachment_id;
+        wp_cache_delete($attachment_id, 'post_meta');
+        if (self::record($attachment_id)) {
+            return self::add($attachment_id);
+        }
+        if (self::skipped($attachment_id)) {
+            return new WP_Error('watermark_never', __('Its details say “Never watermark”.', 'seoprostack'));
+        }
+        $meta = wp_get_attachment_metadata($attachment_id);
+        if (!is_array($meta)) {
+            return new WP_Error('watermark_not_image', __('Not a picture that can be marked.', 'seoprostack'));
+        }
+        $result = self::mark_locked($attachment_id, $meta);
+        if (is_array($result)) {
+            wp_update_attachment_metadata($attachment_id, $result);
+            delete_transient('dirsize_cache');
+            return 'added';
+        }
+        return $result;
+    }
+
+    /**
      * Remove the watermark: put the kept original back and make every size
      * again from it, as when it was uploaded.
      *
@@ -1241,6 +1305,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     private static function remove_locked($attachment_id, $keep_original) {
         $attachment_id = (int) $attachment_id;
+        $busy          = self::claimed_elsewhere($attachment_id);
+        if ($busy) {
+            return $busy;
+        }
         $record        = self::record($attachment_id);
         if (!$record) {
             return 'unmarked';
@@ -1871,14 +1939,19 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @param string             $op     add, again or remove.
      * @param array              $counts Counts and capped failed picture IDs.
      * @param string             $error  First error message so far.
+     * @param bool               $unleased Mark a claimed, unmarked picture without the lease (add_unleased()).
      * @return string First error message so far.
      */
-    private static function apply($id, $op, array &$counts, $error) {
+    private static function apply($id, $op, array &$counts, $error, $unleased = false) {
         if ('remove' !== $op && !self::enabled()) {
             $counts['sps_wm_skipped']++;
             return $error;
         }
-        $status = 'remove' === $op ? self::remove($id) : self::add($id);
+        if ('remove' === $op) {
+            $status = self::remove($id);
+        } else {
+            $status = $unleased ? self::add_unleased($id) : self::add($id);
+        }
         if (is_wp_error($status)) {
             // Pictures that are not for marking are skipped, not failed.
             if ('remove' !== $op && self::unmarkable($id)) {
@@ -1928,23 +2001,244 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     }
 
     /**
-     * Whether a new upload's queued mark is still to come, so its clean
-     * files must not be published yet. Only while a batch that can mark it
-     * runs: one stopped or ended leaves the picture as an unmarked upload.
+     * Whether a picture's mark is still to come, so its clean files must not
+     * be published or converted yet: a runner or a new upload's request is
+     * marking it now (claimed()), its queued mark is still to come, or the
+     * running Mark every picture batch, or a batch marking chosen pictures,
+     * has still to reach it. Only while a batch that can mark it runs: one
+     * stopped or ended leaves the picture as an unmarked upload. Callers
+     * that act on the answer clear the picture's meta cache first.
      *
      * @param int $id Attachment ID.
      * @return bool
      */
     public static function mark_queued($id) {
-        if (!get_post_meta((int) $id, self::QUEUED_META, true)) {
-            return false;
-        }
-        $job = self::job();
-        if ($job && empty($job['ended']) && 'remove' !== $job['op']) {
+        $id = (int) $id;
+        if (self::claimed($id)) {
             return true;
         }
-        delete_post_meta((int) $id, self::QUEUED_META);
-        return false;
+        $job  = self::fresh_job();
+        $open = $job && empty($job['ended']);
+        if (get_post_meta($id, self::QUEUED_META, true)) {
+            if ($open && 'remove' !== $job['op']) {
+                return true;
+            }
+            delete_post_meta($id, self::QUEUED_META);
+        }
+        if (!$open || 'add' !== $job['op']) {
+            return false;
+        }
+        if (is_array($job['ids'])) {
+            return in_array($id, array_map('intval', $job['ids']), true);
+        }
+        // library_next('add') takes pictures with no record, in ID order.
+        return $id > (int) $job['last'] && !metadata_exists('post', $id, self::META);
+    }
+
+    /**
+     * The last picture a running Mark every picture batch has taken, or -1
+     * when none runs. Pictures after it with no record are still to be
+     * marked, so queue queries can leave them out (mark_queued() says the
+     * same of one picture) instead of paging past each of them.
+     *
+     * @return int
+     */
+    public static function library_cursor() {
+        $job = self::fresh_job();
+        return $job && empty($job['ended']) && 'add' === $job['op'] && !is_array($job['ids']) ? max(0, (int) $job['last']) : -1;
+    }
+
+    /**
+     * Whether a runner or a new upload's request is marking the picture now.
+     *
+     * @param int $id Attachment ID.
+     * @return bool
+     */
+    public static function claimed($id) {
+        return (bool) self::live_claims((int) $id, '');
+    }
+
+    /**
+     * Claim a picture for marking outside the media lease. Each claim is its
+     * own post meta row, so a request only ever removes its own.
+     *
+     * @param int $id Attachment ID.
+     * @return string The claim, for unclaim().
+     */
+    private static function claim($id) {
+        $id    = (int) $id;
+        $value = (time() + self::CLAIM_TTL) . ' ' . wp_generate_uuid4();
+        add_post_meta($id, self::CLAIM_META, $value);
+        self::$claims[$id] = $value;
+        return $value;
+    }
+
+    /**
+     * End this request's claim on a picture.
+     *
+     * @param int    $id    Attachment ID.
+     * @param string $value claim().
+     */
+    private static function unclaim($id, $value) {
+        $id = (int) $id;
+        delete_post_meta($id, self::CLAIM_META, $value);
+        if (isset(self::$claims[$id]) && self::$claims[$id] === $value) {
+            unset(self::$claims[$id]);
+        }
+    }
+
+    /**
+     * Refuse to change a picture another request is marking.
+     *
+     * @param int $id Attachment ID.
+     * @return WP_Error|null
+     */
+    private static function claimed_elsewhere($id) {
+        $id = (int) $id;
+        wp_cache_delete($id, 'post_meta');
+        if (!self::live_claims($id, self::$claims[$id] ?? '')) {
+            return null;
+        }
+        return new WP_Error('watermark_busy', __('Another batch is marking this picture; retry watermarking later.', 'seoprostack'));
+    }
+
+    /**
+     * A picture's live claims, except one; expired ones are deleted.
+     *
+     * @param int    $id     Attachment ID.
+     * @param string $except Claim to leave out ('' for none).
+     * @return string[]
+     */
+    private static function live_claims($id, $except) {
+        $live = array();
+        foreach ((array) get_post_meta($id, self::CLAIM_META, false) as $value) {
+            $value = (string) $value;
+            if ((int) strtok($value, ' ') < time()) {
+                // Left by a PHP that stopped mid-mark.
+                delete_post_meta($id, self::CLAIM_META, $value);
+            } elseif ($value !== $except) {
+                $live[] = $value;
+            }
+        }
+        return $live;
+    }
+
+    /**
+     * The batch and its stored value, read past the options cache: runners
+     * in other requests change it.
+     *
+     * @return array{0:array,1:string}|null
+     */
+    private static function read_job() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read past the options cache: other runners change the job.
+        $raw = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::JOB));
+        if (!is_string($raw)) {
+            return null;
+        }
+        $job = maybe_unserialize($raw);
+        return is_array($job) && !empty($job['op']) ? array($job, $raw) : null;
+    }
+
+    /**
+     * The batch for checks made picture by picture (mark_queued()), read
+     * from the database at most every five seconds: long-running batches
+     * would otherwise keep a copy from before the batch started, moved on or
+     * ended.
+     *
+     * @return array
+     */
+    private static function fresh_job() {
+        $now = microtime(true);
+        if ($now - self::$job_read['at'] >= 5) {
+            $read            = self::read_job();
+            self::$job_read = array('at' => $now, 'job' => $read ? $read[0] : array());
+        }
+        return self::$job_read['job'];
+    }
+
+    /**
+     * Change the batch with a compare-and-swap, so runners, bulk actions and
+     * Stop changing it at once never write over each other's changes, as
+     * update_option() would (a picture taken twice, or counts lost).
+     *
+     * @param callable $change Gets the job; returns it changed, or null to leave it.
+     * @return array The job after the change, or as read when left alone;
+     *               empty when there is none, or it kept changing under us.
+     */
+    private static function change_job(callable $change) {
+        global $wpdb;
+        self::$job_read['at'] = 0.0;
+        for ($try = 0; $try < 20; $try++) {
+            $read = self::read_job();
+            if (!$read) {
+                return array();
+            }
+            $new = $change($read[0]);
+            if (!is_array($new) || $new === $read[0]) {
+                return $read[0];
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-swap; the options API cannot.
+            $saved = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND CAST(option_value AS BINARY) = %s", maybe_serialize($new), self::JOB, $read[1]));
+            wp_cache_delete(self::JOB, 'options');
+            if (1 === $saved) {
+                return $new;
+            }
+            usleep(wp_rand(5000, 50000));
+        }
+        return array();
+    }
+
+    /**
+     * Most parts of the background batch that run at once on this site,
+     * each on its own pictures (default 1, at most 8). More help only where
+     * more than one process runs the batch (WP-Cron beside WP-CLI loops, or
+     * several WP-CLI processes) and the server has cores to spare: each
+     * marks one picture at a time.
+     *
+     * @return int
+     */
+    private static function runners() {
+        /**
+         * Filter how many background watermark runners may mark at once.
+         *
+         * @param int $runners Default 1; 1 to 8.
+         */
+        return max(1, min(8, (int) apply_filters('seoprostack_watermark_runners', 1)));
+    }
+
+    /**
+     * Take a free runner slot (a lease row, SEOProStack_Media_Storage::lease()).
+     *
+     * @return array{0:string,1:string}|null Slot name and lease.
+     */
+    private static function take_slot() {
+        $runners = self::runners();
+        for ($i = 1; $i <= $runners; $i++) {
+            $lease = SEOProStack_Media_Storage::lease(self::SLOT . $i);
+            if ('' !== $lease) {
+                return array(self::SLOT . $i, $lease);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Take the media lease, waiting while the part has time: storage and
+     * other runners hold it only for their own bounded steps.
+     *
+     * @param float $start Part start.
+     * @return string The lease; empty when the part ran out of time.
+     */
+    private static function wait_lease($start) {
+        do {
+            $lease = SEOProStack_Media_Storage::lease();
+            if ('' !== $lease) {
+                return $lease;
+            }
+            usleep(250000);
+        } while (self::more_time($start, self::BUDGET));
+        return '';
     }
 
     /**
@@ -1993,16 +2287,23 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return bool False when a different batch is running.
      */
     private static function queue($op, array $ids) {
-        $job = self::job();
-        if ($job && empty($job['ended'])) {
-            if ($job['op'] !== $op || !is_array($job['ids'])) {
-                return false;
+        $added = false;
+        $job   = self::change_job(function (array $job) use ($op, $ids, &$added) {
+            $added = false;
+            if (!empty($job['ended']) || $job['op'] !== $op || !is_array($job['ids'])) {
+                return null;
             }
             $job['ids']    = array_values(array_unique(array_merge($job['ids'], array_map('intval', $ids))));
             $job['total'] += count($ids);
-            update_option(self::JOB, $job, false);
+            $added         = true;
+            return $job;
+        });
+        if ($added) {
             self::schedule(0);
             return true;
+        }
+        if ($job && empty($job['ended'])) {
+            return false;
         }
         return self::start($op, $ids);
     }
@@ -2027,20 +2328,22 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function deactivate($network_wide = false) {
         self::stop();
-        delete_transient(self::LOCK);
     }
 
     /**
-     * Stop the batch in progress. Pictures already changed stay changed.
+     * Stop the batch in progress. Pictures already changed stay changed;
+     * runners finish the picture they are marking, then stop.
      */
     private static function stop() {
         wp_clear_scheduled_hook(self::HOOK);
-        $job = self::job();
-        if ($job && empty($job['ended'])) {
+        self::change_job(function (array $job) {
+            if (!empty($job['ended'])) {
+                return null;
+            }
             $job['ended']   = time();
             $job['stopped'] = true;
-            update_option(self::JOB, $job, false);
-        }
+            return $job;
+        });
     }
 
     /**
@@ -2102,96 +2405,175 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     /**
      * WP-Cron: work through the batch for up to BUDGET seconds, then
-     * schedule the next part.
+     * schedule the next part. Up to runners() parts run at once, each on
+     * its own pictures; a part that stops PHP frees its slot when the
+     * slot's lease expires.
      */
     public static function run_batch() {
-        $job = self::job();
-        if (!$job || !empty($job['ended'])) {
+        $read = self::read_job();
+        if (!$read || !empty($read[0]['ended'])) {
             return;
         }
-        // One part at a time; a part that stops PHP frees it after a while.
-        if (get_transient(self::LOCK)) {
-            self::schedule(30);
-            return;
-        }
-        // One media lease for the whole part: a storage or media-jobs turn
-        // that holds it makes this part wait, never count pictures as failed.
-        $lease = SEOProStack_Media_Storage::lease();
-        if (!$lease) {
+        $slot = self::take_slot();
+        if (!$slot) {
             self::schedule(30);
             return;
         }
         try {
             self::run_part();
         } finally {
-            SEOProStack_Media_Storage::release($lease);
+            SEOProStack_Media_Storage::release($slot[1], $slot[0]);
         }
     }
 
     /**
-     * One bounded part of the batch, under the media lease.
+     * One bounded part of the batch. The media lease is taken for each
+     * picture, not the whole part, so storage batches run between pictures:
+     * a picture with no mark yet holds it only while it is taken and its
+     * removed files come back, and is marked under its claim instead.
      */
     private static function run_part() {
-        set_transient(self::LOCK, 1, self::BUDGET + 60);
-        // Another runner may have advanced or ended this non-autoloaded job
-        // since run_batch read it, before this request acquired the media lease.
-        wp_cache_delete(self::JOB, 'options');
-        wp_cache_delete('notoptions', 'options');
-        $job = self::job();
-        if (!$job || !empty($job['ended'])) {
-            delete_transient(self::LOCK);
+        $read = self::read_job();
+        if (!$read || !empty($read[0]['ended'])) {
             return;
         }
-        if ('remove' !== $job['op']) {
+        if ('remove' !== $read[0]['op']) {
             $mark = self::enabled() ? self::mark() : new WP_Error('watermark_off', __('Watermark pictures was switched off.', 'seoprostack'));
             if (is_wp_error($mark)) {
-                $job['error'] = $mark->get_error_message();
-                $job['ended'] = time();
-                update_option(self::JOB, $job, false);
-                delete_transient(self::LOCK);
+                $message = $mark->get_error_message();
+                self::change_job(function (array $job) use ($message) {
+                    if (!empty($job['ended'])) {
+                        return null;
+                    }
+                    $job['error'] = $message;
+                    $job['ended'] = time();
+                    return $job;
+                });
                 return;
             }
         }
         // Next part first, so a picture that stops PHP does not stop the batch.
         self::schedule(30);
         $start = microtime(true);
-        while (self::more_time($start, self::BUDGET)) {
-            if (is_array($job['ids'])) {
-                $id = $job['ids'] ? (int) array_shift($job['ids']) : 0;
-            } else {
-                $next = self::library_next($job['op'], (int) $job['last'], 1);
-                $id   = $next ? $next[0] : 0;
-            }
-            if (!$id) {
-                $job['ended'] = time();
-                break;
-            }
-            // Saved before the picture, so one that stops PHP is not tried
-            // again at the start of every part.
-            $job['last'] = $id;
-            $job['done']++;
-            update_option(self::JOB, $job, false);
-            $job['error'] = self::apply($id, $job['op'], $job['counts'], (string) $job['error']);
-            $job['progress'] = time();
-            // Marked, left alone or failed (and listed to retry): storage may go on.
-            delete_post_meta($id, self::QUEUED_META);
-            wp_cache_flush_runtime();
-            // Stopped from the settings screen meanwhile.
-            $now = get_option(self::JOB);
-            if (!is_array($now) || !empty($now['ended'])) {
-                delete_transient(self::LOCK);
-                return;
-            }
+        $state = 'done';
+        while ('done' === $state && self::more_time($start, self::BUDGET)) {
+            $state = self::part_step($start);
         }
-        $job['total'] = max((int) $job['total'], (int) $job['done']);
-        update_option(self::JOB, $job, false);
-        delete_transient(self::LOCK);
-        if (!empty($job['ended'])) {
+        if ('end' === $state) {
+            // Done, or stopped from the settings screen meanwhile.
             wp_clear_scheduled_hook(self::HOOK);
-        } else {
+        } elseif ('done' === $state) {
             wp_clear_scheduled_hook(self::HOOK);
             self::schedule(0);
         }
+        // "wait": the media lease stayed busy; the next part in 30 seconds.
+    }
+
+    /**
+     * One picture of the batch: take the next one under the media lease,
+     * mark it (without the lease when it has no mark yet), then add its
+     * result to the batch.
+     *
+     * @param float $start Part start.
+     * @return string done (a picture was dealt with), wait (the media lease
+     *                stayed busy) or end (the batch ended or was stopped).
+     */
+    private static function part_step($start) {
+        $read = self::read_job();
+        if (!$read || !empty($read[0]['ended'])) {
+            return 'end';
+        }
+        $lease = self::wait_lease($start);
+        if ('' === $lease) {
+            return 'wait';
+        }
+        $counts = array_merge(array_fill_keys(self::COUNTS, 0), array('sps_wm_failed_ids' => array()));
+        try {
+            $claim = self::claim_next();
+            if (!$claim) {
+                // Ended or stopped; or the job kept changing under us, when
+                // the next part tries again.
+                $read = self::read_job();
+                return !$read || !empty($read[0]['ended']) ? 'end' : 'wait';
+            }
+            $unleased = 'add' === $claim['op'] && self::enabled() && !self::record($claim['id']);
+            if ($unleased) {
+                // Removed files come back under the lease; the claim then keeps
+                // removal and uploads away until the mark is done.
+                SEOProStack_Media_Storage::ensure_local($claim['id']);
+                SEOProStack_Media_Storage::release($lease);
+                $lease = '';
+            }
+            $error = self::apply($claim['id'], $claim['op'], $counts, '', $unleased);
+        } finally {
+            if ('' !== $lease) {
+                SEOProStack_Media_Storage::release($lease);
+            }
+        }
+        self::change_job(function (array $job) use ($counts, $error) {
+            foreach (self::COUNTS as $key) {
+                $job['counts'][$key] = (int) ($job['counts'][$key] ?? 0) + (int) $counts[$key];
+            }
+            $failed = array_map('intval', (array) ($job['counts']['sps_wm_failed_ids'] ?? array()));
+            foreach ($counts['sps_wm_failed_ids'] as $failed_id) {
+                if (count($failed) < self::FAILED_LIMIT && !in_array((int) $failed_id, $failed, true)) {
+                    $failed[] = (int) $failed_id;
+                }
+            }
+            $job['counts']['sps_wm_failed_ids'] = $failed;
+            if ('' === (string) ($job['error'] ?? '') && '' !== $error) {
+                $job['error'] = $error;
+            }
+            $job['progress'] = time();
+            return $job;
+        });
+        // Marked, left alone or failed (and listed to retry): storage may go on.
+        delete_post_meta($claim['id'], self::QUEUED_META);
+        self::unclaim($claim['id'], $claim['token']);
+        wp_cache_flush_runtime();
+        return 'done';
+    }
+
+    /**
+     * Take the batch's next picture, with a compare-and-swap on the job so
+     * two runners never take the same one, and claim it. Saved before the
+     * picture is marked, so one that stops PHP is not tried again at the
+     * start of every part. Called under the media lease, which storage holds
+     * while it checks claims, so it never sees a picture taken but not yet
+     * claimed.
+     *
+     * @return array{id:int,op:string,token:string}|null Null when the batch
+     *         has ended (now, when no picture is left) or was stopped.
+     */
+    private static function claim_next() {
+        $id  = 0;
+        $op  = '';
+        $job = self::change_job(function (array $job) use (&$id, &$op) {
+            $id = 0;
+            if (!empty($job['ended'])) {
+                return null;
+            }
+            $op = (string) $job['op'];
+            if (is_array($job['ids'])) {
+                $id = $job['ids'] ? (int) array_shift($job['ids']) : 0;
+            } else {
+                $next = self::library_next($op, (int) $job['last'], 1);
+                $id   = $next ? $next[0] : 0;
+            }
+            if ($id) {
+                $job['last'] = $id;
+                $job['done']++;
+            } else {
+                $job['ended'] = time();
+            }
+            $job['total'] = max((int) $job['total'], (int) $job['done']);
+            return $job;
+        });
+        // A job that kept changing under us comes back empty: take nothing.
+        if (!$id || !$job || !empty($job['ended']) || (int) $job['last'] !== $id) {
+            return null;
+        }
+        return array('id' => $id, 'op' => $op, 'token' => self::claim($id));
     }
 
     /**
