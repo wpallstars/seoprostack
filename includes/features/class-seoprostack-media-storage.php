@@ -2575,7 +2575,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
 
     /**
      * Remove several pictures' local copies with shared HEAD phases: each
-     * phase checks up to batch_requests() files from whole pictures, then
+     * phase checks up to head_requests() files from whole pictures, then
      * every picture is confirmed and removed whole, as remove_local() does.
      *
      * @param int[] $ids Removable attachment IDs.
@@ -2586,7 +2586,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function remove_locals($ids, $start, $budget) {
         static $service_failures = 0;
         $deadline = $start + $budget;
-        $cap = self::batch_requests();
+        $cap = self::head_requests();
         $ids = array_values(array_map('intval', $ids));
         $removals = array();
         while ($ids && self::more_time($start, $budget)) {
@@ -2763,7 +2763,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Remove several uploaded attachments' local copies now, as
      * remove_local_now() does for one, but in one pass: the storage lease is
      * taken once, the pictures' files are checked in shared HEAD phases of
-     * whole pictures (batch_requests(), as the batch does), each picture is
+     * whole pictures (head_requests(), as the batch does), each picture is
      * then confirmed and removed whole, and pages are purged once at the
      * end. The pictures are taken in the order given.
      *
@@ -2845,7 +2845,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param array $results Answers by ID, filled in.
      */
     private static function remove_now_phases($ids, $deadline, $signature, &$results) {
-        $cap = self::batch_requests();
+        $cap = self::head_requests();
         $removals = array();
         while ($ids && microtime(true) < $deadline) {
             $keys = array();
@@ -4391,6 +4391,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $concurrency = self::concurrency();
         /** Filter the requests a batch sends together across pictures (up to 128). @param int $requests Default four times the concurrency, at most 64. */
         return max($concurrency, min(128, (int) apply_filters('seoprostack_media_storage_batch_requests', min(64, 4 * $concurrency))));
+    }
+
+    /**
+     * HEAD requests one removal check phase sends together across whole
+     * pictures: twice batch_requests(), up to heads()'s 128, as a HEAD
+     * carries no body. With 10-20 files a picture, a far bucket's round trip
+     * is then paid once for about eight pictures instead of four.
+     *
+     * @return int Maximum in-flight HEAD requests across pictures.
+     */
+    private static function head_requests() {
+        return min(128, 2 * self::batch_requests());
     }
 
     /** @return int<1, 20> Pictures one upload phase prepares together. */
