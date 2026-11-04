@@ -67,8 +67,8 @@ class SEOProStack_Kadence_Hero {
      * @return bool
      */
     public static function start(array $attrs, WP_Post $post) {
-        $id = isset($attrs['uniqueID']) && is_string($attrs['uniqueID']) ? $attrs['uniqueID'] : '';
-        if ('' !== self::$row || !preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id) || (function_exists('wp_is_block_theme') && wp_is_block_theme())) {
+        $id = self::row_id($attrs);
+        if ('' === $id || !self::sizable($attrs)) {
             return false;
         }
         /**
@@ -82,12 +82,7 @@ class SEOProStack_Kadence_Hero {
         if (!apply_filters('seoprostack_kadence_hero_sizes', true, $post)) {
             return false;
         }
-        // Kadence's default is cover; any other size keeps the early preload.
-        $size = isset($attrs['bgImgSize']) && '' !== $attrs['bgImgSize'] ? $attrs['bgImgSize'] : 'cover';
-        if ('cover' !== $size && 'contain' !== $size) {
-            return false;
-        }
-        $slider   = isset($attrs['backgroundSettingTab']) && 'slider' === $attrs['backgroundSettingTab'];
+        $slider   = 'slider' === self::value($attrs, 'backgroundSettingTab', '');
         $pictures = $slider ? self::slides($attrs) : self::normal($attrs);
         if (!$pictures) {
             return false;
@@ -99,13 +94,50 @@ class SEOProStack_Kadence_Hero {
     }
 
     /**
+     * The row's unique ID, when it can go in a CSS class name and no other
+     * row is due; '' when not, or on a block theme.
+     *
+     * @param array $attrs Row attributes.
+     * @return string
+     */
+    private static function row_id(array $attrs) {
+        $id     = self::value($attrs, 'uniqueID', '');
+        $usable = '' === self::$row && is_string($id) && preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id);
+        return $usable && !(function_exists('wp_is_block_theme') && wp_is_block_theme()) ? $id : '';
+    }
+
+    /**
+     * Whether the row's background size is cover (Kadence's default) or
+     * contain; any other keeps the early preload.
+     *
+     * @param array $attrs Row attributes.
+     * @return bool
+     */
+    private static function sizable(array $attrs) {
+        $size = self::value($attrs, 'bgImgSize', '');
+        return '' === $size || 'cover' === $size || 'contain' === $size;
+    }
+
+    /**
+     * A key's value, or the default when it is not set.
+     *
+     * @param array  $array   Array.
+     * @param string $key     Key.
+     * @param mixed  $default Default.
+     * @return mixed
+     */
+    private static function value(array $array, $key, $default) {
+        return isset($array[$key]) ? $array[$key] : $default;
+    }
+
+    /**
      * The normal tab's picture, when it has smaller copies.
      *
      * @param array $attrs Row attributes.
      * @return array<int,array>
      */
     private static function normal(array $attrs) {
-        $picture = self::picture(isset($attrs['bgImgID']) ? $attrs['bgImgID'] : 0, isset($attrs['bgImg']) ? $attrs['bgImg'] : '');
+        $picture = self::picture(self::value($attrs, 'bgImgID', 0), self::value($attrs, 'bgImg', ''));
         return $picture && count($picture['c']) > 1 ? array($picture) : array();
     }
 
@@ -117,19 +149,9 @@ class SEOProStack_Kadence_Hero {
      * @return array<int,array>
      */
     private static function slides(array $attrs) {
-        $slides = isset($attrs['backgroundSlider']) && is_array($attrs['backgroundSlider']) ? $attrs['backgroundSlider'] : array();
-        // Kadence's default is one slide, and it shows no more than the count.
-        $count = isset($attrs['backgroundSliderCount']) ? (int) $attrs['backgroundSliderCount'] : 1;
-        $list  = array();
-        $item  = 0;
-        foreach ($slides as $key => $slide) {
-            if (++$item > $count) {
-                break;
-            }
-            if (!is_int($key) || !is_array($slide) || empty($slide['bgImg'])) {
-                continue;
-            }
-            $picture = self::picture(isset($slide['bgImgID']) ? $slide['bgImgID'] : 0, $slide['bgImg']);
+        $list = array();
+        foreach (self::slide_list($attrs) as $key => $slide) {
+            $picture = self::picture(self::value($slide, 'bgImgID', 0), $slide['bgImg']);
             if (!$picture && !$list) {
                 return array();
             }
@@ -139,6 +161,22 @@ class SEOProStack_Kadence_Hero {
             }
         }
         return $list && 0 === $list[0]['n'] && count($list[0]['c']) > 1 ? $list : array();
+    }
+
+    /**
+     * The slides Kadence shows (one by default, and no more than the count),
+     * by position, that name a picture.
+     *
+     * @param array $attrs Row attributes.
+     * @return array<int,array>
+     */
+    private static function slide_list(array $attrs) {
+        $slides = self::value($attrs, 'backgroundSlider', array());
+        $count  = (int) self::value($attrs, 'backgroundSliderCount', 1);
+        $slides = is_array($slides) ? array_slice($slides, 0, max(0, $count), true) : array();
+        return array_filter($slides, static function ($slide, $key) {
+            return is_int($key) && is_array($slide) && !empty($slide['bgImg']);
+        }, ARRAY_FILTER_USE_BOTH);
     }
 
     /**
@@ -155,12 +193,9 @@ class SEOProStack_Kadence_Hero {
      * @return array{w:int,h:int,c:array<int,array>}|null
      */
     private static function picture($id, $url) {
-        $id = is_numeric($id) ? (int) $id : 0;
-        if ($id < 1 || !self::css_url($url)) {
-            return null;
-        }
-        $meta = wp_get_attachment_metadata($id);
-        if (!is_array($meta) || empty($meta['file']) || empty($meta['width']) || empty($meta['height'])) {
+        $id   = is_numeric($id) ? (int) $id : 0;
+        $meta = self::meta($id, $url);
+        if (!$meta) {
             return null;
         }
         $sizes = isset($meta['sizes']) && is_array($meta['sizes']) ? $meta['sizes'] : array();
@@ -168,33 +203,96 @@ class SEOProStack_Kadence_Hero {
         if ($width < 1 || $height < 1) {
             return null;
         }
-        $dir    = dirname((string) get_attached_file($id));
-        $copies = array();
-        foreach ($sizes as $size => $info) {
-            $w = isset($info['width']) ? (int) $info['width'] : 0;
-            $h = isset($info['height']) ? (int) $info['height'] : 0;
-            // Narrower, and its height within a pixel of the same proportions.
-            if ($w < 1 || $w >= $width || isset($copies[$w]) || empty($info['file']) || abs($h * $width - $w * $height) > $width) {
-                continue;
-            }
-            $src = wp_get_attachment_image_src($id, (string) $size);
-            if (is_array($src) && isset($src[0], $src[1]) && $w === (int) $src[1] && self::css_url($src[0]) && self::there($id, (string) $size, $dir . '/' . $info['file'], $src[0])) {
-                $copies[$w] = self::file($w, $src[0]);
-            }
-        }
-        ksort($copies);
-        // The row's own picture from cloud storage too, when it is served
-        // from there (Kadence prints the address saved in the content).
-        if (class_exists('SEOProStack_Media_Storage')) {
-            $mapped = SEOProStack_Media_Storage::attachment_url($url, $id);
-            $url    = self::css_url($mapped) ? $mapped : $url;
-        }
-        $copies[] = self::file($width, $url);
+        $copies   = self::copies($id, $sizes, $width, $height);
+        $copies[] = self::file($width, self::served_url($url, $id));
         return array(
             'w' => $width,
             'h' => $height,
-            'c' => array_values($copies),
+            'c' => $copies,
         );
+    }
+
+    /**
+     * An attachment's metadata, when the row's address can go in CSS and
+     * the metadata has its file and size; null when not.
+     *
+     * @param int   $id  Attachment ID.
+     * @param mixed $url Address the row names.
+     * @return array|null
+     */
+    private static function meta($id, $url) {
+        $meta = $id > 0 && self::css_url($url) ? wp_get_attachment_metadata($id) : false;
+        return is_array($meta) && !empty($meta['file']) && !empty($meta['width']) && !empty($meta['height']) ? $meta : null;
+    }
+
+    /**
+     * The smaller copies of the same proportions that can be served,
+     * narrowest first, one per width.
+     *
+     * @param int   $id     Attachment ID.
+     * @param array $sizes  Its sizes.
+     * @param int   $width  Width of the picture the row names.
+     * @param int   $height Its height.
+     * @return array<int,array>
+     */
+    private static function copies($id, array $sizes, $width, $height) {
+        $dir    = dirname((string) get_attached_file($id));
+        $copies = array();
+        foreach ($sizes as $size => $info) {
+            $w = self::copy_width($info, $width, $height);
+            if ($w < 1 || isset($copies[$w])) {
+                continue;
+            }
+            $src = self::src_url(wp_get_attachment_image_src($id, (string) $size), $w);
+            if ('' !== $src && self::there($id, (string) $size, $dir . '/' . $info['file'], $src)) {
+                $copies[$w] = self::file($w, $src);
+            }
+        }
+        ksort($copies);
+        return array_values($copies);
+    }
+
+    /**
+     * A size's width, when it is narrower than the picture, has a file and
+     * its height is within a pixel of the same proportions; 0 when not.
+     *
+     * @param mixed $info   The size's metadata.
+     * @param int   $width  Width of the picture the row names.
+     * @param int   $height Its height.
+     * @return int
+     */
+    private static function copy_width($info, $width, $height) {
+        $w = isset($info['width']) ? (int) $info['width'] : 0;
+        $h = isset($info['height']) ? (int) $info['height'] : 0;
+        return $w > 0 && $w < $width && !empty($info['file']) && abs($h * $width - $w * $height) <= $width ? $w : 0;
+    }
+
+    /**
+     * The address wp_get_attachment_image_src() gave, when it is of that
+     * width and can go in CSS; '' when not.
+     *
+     * @param mixed $src   Its answer.
+     * @param int   $width Width expected.
+     * @return string
+     */
+    private static function src_url($src, $width) {
+        return is_array($src) && isset($src[0], $src[1]) && $width === (int) $src[1] && self::css_url($src[0]) ? $src[0] : '';
+    }
+
+    /**
+     * The row's own picture from cloud storage too, when it is served from
+     * there (Kadence prints the address saved in the content).
+     *
+     * @param string $url Address the row names.
+     * @param int    $id  Attachment ID.
+     * @return string
+     */
+    private static function served_url($url, $id) {
+        if (!class_exists('SEOProStack_Media_Storage')) {
+            return $url;
+        }
+        $mapped = SEOProStack_Media_Storage::attachment_url($url, $id);
+        return self::css_url($mapped) ? $mapped : $url;
     }
 
     /**
