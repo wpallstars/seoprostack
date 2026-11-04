@@ -32,18 +32,24 @@ final class SEOProStack_Used_Css_Policy {
     const CHAINS = array(
         'style'  => array('style-src-elem', 'style-src', 'default-src'),
         'onload' => array('script-src-attr', 'script-src', 'default-src'),
+        'script' => array('script-src-elem', 'script-src', 'default-src'),
     );
 
     /**
-     * Whether every enforced policy allows an inline `<style>` and onload.
+     * Whether every enforced policy allows an inline `<style>` and onload (and
+     * with $script, an inline `<script>` element).
      *
-     * @param string $html Page.
+     * @param string $html   Page.
+     * @param bool   $script Also check inline scripts.
      * @return bool
      */
-    public static function allows($html) {
+    public static function allows($html, $script = false) {
         foreach (self::policies($html) as $policy) {
             $directives = self::directives($policy);
-            foreach (self::CHAINS as $chain) {
+            foreach (self::CHAINS as $name => $chain) {
+                if ('script' === $name && !$script) {
+                    continue;
+                }
                 if (!self::inline_allowed($directives, $chain)) {
                     return false;
                 }

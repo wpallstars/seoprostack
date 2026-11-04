@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.148
+Stable tag: 1.3.149
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,9 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.148 =
-* Faster: Fluent Forms' Turnstile loads when a form comes near (#1210).
-* Faster: new uploads get their watermark at once during imports (#1211).
-* Fix: a busy kept original no longer pauses local copy removal (#1208).
+= 1.3.149 =
+* Faster: Load the CSS each page uses first also loads the Kadence theme's local fonts stylesheet without blocking and puts Kadence Pro's dark mode script in the page (#1218).
 
 Older: `changelog.txt`.
