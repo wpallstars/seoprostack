@@ -30,10 +30,11 @@ final class SEOProStack_Used_Css_Parser {
     const GROUPS = '/^@(?:media|supports|container|layer|scope)\b/i';
 
     /**
-     * A quoted string, escapes and all. Possessive, so long strings such as
-     * data: URIs stay within PCRE's stack.
+     * A quoted string, escapes and all; an escaped quote outside one (as in
+     * Tailwind's `.\[class\*\=\'x\'\]`) opens none. Possessive, so long
+     * strings such as data: URIs stay within PCRE's stack.
      */
-    const QUOTED = '(["\'])(?:\\\\.|(?!\1)[^\\\\])*+\1';
+    const QUOTED = '(?<!\\\\)(["\'])(?:\\\\.|(?!\1)[^\\\\])*+\1';
 
     /** A string (kept) or a comment. */
     const COMMENTS = '~' . self::QUOTED . '|/\*.*?\*/~s';
@@ -223,7 +224,8 @@ final class SEOProStack_Used_Css_Parser {
     }
 
     /**
-     * The next of these characters outside strings.
+     * The next of these characters outside strings and not escaped (as the
+     * quote in Tailwind's `.\[class\*\=\'x\'\]` is).
      *
      * @param string $css   Stylesheet.
      * @param int    $pos   Where to start.
@@ -233,11 +235,18 @@ final class SEOProStack_Used_Css_Parser {
     private static function next($css, $pos, $chars) {
         $len = strlen($css);
         while ($pos < $len) {
-            $pos += strcspn($css, $chars . '"\'', $pos);
-            if ($pos >= $len || false === strpos('"\'', $css[$pos])) {
-                return $pos;
+            $pos += strcspn($css, $chars . '"\'\\', $pos);
+            if ($pos >= $len) {
+                return $len;
             }
-            $pos = self::after_string($css, $pos);
+            $ch = $css[$pos];
+            if ('\\' === $ch) {
+                $pos += 2; // An escape takes the next character with it.
+            } elseif (false === strpos('"\'', $ch)) {
+                return $pos;
+            } else {
+                $pos = self::after_string($css, $pos);
+            }
         }
         return $len;
     }
