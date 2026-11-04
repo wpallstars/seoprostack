@@ -70,14 +70,19 @@ final class SEOProStack_Litespeed {
      */
     const DELIVER_TIMEOUT = 30;
 
-    /** Request argument marking a request that set out while a purge waited. */
+    /**
+     * Request argument holding the purges a request set out with, by queue
+     * option, so its answer clears only those.
+     */
     const DELIVERY_ARG = 'seoprostack_delivers_purge';
 
     /**
-     * Purges a request to admin-ajax.php from this command-line run set out
-     * with, by site, then queue option, until such a request answers.
+     * Purges requests to admin-ajax.php from this command-line run set out
+     * with, by site, as queue option and value, until a request carrying
+     * each answers. One option can hold two: another process can store a
+     * newer purge after a request took the first without an answer.
      *
-     * @var array<int, array<string, string>>
+     * @var array<int, list<array{0:string,1:string}>>
      */
     private static $held = array();
 
@@ -128,9 +133,13 @@ final class SEOProStack_Litespeed {
         if (!$queued) {
             return $args;
         }
-        $blog                     = get_current_blog_id();
-        self::$held[$blog]        = $queued + (isset(self::$held[$blog]) ? self::$held[$blog] : array());
-        $args[self::DELIVERY_ARG] = true;
+        $blog = get_current_blog_id();
+        foreach ($queued as $option => $value) {
+            if (!isset(self::$held[$blog]) || !in_array(array($option, $value), self::$held[$blog], true)) {
+                self::$held[$blog][] = array($option, $value);
+            }
+        }
+        $args[self::DELIVERY_ARG] = $queued;
         if (!isset($args['timeout']) || (float) $args['timeout'] < self::DELIVER_TIMEOUT) {
             $args['timeout'] = self::DELIVER_TIMEOUT; // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
         }
@@ -139,10 +148,12 @@ final class SEOProStack_Litespeed {
 
     /**
      * After a request that set out with a purge: an answer below 500 came
-     * back through the server, which applied the purge with it; none (a
-     * timeout) or a server error may have lost it. A request that set out
+     * back through the server, which applied the purges it carried; none (a
+     * timeout) or a server error may have lost them. A request that set out
      * with none (the queue already taken) is no answer for it: LiteSpeed
-     * Cache tries again at the end of the run, after a lost purge.
+     * Cache tries again at the end of the run, after a lost purge. An answer
+     * clears only the purges its request carried: one an earlier request
+     * took without an answer stays held, to be stored again.
      *
      * @since 1.3.147
      * @param array|WP_Error $response Response or error.
@@ -153,14 +164,24 @@ final class SEOProStack_Litespeed {
      */
     public static function delivery_answered($response, $context, $class, $args, $url) {
         unset($class, $url);
-        $blog = get_current_blog_id();
-        if ('response' !== $context || empty($args[self::DELIVERY_ARG]) || empty(self::$held[$blog])) {
+        $blog    = get_current_blog_id();
+        $carried = isset($args[self::DELIVERY_ARG]) && is_array($args[self::DELIVERY_ARG]) ? $args[self::DELIVERY_ARG] : array();
+        if ('response' !== $context || !$carried || empty(self::$held[$blog])) {
             return;
         }
         $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
         if ($code > 0 && $code < 500) {
-            unset(self::$held[$blog], self::$failed[$blog]);
-            return;
+            $left = array();
+            foreach (self::$held[$blog] as $purge) {
+                if (!isset($carried[$purge[0]]) || $carried[$purge[0]] !== $purge[1]) {
+                    $left[] = $purge;
+                }
+            }
+            if (!$left) {
+                unset(self::$held[$blog], self::$failed[$blog]);
+                return;
+            }
+            self::$held[$blog] = $left;
         }
         self::$failed[$blog] = true;
     }
@@ -201,7 +222,9 @@ final class SEOProStack_Litespeed {
      * A request that took the purge without an answer (it gave up waiting
      * on a busy server) emptied the queue, but the server never applied the
      * purge: it is stored again first, and again after this request if that
-     * gets no answer either, so the next request delivers it (#1207).
+     * gets no answer either, so the next request delivers it (#1207). When
+     * this request answers but carried only a newer purge, the lost one is
+     * stored again and delivered once more straight away.
      *
      * @since 1.3.146
      * @return bool Whether no purge is waiting now (a web request delivers
@@ -224,39 +247,51 @@ final class SEOProStack_Litespeed {
         if ($resolve) {
             add_action('http_api_curl', $resolve);
         }
-        wp_remote_get($url, array(
-            'timeout'    => self::DELIVER_TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
-            'user-agent' => self::CRAWLER_AGENT . ' SEOProStack',
-            // Core's filter for requests to the site itself, as its loopback test uses.
-            'sslverify'  => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
-        ));
+        // A second request only after an answer that left a lost purge held:
+        // a server that gave no answer is not asked again in this run.
+        for ($try = 0; $try < 2; ++$try) {
+            $response = wp_remote_get($url, array(
+                'timeout'    => self::DELIVER_TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only from the command line.
+                'user-agent' => self::CRAWLER_AGENT . ' SEOProStack',
+                // Core's filter for requests to the site itself, as its loopback test uses.
+                'sslverify'  => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+            ));
+            if (empty(self::$failed[$blog]) || self::purge_waiting()) {
+                break;
+            }
+            self::store_again($blog);
+            $code = is_wp_error($response) ? 0 : (int) wp_remote_retrieve_response_code($response);
+            if ($code < 1 || $code >= 500) {
+                break;
+            }
+        }
         if ($resolve) {
             remove_action('http_api_curl', $resolve);
-        }
-        if (!empty(self::$failed[$blog]) && !self::purge_waiting()) {
-            self::store_again($blog);
         }
         return !self::purge_waiting();
     }
 
     /**
      * Store again, for this site, the purges a request took without an
-     * answer. Only queues now empty are written, so a newer purge is kept.
-     * This run's cached copy of each option still holds the purge, so
-     * update_option() is shown the emptied queue, and writes it through any
-     * object cache too.
+     * answer. Only queues now empty are written, one purge each, so a newer
+     * purge is kept; one still held after that is stored again once the
+     * request carrying the first answers. This run's cached copy of each
+     * option still holds the purge, so update_option() is shown the emptied
+     * queue, and writes it through any object cache too.
      *
      * @param int $blog Site ID.
      */
     private static function store_again($blog) {
         $queued = self::queued();
-        foreach (isset(self::$held[$blog]) ? self::$held[$blog] : array() as $option => $value) {
+        foreach (isset(self::$held[$blog]) ? self::$held[$blog] : array() as $purge) {
+            list($option, $value) = $purge;
             if (isset($queued[$option])) {
                 continue;
             }
             add_filter('pre_option_' . $option, array(__CLASS__, 'queue_taken'));
             update_option($option, $value);
             remove_filter('pre_option_' . $option, array(__CLASS__, 'queue_taken'));
+            $queued[$option] = $value;
         }
         unset(self::$failed[$blog]);
     }
