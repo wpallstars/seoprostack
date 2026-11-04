@@ -37,16 +37,19 @@ class SEOProStack_Nextgen_GD extends WP_Image_Editor_GD {
             $filename = $this->generate_filename(null, null, $extension);
         }
         if (function_exists('imageinterlace')) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook.
             imageinterlace($image, apply_filters('image_save_progressive', false, $mime_type));
         }
         if (!function_exists('imageavif') || !$this->make_image($filename, 'imageavif', array($image, $filename, $this->get_quality(), SEOProStack_Nextgen_Images::avif_speed()))) {
-            return new WP_Error('image_save_error', __('Image Editor Save Failed'));
+            return new WP_Error('image_save_error', __('Image Editor Save Failed', 'seoprostack'));
         }
         $stat  = stat(dirname($filename));
         $perms = $stat['mode'] & 0000666;
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- WordPress's own GD save behavior.
         chmod($filename, $perms);
         return array(
             'path'      => $filename,
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook.
             'file'      => wp_basename(apply_filters('image_make_intermediate_size', $filename)),
             'width'     => $this->size['width'],
             'height'    => $this->size['height'],
