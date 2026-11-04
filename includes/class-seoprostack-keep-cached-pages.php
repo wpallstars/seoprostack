@@ -19,7 +19,7 @@ final class SEOProStack_Keep_Cached_Pages {
 
     /**
      * Most main pages per site: the home page, the header's and footer's
-     * menus and links, the posts page and the home page's other links.
+     * menus and links, the home page's other links and the posts page.
      */
     const MAIN_MAX = 50;
 
@@ -65,9 +65,9 @@ final class SEOProStack_Keep_Cached_Pages {
 
     /**
      * This site's pages to open, in the order visitors reach them: the home
-     * page, the header's menus and links, the footer's, the posts page and
-     * the home page's other links; then the rest of the site (pages, posts,
-     * then other public types, newest first).
+     * page, the header's menus and links, the footer's, the home page's
+     * other links and the posts page; then the rest of the site (pages,
+     * posts, then other public types, newest first).
      *
      * @param int  $main      Most main pages.
      * @param int  $total     Most pages in all.
@@ -80,7 +80,7 @@ final class SEOProStack_Keep_Cached_Pages {
         $links      = $read_home ? self::page_links($home) : array('header' => array(), 'footer' => array(), 'other' => array());
         $posts_page = (int) get_option('page_for_posts');
         $posts      = $posts_page && 'page' === get_option('show_on_front') ? array((string) get_permalink($posts_page)) : array();
-        $urls       = self::clean(array_merge(array($home), $menus['header'], $links['header'], $menus['footer'], $links['footer'], $posts, $links['other']), $main);
+        $urls       = self::clean(array_merge(array($home), $menus['header'], $links['header'], $menus['footer'], $links['footer'], $links['other'], $posts), $main);
         if (count($urls) >= $total) {
             return $urls;
         }

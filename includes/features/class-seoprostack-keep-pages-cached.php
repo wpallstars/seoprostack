@@ -11,8 +11,8 @@
  * After the cache is emptied, this opens the site's main pages in WP-Cron,
  * one at a time, as a visitor who is not logged in, so the cache holds them
  * again within minutes, in the order visitors reach them:
- * - the home page, the header's menus and links, the footer's, the posts
- *   page and the home page's other links;
+ * - the home page, the header's menus and links, the footer's, the home
+ *   page's other links and the posts page;
  * - the rest of the site too (pages, posts, other public types, newest
  *   first, up to 1,000 pages), where no crawler covers it;
  * - then LiteSpeed Cache's crawler, where it is on, as its own Crawl now
