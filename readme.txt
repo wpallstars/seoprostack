@@ -73,7 +73,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **External link icons**: script-free. **Modal links** open drawers and modals.
 * **Links skip redirects**: link straight to Rank Math's permanent on-site redirect targets.
 * **Internal linking tools** (off): suggestions and undo.
-* **Speed settings**, **Preload pages**, **Keep pages cached** after updates and purges (LiteSpeed Cache, WP-Optimize), **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
+* **Speed settings**, **Preload pages**, **Keep pages cached** after purges, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and tasks.
