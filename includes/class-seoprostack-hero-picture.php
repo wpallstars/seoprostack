@@ -38,7 +38,7 @@ class SEOProStack_Hero_Picture {
         if (!$meta) {
             return null;
         }
-        $sizes = is_array($meta['sizes'] ?? null) ? $meta['sizes'] : array();
+        $sizes = (array) ($meta['sizes'] ?? array());
         list($width, $height) = self::named($meta, $sizes, wp_basename(rawurldecode((string) wp_parse_url($url, PHP_URL_PATH))));
         if ($width < 1 || $height < 1) {
             return null;
@@ -54,8 +54,8 @@ class SEOProStack_Hero_Picture {
 
     /**
      * An attachment's metadata, when the row's address can go in CSS, the
-     * metadata has its file and size, and the address is in its folder;
-     * null when not.
+     * metadata has its file and the address is in its folder; null when
+     * not. A missing size is caught by get().
      *
      * @param int   $id  Attachment ID.
      * @param mixed $url Address the row names.
@@ -63,7 +63,7 @@ class SEOProStack_Hero_Picture {
      */
     private static function meta($id, $url) {
         $meta = $id > 0 && self::css_url($url) ? wp_get_attachment_metadata($id) : false;
-        return is_array($meta) && !empty($meta['file']) && !empty($meta['width']) && !empty($meta['height']) && self::in_folder($meta['file'], $url) ? $meta : null;
+        return is_array($meta) && !empty($meta['file']) && self::in_folder($meta['file'], $url) ? $meta : null;
     }
 
     /**
@@ -93,7 +93,7 @@ class SEOProStack_Hero_Picture {
      */
     private static function named(array $meta, array $sizes, $name) {
         if (wp_basename($meta['file']) === $name) {
-            return array((int) $meta['width'], (int) $meta['height']);
+            return array((int) ($meta['width'] ?? 0), (int) ($meta['height'] ?? 0));
         }
         foreach ($sizes as $info) {
             if (is_array($info) && isset($info['file'], $info['width'], $info['height']) && $info['file'] === $name) {
@@ -132,7 +132,8 @@ class SEOProStack_Hero_Picture {
 
     /**
      * A size's width, when it is narrower than the picture, has a file and
-     * its height is within a pixel of the same proportions; 0 when not.
+     * its height is within a pixel of the same proportions; 0 when not
+     * (copies() also skips widths below 1).
      *
      * @param mixed $info   The size's metadata.
      * @param int   $width  Width of the picture the row names.
@@ -142,7 +143,7 @@ class SEOProStack_Hero_Picture {
     private static function copy_width($info, $width, $height) {
         $w = (int) ($info['width'] ?? 0);
         $h = (int) ($info['height'] ?? 0);
-        return $w > 0 && $w < $width && !empty($info['file']) && abs($h * $width - $w * $height) <= $width ? $w : 0;
+        return $w < $width && !empty($info['file']) && abs($h * $width - $w * $height) <= $width ? $w : 0;
     }
 
     /**
@@ -154,7 +155,8 @@ class SEOProStack_Hero_Picture {
      * @return string
      */
     private static function src_url($src, $width) {
-        return is_array($src) && isset($src[0], $src[1]) && $width === (int) $src[1] && self::css_url($src[0]) ? $src[0] : '';
+        // isset() is false on false, the answer for no such size.
+        return isset($src[0], $src[1]) && $width === (int) $src[1] && self::css_url($src[0]) ? $src[0] : '';
     }
 
     /**
