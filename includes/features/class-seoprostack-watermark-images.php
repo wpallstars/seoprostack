@@ -828,21 +828,34 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         $lease = SEOProStack_Media_Storage::lease();
         if (!$lease) {
-            // A media batch holds the lease: mark the new upload in the
-            // background (storage waits for that batch) rather than hold up
-            // the upload. A different batch running cannot take it, so mark it
-            // now, as before the lease: a new upload never goes unmarked.
-            if (!self::enabled() || !SEOProStack_Settings::get('watermark_images_new') || self::record($attachment_id) || ('create' !== $context && !self::$finalizing)) {
+            if (!self::enabled() || !SEOProStack_Settings::get('watermark_images_new') || self::record($attachment_id)) {
                 return $metadata;
             }
-            // Barrier first: the running batch may reach this upload before
-            // the queued mark does.
+            if ('create' !== $context) {
+                // A finalizing browser upload may touch files a media batch
+                // owns, so preserve the queued path for update contexts.
+                if (!self::$finalizing) {
+                    return $metadata;
+                }
+                update_post_meta((int) $attachment_id, self::QUEUED_META, time());
+                if (self::queue('add', array((int) $attachment_id))) {
+                    return $metadata;
+                }
+                delete_post_meta((int) $attachment_id, self::QUEUED_META);
+                return self::after_generate_locked($metadata, $attachment_id, $context, true);
+            }
+            // A new upload cannot be claimed by another batch, so mark it in
+            // this request while the barrier keeps storage from publishing
+            // clean files mid-mark.
+            // Set the barrier before changing files: the running storage batch
+            // may otherwise reach this new upload while it is being marked.
             update_post_meta((int) $attachment_id, self::QUEUED_META, time());
-            if (self::queue('add', array((int) $attachment_id))) {
-                return $metadata;
+            try {
+                return self::after_generate_locked($metadata, $attachment_id, $context, true);
+            } finally {
+                // Inline marking has finished (or failed), so storage may go on.
+                delete_post_meta((int) $attachment_id, self::QUEUED_META);
             }
-            delete_post_meta((int) $attachment_id, self::QUEUED_META);
-            return self::after_generate_locked($metadata, $attachment_id, $context, true);
         }
         try {
             wp_cache_delete($attachment_id, 'post_meta');
