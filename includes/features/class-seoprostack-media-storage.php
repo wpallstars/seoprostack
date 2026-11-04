@@ -2744,7 +2744,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *                       already). False when not now: removal off or
      *                       paused, not uploaded on this connection, its WebP
      *                       or AVIF copies still to make, the lease busy, the
-     *                       turn over, or the picture changed during removal
+     *                       turn over (the bucket checks stop up to two
+     *                       seconds early, or at half of a shorter turn, to
+     *                       leave time for removal, so a slow check on a short
+     *                       turn also answers false), or the picture changed during removal
      *                       (files already removed stay listed and are served
      *                       from the bucket); call again later. WP_Error
      *                       'storage_kept' when its files stay here after a
@@ -2779,10 +2782,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *                                   the turn over, a stop above) is false.
      */
     public static function remove_local_many($ids, $deadline) {
-        $ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids), static function ($id) {
+        $given = array_values(array_unique(array_map('intval', (array) $ids)));
+        // Every given ID answers, an invalid one false, as remove_local_now(0) does.
+        $results = array_fill_keys($given, false);
+        $ids = array_values(array_filter($given, static function ($id) {
             return $id > 0;
-        })));
-        $results = array_fill_keys($ids, false);
+        }));
         $deadline = (float) $deadline;
         if (!$ids || microtime(true) >= $deadline || !self::removing() || (int) get_option(self::LOCAL_WAIT, 0) > time()) {
             return $results;
@@ -2795,6 +2800,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $signature = self::config()['signature'];
             $todo = array();
             foreach ($ids as $id) {
+                if (microtime(true) >= $deadline) {
+                    // The rest keep false: the lease is not held past the turn.
+                    break;
+                }
                 $ready = self::remove_now_ready($id, $signature);
                 if (null === $ready) {
                     $todo[] = $id;
