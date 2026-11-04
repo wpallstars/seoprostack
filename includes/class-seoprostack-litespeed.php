@@ -273,36 +273,31 @@ final class SEOProStack_Litespeed {
 
     /**
      * Store again, for this site, the purges a request took without an
-     * answer. Only queues now empty are written, one purge each, so a newer
-     * purge is kept; one still held after that is stored again once the
-     * request carrying the first answers. This run's cached copy of each
-     * option still holds the purge, so update_option() is shown the emptied
-     * queue, and writes it through any object cache too.
+     * answer. A queue is written only while it is still empty, in the
+     * database itself, so a purge another process stores meanwhile is kept;
+     * one purge each, and one still held after that is stored again once the
+     * request carrying the newer one answers. LiteSpeed Cache reads the
+     * queue with get_option(), so the option's cached copies (this run's and
+     * any object cache's, autoloaded or not) are cleared after a write.
      *
      * @param int $blog Site ID.
      */
     private static function store_again($blog) {
+        global $wpdb;
         $queued = self::queued();
         foreach (isset(self::$held[$blog]) ? self::$held[$blog] : array() as $purge) {
             list($option, $value) = $purge;
             if (isset($queued[$option])) {
                 continue;
             }
-            add_filter('pre_option_' . $option, array(__CLASS__, 'queue_taken'));
-            update_option($option, $value);
-            remove_filter('pre_option_' . $option, array(__CLASS__, 'queue_taken'));
             $queued[$option] = $value;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- compare-and-swap on the queue; its cache is cleared below.
+            if ($wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value IN ('', '-1')", $value, $option))) {
+                wp_cache_delete($option, 'options');
+                wp_cache_delete('alloptions', 'options');
+            }
         }
         unset(self::$failed[$blog]);
-    }
-
-    /**
-     * A purge queue as the request that took it left it.
-     *
-     * @return string
-     */
-    public static function queue_taken() {
-        return '-1';
     }
 
     /**
