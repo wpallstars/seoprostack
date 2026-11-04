@@ -134,8 +134,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
         if (defined('KADENCE_BLOCKS_VERSION')) {
-            // With core's preload links, before the styles (8).
-            add_action('wp_head', array(__CLASS__, 'kadence_preload'), 1);
+            // First in the head, before other plugins' inline styles and
+            // scripts (on a test page about 40 KB of them at 1 and earlier).
+            add_action('wp_head', array(__CLASS__, 'kadence_preload'), -10);
         }
     }
 
