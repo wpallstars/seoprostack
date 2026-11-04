@@ -37,11 +37,17 @@ final class SEOProStack_Used_Css_Parser {
      *
      * @param string $css  Stylesheet.
      * @param string $base Its folder (URL path), for relative url()s.
-     * @return array
+     * @return array|null Null when it cannot be read, so it is left as it is.
      */
     public static function parse($css, $base = '') {
-        // Comments out, strings kept (a string may hold "/*").
-        $css    = (string) preg_replace('~("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')|/\*.*?\*/~s', '$1', (string) $css);
+        // Comments out, strings kept (a string may hold "/*"). Possessive, so
+        // long strings such as data: URIs stay within PCRE's stack.
+        $css = preg_replace_callback('~(["\'])(?:\\\\.|(?!\1)[^\\\\])*+\1|/\*.*?\*/~s', function ($m) {
+            return '/' === $m[0][0] ? '' : $m[0];
+        }, (string) $css);
+        if (!is_string($css)) {
+            return null; // A PCRE limit: reading on would drop every rule.
+        }
         $parser = new self($base);
         return $parser->block($css);
     }
@@ -215,12 +221,13 @@ final class SEOProStack_Used_Css_Parser {
     private static function after_string($css, $pos) {
         $quote = $css[$pos];
         $len   = strlen($css);
-        for ($i = $pos + 1; $i < $len; $i++) {
-            if ('\\' === $css[$i]) {
-                $i++;
-            } elseif ($quote === $css[$i] || "\n" === $css[$i]) {
+        $i     = $pos + 1;
+        while ($i < $len) {
+            $ch = $css[$i];
+            if ($quote === $ch || "\n" === $ch) {
                 return $i + 1;
             }
+            $i += '\\' === $ch ? 2 : 1; // An escape takes the next character with it.
         }
         return $len;
     }

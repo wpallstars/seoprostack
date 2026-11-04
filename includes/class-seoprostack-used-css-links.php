@@ -37,9 +37,10 @@ final class SEOProStack_Used_Css_Links {
      */
     public static function attributes($tag) {
         $attrs = array();
-        if (preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+)))?/', substr($tag, 5), $found, PREG_SET_ORDER)) {
+        // Name, then the value: quoted (2 is the quote, 3 the value) or not (4).
+        if (preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:(["\'])(.*?)\2|([^\s>]+)))?/s', substr($tag, 5), $found, PREG_SET_ORDER)) {
             foreach ($found as $m) {
-                $value                    = (isset($m[2]) ? $m[2] : '') . (isset($m[3]) ? $m[3] : '') . (isset($m[4]) ? $m[4] : '');
+                $value                    = (isset($m[3]) ? $m[3] : '') . (isset($m[4]) ? $m[4] : '');
                 $attrs[strtolower($m[1])] = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
             }
         }
