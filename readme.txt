@@ -155,6 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.145 =
+* Improved: AVIF copies use WordPress's encoder speed 7 (#1201).
 * New (on): Keep pages cached refills the page cache after purges (#1192).
 * New: Keep recommended settings keeps presets applied (#1193).
 * New: Load the CSS each page uses first (#1194).
