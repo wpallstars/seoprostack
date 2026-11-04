@@ -104,18 +104,47 @@ final class SEOProStack_Keep_Cached_Pages {
             if ($left <= 0) {
                 break;
             }
-            foreach (get_posts(array(
+            $ids = get_posts(array(
                 'post_type'              => $type,
                 'post_status'            => 'publish',
                 'has_password'           => false,
                 'posts_per_page'         => $left,
                 'orderby'                => 'date',
                 'order'                  => 'DESC',
+                'fields'                 => 'ids',
                 'no_found_rows'          => true,
                 'update_post_meta_cache' => false,
                 'update_post_term_cache' => false,
-            )) as $post) {
-                $urls[] = (string) get_permalink($post);
+            ));
+            foreach (array_chunk(array_map('intval', $ids), 200) as $chunk) {
+                $urls = array_merge($urls, self::permalinks($chunk));
+            }
+        }
+        return $urls;
+    }
+
+    /**
+     * Permalinks of published posts, from the columns permalinks use: up to
+     * 1,000 posts' content is not loaded into memory or the object cache.
+     *
+     * @param int[] $ids Post IDs, in order.
+     * @return string[]
+     */
+    private static function permalinks(array $ids) {
+        global $wpdb;
+        $in = implode(',', array_fill(0, count($ids), '%d'));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- primary-key lookup of the columns permalinks read, once per fill; $in holds one placeholder per ID.
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT ID, post_author, post_date, post_date_gmt, post_status, post_name, post_parent, post_type, menu_order FROM {$wpdb->posts} WHERE ID IN ($in)", $ids), OBJECT_K);
+        $urls = array();
+        foreach ($ids as $id) {
+            if (isset($rows[$id])) {
+                $row              = $rows[$id];
+                $row->ID          = (int) $row->ID;
+                $row->post_parent = (int) $row->post_parent;
+                $row->menu_order  = (int) $row->menu_order;
+                // As loaded: get_post() then uses this object as it is.
+                $row->filter      = 'raw';
+                $urls[]           = (string) get_permalink(new WP_Post($row));
             }
         }
         return $urls;
