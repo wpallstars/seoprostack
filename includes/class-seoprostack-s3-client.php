@@ -186,7 +186,15 @@ final class SEOProStack_S3_Client {
                 }
                 continue;
             }
-            foreach ($this->request_multiple($requests, min(20, $remaining)) as $key => $response) {
+            $timeout = min(20, $remaining);
+            foreach ($this->request_multiple($requests, $timeout) as $key => $response) {
+                // As in put_files(): a HEAD still running when a group given
+                // less than the usual 20 seconds ran out was stopped by the
+                // caller's deadline, not the bucket, so it waits for the next
+                // turn instead of counting as a service failure.
+                if ($timeout < 20 && is_wp_error($response) && 'storage_transport' === $response->get_error_code() && !empty($response->get_error_data()['at_deadline'])) {
+                    $response = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+                }
                 $results[$key] = $this->head_info($response);
             }
         }

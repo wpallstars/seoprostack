@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: cloud storage removes many imported pictures' local copies in one pass (#1223).
+
 = 1.3.149 =
 * Faster: watermarks, WebP/AVIF copies and cloud uploads run at once (#1196).
 * Faster: Used CSS also covers Kadence's local fonts and Kadence Pro's dark mode script (#1218).

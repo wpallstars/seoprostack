@@ -2753,42 +2753,132 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     public static function remove_local_now($id, $deadline) {
         $id = (int) $id;
-        if ($id <= 0 || microtime(true) >= (float) $deadline || !self::removing() || (int) get_option(self::LOCAL_WAIT, 0) > time()) {
+        if ($id <= 0) {
             return false;
+        }
+        return self::remove_local_many(array($id), $deadline)[$id] ?? false;
+    }
+
+    /**
+     * Remove several uploaded attachments' local copies now, as
+     * remove_local_now() does for one, but in one pass: the storage lease is
+     * taken once, the pictures' files are checked in shared HEAD phases of
+     * whole pictures (batch_requests(), as the batch does), each picture is
+     * then confirmed and removed whole, and pages are purged once at the
+     * end. The pictures are taken in the order given.
+     *
+     * Removal stops when the turn ends, when a phase meets a retryable
+     * service error (the pictures not reached are tried on the next call),
+     * or when another service error pauses removal for an hour.
+     *
+     * @param int[] $ids Attachment IDs.
+     * @param float $deadline End of the caller's turn, as microtime(true).
+     * @return array<int, bool|WP_Error> Each given ID's answer, with
+     *                                   remove_local_now()'s meaning. A
+     *                                   picture not reached (the lease busy,
+     *                                   the turn over, a stop above) is false.
+     */
+    public static function remove_local_many($ids, $deadline) {
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids), static function ($id) {
+            return $id > 0;
+        })));
+        $results = array_fill_keys($ids, false);
+        $deadline = (float) $deadline;
+        if (!$ids || microtime(true) >= $deadline || !self::removing() || (int) get_option(self::LOCAL_WAIT, 0) > time()) {
+            return $results;
         }
         $lease = self::lease();
         if ('' === $lease) {
-            return false;
+            return $results;
         }
         try {
             $signature = self::config()['signature'];
-            self::fresh($id);
-            if ('uploaded' !== get_post_meta($id, self::STATE, true) || !self::removal_record($id)) {
-                return false;
+            $todo = array();
+            foreach ($ids as $id) {
+                $ready = self::remove_now_ready($id, $signature);
+                if (null === $ready) {
+                    $todo[] = $id;
+                } else {
+                    $results[$id] = $ready;
+                }
             }
-            if (get_post_meta($id, self::LOCAL, true) === $signature) {
-                // The batch got there first.
-                return true;
-            }
-            // WebP and AVIF copies are made from local files, before they go
-            // (local_mode() waits for the whole library; this picture is enough).
-            if (SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::is_waiting($id)) {
-                return false;
-            }
-            $result = get_post_meta($id, self::LOCAL, true) === 'kept:' . $signature ? true : self::remove_local($id, (float) $deadline);
-            if (is_wp_error($result)) {
-                return self::remove_now_error($id, $result);
-            }
-            self::fresh($id);
-            $local = get_post_meta($id, self::LOCAL, true);
-            if ('kept:' . $signature === $local) {
-                return new WP_Error('storage_kept', __('This picture’s local copies are kept after a failed check; upload --retry-failed looks at them again.', 'seoprostack'));
-            }
-            return $local === $signature;
+            self::remove_now_phases($todo, $deadline, $signature, $results);
         } finally {
             self::release($lease);
             self::purge_pages();
         }
+        return $results;
+    }
+
+    /**
+     * remove_local_many()'s checks before a picture's files are looked at.
+     *
+     * @param int $id Attachment ID.
+     * @param string $signature This connection's signature.
+     * @return bool|WP_Error|null Its answer now, or null when its files may go.
+     */
+    private static function remove_now_ready($id, $signature) {
+        self::fresh($id);
+        if ('uploaded' !== get_post_meta($id, self::STATE, true) || !self::removal_record($id)) {
+            return false;
+        }
+        $local = get_post_meta($id, self::LOCAL, true);
+        if ($local === $signature) {
+            // The batch got there first.
+            return true;
+        }
+        // WebP and AVIF copies are made from local files, before they go
+        // (local_mode() waits for the whole library; this picture is enough).
+        if (SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::is_waiting($id)) {
+            return false;
+        }
+        return 'kept:' . $signature === $local ? self::remove_now_kept() : null;
+    }
+
+    /**
+     * Remove the pictures' files in shared HEAD phases (removal_phase()),
+     * filling in each picture's answer.
+     *
+     * @param int[] $ids Attachment IDs whose files may go, in order.
+     * @param float $deadline End of the caller's turn.
+     * @param string $signature This connection's signature.
+     * @param array $results Answers by ID, filled in.
+     */
+    private static function remove_now_phases($ids, $deadline, $signature, &$results) {
+        $cap = self::batch_requests();
+        $removals = array();
+        while ($ids && microtime(true) < $deadline) {
+            $keys = array();
+            $prepared = self::removal_phase($ids, $removals, $cap, $keys);
+            // Reserve part of the turn for finish_removal(), as remove_locals() does.
+            $head_deadline = max(microtime(true), $deadline - min(2, ($deadline - microtime(true)) / 2));
+            $heads = $keys ? self::client()->heads($keys, $head_deadline, $cap) : array();
+            $retry = false;
+            foreach ($prepared as $id => $removal) {
+                $result = self::removal_result($id, $removal, $heads, $deadline);
+                if (is_wp_error($result)) {
+                    $retry = $retry || SEOProStack_S3_Client::retryable($result);
+                    $results[$id] = self::remove_now_error($id, $result);
+                    if ((int) get_option(self::LOCAL_WAIT, 0) > time()) {
+                        // Paused for an hour: the rest wait, as remove_local_now() would answer.
+                        return;
+                    }
+                    continue;
+                }
+                self::fresh($id);
+                $local = get_post_meta($id, self::LOCAL, true);
+                $results[$id] = 'kept:' . $signature === $local ? self::remove_now_kept() : $local === $signature;
+            }
+            if ($retry) {
+                // The service is failing: the pictures not reached wait for the next call.
+                return;
+            }
+        }
+    }
+
+    /** @return WP_Error remove_local_now()'s answer for a picture kept after a failed check. */
+    private static function remove_now_kept() {
+        return new WP_Error('storage_kept', __('This picture’s local copies are kept after a failed check; upload --retry-failed looks at them again.', 'seoprostack'));
     }
 
     /**
