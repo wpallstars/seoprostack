@@ -21,7 +21,10 @@
  * A rule is used when the page has every class, ID and element one of its
  * selectors names; classes the supported scripts add after the page loads
  * count as present (SEOProStack_Used_Css_Match). Which links are handled:
- * SEOProStack_Used_Css_Links.
+ * SEOProStack_Used_Css_Links. The Kadence theme's local fonts stylesheet
+ * (wp-content/fonts/, handle kadence-fonts-*) is handled too, and Kadence
+ * Pro's dark mode script (kadence-dark-mode, up to 8 KB) is printed in the
+ * page instead of as a request, still synchronous (GitHub issue #1218).
  *
  * Steps aside where LiteSpeed Cache combines CSS or makes its own unused or
  * critical CSS, and where a content security policy blocks its inline
@@ -70,7 +73,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'speed',
                 'label'       => __('Load the CSS each page uses first', 'seoprostack'),
-                'description' => __('For the Kadence theme, Kadence Blocks, Fluent Forms and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
+                'description' => __('For the Kadence theme, Kadence Blocks, Fluent Forms and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. The Kadence theme’s local Google Fonts stylesheet loads without blocking, and Kadence Pro’s dark mode script goes into the page. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
             ),
             self::EXCLUDE_KEY => array(
                 'type'        => 'lines',

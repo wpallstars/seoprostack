@@ -38,7 +38,7 @@ final class SEOProStack_Used_Css_Links {
     public static function attributes($tag) {
         $attrs = array();
         // Name, then the value: quoted (2 is the quote, 3 the value) or not (4).
-        if (preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:(["\'])(.*?)\2|([^\s>]+)))?/s', substr($tag, 5), $found, PREG_SET_ORDER)) {
+        if (preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:(["\'])(.*?)\2|([^\s>]+)))?/s', (string) preg_replace('/^<[^\s>\/]*/', '', $tag), $found, PREG_SET_ORDER)) {
             foreach ($found as $m) {
                 $value                    = (isset($m[3]) ? $m[3] : '') . (isset($m[4]) ? $m[4] : '');
                 $attrs[strtolower($m[1])] = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
@@ -69,10 +69,11 @@ final class SEOProStack_Used_Css_Links {
     /**
      * The local file of a handled stylesheet.
      *
-     * @param string $href Address.
+     * @param string $href  Address.
+     * @param array  $attrs The link's attributes, to tell the Kadence theme's local fonts stylesheet.
      * @return string Empty when it is not one.
      */
-    public static function file($href) {
+    public static function file($href, array $attrs = array()) {
         $path = self::path($href);
         if ('' === $path) {
             return '';
@@ -80,10 +81,59 @@ final class SEOProStack_Used_Css_Links {
         foreach (self::roots() as $url_path => $dir) {
             if (0 === strpos($path, $url_path)) {
                 $file = $dir . substr($path, strlen($url_path));
-                return self::handled($file) && is_file($file) ? $file : '';
+                return (self::handled($file) || self::kadence_fonts($attrs, $file)) && is_file($file) ? $file : '';
             }
         }
         return '';
+    }
+
+    /**
+     * The contents of Kadence Pro's dark mode script, for the page: it sets
+     * the colour scheme before the first paint, so it stays in the head and
+     * synchronous, but can be in the page instead of a request.
+     *
+     * @param string $tag A whole `<script>` element.
+     * @return string Empty when it is not that script, or is not small and plain.
+     */
+    public static function dark_mode_script($tag) {
+        if (!preg_match('/^<script\b[^>]*>/i', $tag, $open) || '' !== trim(substr($tag, strlen($open[0]), -strlen('</script>')))) {
+            return '';
+        }
+        $attrs = self::attributes($open[0]);
+        if (!isset($attrs['src'], $attrs['id']) || 'kadence-dark-mode-js' !== $attrs['id'] || array_diff(array_keys($attrs), array('src', 'id'))) {
+            return '';
+        }
+        $path = self::path($attrs['src'], '.js');
+        $base = trailingslashit((string) wp_parse_url(plugins_url('kadence-pro'), PHP_URL_PATH));
+        if ('' === $path || 0 !== strpos($path, $base)) {
+            return '';
+        }
+        $dir  = trailingslashit(wp_normalize_path(WP_PLUGIN_DIR)) . 'kadence-pro/';
+        $file = $dir . substr($path, strlen($base));
+        if (!is_file($file) || !is_readable($file) || filesize($file) > 8192) {
+            return '';
+        }
+        $code = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file.
+        return is_string($code) && false === stripos($code, '</script') ? $code : '';
+    }
+
+    /**
+     * Whether a file is the Kadence theme's local Google Fonts stylesheet: a
+     * `kadence-fonts-*` handle, a .css file straight in wp-content/fonts/,
+     * while Kadence is the parent theme. Other loaders share that folder, so
+     * the folder alone is not a source.
+     *
+     * @param array  $attrs Attributes.
+     * @param string $file  File.
+     * @return bool
+     */
+    private static function kadence_fonts(array $attrs, $file) {
+        $id = isset($attrs['id']) ? $attrs['id'] : '';
+        if (!SEOProStack_Used_Css::kadence_theme() || 0 !== strpos($id, 'kadence-fonts-') || '-css' !== substr($id, -4)) {
+            return false;
+        }
+        $dir = trailingslashit(wp_normalize_path(WP_CONTENT_DIR)) . 'fonts/';
+        return 0 === strpos($file, $dir) && false === strpos(substr($file, strlen($dir)), '/');
     }
 
     /**
@@ -108,9 +158,10 @@ final class SEOProStack_Used_Css_Links {
      * The URL path of a stylesheet on this site.
      *
      * @param string $href Address.
-     * @return string Empty when it is elsewhere, or not a .css file.
+     * @param string $ext  File extension, with the dot.
+     * @return string Empty when it is elsewhere, or not such a file.
      */
-    private static function path($href) {
+    private static function path($href, $ext = '.css') {
         $parts = wp_parse_url($href);
         if (!is_array($parts) || empty($parts['path'])) {
             return '';
@@ -119,7 +170,7 @@ final class SEOProStack_Used_Css_Links {
             return '';
         }
         $path = rawurldecode($parts['path']);
-        return false === strpos($path, '..') && '.css' === strtolower(substr($path, -4)) ? $path : '';
+        return false === strpos($path, '..') && strtolower($ext) === strtolower(substr($path, -strlen($ext))) ? $path : '';
     }
 
     /**

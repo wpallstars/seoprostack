@@ -32,6 +32,9 @@ final class SEOProStack_Used_Css_Page {
     /** Which rules this page can use. */
     private $match;
 
+    /** Whether the page's policy allows an inline script (Kadence Pro's dark mode script goes in the page). */
+    private $script = false;
+
     /** Stylesheets changed on this page. */
     private $sheets = 0;
 
@@ -52,7 +55,7 @@ final class SEOProStack_Used_Css_Page {
         if (false === stripos($html, '<link') || !self::is_html($html) || !SEOProStack_Used_Css_Policy::allows($html)) {
             return $html;
         }
-        $page = new self($html);
+        $page = new self($html, SEOProStack_Used_Css_Policy::allows($html, true));
         $out  = preg_replace_callback(self::TAGS, array($page, 'tag'), $html);
         if (!is_string($out) || $out === $html) {
             return $html; // Unchanged, or the regex hit a PCRE limit.
@@ -63,10 +66,12 @@ final class SEOProStack_Used_Css_Page {
     /**
      * A page to rewrite.
      *
-     * @param string $html Page.
+     * @param string $html   Page.
+     * @param bool   $script Whether the policy allows an inline script.
      */
-    private function __construct($html) {
-        $this->match = new SEOProStack_Used_Css_Match($html);
+    private function __construct($html, $script) {
+        $this->match  = new SEOProStack_Used_Css_Match($html);
+        $this->script = $script;
     }
 
     /**
@@ -94,11 +99,15 @@ final class SEOProStack_Used_Css_Page {
      * @return string
      */
     public function tag(array $m) {
-        if (0 !== stripos($m[0], '<link')) {
+        $script = 0 === stripos($m[0], '<script');
+        if (!$script && 0 !== stripos($m[0], '<link')) {
+            return $m[0];
+        }
+        if ($script && !$this->script) {
             return $m[0];
         }
         try {
-            return $this->link($m[0]);
+            return $script ? $this->script($m[0]) : $this->link($m[0]);
         } catch (Throwable $e) {
             if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                 // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -121,7 +130,7 @@ final class SEOProStack_Used_Css_Page {
         if (!SEOProStack_Used_Css_Links::candidate($attrs, $media)) {
             return $tag;
         }
-        $file = SEOProStack_Used_Css_Links::file($attrs['href']);
+        $file = SEOProStack_Used_Css_Links::file($attrs['href'], $attrs);
         if ('' === $file || SEOProStack_Used_Css_Links::kept($attrs, $file)) {
             return $tag;
         }
@@ -134,6 +143,18 @@ final class SEOProStack_Used_Css_Page {
         $this->used += strlen($css);
         $this->full += (int) filesize($file);
         return self::replacement($tag, $attrs, $media, $css);
+    }
+
+    /**
+     * Kadence Pro's dark mode script with its code in the page, or the tag as
+     * it was. It keeps its id and place, and stays synchronous.
+     *
+     * @param string $tag `<script>` element.
+     * @return string
+     */
+    private function script($tag) {
+        $code = SEOProStack_Used_Css_Links::dark_mode_script($tag);
+        return '' === $code ? $tag : '<script id="kadence-dark-mode-js">' . $code . '</script>';
     }
 
     /**
