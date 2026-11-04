@@ -36,6 +36,9 @@ final class SEOProStack_Keep_Cached_Queue {
     /** Seconds between batches. */
     const GAP = 60;
 
+    /** WP-Optimize's WP-Cron hook that preloads its page cache. */
+    const WPO_PRELOAD = 'wpo_page_cache_run_preload';
+
     /**
      * Batches in a row the server may refuse (or a purge may still wait)
      * before the rest is left to LiteSpeed Cache's crawler. Each waits a
@@ -49,9 +52,9 @@ final class SEOProStack_Keep_Cached_Queue {
      * @return array urls, blogs (address => site ID), added (address => when a
      *               saved post queued it), full (work out the pages first), network
      *               (for every site), site (the next network site), crawl (start
-     *               LiteSpeed Cache's crawler after), since (first purge not yet
-     *               worked out), purges (count), opened (count), stops (batches
-     *               stopped in a row).
+     *               LiteSpeed Cache's crawler after), preload (start WP-Optimize's
+     *               preload after), since (first purge not yet worked out), purges
+     *               (count), opened (count), stops (batches stopped in a row).
      */
     public static function get() {
         $queue = get_option(self::OPTION, array());
@@ -64,6 +67,7 @@ final class SEOProStack_Keep_Cached_Queue {
             'network' => !empty($queue['network']),
             'site'    => (int) $queue['site'],
             'crawl'   => !empty($queue['crawl']),
+            'preload' => !empty($queue['preload']),
             'since'   => (int) $queue['since'],
             'purges'  => (int) $queue['purges'],
             'opened'  => (int) $queue['opened'],
@@ -75,11 +79,13 @@ final class SEOProStack_Keep_Cached_Queue {
      * Fill the whole cache again a little later.
      *
      * @param bool $network Every site of the network.
+     * @param bool $preload Start WP-Optimize's preload when the fill ends.
      */
-    public static function fill_later($network) {
+    public static function fill_later($network, $preload = false) {
         $queue            = self::get();
         $queue['full']    = true;
         $queue['network'] = $queue['network'] || $network;
+        $queue['preload'] = $queue['preload'] || $preload;
         if ($network) {
             $queue['site'] = 0;
         }
@@ -152,7 +158,8 @@ final class SEOProStack_Keep_Cached_Queue {
      * purge or a saved post may have changed it meanwhile), except pages a
      * post saved since the batch began queued again, as the batch may have
      * opened them before the save; then schedule the next batch, or start
-     * LiteSpeed Cache's crawler when all are done.
+     * LiteSpeed Cache's crawler or WP-Optimize's preload for the rest of
+     * the site when all are done, so they come after these pages.
      *
      * A batch the server refused, or that waited for a purge to reach the
      * cache, is stopped: the next waits a GAP longer for each such batch in
@@ -192,6 +199,10 @@ final class SEOProStack_Keep_Cached_Queue {
         $crawl = $latest['crawl'] || ($gave_up && SEOProStack_Keep_Cached_Requests::litespeed_crawler());
         if ($crawl && class_exists('SEOProStack_Litespeed_Crawler')) {
             SEOProStack_Litespeed_Crawler::start();
+        }
+        if ($latest['preload'] && SEOProStack_Keep_Cached_Requests::wp_optimize_preloads() && !wp_next_scheduled(self::WPO_PRELOAD)) {
+            // As WP-Optimize's Purge button schedules it.
+            wp_schedule_single_event(time() + 10, self::WPO_PRELOAD);
         }
     }
 

@@ -35,7 +35,7 @@ final class SEOProStack_Keep_Cached_CLI {
                     'type'        => 'flag',
                     'name'        => 'dry-run',
                     'optional'    => true,
-                    'description' => 'List the pages without opening them.',
+                    'description' => 'List the pages without opening them (only the home page is opened, to read its links).',
                 ),
             ),
         ));
