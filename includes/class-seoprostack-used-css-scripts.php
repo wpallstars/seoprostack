@@ -10,12 +10,17 @@
  * (SEOProStack_Used_Css_Match::CLASSES) goes stale with each plugin update,
  * so every word in the page's scripts that could be a class name counts as
  * present, as PurgeCSS does; and so does every prefix a script builds class
- * names from ("kt-active-tab-" + n, `${prefix}`). Which scripts: each
- * `<script>` on the page with an address on this site (`src`, or a
- * `data-…src` a consent or delay plugin moved it to), read once per version
- * into a cache file next to the stylesheets' (SEOProStack_Used_Css_Sheet),
- * and the code of inline scripts. Interactivity API directives
- * (`data-wp-class--name`) count too.
+ * names from ("kt-active-tab-" + n, `${prefix}`). Which scripts: those that
+ * run without the visitor doing anything, so before the full stylesheets
+ * may have arrived: each `<script>` on the page with no type, a JavaScript
+ * type (Cloudflare Rocket Loader's `…-text/javascript` too) or `module`,
+ * by its file on this site (`src`, read once per version into a cache file
+ * next to the stylesheets', SEOProStack_Used_Css_Sheet) or its inline code.
+ * Scripts that wait for a click, a key or consent (`seoprostack/delayed`,
+ * `litespeed/javascript`, `text/plain`) run after the full stylesheets, so
+ * their words would only make the page heavier: on one test page, the
+ * accessibility toolbar's delayed script alone added 41 KB. Interactivity
+ * API directives (`data-wp-class--name`) count too.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -62,6 +67,9 @@ final class SEOProStack_Used_Css_Scripts {
     /** An Interactivity API class directive. */
     const DIRECTIVE = '/\sdata-wp-class--([A-Za-z0-9_-]+)/';
 
+    /** Script types that run as the page loads; no type does too. */
+    const RUNS = '#^(?:module|(?:.*-)?(?:text|application)/(?:x-)?(?:java|ecma)script)$#i';
+
     /**
      * Script files read on this request: file => names and prefixes.
      *
@@ -88,10 +96,15 @@ final class SEOProStack_Used_Css_Scripts {
         $inline = '';
         $files  = array();
         foreach ($scripts as $m) {
-            foreach (self::files($m[1]) as $file) {
-                $files[$file] = true;
+            $attrs = SEOProStack_Used_Css_Links::attributes('<script' . $m[1] . '>');
+            $type  = isset($attrs['type']) ? trim($attrs['type']) : '';
+            if ('' !== $type && !preg_match(self::RUNS, $type)) {
+                continue; // Waits for the visitor, or is data.
             }
-            if ('' !== trim($m[2]) && strlen($inline) < self::MAX_INLINE) {
+            $file = isset($attrs['src']) ? SEOProStack_Used_Css_Links::script_file($attrs['src']) : '';
+            if ('' !== $file) {
+                $files[$file] = true;
+            } elseif ('' !== trim($m[2]) && strlen($inline) < self::MAX_INLINE) {
                 $inline .= "\n" . $m[2];
             }
         }
@@ -99,26 +112,6 @@ final class SEOProStack_Used_Css_Scripts {
             $found = self::merge($found, self::file($file));
         }
         return self::merge($found, self::read(substr($inline, 0, self::MAX_INLINE)));
-    }
-
-    /**
-     * Local script files a script element names.
-     *
-     * @param string $open The rest of its opening tag.
-     * @return string[]
-     */
-    private static function files($open) {
-        $files = array();
-        foreach (SEOProStack_Used_Css_Links::attributes('<script' . $open . '>') as $name => $value) {
-            if ('src' !== $name && !preg_match('/^data-[a-z0-9-]*src$/', $name)) {
-                continue;
-            }
-            $file = SEOProStack_Used_Css_Links::script_file($value);
-            if ('' !== $file) {
-                $files[] = $file;
-            }
-        }
-        return $files;
     }
 
     /**
