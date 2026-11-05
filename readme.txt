@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.157
+Stable tag: 1.3.158
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,7 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.157 =
-* Fix: on a network that uses LiteSpeed Cache's primary site settings, Keep pages cached and page checks go straight to the main site's Server IP, as LiteSpeed Cache does (#1245).
+= 1.3.158 =
+* Fix: on a single site, 1.3.157 stopped Keep pages cached, page checks and Hosting needs' LiteSpeed check with an error; they work again (#1248).
 
 Older: `changelog.txt`.
