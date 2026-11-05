@@ -563,6 +563,26 @@ final class SEOProStack_Litespeed {
     }
 
     /**
+     * LiteSpeed Cache's Server IP as it applies it to the current site. On a
+     * network set to Use Primary Site Configuration, other sites use the
+     * main site's value and ignore their own, which conf() reads (#1245).
+     *
+     * @phpstan-impure Depends on the current blog after switch_to_blog().
+     * @return string
+     */
+    public static function server_ip() {
+        if (!ms_is_switched() && has_filter('litespeed_conf')) {
+            // Its API (src/api.cls.php), with its constant, primary site and network rules.
+            return trim((string) apply_filters('litespeed_conf', 'server_ip')); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache API.
+        }
+        // After switch_to_blog() it still holds the first site's settings, so follow its rule here.
+        if (self::network_active() && !is_main_site() && get_site_option(self::PREFIX . 'use_primary_settings')) {
+            return trim((string) get_blog_option(get_main_site_id(), self::PREFIX . 'server_ip', ''));
+        }
+        return trim((string) self::conf('server_ip', ''));
+    }
+
+    /**
      * Who may change LiteSpeed Cache's object cache settings: network
      * administrators when it is active for the network.
      *

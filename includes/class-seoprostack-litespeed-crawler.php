@@ -235,7 +235,7 @@ final class SEOProStack_Litespeed_Crawler {
      * @return string IPv4 address, or ''.
      */
     private static function origin() {
-        if ('' !== trim((string) SEOProStack_Litespeed::conf('server_ip', ''))) {
+        if ('' !== SEOProStack_Litespeed::server_ip()) {
             return '';
         }
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated as an IP address next.
