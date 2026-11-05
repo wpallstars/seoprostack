@@ -4,8 +4,11 @@
  * Tutor content (SEOProStack_Tutor_Light). Its courses, lessons, quizzes
  * and other post types, their archives and categories, its dashboard,
  * profile and course subpages, the pages named in its settings
- * (registration, cart, checkout and the like), and posts whose content, or
- * a synced pattern in it, has Tutor shortcodes or blocks.
+ * (registration, cart, checkout and the like), posts whose content, or
+ * a synced pattern in it, has Tutor shortcodes or blocks (synced patterns
+ * are followed two levels deep, ten per post; beyond that the page keeps
+ * Tutor's files), and every page while Tutor's Tutor Course widget is in a
+ * widget area.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -53,7 +56,9 @@ final class SEOProStack_Tutor_Light_Page {
         if (null !== self::$tutor_page) {
             return self::$tutor_page;
         }
-        $page = self::query_var() || self::post_type_screen() || self::utils_screen() || self::singular();
+        // Tutor's Tutor Course widget, in a widget area, shows course cards on any page.
+        $page = self::query_var() || self::post_type_screen() || self::utils_screen() || self::singular()
+            || is_active_widget(false, false, 'tutor_course_widget', true);
 
         /**
          * Whether a page keeps Tutor LMS's styles and scripts with Lighter
@@ -200,10 +205,14 @@ final class SEOProStack_Tutor_Light_Page {
         if (preg_match(self::CONTENT, $content)) {
             return true;
         }
-        if ($depth >= 2 || !preg_match_all('/<!--\s*wp:block\s+\{[^}]*"ref":(\d+)/', $content, $refs)) {
+        if (!preg_match_all('/<!--\s*wp:block\s+\{[^}]*"ref":(\d+)/', $content, $refs)) {
             return false;
         }
-        foreach (array_slice(array_unique($refs[1]), 0, 10) as $ref) {
+        $refs = array_unique($refs[1]);
+        if ($depth >= 2 || count($refs) > 10) {
+            return true; // More patterns than are followed: keep Tutor's files, as one may hold Tutor content.
+        }
+        foreach ($refs as $ref) {
             $pattern = get_post((int) $ref);
             if ($pattern instanceof WP_Post && 'wp_block' === $pattern->post_type && self::tutor_content($pattern->post_content, $depth + 1)) {
                 return true;
