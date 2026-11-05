@@ -571,7 +571,8 @@ final class SEOProStack_Litespeed {
      * @return string
      */
     public static function server_ip() {
-        if (!ms_is_switched() && has_filter('litespeed_conf')) {
+        // ms_is_switched() is defined on a network only (wp-includes/ms-blogs.php, #1248).
+        if ((!is_multisite() || !ms_is_switched()) && has_filter('litespeed_conf')) {
             // Its API (src/api.cls.php), with its constant, primary site and network rules.
             return trim((string) apply_filters('litespeed_conf', 'server_ip')); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache API.
         }

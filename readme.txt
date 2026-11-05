@@ -155,6 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.158 =
-* Fix: behind a CDN with LiteSpeed Cache's Server IP empty, Keep pages cached, purge delivery and page checks go straight to this server, using the address a web request learned (#1243).
+* Fix: on a single site, 1.3.157 stopped Keep pages cached, page checks and Hosting needs' LiteSpeed check with an error; they work again (#1248).
 
 Older: `changelog.txt`.
