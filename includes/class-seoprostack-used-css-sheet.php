@@ -82,12 +82,13 @@ final class SEOProStack_Used_Css_Sheet {
     }
 
     /**
-     * Rules from the cache file, if it is there and whole.
+     * Rules (or a script's class names, SEOProStack_Used_Css_Scripts) from
+     * the cache file, if it is there and whole.
      *
      * @param string $path Cache file.
      * @return array|null
      */
-    private static function cached($path) {
+    public static function cached($path) {
         if (!is_file($path)) {
             return null;
         }
@@ -116,10 +117,10 @@ final class SEOProStack_Used_Css_Sheet {
      *
      * @param string $folder Folder.
      * @param string $name   File name.
-     * @param string $key    The stylesheet's part of the name.
-     * @param array  $rules  Rules.
+     * @param string $key    The stylesheet's (or script's) part of the name.
+     * @param array  $rules  Rules, or a script's class names.
      */
-    private static function write($folder, $name, $key, array $rules) {
+    public static function write($folder, $name, $key, array $rules) {
         $json = wp_json_encode($rules, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (!is_string($json) || !wp_mkdir_p($folder)) {
             return;
