@@ -860,18 +860,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Delete URL index options in one query, and their cached copies.
      *
      * @param string[] $names Option names.
+     * @return bool Whether the delete query succeeded.
      */
     private static function delete_url_options($names) {
         global $wpdb;
         if (!$names) {
-            return;
+            return true;
         }
         $in = implode(',', array_fill(0, count($names), '%s'));
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- bounded names through option_name's unique index; their cached copies are deleted below. $in has one %s per name.
-        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name IN ($in)", $names));
+        $deleted = $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name IN ($in)", $names));
         foreach ($names as $name) {
             wp_cache_delete($name, 'options');
         }
+        return false !== $deleted;
     }
 
     /**
@@ -1057,7 +1059,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return int|null
      */
     private static function originals_due() {
-        if (!self::ready()) {
+        if (!self::ready() && !self::restoring()) {
             return null;
         }
         $state = self::originals_state();
@@ -1277,6 +1279,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_option(self::ORIGINALS_STATE, $state, false);
         }
         $table = self::originals_table($state);
+        if (SEOPROSTACK_VERSION === ($state['moved'] ?? '')) {
+            // A dropped table is rebuilt, not reported complete.
+            $suppress = $wpdb->suppress_errors(true);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
+            $exists = $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+            $wpdb->suppress_errors($suppress);
+            if (!$exists) {
+                self::originals_failed();
+                return false;
+            }
+        }
         if (SEOPROSTACK_VERSION !== ($state['moved'] ?? '')) {
             if (SEOPROSTACK_VERSION !== ($state['moving'] ?? '')) {
                 $state['moving'] = SEOPROSTACK_VERSION;
@@ -1286,6 +1299,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             while (self::more_time($start, $budget)) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded page through option_name's unique index.
                 $rows = $wpdb->get_results($wpdb->prepare("SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s ORDER BY option_name LIMIT %d", $like, (string) $state['cursor'], self::ORIGINALS_MOVE));
+                if ('' !== $wpdb->last_error) {
+                    self::originals_failed();
+                    return false;
+                }
                 if (!$rows) {
                     $state['moved'] = SEOPROSTACK_VERSION;
                     break;
@@ -1319,7 +1336,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                         return false;
                     }
                 }
-                self::delete_url_options($names);
+                if (!self::delete_url_options($names)) {
+                    // Keep the cursor: this page is read again by a later pass.
+                    update_option(self::ORIGINALS_STATE, $state, false);
+                    return false;
+                }
                 $state['cursor'] = $last;
             }
         }
@@ -3068,12 +3089,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if ($ready) {
                 // A few seconds a batch until the claim index is complete;
                 // until then the same-path check searches the inventories.
+                // One shared deadline: the three builds together never take
+                // more than five seconds, leaving local copies their turn.
                 self::build_claims($start, 5);
                 // The URL index moves out of wp_options a few seconds a
                 // batch; lookups read the options until it has.
-                self::build_urls(microtime(true), 5);
+                self::build_urls($start, 5);
                 // Likewise the kept originals' inventories.
-                self::build_originals(microtime(true), 5);
+                self::build_originals($start, 5);
+            } elseif (self::restoring()) {
+                // A pending restore lists kept originals, so their table is built.
+                self::build_originals($start, 5);
             }
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
@@ -6863,6 +6889,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 self::release($lease);
             }
         } while (!$one && $ids);
+        $lease = self::cli_lease();
+        try {
+            $built = self::build_originals(microtime(true), 20);
+        } finally {
+            self::release($lease);
+        }
+        if (!$built) {
+            ++$counts['failed'];
+            WP_CLI::warning('The kept originals could not all be listed yet; run the command again shortly.');
+        }
         self::cli_restore_originals($one, $counts);
         if (!self::restorable(1)) {
             delete_option(self::FLAG);
