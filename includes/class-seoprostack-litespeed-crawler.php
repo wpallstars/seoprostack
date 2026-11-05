@@ -80,8 +80,7 @@ final class SEOProStack_Litespeed_Crawler {
     public static function init() {
         // Site Health also runs its tests from cron, outside wp-admin.
         add_filter('site_status_tests', array(__CLASS__, 'tests'));
-        // After the page is sent: a web request knows the server's address.
-        add_action('shutdown', array(__CLASS__, 'learn'));
+        // 'learn' is hooked at shutdown by Hosting needs' boot, enabled or not.
         if (!is_admin()) {
             return;
         }
@@ -293,11 +292,16 @@ final class SEOProStack_Litespeed_Crawler {
         if ('' === $address) {
             return;
         }
-        $stored = get_site_option(self::LEARNED, array());
-        if (is_array($stored) && isset($stored['seen']) && $address === $stored['seen']) {
-            return;
+        $stored = get_option(self::LEARNED, array());
+        if (is_array($stored) && isset($stored['seen']) && $address === $stored['seen']
+            && ('' !== (string) ($stored['ip'] ?? '') || time() - (int) ($stored['at'] ?? 0) < HOUR_IN_SECONDS)) {
+            return; // Unchanged; an empty result is looked up again after an hour.
         }
-        update_site_option(self::LEARNED, array('seen' => $address, 'ip' => self::elsewhere($address)));
+        $ip = self::elsewhere($address);
+        if ('' !== $ip && !self::reaches_server($ip)) {
+            $ip = '';
+        }
+        update_option(self::LEARNED, array('seen' => $address, 'ip' => $ip, 'at' => time()), false);
     }
 
     /**
@@ -307,7 +311,7 @@ final class SEOProStack_Litespeed_Crawler {
      * @return string IPv4 address, or ''.
      */
     public static function learned() {
-        $stored = get_site_option(self::LEARNED, array());
+        $stored = get_option(self::LEARNED, array());
         $ip     = is_array($stored) && isset($stored['ip']) ? (string) $stored['ip'] : '';
         return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) ? $ip : '';
     }
@@ -317,7 +321,7 @@ final class SEOProStack_Litespeed_Crawler {
      * have moved), so DNS is used until a web request learns it again.
      */
     public static function forget() {
-        delete_site_option(self::LEARNED);
+        delete_option(self::LEARNED);
     }
 
     /**

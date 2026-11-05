@@ -282,8 +282,15 @@ final class SEOProStack_Keep_Cached_Requests {
         if ('' === $host || !filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return null;
         }
-        $pin = $host . ':' . ('https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80) . ':' . $address;
+        $port = (int) wp_parse_url($url, PHP_URL_PORT);
+        if (!$port) {
+            $port = 'https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80;
+        }
+        $pin = $host . ':' . $port . ':' . $address;
         return static function ($handle) use ($pin, $learned) {
+            if ($learned && '' === SEOProStack_Litespeed_Crawler::learned()) {
+                return; // Forgotten after a failed request: use DNS.
+            }
             // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- the HTTP API's own handle, at its http_api_curl hook.
             curl_setopt($handle, CURLOPT_RESOLVE, array($pin));
             if ($learned) {
