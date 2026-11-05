@@ -283,21 +283,26 @@ final class SEOProStack_Keep_Cached_Pages {
     }
 
     /**
-     * The next active site in this network after an ID.
+     * The next active site in this network at or after an ID.
+     *
+     * The network's active site IDs come from one get_sites() query, which
+     * WordPress caches by its arguments and refreshes when a site changes.
+     * Before, a sites_clauses filter narrowed a query for one site, but the
+     * filter runs only when the cache misses, so every call after the first
+     * got the first call's site and a network fill planned only that site
+     * (GitHub issue #1238).
      *
      * @param int $after Site ID to start at or after.
-     * @return int
+     * @return int 0 when there is none.
      */
     private static function next_site($after) {
-        global $wpdb;
-        $cursor = static function ($clauses) use ($after, $wpdb) {
-            $clauses['where'] .= $wpdb->prepare(' AND blog_id >= %d', $after);
-            return $clauses;
-        };
-        add_filter('sites_clauses', $cursor);
-        $sites = get_sites(array('fields' => 'ids', 'number' => 1, 'orderby' => 'id', 'order' => 'ASC', 'archived' => 0, 'deleted' => 0, 'spam' => 0));
-        remove_filter('sites_clauses', $cursor);
-        return $sites ? (int) $sites[0] : 0;
+        $ids = get_sites(array('fields' => 'ids', 'number' => 0, 'network_id' => get_current_network_id(), 'orderby' => 'id', 'order' => 'ASC', 'archived' => 0, 'deleted' => 0, 'spam' => 0));
+        foreach ($ids as $id) {
+            if ((int) $id >= $after) {
+                return (int) $id;
+            }
+        }
+        return 0;
     }
 
     /**
