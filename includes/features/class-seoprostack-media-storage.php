@@ -2712,7 +2712,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // without marking it kept, so the next removal pass revisits it.
             return true;
         }
-        if ($removing && SEOProStack_S3_Client::retryable($result) && ++$service_failures < 2) {
+        if ($removing && self::removal_retryable($result) && ++$service_failures < 2) {
             // One attachment must not hold up the whole library. Its files stay
             // local; retry-failed or a changed connection can revisit the mark.
             update_post_meta($id, self::LOCAL, 'kept:' . self::config()['signature']);
@@ -2723,8 +2723,24 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_post_meta($id, self::STUCK, self::config()['signature']);
             return true;
         }
-        update_option(self::LOCAL_WAIT, time() + HOUR_IN_SECONDS, false);
+        // Repeated transport errors may be brief: check again in five minutes.
+        $wait = 'storage_transport' === $result->get_error_code() ? 5 * MINUTE_IN_SECONDS : HOUR_IN_SECONDS;
+        update_option(self::LOCAL_WAIT, time() + $wait, false);
         return false;
+    }
+
+    /**
+     * Whether a removal error may pass on its own: a retryable service
+     * response, or a transport error that did not come from the deadline cut-off.
+     *
+     * @param mixed $error Removal result.
+     * @return bool
+     */
+    private static function removal_retryable($error) {
+        if (SEOProStack_S3_Client::retryable($error)) {
+            return true;
+        }
+        return is_wp_error($error) && 'storage_transport' === $error->get_error_code() && empty($error->get_error_data()['at_deadline']);
     }
 
     /**
@@ -2866,7 +2882,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             foreach ($prepared as $id => $removal) {
                 $result = self::removal_result($id, $removal, $heads, $deadline);
                 if (is_wp_error($result)) {
-                    $retry = $retry || SEOProStack_S3_Client::retryable($result);
+                    $retry = $retry || self::removal_retryable($result);
                     $results[$id] = self::remove_now_error($id, $result);
                     if ((int) get_option(self::LOCAL_WAIT, 0) > time()) {
                         // Paused for an hour: the rest wait, as remove_local_now() would answer.
@@ -2901,7 +2917,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if ('storage_budget' === $error->get_error_code()) {
             return false;
         }
-        if (SEOProStack_S3_Client::retryable($error)) {
+        if (self::removal_retryable($error)) {
             // Not kept: the next call, or the batch, tries this picture again.
             /* translators: 1: attachment ID, 2: error message */
             update_option(self::ERROR, sprintf(__('Attachment %1$d: %2$s', 'seoprostack'), $id, $error->get_error_message()), false);

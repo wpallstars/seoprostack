@@ -32,11 +32,13 @@
  * runs none of its code: another site on the same hosting account sending
  * Empty Entire Cache (wp litespeed-purge all on a network), the host's panel
  * or the server. So every five minutes, on a single site or a network's main
- * site, the home page is opened once as LiteSpeed Cache's crawler (an answer
- * without PHP while LiteSpeed holds it); when the page held at one check is
- * missing at the next, the whole cache is filled as after Purge All (every
- * site of a network). A home page never cached, or redirected, never sets
- * that off (GitHub issue #1229).
+ * site, the home page under an address only this check opens
+ * (/?seoprostack-held=1, so a visitor reopening the home page cannot hide an
+ * emptied cache) is opened once as LiteSpeed Cache's crawler (an answer
+ * without PHP while LiteSpeed holds it); when the page held at one check, or
+ * at the end of a fill, is missing at the next, the whole cache is filled as
+ * after Purge All (every site of a network). A page never cached, or
+ * redirected, never sets that off (GitHub issues #1229, #1233).
  *
  * Batches run for about 20 seconds, a minute apart. Where the page cache
  * keeps a separate copy for phones, pages are opened as a phone too, and
@@ -78,6 +80,15 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     const BUDGET = 20;
 
     /**
+     * Seconds a batch run from the command line may run: WP-Cron from the
+     * host's cron job (often every five minutes, where 20 seconds a run
+     * left a network's fill pending for hours) or WP-CLI. No visitor waits
+     * on it and no web server time limit applies; it stays well under a
+     * five-minute cron interval (#1236).
+     */
+    const CLI_BUDGET = 90;
+
+    /**
      * WP-Cron event, and its interval's name, of the check for a LiteSpeed
      * page cache emptied from outside the site.
      */
@@ -86,8 +97,15 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     /** Seconds between checks. */
     const CHECK_INTERVAL = 300;
 
-    /** Whether the last check found the home page held, and since when. Not autoloaded. */
+    /** Whether the last check found its page held, and since when. Not autoloaded. */
     const HELD = 'seoprostack_keep_pages_cached_held';
+
+    /**
+     * Query argument of the check's page: the home page under an address of
+     * its own, which LiteSpeed caches apart from the home page and visitors
+     * never open, so only an emptied cache takes it away (#1233).
+     */
+    const CHECK_ARG = 'seoprostack-held';
 
     /**
      * Settings.
@@ -216,18 +234,19 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     }
 
     /**
-     * Every five minutes: open the home page once, as LiteSpeed Cache's
-     * crawler, which LiteSpeed answers 201 without running PHP while it
-     * holds the page. When the page held at the last check is missing now,
-     * the cache was emptied, from wherever (another site's Empty Entire
-     * Cache, the host's panel, or the page's own TTL), so fill it all as
-     * after Purge All: every site of a network. The request that found the
-     * page missing has cached it again.
+     * Every five minutes: open the check's page once (look()), as LiteSpeed
+     * Cache's crawler, which LiteSpeed answers 201 without running PHP
+     * while it holds the page. When the page held at the last check, or at
+     * the end of the last fill (hold()), is missing now, the cache was
+     * emptied, from wherever (another site's Empty Entire Cache, the host's
+     * panel, or the page's own TTL), so fill it all as after Purge All:
+     * every site of a network. The request that found the page missing has
+     * cached it again.
      *
-     * Nothing is opened while a fill is waiting or under way: it opens the
-     * home page itself. Only a change from held to missing starts a fill,
-     * so a home page LiteSpeed never caches (excluded, a site with no front
-     * end) does not; redirects, refusals and errors change nothing.
+     * Nothing is opened while a fill is waiting or under way: hold() opens
+     * the page when it ends. Only a change from held to missing starts a
+     * fill, so a page LiteSpeed never caches (excluded, a site with no
+     * front end) does not; redirects, refusals and errors change nothing.
      */
     public static function check() {
         if (!self::checks()) {
@@ -238,10 +257,9 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         if ($queue['urls'] || $queue['full']) {
             return;
         }
-        $answers = SEOProStack_Keep_Cached_Requests::open(home_url('/'), false);
-        $held    = self::held($answers[0]);
-        $last    = get_option(self::HELD, array());
-        $was     = is_array($last) && isset($last['held']) ? (bool) $last['held'] : null;
+        $held = self::look();
+        $last = get_option(self::HELD, array());
+        $was  = is_array($last) && isset($last['held']) ? (bool) $last['held'] : null;
         if (null === $held || $held === $was) {
             return;
         }
@@ -250,6 +268,48 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         if (true === $was && !$held) {
             SEOProStack_Keep_Cached_Queue::fill_later(is_multisite());
         }
+    }
+
+    /**
+     * A fill ended with every page opened: the cache holds the site again,
+     * so count the check's page held from now, when LiteSpeed answers it
+     * from its cache (opened a second time if this request built it).
+     * Otherwise a cache emptied between a fill and the first check after
+     * an update, with nothing stored yet to compare, was never filled
+     * again (#1233). A page LiteSpeed never caches is never counted held,
+     * so it still never starts fills.
+     */
+    private static function hold() {
+        if (!self::checks()) {
+            return;
+        }
+        $held = self::look();
+        if (false === $held) {
+            $held = self::look();
+        }
+        $last = get_option(self::HELD, array());
+        if (true !== $held || (is_array($last) && !empty($last['held']))) {
+            return;
+        }
+        update_option(self::HELD, array('held' => true, 'since' => time()), false);
+    }
+
+    /**
+     * Open the check's page once: the home page under its own address
+     * (CHECK_ARG), which visitors never open, so a visit to the home page
+     * after the cache was emptied cannot hide it (#1233). Where that address
+     * does not answer as a page (redirected, refused), the home page itself.
+     *
+     * @return bool|null As held().
+     */
+    private static function look() {
+        $answers = SEOProStack_Keep_Cached_Requests::open(add_query_arg(self::CHECK_ARG, '1', home_url('/')), false);
+        $held    = self::held($answers[0]);
+        if (null !== $held) {
+            return $held;
+        }
+        $answers = SEOProStack_Keep_Cached_Requests::open(home_url('/'), false);
+        return self::held($answers[0]);
     }
 
     /**
@@ -360,27 +420,29 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * LiteSpeed Cache still holds (WP-CLI, or WP-Cron run from the command
      * line) is delivered first, so the pages opened are new ones; while it
      * cannot be, or when the server refuses a page (bot protection, limits),
-     * the batch stops and tries again later.
+     * the batch stops and tries again later. Run from the command line (the
+     * host's cron job, WP-CLI), a batch has CLI_BUDGET seconds, else BUDGET.
      */
     public static function run() {
         if (!self::enabled()) {
             delete_option(SEOProStack_Keep_Cached_Queue::OPTION);
             return;
         }
-        $start = microtime(true);
+        $start  = microtime(true);
+        $budget = 'cli' === PHP_SAPI ? self::CLI_BUDGET : self::BUDGET;
         if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
             SEOProStack_Keep_Cached_Queue::done(array(), (int) floor($start), true);
             return;
         }
         $queue = SEOProStack_Keep_Cached_Queue::get();
         if ($queue['full'] && count($queue['urls']) < SEOProStack_Keep_Cached_Pages::MAX) {
-            $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, self::BUDGET);
+            $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, $budget);
         }
         $mobile  = SEOProStack_Keep_Cached_Requests::mobile_copy();
         $opened  = array();
         $refused = '';
         foreach ($queue['urls'] as $url) {
-            if ($opened && !self::more_time($start, self::BUDGET)) {
+            if ($opened && !self::more_time($start, $budget)) {
                 break;
             }
             $answers = SEOProStack_Keep_Cached_Requests::open($url, $mobile, isset($queue['blogs'][$url]) ? $queue['blogs'][$url] : 0);
@@ -391,5 +453,9 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             $opened[] = $url;
         }
         SEOProStack_Keep_Cached_Queue::done($opened, (int) floor($start), '' !== $refused, $refused);
+        $left = SEOProStack_Keep_Cached_Queue::get();
+        if ($opened && '' === $refused && !$left['urls'] && !$left['full']) {
+            self::hold();
+        }
     }
 }
