@@ -64,6 +64,9 @@ final class SEOProStack_Litespeed_Crawler {
     /** Most blocklisted pages read. */
     const BLOCKLIST_MAX = 500;
 
+    /** SEO Pro Stack's own option: the server address last seen on a web request, and the one learned from it. */
+    const LEARNED = 'seoprostack_origin_ip';
+
     /**
      * The crawler's state, found once per request.
      *
@@ -77,6 +80,8 @@ final class SEOProStack_Litespeed_Crawler {
     public static function init() {
         // Site Health also runs its tests from cron, outside wp-admin.
         add_filter('site_status_tests', array(__CLASS__, 'tests'));
+        // After the page is sent: a web request knows the server's address.
+        add_action('shutdown', array(__CLASS__, 'learn'));
         if (!is_admin()) {
             return;
         }
@@ -238,14 +243,35 @@ final class SEOProStack_Litespeed_Crawler {
         if ('' !== SEOProStack_Litespeed::server_ip()) {
             return '';
         }
+        return self::elsewhere(self::server_address());
+    }
+
+    /**
+     * This server's public IPv4 address, from the web request. Empty on
+     * the command line and in cron, which have none.
+     *
+     * @return string
+     */
+    private static function server_address() {
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated as an IP address next.
         $address = isset($_SERVER['SERVER_ADDR']) ? (string) wp_unslash($_SERVER['SERVER_ADDR']) : '';
         // Public IPv4 only: LiteSpeed Cache's crawler resolves to it as host:port:address.
         if (!filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
             return '';
         }
+        return $address;
+    }
+
+    /**
+     * The address, when the site's host name points somewhere else (a CDN
+     * or proxy).
+     *
+     * @param string $address IPv4 address, or ''.
+     * @return string The address, or ''.
+     */
+    private static function elsewhere($address) {
         $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
-        if ('' === $host) {
+        if ('' === $address || '' === $host) {
             return '';
         }
         $resolved = gethostbynamel($host);
@@ -253,6 +279,45 @@ final class SEOProStack_Litespeed_Crawler {
             return '';
         }
         return $address;
+    }
+
+    /**
+     * Learn this server's address from a web request, for requests from
+     * the command line and cron, which cannot see it. Kept in SEO Pro
+     * Stack's own option; LiteSpeed Cache's settings are never written.
+     * The host name is looked up only when the address differs from the
+     * one last seen.
+     */
+    public static function learn() {
+        $address = self::server_address();
+        if ('' === $address) {
+            return;
+        }
+        $stored = get_site_option(self::LEARNED, array());
+        if (is_array($stored) && isset($stored['seen']) && $address === $stored['seen']) {
+            return;
+        }
+        update_site_option(self::LEARNED, array('seen' => $address, 'ip' => self::elsewhere($address)));
+    }
+
+    /**
+     * The address learned from a web request, for requests to this site
+     * when LiteSpeed Cache's Server IP is empty.
+     *
+     * @return string IPv4 address, or ''.
+     */
+    public static function learned() {
+        $stored = get_site_option(self::LEARNED, array());
+        $ip     = is_array($stored) && isset($stored['ip']) ? (string) $stored['ip'] : '';
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) ? $ip : '';
+    }
+
+    /**
+     * Forget the learned address (a request to it failed: the server may
+     * have moved), so DNS is used until a web request learns it again.
+     */
+    public static function forget() {
+        delete_site_option(self::LEARNED);
     }
 
     /**

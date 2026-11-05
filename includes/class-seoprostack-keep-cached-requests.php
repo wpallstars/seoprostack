@@ -272,14 +272,41 @@ final class SEOProStack_Keep_Cached_Requests {
             return null;
         }
         $address = SEOProStack_Litespeed::server_ip();
-        $host    = (string) wp_parse_url($url, PHP_URL_HOST);
+        $learned = false;
+        if (!filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && class_exists('SEOProStack_Litespeed_Crawler')) {
+            // Server IP is empty: the address a web request learned, if any.
+            $address = SEOProStack_Litespeed_Crawler::learned();
+            $learned = true;
+        }
+        $host = (string) wp_parse_url($url, PHP_URL_HOST);
         if ('' === $host || !filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return null;
         }
         $pin = $host . ':' . ('https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80) . ':' . $address;
-        return static function ($handle) use ($pin) {
+        return static function ($handle) use ($pin, $learned) {
             // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- the HTTP API's own handle, at its http_api_curl hook.
             curl_setopt($handle, CURLOPT_RESOLVE, array($pin));
+            if ($learned) {
+                add_action('http_api_debug', array('SEOProStack_Keep_Cached_Requests', 'settle'), 10, 2);
+            }
         };
+    }
+
+    /**
+     * After a request sent to a learned address: forget the address when
+     * it did not connect (the server moved) or a CDN answered instead of
+     * this server. DNS is used until a web request learns it again.
+     *
+     * @param array|WP_Error $response Response.
+     * @param string         $context  response, or the stage of the request.
+     */
+    public static function settle($response, $context = 'response') {
+        remove_action('http_api_debug', array(__CLASS__, 'settle'), 10);
+        if ('response' !== $context) {
+            return;
+        }
+        if (is_wp_error($response) || '' !== implode('', (array) wp_remote_retrieve_header($response, 'cf-ray'))) {
+            SEOProStack_Litespeed_Crawler::forget();
+        }
     }
 }

@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.157
+Stable tag: 1.3.158
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= 1.3.158 =
+* Fix: behind a CDN with LiteSpeed Cache's Server IP empty, Keep pages cached, purge delivery and page checks go straight to this server, using the address a web request learned (#1243).
 
 = 1.3.157 =
 * Fix: on a network that uses LiteSpeed Cache's primary site settings, Keep pages cached and page checks go straight to the main site's Server IP, as LiteSpeed Cache does (#1245).
