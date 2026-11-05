@@ -38,11 +38,11 @@ class SEOProStack_Cron_List {
     /**
      * Register the hooks. write() runs on every write of the list; dedupe()
      * only in WordPress cron runs (wp-cron.php), before they read which tasks
-     * are due.
+     * are due, and in WP-CLI, which runs tasks too (wp cron event run).
      */
     public static function init() {
         add_filter('pre_update_option_cron', array(__CLASS__, 'write'), PHP_INT_MAX, 2);
-        if (wp_doing_cron()) {
+        if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
             add_action('wp_loaded', array(__CLASS__, 'dedupe'), 0);
         }
     }

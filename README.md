@@ -2373,7 +2373,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### 1.3.152
 
-- Fix: **Fixes for other plugins** keeps WordPress’s scheduled tasks from being lost or copied when requests overlap. Each write of the list applies only what that request changed to the list as stored, so a long cron run no longer writes its old copy back over other changes, and each cron run removes extra copies of recurring tasks (AI Engine, Link Whisper, Freemius, MainWP Child), which had piled up to 5 on some sites. AI Engine no longer removes and reschedules its task runner from visitors’ page loads when it is more than 5 minutes late, as it regularly is with a server cron job every 5 minutes (#1232).
+- Fix: **Fixes for other plugins** makes WordPress’s scheduled tasks much less likely to be lost or copied when requests overlap. Each write of the list applies only what that request changed to the list as stored, so a long cron run no longer writes its old copy back over other changes (two writes in the same instant can still race), and each cron run (wp-cron.php or WP-CLI) removes extra copies of recurring tasks (AI Engine, Link Whisper, Freemius, MainWP Child), which had piled up to 5 on some sites. AI Engine no longer removes and reschedules its task runner from visitors’ page loads when it is more than 5 minutes late, as it regularly is with a server cron job every 5 minutes (#1232).
 
 ### 1.3.151
 

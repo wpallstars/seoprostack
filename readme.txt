@@ -155,6 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.152 =
-* Fix: scheduled tasks are no longer lost or copied when requests overlap, extra copies are removed, and AI Engine no longer reschedules its task runner from page loads (#1232).
+* Fix: scheduled tasks are much less likely to be lost when requests overlap, cron runs remove extra copies of recurring tasks, and AI Engine no longer reschedules its task runner from page loads (#1232).
 
 Older: `changelog.txt`.
