@@ -271,7 +271,7 @@ final class SEOProStack_Keep_Cached_Requests {
         if ('litespeed' !== self::page_cache() || !defined('CURLOPT_RESOLVE')) {
             return null;
         }
-        $address = trim((string) SEOProStack_Litespeed::conf('server_ip', ''));
+        $address = SEOProStack_Litespeed::server_ip();
         $host    = (string) wp_parse_url($url, PHP_URL_HOST);
         if ('' === $host || !filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return null;
