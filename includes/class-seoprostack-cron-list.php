@@ -70,27 +70,35 @@ class SEOProStack_Cron_List {
         if (null === $stored || $stored === $old_value) {
             return $value;
         }
+        return self::merge($stored, $old_value, $value);
+    }
+
+    /**
+     * The stored list with one request's changes applied: what is in its
+     * copy but not in its new list removed, what is new or different in its
+     * new list added, in time order.
+     *
+     * @param array<mixed> $stored The list as stored now.
+     * @param array<mixed> $before The request's copy.
+     * @param array<mixed> $after  The request's new list.
+     * @return array<mixed>
+     */
+    private static function merge(array $stored, array $before, array $after) {
         $merged = $stored;
         unset($merged['version']);
-        foreach (self::events($old_value) as list($time, $hook, $key)) {
-            if (!isset($value[$time][$hook][$key])) {
+        foreach (self::events($before) as list($time, $hook, $key)) {
+            if (!isset($after[$time][$hook][$key])) {
                 self::remove($merged, $time, $hook, $key);
             }
         }
-        foreach (self::events($value) as list($time, $hook, $key, $event)) {
-            if (!isset($old_value[$time][$hook][$key]) || $old_value[$time][$hook][$key] !== $event) {
-                if (!isset($merged[$time]) || !is_array($merged[$time])) {
-                    $merged[$time] = array();
-                }
-                if (!isset($merged[$time][$hook]) || !is_array($merged[$time][$hook])) {
-                    $merged[$time][$hook] = array();
-                }
-                $merged[$time][$hook][$key] = $event;
+        foreach (self::events($after) as list($time, $hook, $key, $event)) {
+            if (!isset($before[$time][$hook][$key]) || $before[$time][$hook][$key] !== $event) {
+                self::put($merged, $time, $hook, $key, $event);
             }
         }
         uksort($merged, 'strnatcasecmp');
-        if (isset($value['version'])) {
-            $merged['version'] = $value['version'];
+        if (isset($after['version'])) {
+            $merged['version'] = $after['version'];
         }
         return $merged;
     }
@@ -107,20 +115,8 @@ class SEOProStack_Cron_List {
         if (!function_exists('_get_cron_array') || !function_exists('_set_cron_array')) {
             return;
         }
-        $crons  = _get_cron_array();
-        $latest = array();
-        $extra  = array();
-        foreach (self::events($crons) as list($time, $hook, $key, $event)) {
-            if (!is_array($event) || empty($event['schedule']) || !is_string($event['schedule'])) {
-                continue;
-            }
-            $task = $hook . "\0" . $key . "\0" . $event['schedule'];
-            if (isset($latest[$task])) {
-                // The list is in time order, so this copy is the later one.
-                $extra[] = array($latest[$task], $hook, $key);
-            }
-            $latest[$task] = $time;
-        }
+        $crons = _get_cron_array();
+        $extra = self::extra_copies($crons);
         if (!$extra) {
             return;
         }
@@ -128,6 +124,54 @@ class SEOProStack_Cron_List {
             self::remove($crons, $time, $hook, $key);
         }
         _set_cron_array($crons);
+    }
+
+    /**
+     * Every copy of a recurring task but its latest: time, hook and key.
+     *
+     * @param array<mixed> $crons A cron list.
+     * @return array<int, array{0:int|string,1:string,2:string}>
+     */
+    private static function extra_copies(array $crons) {
+        $latest = array();
+        $extra  = array();
+        foreach (self::events($crons) as list($time, $hook, $key, $event)) {
+            $schedule = is_array($event) && isset($event['schedule']) && is_string($event['schedule']) ? $event['schedule'] : '';
+            if ('' === $schedule) {
+                continue;
+            }
+            $task = $hook . "\0" . $key . "\0" . $schedule;
+            if (!isset($latest[$task])) {
+                $latest[$task] = $time;
+                continue;
+            }
+            if ((int) $time > (int) $latest[$task]) {
+                $extra[]       = array($latest[$task], $hook, $key);
+                $latest[$task] = $time;
+            } else {
+                $extra[] = array($time, $hook, $key);
+            }
+        }
+        return $extra;
+    }
+
+    /**
+     * Add or replace one task in a list.
+     *
+     * @param array<mixed> $crons A cron list.
+     * @param int|string   $time  Time.
+     * @param string       $hook  Hook.
+     * @param string       $key   Hash of its arguments.
+     * @param mixed        $event The task.
+     */
+    private static function put(array &$crons, $time, $hook, $key, $event) {
+        if (!isset($crons[$time]) || !is_array($crons[$time])) {
+            $crons[$time] = array();
+        }
+        if (!isset($crons[$time][$hook]) || !is_array($crons[$time][$hook])) {
+            $crons[$time][$hook] = array();
+        }
+        $crons[$time][$hook][$key] = $event;
     }
 
     /**
