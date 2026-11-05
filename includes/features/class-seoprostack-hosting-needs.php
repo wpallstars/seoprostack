@@ -165,6 +165,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        // Learned origin addresses serve Keep pages cached too, so learn with Hosting needs off.
+        add_action('shutdown', array('SEOProStack_Litespeed_Crawler', 'learn'));
         if (!self::enabled()) {
             return;
         }

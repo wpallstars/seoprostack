@@ -52,6 +52,8 @@ function seoprostack_uninstall_site() {
         'seoprostack_options_lock',
         'seoprostack_db_version',
         'seoprostack_update_first_seen',
+        // The server address learned from a web request.
+        'seoprostack_origin_ip',
         // Multisite: the network changes this site last ran its saving work
         // for, and the network option's save lock (main site only), if a
         // save stopped.

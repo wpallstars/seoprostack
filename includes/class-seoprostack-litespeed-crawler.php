@@ -64,6 +64,9 @@ final class SEOProStack_Litespeed_Crawler {
     /** Most blocklisted pages read. */
     const BLOCKLIST_MAX = 500;
 
+    /** SEO Pro Stack's own option: the server address last seen on a web request, and the one learned from it. */
+    const LEARNED = 'seoprostack_origin_ip';
+
     /**
      * The crawler's state, found once per request.
      *
@@ -77,6 +80,7 @@ final class SEOProStack_Litespeed_Crawler {
     public static function init() {
         // Site Health also runs its tests from cron, outside wp-admin.
         add_filter('site_status_tests', array(__CLASS__, 'tests'));
+        // 'learn' is hooked at shutdown by Hosting needs' boot, enabled or not.
         if (!is_admin()) {
             return;
         }
@@ -238,14 +242,35 @@ final class SEOProStack_Litespeed_Crawler {
         if ('' !== SEOProStack_Litespeed::server_ip()) {
             return '';
         }
+        return self::elsewhere(self::server_address());
+    }
+
+    /**
+     * This server's public IPv4 address, from the web request. Empty on
+     * the command line and in cron, which have none.
+     *
+     * @return string
+     */
+    private static function server_address() {
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated as an IP address next.
         $address = isset($_SERVER['SERVER_ADDR']) ? (string) wp_unslash($_SERVER['SERVER_ADDR']) : '';
         // Public IPv4 only: LiteSpeed Cache's crawler resolves to it as host:port:address.
         if (!filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
             return '';
         }
+        return $address;
+    }
+
+    /**
+     * The address, when the site's host name points somewhere else (a CDN
+     * or proxy).
+     *
+     * @param string $address IPv4 address, or ''.
+     * @return string The address, or ''.
+     */
+    private static function elsewhere($address) {
         $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
-        if ('' === $host) {
+        if ('' === $address || '' === $host) {
             return '';
         }
         $resolved = gethostbynamel($host);
@@ -256,6 +281,65 @@ final class SEOProStack_Litespeed_Crawler {
     }
 
     /**
+     * Note this server's address on a web request, for requests from the
+     * command line and cron, which cannot see it. Only a changed address
+     * is written (to SEO Pro Stack's own autoloaded option; LiteSpeed
+     * Cache's settings are never written), and nothing is looked up here,
+     * so a visitor's request never waits: learned() checks the address
+     * when a request first needs it.
+     */
+    public static function learn() {
+        $address = self::server_address();
+        if ('' === $address || !SEOProStack_Litespeed::is_server()) {
+            return;
+        }
+        $stored = get_option(self::LEARNED, array());
+        if (is_array($stored) && isset($stored['seen']) && $address === $stored['seen']) {
+            return;
+        }
+        update_option(self::LEARNED, array('seen' => $address), true);
+    }
+
+    /**
+     * The address learned from a web request, for requests to this site
+     * when LiteSpeed Cache's Server IP is empty: used only when the site's
+     * host name resolves elsewhere (a CDN or proxy) and a request for the
+     * home page at the address reaches LiteSpeed itself. Checked the first
+     * time it is needed after a web request noted it, and an address that
+     * failed the check again after an hour (the site may have moved behind
+     * a CDN since).
+     *
+     * @param bool $check Check a new address now (false: only read the result).
+     * @return string IPv4 address, or ''.
+     */
+    public static function learned($check = true) {
+        $stored = get_option(self::LEARNED, array());
+        if (!is_array($stored) || empty($stored['seen'])) {
+            return '';
+        }
+        if ($check && (!isset($stored['ip']) || ('' === $stored['ip'] && time() - (int) ($stored['at'] ?? 0) >= HOUR_IN_SECONDS))) {
+            $ip = self::elsewhere((string) $stored['seen']);
+            if ('' !== $ip && !self::reaches_server($ip)) {
+                $ip = '';
+            }
+            $stored['ip'] = $ip;
+            $stored['at'] = time();
+            update_option(self::LEARNED, $stored, true);
+        }
+        $ip = isset($stored['ip']) ? (string) $stored['ip'] : '';
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) ? $ip : '';
+    }
+
+    /**
+     * Forget the learned address (a request to it could not connect: the
+     * server may have moved), so DNS is used until a web request notes
+     * this server's address again.
+     */
+    public static function forget() {
+        delete_option(self::LEARNED);
+    }
+
+    /**
      * Whether a request for the home page at this address reaches LiteSpeed
      * itself, as the crawler's requests would: not a CDN, not an error.
      *
@@ -263,25 +347,31 @@ final class SEOProStack_Litespeed_Crawler {
      * @return bool
      */
     private static function reaches_server($address) {
+        if (!defined('CURLOPT_RESOLVE')) {
+            return false;
+        }
         $url  = home_url('/');
         $host = (string) wp_parse_url($url, PHP_URL_HOST);
-        $port = 'https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80;
+        $port = (int) wp_parse_url($url, PHP_URL_PORT);
+        if (!$port) {
+            $port = 'https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80;
+        }
+        $pinned = false;
         // The HTTP API has no option for this; its cURL handle does.
-        $resolve = function ($handle) use ($host, $port, $address) {
-            if (defined('CURLOPT_RESOLVE')) {
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- the HTTP API's own handle, at its http_api_curl hook.
-                curl_setopt($handle, CURLOPT_RESOLVE, array($host . ':' . $port . ':' . $address));
-            }
+        $resolve = function ($handle) use ($host, $port, $address, &$pinned) {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- the HTTP API's own handle, at its http_api_curl hook.
+            $pinned = curl_setopt($handle, CURLOPT_RESOLVE, array($host . ':' . $port . ':' . $address));
         };
         add_action('http_api_curl', $resolve);
         $response = wp_remote_head($url, array(
-            'timeout'     => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- only when an administrator clicks the fix; an uncached home page can take a few seconds.
+            'timeout'     => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- an administrator's click on the fix, or a scheduled task's first request after the address changed; never a visitor's page; an uncached home page can take a few seconds.
             'redirection' => 0,
             // Core's filter for requests to the site itself, as its loopback test uses; the address is this server's.
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
         ));
         remove_action('http_api_curl', $resolve);
-        if (is_wp_error($response)) {
+        // Without cURL (another transport) the request went by DNS, so it says nothing about the address.
+        if (!$pinned || is_wp_error($response)) {
             return false;
         }
         $code   = (int) wp_remote_retrieve_response_code($response);

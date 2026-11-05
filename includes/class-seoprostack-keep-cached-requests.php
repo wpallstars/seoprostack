@@ -110,7 +110,7 @@ final class SEOProStack_Keep_Cached_Requests {
     /**
      * Open one page as a visitor who is not logged in: also as a phone
      * where the page cache keeps a mobile copy, and straight to this
-     * server when LiteSpeed Cache's Server IP is set. On a LiteSpeed page
+     * server when its address is known (resolver()). On a LiteSpeed page
      * cache, as LiteSpeed Cache's crawler does (its user agent first), so
      * LiteSpeed's bot protection lets the request through.
      *
@@ -263,6 +263,8 @@ final class SEOProStack_Keep_Cached_Requests {
     /**
      * Send requests for this page straight to LiteSpeed Cache's Server IP,
      * as its crawler does, so a CDN in front neither answers nor times out.
+     * With Server IP empty, to the address SEO Pro Stack learned from a web
+     * request when the host name resolves elsewhere (#1243).
      *
      * @param string $url Page address.
      * @return callable|null http_api_curl callback, or null to use DNS.
@@ -272,14 +274,58 @@ final class SEOProStack_Keep_Cached_Requests {
             return null;
         }
         $address = SEOProStack_Litespeed::server_ip();
-        $host    = (string) wp_parse_url($url, PHP_URL_HOST);
+        $learned = false;
+        if (!filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && class_exists('SEOProStack_Litespeed_Crawler')) {
+            // Server IP is empty: the address learned from a web request, if any.
+            $address = SEOProStack_Litespeed_Crawler::learned();
+            $learned = true;
+        }
+        $host = (string) wp_parse_url($url, PHP_URL_HOST);
         if ('' === $host || !filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return null;
         }
-        $pin = $host . ':' . ('https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80) . ':' . $address;
-        return static function ($handle) use ($pin) {
+        $port = (int) wp_parse_url($url, PHP_URL_PORT);
+        if (!$port) {
+            $port = 'https' === wp_parse_url($url, PHP_URL_SCHEME) ? 443 : 80;
+        }
+        $pin = $host . ':' . $port . ':' . $address;
+        return static function ($handle) use ($pin, $learned) {
+            if ($learned && '' === SEOProStack_Litespeed_Crawler::learned(false)) {
+                return; // Forgotten after a request that could not connect: use DNS.
+            }
             // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- the HTTP API's own handle, at its http_api_curl hook.
             curl_setopt($handle, CURLOPT_RESOLVE, array($pin));
+            if ($learned) {
+                add_action('http_api_debug', array('SEOProStack_Keep_Cached_Requests', 'settle'), 10, 2);
+            }
         };
+    }
+
+    /**
+     * After a request sent to a learned address: forget the address when
+     * it could not connect (the server moved) or a CDN answered instead of
+     * this server. A slow page that timed out after connecting keeps it.
+     * DNS is used until a web request notes this server's address again.
+     *
+     * @param array|WP_Error $response Response.
+     * @param string         $context  response, or the stage of the request.
+     */
+    public static function settle($response, $context = 'response') {
+        remove_action('http_api_debug', array(__CLASS__, 'settle'), 10);
+        if ('response' !== $context) {
+            return;
+        }
+        if (is_wp_error($response)) {
+            // WpOrg\Requests' message is "cURL error N: ...". 7: could not connect; 28 before
+            // connecting: "Connection timed out after ..." or "Failed to connect to ... Timeout was reached".
+            $message = $response->get_error_message();
+            $forget  = 0 === strpos($message, 'cURL error 7:')
+                || (0 === strpos($message, 'cURL error 28:') && (false !== stripos($message, 'connection timed out') || false !== stripos($message, 'failed to connect')));
+        } else {
+            $forget = '' !== implode('', (array) wp_remote_retrieve_header($response, 'cf-ray'));
+        }
+        if ($forget) {
+            SEOProStack_Litespeed_Crawler::forget();
+        }
     }
 }
