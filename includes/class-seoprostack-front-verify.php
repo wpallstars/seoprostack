@@ -408,6 +408,14 @@ final class SEOProStack_Front_Verify {
             // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- HTTP Basic authentication, passed on unchanged, as core does.
             $headers['Authorization'] = 'Basic ' . base64_encode(wp_unslash($_SERVER['PHP_AUTH_USER']) . ':' . wp_unslash($_SERVER['PHP_AUTH_PW']));
         }
+        // Straight to LiteSpeed Cache's Server IP when it is set, as Keep
+        // pages cached opens pages: a CDN in front, or the host's protection
+        // behind it, can refuse the server's own requests through the CDN.
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php';
+        $resolve = SEOProStack_Keep_Cached_Requests::resolver($url);
+        if ($resolve) {
+            add_action('http_api_curl', $resolve);
+        }
         $response = wp_remote_get(add_query_arg(SEOProStack_Plugin_Loader::VERIFY_ARG, $mode . '.' . $check['token'] . '.' . self::$count, $url), array(
             'timeout'     => self::TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- scheduled task; an uncached page can take seconds.
             'redirection' => 0,
@@ -416,6 +424,9 @@ final class SEOProStack_Front_Verify {
             // Core's filter for requests to the site itself, as its loopback test uses.
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
         ));
+        if ($resolve) {
+            remove_action('http_api_curl', $resolve);
+        }
         if (is_wp_error($response)) {
             return array('error' => substr($response->get_error_message(), 0, 200), 'retry' => true);
         }
@@ -423,10 +434,9 @@ final class SEOProStack_Front_Verify {
         if (200 !== $code) {
             // Refused for now (bot protection, a CDN in front, limits,
             // maintenance): the site's requests to itself failed, not the
-            // page. Saved, the address would load every plugin for a week:
-            // a CDN that refused the server's requests for ten minutes
-            // marked every address it checked so (GitHub issue #1242).
-            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php';
+            // page. Saved, the address would load every plugin for a week,
+            // as on a host whose protection refused the server's requests
+            // through its CDN most of the time (GitHub issue #1242).
             $refused = in_array($code, SEOProStack_Keep_Cached_Requests::REFUSED, true);
             return array('error' => 'status ' . $code, 'retry' => $refused, 'refused' => $refused);
         }
