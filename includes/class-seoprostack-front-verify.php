@@ -61,6 +61,17 @@ final class SEOProStack_Front_Verify {
     /** Seconds after which a scheduled run starts no more addresses. */
     const RUN_BUDGET = 50;
 
+    /**
+     * RUN_BUDGET on a network run from the command line. A host's cron job,
+     * or WP-CLI piped from wp site list, runs each site's scheduled tasks
+     * one after another, so each second here is a second the network's
+     * other sites wait for their turn: with 50, the subsites of an 11-site
+     * network got a turn every 20 minutes and more, and their purged pages
+     * stayed uncached as long (GitHub issue #1242). A check once started
+     * runs to its end, so the results are the same, over more runs.
+     */
+    const NETWORK_RUN_BUDGET = 15;
+
     /** Most words that may change on each render (random IDs) for a page to be compared. */
     const VOLATILE = 50;
 
@@ -84,7 +95,8 @@ final class SEOProStack_Front_Verify {
     /**
      * Check queued addresses until the run's time is up. The task repeats
      * (SEOProStack_Plugin_Loader::schedule_verify()) until the queue is
-     * empty: paused, busy or learning again, a run just waits for the next.
+     * empty: paused, busy, learning again or while Keep pages cached fills
+     * the cache, a run just waits for the next.
      */
     public static function run() {
         $start = microtime(true);
@@ -101,7 +113,11 @@ final class SEOProStack_Front_Verify {
         if (is_array($busy) && (int) ($busy['expires'] ?? 0) > time()) {
             return; // One check at a time.
         }
-        while (SEOProStack_Feature::more_time($start, self::RUN_BUDGET)) {
+        if (self::filling()) {
+            return; // Visitors' cached pages first.
+        }
+        $budget = 'cli' === PHP_SAPI && is_multisite() ? self::NETWORK_RUN_BUDGET : self::RUN_BUDGET;
+        while (SEOProStack_Feature::more_time($start, $budget)) {
             if (!SEOProStack_Plugin_Loader::front_current()) {
                 return; // Learned again: visitors queue what they open.
             }
@@ -127,6 +143,29 @@ final class SEOProStack_Front_Verify {
                 return; // Paused for an hour.
             }
         }
+    }
+
+    /**
+     * Whether Keep pages cached has pages of this site to open, with a
+     * batch scheduled to open them. They come first: a check renders its
+     * address several times uncached, on the same server as the fill and
+     * just after a purge emptied the cache, and it gains only fewer plugins
+     * on uncached renders, which the next saved post resets. Every update
+     * of SEO Pro Stack learns again and its deploy purges each site, so
+     * the fill's own requests queued up to 50 addresses on every site, and
+     * the checks took 90 of a network subsite's 113 seconds of scheduled
+     * tasks (GitHub issue #1242). A batch that cannot open pages stops
+     * after a few tries (SEOProStack_Keep_Cached_Queue::STOPS), so the
+     * checks wait no longer than that.
+     *
+     * @return bool
+     */
+    private static function filling() {
+        if (!class_exists('SEOProStack_Keep_Cached_Queue', false) || !wp_next_scheduled(SEOProStack_Keep_Cached_Queue::HOOK)) {
+            return false;
+        }
+        $queue = SEOProStack_Keep_Cached_Queue::get();
+        return $queue['urls'] || $queue['full'];
     }
 
     /**
@@ -231,6 +270,10 @@ final class SEOProStack_Front_Verify {
             update_option(SEOProStack_Plugin_Loader::FRONT_VERIFY, $check, false);
             $trial = self::render($url, 'trial', $check);
             $trials++;
+            if (!empty($trial['refused'])) {
+                // Refused, not different: the whole check is tried again later.
+                return array('skip' => array(), 'result' => 'failed', 'note' => $trial['error'], 'needed' => array(), 'retry' => true);
+            }
             $failed = isset($trial['error']);
             $note   = $failed ? $trial['error'] : '';
             if (!$failed && self::matches($base, $trial, $url, $check, $note)) {
@@ -354,8 +397,8 @@ final class SEOProStack_Front_Verify {
      * @param string $url   Page address.
      * @param string $mode  'base' or 'trial'.
      * @param array  $check The check under way.
-     * @return array{html: string, headers: array<string,string>, skipped: string[], effects: string[]}|array{error: string, retry: bool}
-     *         What it rendered, or why not and whether the site's requests to itself failed.
+     * @return array{html: string, headers: array<string,string>, skipped: string[], effects: string[]}|array{error: string, retry: bool, refused?: bool}
+     *         What it rendered, or why not, whether the site's requests to itself failed and whether the server refused them.
      */
     private static function render($url, $mode, array $check) {
         self::$count++;
@@ -378,7 +421,14 @@ final class SEOProStack_Front_Verify {
         }
         $code = (int) wp_remote_retrieve_response_code($response);
         if (200 !== $code) {
-            return array('error' => 'status ' . $code, 'retry' => false);
+            // Refused for now (bot protection, a CDN in front, limits,
+            // maintenance): the site's requests to itself failed, not the
+            // page. Saved, the address would load every plugin for a week:
+            // a CDN that refused the server's requests for ten minutes
+            // marked every address it checked so (GitHub issue #1242).
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php';
+            $refused = in_array($code, SEOProStack_Keep_Cached_Requests::REFUSED, true);
+            return array('error' => 'status ' . $code, 'retry' => $refused, 'refused' => $refused);
         }
         // Without the header, the page was not rendered as asked: a cache
         // answered, or the loader did not see this address and kind.
