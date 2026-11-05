@@ -157,7 +157,4 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = 1.3.157 =
 * Fix: on a network that uses LiteSpeed Cache's primary site settings, Keep pages cached and page checks go straight to the main site's Server IP, as LiteSpeed Cache does (#1245).
 
-= 1.3.156 =
-* Faster: Load plugins only where needed checks pages after Keep pages cached has opened them, in shorter turns on a network; a refused check is tried again later (#1242).
-
 Older: `changelog.txt`.
