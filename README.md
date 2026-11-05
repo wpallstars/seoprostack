@@ -2373,6 +2373,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 - Faster: **Keep pages cached** notices a LiteSpeed cache emptied from outside the site in two more cases. Its five-minute check now opens a page only it opens, the home page at `/?seoprostack-held=1`, so a visitor reopening the home page after the cache was emptied no longer hides it. And each fill ends by checking that page, so a cache emptied between an update's fill and the first check is filled again too (#1233).
 - Faster: **Keep pages cached** batches run up to 90 seconds when WP-Cron is run by the host's cron job or WP-CLI, instead of 20 seconds every five minutes, so a network's pages are cached again in minutes, not hours (#1236).
+- Fix: cloud storage keeps a picture's local copy and tries again on the next pass after a storage connection error, pausing removal for five minutes instead of an hour when errors repeat (#1228).
 
 ### 1.3.151
 
