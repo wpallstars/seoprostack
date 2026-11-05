@@ -202,10 +202,14 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_speed_plan';
     // Page caches purged after an update: the version they were purged for.
     $options[] = 'seoprostack_page_cache_purged';
-    // Keep pages cached: pages waiting to be opened, and the last fill.
+    // Keep pages cached: pages waiting to be opened, the last fill, and
+    // whether the check for a cache emptied from outside the site found the
+    // home page held.
     $options[] = 'seoprostack_keep_pages_cached_queue';
     $options[] = 'seoprostack_keep_pages_cached_last';
+    $options[] = 'seoprostack_keep_pages_cached_held';
     wp_unschedule_hook('seoprostack_keep_pages_cached');
+    wp_unschedule_hook('seoprostack_keep_pages_cached_check');
     // Content and imported media stay; only template ownership/history goes.
     $options[] = 'seoprostack_site_template';
     $options[] = 'seoprostack_site_template_seen';

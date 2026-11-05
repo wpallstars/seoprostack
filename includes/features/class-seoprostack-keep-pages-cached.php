@@ -28,6 +28,16 @@
  * Cache decides it; any WP-Optimize purge) fills each site's main pages,
  * from the site where it happened.
  *
+ * A LiteSpeed page cache can also be emptied from outside the site, which
+ * runs none of its code: another site on the same hosting account sending
+ * Empty Entire Cache (wp litespeed-purge all on a network), the host's panel
+ * or the server. So every five minutes, on a single site or a network's main
+ * site, the home page is opened once as LiteSpeed Cache's crawler (an answer
+ * without PHP while LiteSpeed holds it); when the page held at one check is
+ * missing at the next, the whole cache is filled as after Purge All (every
+ * site of a network). A home page never cached, or redirected, never sets
+ * that off (GitHub issue #1229).
+ *
  * Batches run for about 20 seconds, a minute apart. Where the page cache
  * keeps a separate copy for phones, pages are opened as a phone too, and
  * requests go straight to this server when its Server IP is set. On a
@@ -68,6 +78,18 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     const BUDGET = 20;
 
     /**
+     * WP-Cron event, and its interval's name, of the check for a LiteSpeed
+     * page cache emptied from outside the site.
+     */
+    const CHECK = 'seoprostack_keep_pages_cached_check';
+
+    /** Seconds between checks. */
+    const CHECK_INTERVAL = 300;
+
+    /** Whether the last check found the home page held, and since when. Not autoloaded. */
+    const HELD = 'seoprostack_keep_pages_cached_held';
+
+    /**
      * Settings.
      *
      * @return array
@@ -80,7 +102,7 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Keep pages cached', 'seoprostack'),
-                'description' => __('After the page cache is emptied (updates, Purge All, menu or Customizer changes) or a post is published, open the site’s pages in the background, one at a time, so visitors get cached pages again within minutes instead of waiting for each page to be built: the home page, the header menu’s pages, the footer menu’s, the home page’s other links, then the rest of the site. Where LiteSpeed Cache’s crawler or WP-Optimize’s preload is on, it is started for the rest of the site after them.', 'seoprostack'),
+                'description' => __('After the page cache is emptied (updates, Purge All, menu or Customizer changes) or a post is published, open the site’s pages in the background, one at a time, so visitors get cached pages again within minutes instead of waiting for each page to be built: the home page, the header menu’s pages, the footer menu’s, the home page’s other links, then the rest of the site. Where LiteSpeed Cache’s crawler or WP-Optimize’s preload is on, it is started for the rest of the site after them. With LiteSpeed Cache, the home page is also checked every five minutes, so a cache emptied from outside the site (another site on the same hosting account, the host’s panel) is filled again too.', 'seoprostack'),
             ),
         );
     }
@@ -90,13 +112,24 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      */
     public static function boot() {
         add_action(SEOProStack_Keep_Cached_Queue::HOOK, array(__CLASS__, 'run'));
-        if (defined('WP_CLI') && WP_CLI) {
+        add_action(self::CHECK, array(__CLASS__, 'check'));
+        add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'), 10, 1);
+        $cli = defined('WP_CLI') && WP_CLI;
+        if ($cli) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-cli.php';
             SEOProStack_Keep_Cached_CLI::register();
+        }
+        if ((is_admin() && !wp_doing_ajax()) || wp_doing_cron() || $cli) {
+            // Also when switched off, to take the check away. In cron runs
+            // and WP-CLI too: a site whose host runs its cron, updated by a
+            // deploy script, may not open its admin for weeks.
+            add_action('wp_loaded', array(__CLASS__, 'sync_check'));
         }
         if (!self::enabled()) {
             return;
         }
+        // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every five minutes (CHECK_INTERVAL): one request LiteSpeed answers without PHP while it holds the page.
+        add_filter('cron_schedules', array(__CLASS__, 'check_schedule'));
         add_action('litespeed_purged_all', array(__CLASS__, 'litespeed_purged'));
         add_action('wpo_cache_flush', array(__CLASS__, 'wp_optimize_purged'));
         add_action('transition_post_status', array(__CLASS__, 'post_changed'), 10, 3);
@@ -119,6 +152,119 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     public static function deactivate($network_wide = false) {
         unset($network_wide);
         SEOProStack_Keep_Cached_Queue::clear();
+        wp_clear_scheduled_hook(self::CHECK);
+        delete_option(self::HELD);
+    }
+
+    /**
+     * Whether this site checks for a cache emptied from outside it: with
+     * this on, a LiteSpeed page cache, and on a network the main site only
+     * (Empty Entire Cache empties every site, and a check per site would
+     * send a request per site).
+     *
+     * @return bool
+     */
+    private static function checks() {
+        return self::enabled() && is_main_site() && 'litespeed' === SEOProStack_Keep_Cached_Requests::page_cache();
+    }
+
+    /**
+     * Keep the check's event in step with the switch and the page cache.
+     */
+    public static function sync_check() {
+        $next = wp_next_scheduled(self::CHECK);
+        if (self::checks()) {
+            if (!$next) {
+                // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every five minutes (CHECK_INTERVAL), as in boot().
+                add_filter('cron_schedules', array(__CLASS__, 'check_schedule'));
+                wp_schedule_event(time() + MINUTE_IN_SECONDS, self::CHECK, self::CHECK);
+            }
+            return;
+        }
+        if ($next) {
+            wp_clear_scheduled_hook(self::CHECK);
+            delete_option(self::HELD);
+        }
+    }
+
+    /**
+     * A setting changed: update the check's event.
+     *
+     * @param string $key Setting key.
+     */
+    public static function setting_saved($key) {
+        if (self::KEY === $key) {
+            self::sync_check();
+        }
+    }
+
+    /**
+     * The check's interval (cron_schedules). WordPress needs it known when
+     * the event is scheduled and when a run schedules the next.
+     *
+     * @param array $schedules Intervals by name.
+     * @return array
+     */
+    public static function check_schedule($schedules) {
+        $schedules = is_array($schedules) ? $schedules : array();
+        // Not translated: this filter can run before translations load.
+        $schedules[self::CHECK] = array(
+            'interval' => self::CHECK_INTERVAL,
+            'display'  => 'SEO Pro Stack: every five minutes, for a page cache emptied from outside the site',
+        );
+        return $schedules;
+    }
+
+    /**
+     * Every five minutes: open the home page once, as LiteSpeed Cache's
+     * crawler, which LiteSpeed answers 201 without running PHP while it
+     * holds the page. When the page held at the last check is missing now,
+     * the cache was emptied, from wherever (another site's Empty Entire
+     * Cache, the host's panel, or the page's own TTL), so fill it all as
+     * after Purge All: every site of a network. The request that found the
+     * page missing has cached it again.
+     *
+     * Nothing is opened while a fill is waiting or under way: it opens the
+     * home page itself. Only a change from held to missing starts a fill,
+     * so a home page LiteSpeed never caches (excluded, a site with no front
+     * end) does not; redirects, refusals and errors change nothing.
+     */
+    public static function check() {
+        if (!self::checks()) {
+            self::sync_check();
+            return;
+        }
+        $queue = SEOProStack_Keep_Cached_Queue::get();
+        if ($queue['urls'] || $queue['full']) {
+            return;
+        }
+        $answers = SEOProStack_Keep_Cached_Requests::open(home_url('/'), false);
+        $held    = self::held($answers[0]);
+        $last    = get_option(self::HELD, array());
+        $was     = is_array($last) && isset($last['held']) ? (bool) $last['held'] : null;
+        if (null === $held || $held === $was) {
+            return;
+        }
+        // Stored only when it changes: no write every five minutes.
+        update_option(self::HELD, array('held' => $held, 'since' => time()), false);
+        if (true === $was && !$held) {
+            SEOProStack_Keep_Cached_Queue::fill_later(is_multisite());
+        }
+    }
+
+    /**
+     * Whether LiteSpeed held the page, from open()'s answer: true for a
+     * hit (201 to its crawler), false for a page it built (200), null for
+     * anything else (redirect, refused, error).
+     *
+     * @param array $answer One of open()'s answers.
+     * @return bool|null
+     */
+    private static function held(array $answer) {
+        if (!in_array($answer['code'], array(200, 201), true)) {
+            return null;
+        }
+        return false !== stripos((string) $answer['cache'], 'hit');
     }
 
     /**
