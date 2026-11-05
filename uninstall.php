@@ -307,6 +307,9 @@ function seoprostack_uninstall_site() {
     $wpdb->query($wpdb->prepare('DROP TABLE IF EXISTS %i', $wpdb->prefix . 'seoprostack_media_claims'));
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- uninstall removes only a fixed plugin-owned table name.
     $wpdb->query($wpdb->prepare('DROP TABLE IF EXISTS %i', $wpdb->prefix . 'seoprostack_media_urls'));
+    // The kept originals' inventories; ones not yet moved go with the jobs below.
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- uninstall removes only a fixed plugin-owned table name.
+    $wpdb->query($wpdb->prepare('DROP TABLE IF EXISTS %i', $wpdb->prefix . 'seoprostack_media_originals'));
     // A cursor through the names visits each row once: a row that cannot be
     // deleted is left behind instead of being selected again forever.
     $after = '';
