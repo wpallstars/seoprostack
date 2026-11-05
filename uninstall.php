@@ -203,8 +203,8 @@ function seoprostack_uninstall_site() {
     // Page caches purged after an update: the version they were purged for.
     $options[] = 'seoprostack_page_cache_purged';
     // Keep pages cached: pages waiting to be opened, the last fill, and
-    // whether the check for a cache emptied from outside the site found the
-    // home page held.
+    // whether the check for a cache emptied from outside the site found its
+    // page held.
     $options[] = 'seoprostack_keep_pages_cached_queue';
     $options[] = 'seoprostack_keep_pages_cached_last';
     $options[] = 'seoprostack_keep_pages_cached_held';
