@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.153
+Stable tag: 1.3.154
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,7 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.153 =
-* Fix: scheduled tasks are much less likely to be lost when requests overlap, cron runs remove extra copies of recurring tasks, and AI Engine no longer reschedules its task runner from page loads (#1232).
+= 1.3.154 =
+* Fix: Keep pages cached on a network fills every site again after the cache was emptied, not only the main site (#1238).
 
 Older: `changelog.txt`.

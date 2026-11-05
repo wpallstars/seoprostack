@@ -706,19 +706,15 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
      * @return int[]
      */
     private static function cleanup_sites($after) {
-        global $wpdb;
-        // WP_Site_Query has no ID-range argument. Scope its clause filter to
-        // this query and remove it even if another query filter throws.
-        $filter = static function (array $clauses) use ($after, $wpdb) {
-            $clauses['where'] .= $wpdb->prepare(" AND {$wpdb->blogs}.blog_id > %d", $after);
-            return $clauses;
-        };
-        add_filter('sites_clauses', $filter);
-        try {
-            return array_map('intval', get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 50, 'orderby' => 'id', 'order' => 'ASC')));
-        } finally {
-            remove_filter('sites_clauses', $filter);
-        }
+        // WP_Site_Query has no ID-range argument, and a sites_clauses filter
+        // runs only when its cache misses: with a persistent object cache,
+        // every batch would get the first one (GitHub issue #1238). So take
+        // the network's IDs, cached by these arguments, and pick the batch.
+        $ids = array_map('intval', get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 0, 'orderby' => 'id', 'order' => 'ASC')));
+        $ids = array_filter($ids, static function ($id) use ($after) {
+            return $id > $after;
+        });
+        return array_slice(array_values($ids), 0, 50);
     }
 
     /**
