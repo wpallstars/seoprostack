@@ -52,6 +52,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /** Claim index state: schema, the version that built it, and the build cursor. */
     const CLAIMS_STATE = 'seoprostack_storage_job_claims';
     const CLAIMS_SCHEMA = '1';
+    /** URL index: the SHA-256 of signature and key => attachment ID, one row per stored file (GH#1251). */
+    const URLS = 'seoprostack_media_urls';
+    /** URL index state: schema, the version whose options were moved, and the build cursors. */
+    const URLS_STATE = 'seoprostack_storage_job_urls';
+    const URLS_SCHEMA = '1';
+    /** Options moved into the URL index per query. */
+    const URLS_MOVE = 500;
 
     /** Local-address calls must bypass output filters. @var int */
     private static $local = 0;
@@ -77,6 +84,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $batch_leases = array();
     /** Attachments whose local files this batch deleted: their posts' cached pages are purged. @var array<int,true> */
     private static $purge = array();
+    /** URL index lookups in this request, by site and hash. @var array<string,int> */
+    private static $url_ids = array();
 
     /** @return array<string,array> */
     public static function settings() {
@@ -719,6 +728,279 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * The URL index state.
+     *
+     * @return array
+     */
+    private static function urls_state() {
+        $state = get_option(self::URLS_STATE, array());
+        return is_array($state) ? $state : array();
+    }
+
+    /**
+     * The URL index table, once created; empty while lookups and writes use
+     * one option per file, as before 1.3.160.
+     *
+     * @param array $state URL index state.
+     * @return string
+     */
+    private static function urls_table($state) {
+        global $wpdb;
+        return self::URLS_SCHEMA === ($state['schema'] ?? '') ? $wpdb->prefix . self::URLS : '';
+    }
+
+    /**
+     * Whether options may still hold index entries: until this version has
+     * moved them into the table (an older version writes options).
+     *
+     * @param array $state URL index state.
+     * @return bool
+     */
+    private static function urls_fallback($state) {
+        return '' === self::urls_table($state) || SEOPROSTACK_VERSION !== ($state['moved'] ?? '');
+    }
+
+    /**
+     * The attachment that stored a key at a destination, or 0. The table
+     * first; an option while one may still hold the entry.
+     *
+     * @param string $signature Destination signature.
+     * @param string $key Object key.
+     * @return int
+     */
+    private static function url_lookup($signature, $key) {
+        global $wpdb;
+        $hash = hash('sha256', $signature . $key);
+        $cache = get_current_blog_id() . ':' . $hash;
+        if (isset(self::$url_ids[$cache])) {
+            return self::$url_ids[$cache];
+        }
+        $state = self::urls_state();
+        $table = self::urls_table($state);
+        $id = 0;
+        if ('' !== $table) {
+            $suppress = $wpdb->suppress_errors(true);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the plugin's own table, by primary key; cached for the request below.
+            $found = $wpdb->get_var($wpdb->prepare('SELECT post_id FROM %i WHERE url = UNHEX(%s)', $table, $hash));
+            $error = $wpdb->last_error;
+            $wpdb->suppress_errors($suppress);
+            if ('' !== $error) {
+                self::urls_failed();
+                $state = array();
+            }
+            $id = (int) $found;
+        }
+        if (!$id && self::urls_fallback($state)) {
+            $id = (int) get_option(self::URL_INDEX . $hash, 0);
+        }
+        if (count(self::$url_ids) >= 5000) {
+            self::$url_ids = array();
+        }
+        self::$url_ids[$cache] = $id;
+        return $id;
+    }
+
+    /**
+     * Record that an attachment stored these keys at a destination. Without
+     * the table, or when it fails, one option per key, as before.
+     *
+     * @param string $signature Destination signature.
+     * @param string[] $keys Object keys.
+     * @param int $id Attachment ID.
+     */
+    private static function url_store($signature, $keys, $id) {
+        global $wpdb;
+        $hashes = array();
+        foreach ($keys as $key) {
+            $hashes[hash('sha256', $signature . (string) $key)] = true;
+        }
+        $hashes = array_keys($hashes);
+        if (!$hashes) {
+            return;
+        }
+        $state = self::urls_state();
+        $table = self::urls_table($state);
+        $stored = '' !== $table;
+        foreach ($stored ? array_chunk($hashes, 200) : array() as $chunk) {
+            $values = implode(',', array_fill(0, count($chunk), '(UNHEX(%s), %d)'));
+            $args = array($table);
+            foreach ($chunk as $hash) {
+                $args[] = $hash;
+                $args[] = (int) $id;
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the plugin's own table; $values has two placeholders per hash.
+            if (false === $wpdb->query($wpdb->prepare("INSERT INTO %i (url, post_id) VALUES $values ON DUPLICATE KEY UPDATE post_id = VALUES(post_id)", $args))) {
+                self::urls_failed();
+                $stored = false;
+                break;
+            }
+        }
+        if ($stored && self::urls_fallback($state)) {
+            // An option from before would replace this entry when it is moved.
+            self::delete_url_options(array_map(function ($hash) {
+                return self::URL_INDEX . $hash;
+            }, $hashes));
+        }
+        foreach ($hashes as $hash) {
+            if (!$stored) {
+                update_option(self::URL_INDEX . $hash, $id, false);
+            }
+            self::$url_ids[get_current_blog_id() . ':' . $hash] = (int) $id;
+        }
+    }
+
+    /**
+     * Delete URL index options in one query, and their cached copies.
+     *
+     * @param string[] $names Option names.
+     */
+    private static function delete_url_options($names) {
+        global $wpdb;
+        if (!$names) {
+            return;
+        }
+        $in = implode(',', array_fill(0, count($names), '%s'));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- bounded names through option_name's unique index; their cached copies are deleted below. $in has one %s per name.
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name IN ($in)", $names));
+        foreach ($names as $name) {
+            wp_cache_delete($name, 'options');
+        }
+    }
+
+    /**
+     * The URL index failed (a write or lookup error, such as a dropped
+     * table): lookups and writes use options, and the table is created and
+     * filled again, no sooner than ten minutes from now.
+     */
+    private static function urls_failed() {
+        update_option(self::URLS_STATE, array('retry' => time() + 10 * MINUTE_IN_SECONDS), false);
+        self::$url_ids = array();
+    }
+
+    /**
+     * When the URL index next needs a build step; null once this version
+     * has moved the options and the table is filled, or while uploads are off.
+     *
+     * @phpstan-impure Reads the index state, which batches change.
+     * @return int|null
+     */
+    private static function urls_due() {
+        if (!self::ready()) {
+            return null;
+        }
+        $state = self::urls_state();
+        if (!self::urls_fallback($state) && !empty($state['indexed'])) {
+            return null;
+        }
+        return max(time(), (int) ($state['retry'] ?? 0));
+    }
+
+    /**
+     * Create the URL index table, move the options into it (a page at a
+     * time, deleting each page once stored), then add every inventory's
+     * files once, which refills a table that was dropped. Resumable, in
+     * bounded steps.
+     *
+     * @param float $start Step start.
+     * @param int $budget Seconds for this step.
+     * @return bool Whether the index is complete.
+     */
+    private static function build_urls($start, $budget) {
+        global $wpdb;
+        $state = self::urls_state();
+        if ((int) ($state['retry'] ?? 0) > time()) {
+            return false;
+        }
+        if ('' === self::urls_table($state)) {
+            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+            $table = $wpdb->prefix . self::URLS;
+            dbDelta("CREATE TABLE {$table} (
+                url binary(32) NOT NULL,
+                post_id bigint(20) unsigned NOT NULL,
+                PRIMARY KEY  (url),
+                KEY post_id (post_id)
+            ) {$wpdb->get_charset_collate()};");
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
+            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+                self::urls_failed();
+                return false;
+            }
+            $state = array('schema' => self::URLS_SCHEMA, 'moved' => '', 'indexed' => false);
+            update_option(self::URLS_STATE, $state, false);
+        }
+        $table = self::urls_table($state);
+        if (SEOPROSTACK_VERSION !== ($state['moved'] ?? '')) {
+            if (SEOPROSTACK_VERSION !== ($state['moving'] ?? '')) {
+                $state['moving'] = SEOPROSTACK_VERSION;
+                $state['cursor'] = '';
+            }
+            $like = $wpdb->esc_like(self::URL_INDEX) . '%';
+            while (self::more_time($start, $budget)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded page through option_name's unique index.
+                $rows = $wpdb->get_results($wpdb->prepare("SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s ORDER BY option_name LIMIT %d", $like, (string) $state['cursor'], self::URLS_MOVE));
+                if (!$rows) {
+                    $state['moved'] = SEOPROSTACK_VERSION;
+                    break;
+                }
+                $moved = 0;
+                $args = array($table);
+                $names = array();
+                foreach ($rows as $row) {
+                    $names[] = $row->option_name;
+                    $hash = substr($row->option_name, strlen(self::URL_INDEX));
+                    if (preg_match('/^[0-9a-f]{64}$/', $hash) && (int) $row->option_value > 0) {
+                        ++$moved;
+                        $args[] = $hash;
+                        $args[] = (int) $row->option_value;
+                    }
+                }
+                $values = implode(',', array_fill(0, max(1, $moved), '(UNHEX(%s), %d)'));
+                // An option was written while the table could not be: it is newer.
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the plugin's own table; $values has two placeholders per moved row.
+                if ($moved && false === $wpdb->query($wpdb->prepare("INSERT INTO %i (url, post_id) VALUES $values ON DUPLICATE KEY UPDATE post_id = VALUES(post_id)", $args))) {
+                    self::urls_failed();
+                    return false;
+                }
+                self::delete_url_options($names);
+                $state['cursor'] = end($names);
+            }
+        }
+        if (SEOPROSTACK_VERSION === ($state['moved'] ?? '') && empty($state['indexed'])) {
+            $before = (int) ($state['before'] ?? PHP_INT_MAX);
+            while (self::more_time($start, $budget)) {
+                $ids = self::inventory_ids(100, $before);
+                if (!$ids) {
+                    $state['indexed'] = true;
+                    break;
+                }
+                foreach (self::handover_records($ids) as $id => $records) {
+                    $record = $records[self::META] ?? null;
+                    if (!is_array($record) || empty($record['signature']) || empty($record['files']) || !is_array($record['files'])) {
+                        continue;
+                    }
+                    foreach (array_chunk(array_map('strval', array_keys($record['files'])), 200) as $chunk) {
+                        $args = array($table);
+                        foreach ($chunk as $key) {
+                            $args[] = hash('sha256', $record['signature'] . $key);
+                            $args[] = (int) $id;
+                        }
+                        // Entries already there were written later, by an upload or a move.
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the plugin's own table; two placeholders per key.
+                        if (false === $wpdb->query($wpdb->prepare('INSERT IGNORE INTO %i (url, post_id) VALUES ' . implode(',', array_fill(0, count($chunk), '(UNHEX(%s), %d)')), $args))) {
+                            self::urls_failed();
+                            return false;
+                        }
+                    }
+                }
+                $before = min($ids);
+            }
+            $state['before'] = $before;
+        }
+        update_option(self::URLS_STATE, $state, false);
+        return !self::urls_fallback($state) && !empty($state['indexed']);
+    }
+
+    /**
      * Persist a refusal without scheduling deletion or removing local sources.
      *
      * @param int $id Attachment ID.
@@ -1228,8 +1510,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         update_post_meta($id, self::DONE, $complete ? self::upload_marker() : $config['signature']);
         update_post_meta($id, self::STATE, 'uploaded');
         update_post_meta($id, self::LOCAL, self::removed($id) ? $config['signature'] : 'kept:' . $config['signature']);
-        foreach (array_map('strval', array_keys($record['files'])) as $key) {
-            update_option(self::URL_INDEX . hash('sha256', $config['signature'] . $key), $id, false);
+        $keys = array_map('strval', array_keys($record['files']));
+        self::url_store($config['signature'], $keys, $id);
+        foreach ($keys as $key) {
             delete_option(self::delete_job_name($config['signature'], $key));
         }
         delete_option(self::JOB . 'retry_' . $id);
@@ -2324,6 +2607,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the plugin's own table, through its post_id index.
             $wpdb->query($wpdb->prepare('DELETE FROM %i WHERE post_id = %d', $table, (int) $id));
         }
+        $table = self::urls_table(self::urls_state());
+        if ('' !== $table) {
+            global $wpdb;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the plugin's own table, through its post_id index.
+            $wpdb->query($wpdb->prepare('DELETE FROM %i WHERE post_id = %d', $table, (int) $id));
+            self::$url_ids = array();
+        }
         self::forget($id);
         delete_transient(self::COUNTS);
     }
@@ -2452,6 +2742,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 // A few seconds a batch until the claim index is complete;
                 // until then the same-path check searches the inventories.
                 self::build_claims($start, 5);
+                // The URL index moves out of wp_options a few seconds a
+                // batch; lookups read the options until it has.
+                self::build_urls(microtime(true), 5);
             }
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
@@ -3655,14 +3948,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // longer applies, so the panel and status stop showing it.
             delete_option(self::ERROR);
         }
-        $due = self::earliest($due, self::claims_due());
+        $due = self::earliest($due, self::index_due());
         if (null !== $due && $due <= time() + 60) {
             return;
         }
         wp_clear_scheduled_hook(self::HOOK);
         // Work queued between those checks and the clear saw the old event
         // and did not schedule its own: look again after clearing.
-        $due = self::due_now() ? time() : self::earliest(self::next_due(), self::claims_due());
+        $due = self::due_now() ? time() : self::earliest(self::next_due(), self::index_due());
         if (null !== $due) {
             self::schedule(max(10, $due - time()));
         }
@@ -3683,7 +3976,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Whether uploads, removals, restores or a claim index build step are
+     * When the claim index or the URL index next needs a build step.
+     *
+     * @phpstan-impure Reads the index states, which batches change.
+     * @return int|null
+     */
+    private static function index_due() {
+        return self::earliest(self::claims_due(), self::urls_due());
+    }
+
+    /**
+     * Whether uploads, removals, restores or an index build step are
      * waiting now. The index build keeps the queue going on a quiet site,
      * so its speed-up is not left waiting for the next upload.
      *
@@ -3691,8 +3994,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool
      */
     private static function due_now() {
-        $claims = self::claims_due();
-        return (self::ready() && self::waiting(1)) || self::local_due() || self::original_jobs_due() || (null !== $claims && $claims <= time());
+        $index = self::index_due();
+        return (self::ready() && self::waiting(1)) || self::local_due() || self::original_jobs_due() || (null !== $index && $index <= time());
     }
 
     /**
@@ -5052,9 +5355,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         update_post_meta($id, self::STATE, $record['state']);
         update_post_meta($id, self::SKIPPED, $record['skipped'] > 0 ? 1 : 0);
         delete_transient(self::COUNTS);
-        foreach (array_keys($record['files']) as $key) {
-            update_option(self::URL_INDEX . hash('sha256', $config['signature'] . $key), $id, false);
-        }
+        self::url_store($config['signature'], array_map('strval', array_keys($record['files'])), $id);
         delete_option(self::JOB . 'retry_' . $id);
         // A new inventory: Remove local copies looks at it again.
         delete_post_meta($id, self::LOCAL);
@@ -5284,7 +5585,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             $key = '' !== $relative ? $source['prefix'] . $relative : rawurldecode(preg_replace('/\?v=[a-f0-9]+$/', '', substr($url, strlen($base))) ?? '');
-            $id = (int) get_option(self::URL_INDEX . hash('sha256', $source['signature'] . $key), 0);
+            $id = self::url_lookup($source['signature'], $key);
             if (!$id || !self::serves($id)) {
                 continue;
             }
@@ -5618,7 +5919,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function reverse_match($match, $config) {
         $path = str_replace('\/', '/', $match[1]);
         $key = rawurldecode(preg_replace('/\?v=[a-f0-9]+$/', '', $path) ?? $path);
-        $id = (int) get_option(self::URL_INDEX . hash('sha256', $config['signature'] . $key), 0);
+        $id = self::url_lookup($config['signature'], $key);
         $relative = self::indexed_relative($id, $key, $config);
         $local = '' !== $relative ? self::site_local_url($relative) : '';
         if ('' === $local) {
@@ -5883,7 +6184,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * ## OPTIONS
      *
      * <action>
-     * : status, test, upload, restore, adopt, migrate or forget-previous.
+     * : status, test, upload, restore, adopt, migrate, collisions,
+     * forget-previous or url-index (move the URL index out of wp_options now).
      *
      * [--limit=<n>]
      * : Most attachments to upload (default 10).
@@ -5930,6 +6232,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::cli_collisions($assoc);
             return;
         }
+        if ('url-index' === $action) {
+            self::cli_url_index();
+            return;
+        }
         if (!self::ready()) {
             WP_CLI::error('Switch on Media in cloud storage and set its constants first.');
         }
@@ -5950,7 +6256,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         if ('upload' !== $action) {
-            WP_CLI::error('Use status, test, upload, restore, adopt, migrate, collisions or forget-previous.');
+            WP_CLI::error('Use status, test, upload, restore, adopt, migrate, collisions, forget-previous or url-index.');
         }
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
         $retry_ids = array();
@@ -6114,6 +6420,54 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             WP_CLI::log('originals ' . $state . ': ' . $count);
         }
         WP_CLI::log((string) get_option(self::ERROR, ''));
+        WP_CLI::log(self::url_index_summary());
+    }
+
+    /**
+     * One line on the URL index: table rows and options still to move.
+     *
+     * @return string
+     */
+    private static function url_index_summary() {
+        global $wpdb;
+        $state = self::urls_state();
+        $table = self::urls_table($state);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- WP-CLI status count through option_name's unique index.
+        $options = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(self::URL_INDEX) . '%'));
+        if ('' === $table) {
+            return sprintf('URL index: %d option rows; table not created yet%s.', $options, (int) ($state['retry'] ?? 0) > time() ? ' (retried after an error)' : '');
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- WP-CLI status count of the plugin's own table.
+        $rows = (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM %i', $table));
+        $done = !self::urls_fallback($state) && !empty($state['indexed']);
+        return sprintf('URL index: %d table rows, %d option rows left; %s.', $rows, $options, $done ? 'complete' : 'moving in the background (url-index finishes it now)');
+    }
+
+    /**
+     * Move the URL index out of wp_options now, instead of a few seconds a
+     * batch. Repeatable; each page of options is deleted once stored. Each
+     * step holds the batch lease, so no upload writes an entry while its
+     * page of options is being moved.
+     */
+    private static function cli_url_index() {
+        $start = microtime(true);
+        do {
+            $lease = self::cli_lease();
+            try {
+                $done = self::build_urls(microtime(true), 20);
+            } finally {
+                self::release($lease);
+            }
+            $state = self::urls_state();
+            if ((int) ($state['retry'] ?? 0) > time()) {
+                WP_CLI::error('The URL index table could not be created or written; lookups use options. The background batch tries again in ten minutes. ' . self::url_index_summary());
+            }
+            WP_CLI::log(self::url_index_summary());
+        } while (!$done && self::more_time($start, 3600));
+        if (!$done) {
+            WP_CLI::error('Stopped after an hour; run it again to continue.');
+        }
+        WP_CLI::success(sprintf('URL index complete in %.1f s.', microtime(true) - $start));
     }
 
     /**

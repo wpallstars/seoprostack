@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.159-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.160-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.159
+Version: 1.3.160
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1515,6 +1515,7 @@ For **Cloudflare R2**, create a bucket, connect a custom domain for public readi
 - The settings card names missing constants, shows progress and the last safe error, and offers **Test connection**. Every test PUTs, HEADs and DELETEs a small probe; the card shows the answer for five minutes while the constants stay the same. Failed uploads retry after one, six and then 24 hours. One batch runs at a time. WP-Cron must be running.
 - A picture whose upload is running counts as waiting (`status`, the card and its Media Library label, "Waiting to upload."), never as failed or uploaded: each attempt records its retry job first, so a run that dies part-way leaves it waiting and that job uploads it later; `upload --retry-failed` requeues one whose job was lost. It is marked failed, with the error, only when the attempt ends in a failure (a refused PUT, a restore that fails, a shared path).
 - CLI: `wp seoprostack media-storage status`, `test`, `upload [--limit=<n>] [--retry-failed]`, or `restore [--attachment=<id>] [--all]`, plus the handover commands below. Upload is bounded (default ten attachments), then cron continues; `--retry-failed` retries failed uploads and looks again at local copies kept after a failed check. Upload and test refuse while off or unconfigured. Removing the plugin removes records and jobs, **not objects in the bucket**.
+- Which picture a bucket or local address belongs to (for content images without `wp-image-{id}`, and for putting local addresses back on save) is kept in the URL index, the `{prefix}seoprostack_media_urls` table: one row per stored file, keyed by the SHA-256 of its destination and object key. Up to 1.3.159 it was one `wp_options` row per file (`seoprostack_storage_url_*`), about 12 per picture, which slowed everything that scans `wp_options` on a large library. After updating, the batch creates the table and moves those options into it, deleting them, for up to 5 seconds a batch; lookups read the options until the move is done. `wp seoprostack media-storage url-index` finishes the move at once, and `status` shows the rows left. Deleting a picture removes its rows (#1251).
 
 #### Resumable media jobs
 
@@ -2363,13 +2364,18 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`, never the option itsel
 
 ## Uninstall
 
-Media in cloud storage's records, jobs, cached tests and its index of stored paths (the `seoprostack_media_claims` table) are removed on every site. Objects in the bucket are kept; deleting the plugin never contacts the storage service. Local addresses were kept in saved content, so posts keep working without it, as long as the local files are there: with **Remove local copies after upload** used, run `wp seoprostack media-storage restore --all` before deleting, or add the missing-file rule from that section.
+Media in cloud storage's records, jobs, cached tests and its indexes of stored paths and addresses (the `seoprostack_media_claims` and `seoprostack_media_urls` tables) are removed on every site. Objects in the bucket are kept; deleting the plugin never contacts the storage service. Local addresses were kept in saved content, so posts keep working without it, as long as the local files are there: with **Remove local copies after upload** used, run `wp seoprostack media-storage restore --all` before deleting, or add the missing-file rule from that section.
 
 Deleting the plugin removes its settings (on multisite, every site's and the network's) and cached data, the database keys Add database keys added, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, Load the CSS each page uses first's stylesheet records in `uploads/seoprostack-used-css/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use files of Load plugins only where needed and of an unfinished Measure page time, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), the Kadence colours kept for Kadence colour check's Restore (the theme keeps the palette colours it switched to), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.160
+
+- Faster: **Media in cloud storage** keeps its index of which picture each stored address belongs to in its own table, `{prefix}seoprostack_media_urls`, instead of one `wp_options` row per file (about 12 per picture: 107,444 rows on a directory with 9,000 pictures), which slowed everything that scans `wp_options`, such as Rank Math's sitemap cache clear on every saved post. After the update, background batches move the rows into the table and delete them; `wp seoprostack media-storage url-index` does it at once (#1251).
+- Developers: starter core files synced to WP Plugin Starter 1.0.52: the deploy script runs the plugin's own WP-Cron events once after each install, fetches a failing home page once more, and the update test waits for GitHub to list a new release (#1250).
 
 ### 1.3.159
 
