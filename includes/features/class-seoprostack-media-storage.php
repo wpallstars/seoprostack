@@ -6445,12 +6445,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
 
     /**
      * Move the URL index out of wp_options now, instead of a few seconds a
-     * batch. Repeatable; each page of options is deleted once stored.
+     * batch. Repeatable; each page of options is deleted once stored. Each
+     * step holds the batch lease, so no upload writes an entry while its
+     * page of options is being moved.
      */
     private static function cli_url_index() {
         $start = microtime(true);
         do {
-            $done = self::build_urls(microtime(true), 20);
+            $lease = self::cli_lease();
+            try {
+                $done = self::build_urls(microtime(true), 20);
+            } finally {
+                self::release($lease);
+            }
             $state = self::urls_state();
             if ((int) ($state['retry'] ?? 0) > time()) {
                 WP_CLI::error('The URL index table could not be created or written; lookups use options. The background batch tries again in ten minutes. ' . self::url_index_summary());
