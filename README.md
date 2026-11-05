@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.157
+Version: 1.3.158
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2370,6 +2370,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.158
+
+- Fix: on a single site, 1.3.157 stopped **Keep pages cached**, the page checks of **Load plugins only where needed** and the LiteSpeed check of **Hosting needs** with a fatal error (a WordPress function that exists on networks only), so the cache was not filled again after a purge and WP-Cron run by the host's cron job stopped at that task. They work again; networks were not affected (#1248).
 
 ### 1.3.157
 
