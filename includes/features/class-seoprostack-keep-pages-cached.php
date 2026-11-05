@@ -80,6 +80,15 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     const BUDGET = 20;
 
     /**
+     * Seconds a batch run from the command line may run: WP-Cron from the
+     * host's cron job (often every five minutes, where 20 seconds a run
+     * left a network's fill pending for hours) or WP-CLI. No visitor waits
+     * on it and no web server time limit applies; it stays well under a
+     * five-minute cron interval (#1236).
+     */
+    const CLI_BUDGET = 90;
+
+    /**
      * WP-Cron event, and its interval's name, of the check for a LiteSpeed
      * page cache emptied from outside the site.
      */
@@ -411,27 +420,29 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * LiteSpeed Cache still holds (WP-CLI, or WP-Cron run from the command
      * line) is delivered first, so the pages opened are new ones; while it
      * cannot be, or when the server refuses a page (bot protection, limits),
-     * the batch stops and tries again later.
+     * the batch stops and tries again later. Run from the command line (the
+     * host's cron job, WP-CLI), a batch has CLI_BUDGET seconds, else BUDGET.
      */
     public static function run() {
         if (!self::enabled()) {
             delete_option(SEOProStack_Keep_Cached_Queue::OPTION);
             return;
         }
-        $start = microtime(true);
+        $start  = microtime(true);
+        $budget = 'cli' === PHP_SAPI ? self::CLI_BUDGET : self::BUDGET;
         if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
             SEOProStack_Keep_Cached_Queue::done(array(), (int) floor($start), true);
             return;
         }
         $queue = SEOProStack_Keep_Cached_Queue::get();
         if ($queue['full'] && count($queue['urls']) < SEOProStack_Keep_Cached_Pages::MAX) {
-            $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, self::BUDGET);
+            $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, $budget);
         }
         $mobile  = SEOProStack_Keep_Cached_Requests::mobile_copy();
         $opened  = array();
         $refused = '';
         foreach ($queue['urls'] as $url) {
-            if ($opened && !self::more_time($start, self::BUDGET)) {
+            if ($opened && !self::more_time($start, $budget)) {
                 break;
             }
             $answers = SEOProStack_Keep_Cached_Requests::open($url, $mobile, isset($queue['blogs'][$url]) ? $queue['blogs'][$url] : 0);
