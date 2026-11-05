@@ -112,9 +112,6 @@ class SEOProStack_Cron_List {
      * The list is written once, and only when a copy is removed.
      */
     public static function dedupe() {
-        if (!function_exists('_get_cron_array') || !function_exists('_set_cron_array')) {
-            return;
-        }
         $crons = _get_cron_array();
         $extra = self::extra_copies($crons);
         if (!$extra) {
