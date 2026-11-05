@@ -57,6 +57,7 @@ final class SEOProStack_Keep_Cached_Queue {
      *               (count), opened (count), stops (batches stopped in a row).
      */
     public static function get() {
+        self::forget();
         $queue = get_option(self::OPTION, array());
         $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'blogs' => array(), 'added' => array(), 'site' => 0, 'since' => 0, 'purges' => 0, 'opened' => 0, 'stops' => 0);
         return array(
@@ -73,6 +74,23 @@ final class SEOProStack_Keep_Cached_Queue {
             'opened'  => (int) $queue['opened'],
             'stops'   => (int) $queue['stops'],
         );
+    }
+
+    /**
+     * Forget this request's copy of the queue, so the next read gets the
+     * stored one, and update_option() compares with it. A purge or a saved
+     * post in another request can change the queue while a batch runs (up
+     * to a minute and a half from the command line); with the copy the
+     * batch read itself, done() deleted the new fill or wrote the old queue
+     * back over it, and the site stayed unfilled (#1240).
+     */
+    private static function forget() {
+        wp_cache_delete(self::OPTION, 'options');
+        $missing = wp_cache_get('notoptions', 'options');
+        if (is_array($missing) && isset($missing[self::OPTION])) {
+            unset($missing[self::OPTION]);
+            wp_cache_set('notoptions', $missing, 'options');
+        }
     }
 
     /**

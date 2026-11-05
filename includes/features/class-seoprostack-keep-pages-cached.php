@@ -85,6 +85,13 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * left a network's fill pending for hours) or WP-CLI. No visitor waits
      * on it and no web server time limit applies; it stays well under a
      * five-minute cron interval (#1236).
+     *
+     * On a single site or a network's main site only (the network's fill
+     * and check run there). A network's cron is run one site after another,
+     * and each site purged on its own fills on its own: with 90 seconds a
+     * site, the others waited 20 to 30 minutes for a turn, their scheduled
+     * tasks too, where 20 seconds opens every site's first pages in one
+     * round (#1240).
      */
     const CLI_BUDGET = 90;
 
@@ -421,7 +428,8 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * line) is delivered first, so the pages opened are new ones; while it
      * cannot be, or when the server refuses a page (bot protection, limits),
      * the batch stops and tries again later. Run from the command line (the
-     * host's cron job, WP-CLI), a batch has CLI_BUDGET seconds, else BUDGET.
+     * host's cron job, WP-CLI) on a single site or a network's main site, a
+     * batch has CLI_BUDGET seconds, else BUDGET.
      */
     public static function run() {
         if (!self::enabled()) {
@@ -429,7 +437,7 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             return;
         }
         $start  = microtime(true);
-        $budget = 'cli' === PHP_SAPI ? self::CLI_BUDGET : self::BUDGET;
+        $budget = 'cli' === PHP_SAPI && is_main_site() ? self::CLI_BUDGET : self::BUDGET;
         if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
             SEOProStack_Keep_Cached_Queue::done(array(), (int) floor($start), true);
             return;
