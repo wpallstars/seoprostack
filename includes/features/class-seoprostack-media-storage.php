@@ -59,6 +59,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const URLS_SCHEMA = '1';
     /** Options moved into the URL index per query. */
     const URLS_MOVE = 500;
+    /** Kept-original inventories: the SHA-256 of signature and backup key => serialized job, one row per kept original (GH#1252). */
+    const ORIGINALS = 'seoprostack_media_originals';
+    /** Kept-original table state: schema, the version whose options were moved, and the move cursor. */
+    const ORIGINALS_STATE = 'seoprostack_storage_job_originalsstate';
+    const ORIGINALS_SCHEMA = '1';
+    /** Options moved into the kept-original table per query. */
+    const ORIGINALS_MOVE = 100;
 
     /** Local-address calls must bypass output filters. @var int */
     private static $local = 0;
@@ -998,6 +1005,326 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         update_option(self::URLS_STATE, $state, false);
         return !self::urls_fallback($state) && !empty($state['indexed']);
+    }
+
+    /**
+     * The kept-original table state.
+     *
+     * @return array
+     */
+    private static function originals_state() {
+        $state = get_option(self::ORIGINALS_STATE, array());
+        return is_array($state) ? $state : array();
+    }
+
+    /**
+     * The kept-original table, once created; empty while inventories are
+     * options, one per kept original, as before 1.3.160.
+     *
+     * @param array $state Kept-original table state.
+     * @return string
+     */
+    private static function originals_table($state) {
+        global $wpdb;
+        return self::ORIGINALS_SCHEMA === ($state['schema'] ?? '') ? $wpdb->prefix . self::ORIGINALS : '';
+    }
+
+    /**
+     * Whether options may still hold inventories: until this version has
+     * moved them into the table (an older version writes options).
+     *
+     * @param array $state Kept-original table state.
+     * @return bool
+     */
+    private static function originals_fallback($state) {
+        return '' === self::originals_table($state) || SEOPROSTACK_VERSION !== ($state['moved'] ?? '');
+    }
+
+    /**
+     * The table failed (a write or read error, such as a dropped table):
+     * inventories use options, and the table is created and the options
+     * moved again, no sooner than ten minutes from now.
+     */
+    private static function originals_failed() {
+        update_option(self::ORIGINALS_STATE, array('retry' => time() + 10 * MINUTE_IN_SECONDS), false);
+    }
+
+    /**
+     * When the kept-original table next needs a build step; null once this
+     * version has moved the options, or while uploads are off.
+     *
+     * @phpstan-impure Reads the table state, which batches change.
+     * @return int|null
+     */
+    private static function originals_due() {
+        if (!self::ready()) {
+            return null;
+        }
+        $state = self::originals_state();
+        if (!self::originals_fallback($state)) {
+            return null;
+        }
+        return max(time(), (int) ($state['retry'] ?? 0));
+    }
+
+    /**
+     * Run a write on the kept-original table without logging a missing table.
+     *
+     * @param string $query Prepared query.
+     * @return int|false Rows affected; false on error.
+     */
+    private static function originals_write($query) {
+        global $wpdb;
+        $suppress = $wpdb->suppress_errors(true);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- the plugin's own table; the query is prepared by the caller.
+        $result = $wpdb->query($query);
+        $wpdb->suppress_errors($suppress);
+        if (false === $result) {
+            self::originals_failed();
+        }
+        return $result;
+    }
+
+    /**
+     * The option name of a kept original's inventory; also its page cursor.
+     *
+     * @param array $record Watermark record.
+     * @return string
+     */
+    private static function original_name($record) {
+        return self::JOB . 'original_' . hash('sha256', ($record['original_signature'] ?? '') . $record['backup']);
+    }
+
+    /**
+     * The hash in an inventory name, or empty when the name is not one.
+     *
+     * @param string $name Inventory name.
+     * @return string
+     */
+    private static function original_hash($name) {
+        $hash = substr((string) $name, strlen(self::JOB . 'original_'));
+        return preg_match('/^[0-9a-f]{64}$/', $hash) ? $hash : '';
+    }
+
+    /**
+     * One inventory: the table first, an option while one may still hold it.
+     *
+     * @param string $name Inventory name.
+     * @param mixed $default Returned when there is none.
+     * @return mixed
+     */
+    private static function original_get($name, $default = false) {
+        global $wpdb;
+        $state = self::originals_state();
+        $table = self::originals_table($state);
+        $hash = self::original_hash($name);
+        if ('' !== $table && '' !== $hash) {
+            $suppress = $wpdb->suppress_errors(true);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the plugin's own table, by primary key.
+            $found = $wpdb->get_var($wpdb->prepare('SELECT job FROM %i WHERE name = UNHEX(%s)', $table, $hash));
+            $error = $wpdb->last_error;
+            $wpdb->suppress_errors($suppress);
+            if ('' !== $error) {
+                self::originals_failed();
+                $state = array();
+            } elseif (null !== $found) {
+                return maybe_unserialize($found);
+            }
+        }
+        return self::originals_fallback($state) ? get_option($name, $default) : $default;
+    }
+
+    /**
+     * Record an inventory only if there is none: a deletion tombstone and an
+     * explicit keep marker are monotonic and must never be overwritten by an
+     * uploader.
+     *
+     * @param string $name Inventory name.
+     * @param array $job Inventory.
+     * @return bool Whether this call recorded it.
+     */
+    private static function original_add($name, $job) {
+        global $wpdb;
+        $state = self::originals_state();
+        $table = self::originals_table($state);
+        $hash = self::original_hash($name);
+        if ('' !== $table && '' !== $hash) {
+            if (self::originals_fallback($state) && false !== get_option($name, false)) {
+                // An option from before holds one: it is moved by the build.
+                return false;
+            }
+            $result = self::originals_write($wpdb->prepare('INSERT IGNORE INTO %i (name, job) VALUES (UNHEX(%s), %s)', $table, $hash, maybe_serialize($job)));
+            if (false !== $result) {
+                return 1 === $result;
+            }
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic insert; add_option can upsert a concurrent tombstone.
+        $inserted = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, maybe_serialize($job)));
+        wp_cache_delete($name, 'options');
+        wp_cache_delete('notoptions', 'options');
+        return 1 === $inserted;
+    }
+
+    /**
+     * Write an inventory, replacing any.
+     *
+     * @param string $name Inventory name.
+     * @param array $job Inventory.
+     */
+    private static function original_put($name, $job) {
+        global $wpdb;
+        $state = self::originals_state();
+        $table = self::originals_table($state);
+        $hash = self::original_hash($name);
+        if ('' !== $table && '' !== $hash) {
+            $result = self::originals_write($wpdb->prepare('INSERT INTO %i (name, job) VALUES (UNHEX(%s), %s) ON DUPLICATE KEY UPDATE job = VALUES(job)', $table, $hash, maybe_serialize($job)));
+            if (false !== $result) {
+                if (self::originals_fallback($state)) {
+                    // An option from before would replace this inventory when it is moved.
+                    self::delete_url_options(array($name));
+                }
+                return;
+            }
+        }
+        update_option($name, $job, false);
+    }
+
+    /**
+     * Delete an inventory, from the table and any option.
+     *
+     * @param string $name Inventory name.
+     */
+    private static function original_remove($name) {
+        global $wpdb;
+        $state = self::originals_state();
+        $table = self::originals_table($state);
+        $hash = self::original_hash($name);
+        if ('' !== $table && '' !== $hash) {
+            self::originals_write($wpdb->prepare('DELETE FROM %i WHERE name = UNHEX(%s)', $table, $hash));
+        }
+        if (self::originals_fallback(self::originals_state())) {
+            delete_option($name);
+        }
+    }
+
+    /**
+     * Inventory names in order after a cursor: a bounded page through the
+     * table's primary key, merged with options while some may remain. The
+     * names sort as the hashes do, so one cursor serves both.
+     *
+     * @param int $limit Maximum names.
+     * @param string $after Cursor: the last name returned, or empty.
+     * @return string[]
+     */
+    private static function original_names($limit, $after = '') {
+        global $wpdb;
+        $limit = max(1, (int) $limit);
+        $state = self::originals_state();
+        $table = self::originals_table($state);
+        $names = array();
+        if ('' !== $table) {
+            $suppress = $wpdb->suppress_errors(true);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded page through the plugin's own table's primary key.
+            $hashes = $wpdb->get_col($wpdb->prepare('SELECT LOWER(HEX(name)) FROM %i WHERE name > UNHEX(%s) ORDER BY name LIMIT %d', $table, self::original_hash($after), $limit));
+            $error = $wpdb->last_error;
+            $wpdb->suppress_errors($suppress);
+            if ('' !== $error) {
+                self::originals_failed();
+                $state = array();
+            } else {
+                foreach ($hashes as $hash) {
+                    $names[] = self::JOB . 'original_' . $hash;
+                }
+            }
+        }
+        if (self::originals_fallback($state)) {
+            $names = array_merge($names, self::jobs($limit, $after, 'original_'));
+            $names = array_values(array_unique($names));
+            sort($names, SORT_STRING);
+            $names = array_slice($names, 0, $limit);
+        }
+        return $names;
+    }
+
+    /**
+     * Create the kept-original table and move the options into it (a page at
+     * a time, deleting each page once stored). Resumable, in bounded steps.
+     *
+     * @param float $start Step start.
+     * @param int $budget Seconds for this step.
+     * @return bool Whether the move is complete.
+     */
+    private static function build_originals($start, $budget) {
+        global $wpdb;
+        $state = self::originals_state();
+        if ((int) ($state['retry'] ?? 0) > time()) {
+            return false;
+        }
+        if ('' === self::originals_table($state)) {
+            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+            $table = $wpdb->prefix . self::ORIGINALS;
+            dbDelta("CREATE TABLE {$table} (
+                name binary(32) NOT NULL,
+                job longtext NOT NULL,
+                PRIMARY KEY  (name)
+            ) {$wpdb->get_charset_collate()};");
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
+            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+                self::originals_failed();
+                return false;
+            }
+            $state = array('schema' => self::ORIGINALS_SCHEMA, 'moved' => '');
+            update_option(self::ORIGINALS_STATE, $state, false);
+        }
+        $table = self::originals_table($state);
+        if (SEOPROSTACK_VERSION !== ($state['moved'] ?? '')) {
+            if (SEOPROSTACK_VERSION !== ($state['moving'] ?? '')) {
+                $state['moving'] = SEOPROSTACK_VERSION;
+                $state['cursor'] = '';
+            }
+            $like = $wpdb->esc_like(self::JOB . 'original_') . '%';
+            while (self::more_time($start, $budget)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded page through option_name's unique index.
+                $rows = $wpdb->get_results($wpdb->prepare("SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s ORDER BY option_name LIMIT %d", $like, (string) $state['cursor'], self::ORIGINALS_MOVE));
+                if (!$rows) {
+                    $state['moved'] = SEOPROSTACK_VERSION;
+                    break;
+                }
+                $names = array();
+                $last = '';
+                // A tombstone is monotonic: it replaces a row an uploader wrote meanwhile.
+                $groups = array('INSERT IGNORE' => array(), 'INSERT' => array());
+                foreach ($rows as $row) {
+                    $last = $row->option_name;
+                    $hash = self::original_hash($row->option_name);
+                    $job = maybe_unserialize($row->option_value);
+                    if ('' !== $hash && is_array($job)) {
+                        $names[] = $row->option_name;
+                        $groups[!empty($job['delete']) ? 'INSERT' : 'INSERT IGNORE'][] = array($hash, $row->option_value);
+                    }
+                }
+                foreach ($groups as $verb => $items) {
+                    if (!$items) {
+                        continue;
+                    }
+                    $args = array($table);
+                    foreach ($items as $item) {
+                        $args[] = $item[0];
+                        $args[] = $item[1];
+                    }
+                    $values = implode(',', array_fill(0, count($items), '(UNHEX(%s), %s)'));
+                    $tail = 'INSERT' === $verb ? ' ON DUPLICATE KEY UPDATE job = VALUES(job)' : '';
+                    // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the plugin's own table; $values has two placeholders per inventory.
+                    if (false === self::originals_write($wpdb->prepare("$verb INTO %i (name, job) VALUES $values$tail", $args))) {
+                        return false;
+                    }
+                }
+                self::delete_url_options($names);
+                $state['cursor'] = $last;
+            }
+        }
+        update_option(self::ORIGINALS_STATE, $state, false);
+        return !self::originals_fallback($state);
     }
 
     /**
@@ -2452,7 +2779,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
-        if (self::ready() || self::restoring() || self::jobs(1, '', 'original_')) {
+        if (self::ready() || self::restoring() || self::original_names(1)) {
             self::schedule();
         } else {
             wp_clear_scheduled_hook(self::HOOK);
@@ -2745,6 +3072,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 // The URL index moves out of wp_options a few seconds a
                 // batch; lookups read the options until it has.
                 self::build_urls(microtime(true), 5);
+                // Likewise the kept originals' inventories.
+                self::build_originals(microtime(true), 5);
             }
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
@@ -3982,7 +4311,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return int|null
      */
     private static function index_due() {
-        return self::earliest(self::claims_due(), self::urls_due());
+        return self::earliest(self::earliest(self::claims_due(), self::urls_due()), self::originals_due());
     }
 
     /**
@@ -4432,7 +4761,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (empty($record['remote']) || !self::removing()) {
             return true;
         }
-        $inventory = get_option(self::JOB . 'original_' . hash('sha256', $record['original_signature'] . $record['backup']), array());
+        $inventory = self::original_get(self::original_name($record), array());
         if (isset($inventory['keep']) && $inventory['keep'] === get_option(self::JOB . 'originalkeep', 'initial')) {
             return true;
         }
@@ -4473,17 +4802,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool
      */
     private static function remember_original($id, $record) {
-        global $wpdb;
-        $name = self::JOB . 'original_' . hash('sha256', $record['original_signature'] . $record['backup']);
+        $name = self::original_name($record);
         $job = array('id' => $id, 'record' => $record, 'delete' => false);
         // Insert only: a concurrent deletion tombstone and an explicit keep
         // marker are monotonic and must never be overwritten by an uploader.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic insert; add_option can upsert a concurrent tombstone.
-        $inserted = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, maybe_serialize($job)));
-        wp_cache_delete($name, 'options');
-        wp_cache_delete('notoptions', 'options');
-        $saved = get_option($name);
-        if (1 === $inserted) {
+        $inserted = self::original_add($name, $job);
+        $saved = self::original_get($name);
+        if ($inserted) {
             update_option(self::JOB . 'originalcursor', '', false);
         }
         self::schedule();
@@ -4500,11 +4825,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (empty($record['remote']) && empty($record['original_attempted'])) {
             return true;
         }
-        $name = self::JOB . 'original_' . hash('sha256', $record['original_signature'] . $record['backup']);
-        update_option($name, array('id' => 0, 'record' => $record, 'delete' => true), false);
+        $name = self::original_name($record);
+        self::original_put($name, array('id' => 0, 'record' => $record, 'delete' => true));
         update_option(self::JOB . 'originalcursor', '', false);
         self::schedule();
-        if (get_option($name) !== array('id' => 0, 'record' => $record, 'delete' => true)) {
+        if (self::original_get($name) !== array('id' => 0, 'record' => $record, 'delete' => true)) {
             return new WP_Error('storage_original_record', __('The kept original’s deletion could not be recorded.', 'seoprostack'));
         }
         $locked = self::original_lock($record);
@@ -4517,7 +4842,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $result = $client->delete($record['backup']);
         if (!is_wp_error($result)) {
-            delete_option($name);
+            self::original_remove($name);
         }
         return $result;
     }
@@ -4535,7 +4860,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /** @return bool Whether a bounded inventory traversal remains. */
     private static function original_jobs_due() {
         $config = self::config();
-        return !$config['missing'] && '' !== $config['originals_bucket'] && !$config['originals_error'] && self::jobs(1, '', 'original_') && get_option(self::JOB . 'originalcursor', '') !== '~';
+        return !$config['missing'] && '' !== $config['originals_bucket'] && !$config['originals_error'] && self::original_names(1) && get_option(self::JOB . 'originalcursor', '') !== '~';
     }
 
     /**
@@ -4554,14 +4879,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if ('~' === $cursor) {
             return;
         }
-        $names = self::jobs($limit, $cursor, 'original_');
+        $names = self::original_names($limit, $cursor);
         $complete = true;
         foreach ($names as $name) {
             if (!self::more_time($start, self::BUDGET)) {
                 $complete = false;
                 break;
             }
-            $job = get_option($name);
+            $job = self::original_get($name);
             $previous = $cursor;
             $cursor = $name;
             if (!is_array($job) || empty($job['record'])) {
@@ -4658,7 +4983,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 if (empty($record['backup'])) {
                     continue;
                 }
-                $delete = get_option(self::JOB . 'original_' . hash('sha256', ($record['original_signature'] ?? '') . $record['backup']));
+                $delete = self::original_get(self::original_name($record));
                 if (is_array($delete) && !empty($delete['delete']) && self::foreign_original_delete($delete['record'] ?? array())) {
                     continue;
                 }
@@ -4672,10 +4997,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         } while ($ids);
         $after = '';
         do {
-            $names = self::jobs(100, $after, 'original_');
+            $names = self::original_names(100, $after);
             foreach ($names as $name) {
                 $after = $name;
-                $job = get_option($name);
+                $job = self::original_get($name);
                 if (is_array($job) && !empty($job['delete'])) {
                     if (self::foreign_original_delete($job['record'] ?? array())) {
                         ++$counts['deletes for another connection'];
@@ -6185,7 +6510,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * <action>
      * : status, test, upload, restore, adopt, migrate, collisions,
-     * forget-previous or url-index (move the URL index out of wp_options now).
+     * forget-previous or url-index (move the URL index and the kept originals'
+     * inventories out of wp_options now).
      *
      * [--limit=<n>]
      * : Most attachments to upload (default 10).
@@ -6421,6 +6747,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         WP_CLI::log((string) get_option(self::ERROR, ''));
         WP_CLI::log(self::url_index_summary());
+        WP_CLI::log(self::originals_summary());
+    }
+
+    /**
+     * One line on the kept originals' inventories: table rows and options
+     * still to move.
+     *
+     * @return string
+     */
+    private static function originals_summary() {
+        global $wpdb;
+        $state = self::originals_state();
+        $table = self::originals_table($state);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- WP-CLI status count through option_name's unique index.
+        $options = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(self::JOB . 'original_') . '%'));
+        if ('' === $table) {
+            return sprintf('Kept original inventories: %d option rows; table not created yet%s.', $options, (int) ($state['retry'] ?? 0) > time() ? ' (retried after an error)' : '');
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- WP-CLI status count of the plugin's own table.
+        $rows = (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM %i', $table));
+        return sprintf('Kept original inventories: %d table rows, %d option rows left; %s.', $rows, $options, self::originals_fallback($state) ? 'moving in the background (url-index finishes it now)' : 'complete');
     }
 
     /**
@@ -6455,6 +6802,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $lease = self::cli_lease();
             try {
                 $done = self::build_urls(microtime(true), 20);
+                $done = self::build_originals(microtime(true), 20) && $done;
             } finally {
                 self::release($lease);
             }
@@ -6462,7 +6810,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if ((int) ($state['retry'] ?? 0) > time()) {
                 WP_CLI::error('The URL index table could not be created or written; lookups use options. The background batch tries again in ten minutes. ' . self::url_index_summary());
             }
+            if ((int) (self::originals_state()['retry'] ?? 0) > time()) {
+                WP_CLI::error('The kept originals table could not be created or written; inventories use options. The background batch tries again in ten minutes. ' . self::originals_summary());
+            }
             WP_CLI::log(self::url_index_summary());
+            WP_CLI::log(self::originals_summary());
         } while (!$done && self::more_time($start, 3600));
         if (!$done) {
             WP_CLI::error('Stopped after an hour; run it again to continue.');
@@ -6534,10 +6886,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function cli_restore_originals($one, &$counts) {
         $after = '';
         do {
-            $names = self::jobs(20, $after, 'original_');
+            $names = self::original_names(20, $after);
             foreach ($names as $name) {
                 $after = $name;
-                $job = get_option($name);
+                $job = self::original_get($name);
                 if (!is_array($job) || !empty($job['delete']) || ($one && (int) $job['id'] !== $one)) {
                     continue;
                 }
@@ -6546,7 +6898,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     continue;
                 }
                 $job['keep'] = get_option(self::JOB . 'originalkeep', 'initial');
-                update_option($name, $job, false);
+                self::original_put($name, $job);
                 $result = self::ensure_original_local($record);
                 if (is_wp_error($result)) {
                     ++$counts['failed'];
