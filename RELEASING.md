@@ -19,7 +19,7 @@ only when someone pushes a version tag or manually runs it for an existing tag.
 | `scripts/preflight-release.sh [--ref REF] [--strict] [--offline] [--no-docker]` | Checks versions, headers, readme, both zips (layout, development files, PHP 7.4 and JS syntax, updater code), remote assets, presets and starter data where the plugin has them, and the Git tag. Errors stop a release; `--strict` also fails on warnings, for a WordPress.org submission. `--no-docker` lints PHP with the local `php` instead of PHP 7.4 in Docker. |
 | `scripts/plugin-check.sh [--ref REF] [--zip FILE]` | Runs Plugin Check on both zips in a disposable WordPress in Docker, then removes it. |
 | `scripts/update-test.sh [--from X.Y.Z] [--to X.Y.Z] [--wp VERSION] [--php VERSION] [--keep-log FILE]` | After a release: installs the previous GitHub release (default: the one before the newest) on a disposable WordPress in Docker and checks that it is offered the new one from its asset (WP-CLI, **Check again** on the Updates screen, the Plugins screen), that the update installs and the plugin stays active, and that `debug.log` stays empty. Then removes the site. Reads releases with `gh`. |
-| `scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z [--parent PATTERN] [--skip NAME]... [--wp-cli COMMAND] [--allow-downgrade] [--web-error-log PATH --apply]` | After the update test: installs the release's zip, checked against GitHub's SHA-256 and its provenance bundle, on every install on one SSH host that already has the plugin (default `'~/domains/*/public_html'`). Without `--apply` it only lists them, with their version and whether each is a multisite network. With `--apply`: a backup of each plugin folder, `wp plugin install --force` (activation kept), a full load for each site's settings upgrade, a purge of each site's page cache (LiteSpeed Cache, when its WP-CLI command is there) and a home fetch with a unique query string. Networks skip archived, deleted and spam sites and print one indented line per site, after the install line. `cache=` lists the response's cache headers; `WARN cached` means a cache ignored query strings, so PHP did not run for that fetch. Fails on a version not reached, new lines in the site's PHP logs (`WP_DEBUG_LOG`, including a custom path, and PHP's `error_log`) or any failed site, with the restore command. Just before each install, `--apply` refuses one whose installed version is newer than the tag, or cannot be read, with a FAIL line; `--allow-downgrade` installs anyway, for a rollback or to repair a broken install. A prerelease of the tag (`2.0.0-rc1` for `2.0.0`) counts as older, and the dry run marks the installs `--apply` would refuse. `--apply` holds a per-plugin lock on the host (`~/.{slug}-deploy/.lock`) until it ends, so overlapping runs cannot install over each other: while another run holds it, it installs nothing, names that run (tag, start time, parent) and exits 3, so wait for that run to finish and run again; the dry run says when one is active, and a lock whose run is no longer running is taken over with a warning. The lock is in the SSH account's home folder, so it keeps apart only runs from one account: roll a plugin out to a host from one account. The remote part is `scripts/lib/deploy-remote.sh`. |
+| `scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z [--parent PATTERN] [--skip NAME]... [--wp-cli COMMAND] [--allow-downgrade] [--web-error-log PATH --apply]` | After the update test: installs the release's zip, checked against GitHub's SHA-256 and its provenance bundle, on every install on one SSH host that already has the plugin (default `'~/domains/*/public_html'`). Without `--apply` it only lists them, with their version and whether each is a multisite network. With `--apply`: a backup of each plugin folder, `wp plugin install --force` (activation kept), a full load for each site's settings upgrade, a purge of each site's page cache (LiteSpeed Cache, when its WP-CLI command is there), one run of the plugin's own WP-Cron events (`cron=N/M`; a PHP fatal error in one fails the install; running one early reschedules it) and a home fetch with a unique query string (fetched once more after a 5xx or no answer; a fetch that does not complete counts as no answer). Networks skip archived, deleted and spam sites and print one indented line per site, after the install line. `cache=` lists the response's cache headers; `WARN cached` means a cache ignored query strings, so PHP did not run for that fetch. Fails on a version not reached, new lines in the site's PHP logs (`WP_DEBUG_LOG`, including a custom path, and PHP's `error_log`) or any failed site, with the restore command. Just before each install, `--apply` refuses one whose installed version is newer than the tag, or cannot be read, with a FAIL line; `--allow-downgrade` installs anyway, for a rollback or to repair a broken install. A prerelease of the tag (`2.0.0-rc1` for `2.0.0`) counts as older, and the dry run marks the installs `--apply` would refuse. `--apply` holds a per-plugin lock on the host (`~/.{slug}-deploy/.lock`) until it ends, so overlapping runs cannot install over each other: while another run holds it, it installs nothing, names that run (tag, start time, parent) and exits 3, so wait for that run to finish and run again; the dry run says when one is active, and a lock whose run is no longer running is taken over with a warning. The lock is in the SSH account's home folder, so it keeps apart only runs from one account: roll a plugin out to a host from one account. The remote part is `scripts/lib/deploy-remote.sh`. |
 
 The deploy runner snapshots the **stored**, unfiltered activation lists and
 their counts before the install and the settings-upgrade load, then requires
@@ -123,7 +123,11 @@ expected in the GitHub zip too.
    sees the update with **Check again** on the Updates screen and installs
    it. For a private repository, export a read-only token as
    `WPALLSTARS_GITHUB_TOKEN` first (below); the test site reads it from the
-   environment. Without Docker, check the same by hand on a test site.
+   environment. GitHub can take a few minutes to list a new release
+   everywhere, so straight after one the test first waits up to 2 minutes
+   for the address the site reads to name it, and checks a missing offer 3
+   more times, 20 seconds apart. Without Docker, check the same by hand on a
+   test site.
 5. Roll the release out to the owner's own sites, one SSH host at a time:
 
    ```bash
@@ -133,12 +137,28 @@ expected in the GitHub zip too.
 
    Only installs that already have the plugin are touched. Each install line gives
    the old and new version, the status (`active-network` on a network
-   activation), `purged=N/SITES` (the sites whose page cache was purged), the
-   main home page's HTTP code, `cache=` (the final response's
-   `x-litespeed-cache`, `x-cache` and `cf-cache-status` headers, or `none`) and
-   the log lines gained. Networks add `sites=PASSED/TOTAL` and one indented
+   activation), `purged=N/SITES` (the sites whose page cache was purged),
+   `cron=N/M` (below), the main home page's HTTP code, `cache=` (the final response's
+    `x-litespeed-cache`, `x-cache` and `cf-cache-status` headers, `none`, or
+    `redirected:HOST` when a redirect dropped the unique query string) and the
+    log lines gained. Networks add `sites=PASSED/TOTAL` and one indented
    `site` line per site, with its status, `purged=yes`, `no` or `failed`, home
    code, cache headers and result.
+   After each site's full load, the plugin's own WP-Cron events (hooks in the
+   site's cron schedule with a callback in the plugin's folder) run once on
+   that site, each in its own `wp cron event run` process, shown as `cron=N/M`
+   on the install line. A fatal error that only a cron callback reaches does
+   not show in the load, the home fetch or the web PHP log (the host's cron
+   job runs WP-Cron from the command line), so a PHP fatal error, database
+   error or non-zero exit in one fails the install, with its restore command,
+   and so does a change to the activation lists during the run. Side effect:
+   running an event early also reschedules it, as `wp cron event run` by hand
+   does. A hook runs all its callbacks, so a shared hook also runs core and
+   other-plugin callbacks, and a failure in one counts against the install.
+   An event gets `DEPLOY_CRON_TIMEOUT` seconds (default 120, `0` for no
+   limit, which a host without `timeout` needs when there is an event to
+   run); one that times out is a warning, not a failure. On a network each
+   site runs its own.
    Every site that is not archived, deleted or spam gets a guarded full load
    for its settings upgrade, a page cache purge and a home fetch with a query
    string unique to that fetch. The purge matters: WordPress versions the
@@ -151,11 +171,17 @@ expected in the GitHub zip too.
    network-activated); other page caches are not purged, so purge them by
    hand. `wp cache flush` is not enough: it empties the object cache, not the
    pages. `WARN purge failed` means the purge command failed, so visitors may
-   still get the old files. `WARN cached` means a cache answered anyway (it
-   ignores query strings), so PHP did not run for that fetch. Both warn
+    still get the old files. `WARN cached` means a cache answered anyway (it
+    ignores query strings), so PHP did not run for that fetch. A redirect that
+    drops the unique query reports `cache=redirected:HOST` instead, because any
+    final cache response belongs to another address. Both warn
    rather than fail.
    A failed load, status read or home (5xx or no answer) fails the install;
-   4xx is reported only. All sites are checked even after one fails. On a
+   4xx is reported only. A busy host can answer one fetch with 5xx while the
+   site is fine, so a home with 5xx or no answer is fetched once more after
+   5 seconds: a pass then reports `WARN home retried (CODE)`, a second
+   failure fails the site (`home failed (FIRST, then SECOND)`). All sites are
+   checked even after one fails. On a
    single site, the FAIL line gives the reason (`FAIL: WordPress load
    failed (exit N: <last lines of WP-CLI's errors>)`); the full errors go
    to stderr. A failed install prints its restore command and the backup folder
