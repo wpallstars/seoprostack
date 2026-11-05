@@ -155,7 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.152 =
-* Faster: Keep pages cached also notices a LiteSpeed cache emptied from outside the site right after an update, or when a visitor reopened the home page first (#1233).
-* Faster: Keep pages cached fills a cache faster where the host's cron job runs WP-Cron (#1236).
+* Faster: Keep pages cached notices more caches emptied from outside the site, and fills them faster from the host's cron job (#1233, #1236).
 
 Older: `changelog.txt`.
