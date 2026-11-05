@@ -145,6 +145,19 @@
  * Its code is not there, so nothing runs, as before. Other tasks whose
  * schedule is missing are still dropped, as WordPress intends.
  *
+ * WordPress's scheduled tasks list (the cron option) is written whole from
+ * each request's copy, so a long request, such as a cron run, writes back
+ * the list it read at the start over other requests' changes, and recurring
+ * tasks pile up copies (AI Engine, Link Whisper, Freemius and MainWP Child:
+ * 2 to 5 on most sites of one hosting account). SEOProStack_Cron_List
+ * writes only what each request changed onto the stored list, and each cron
+ * run removes extra copies of recurring tasks. AI Engine 3.9.0's
+ * ensure_cron_scheduled() runs on every request and, when its every-minute
+ * task runner is more than 5 minutes late, as it regularly is with a server
+ * cron job every 5 minutes, removes it and schedules it a minute later:
+ * from visitors' page loads, so the runner was rewritten instead of run.
+ * mwai_runner() schedules it only when missing.
+ *
  * Burst Statistics 3.7.2 moves browser, browser version, device and
  * platform names from {prefix}burst_statistics into lookup tables, which it
  * creates with the database's default collation. When the statistics table
@@ -413,6 +426,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Hreflang Manager's block editor stylesheet handle. */
     const HREFLANG_EDITOR_STYLE = 'dahm-editor-css';
 
+    /** AI Engine's tasks module, whose init callback reschedules its task runner when it is late. */
+    const MWAI_TASKS = 'Meow_MWAI_Modules_Tasks';
+
     /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
     const CRONTROL_NOTICE = 'crontrol-status-notice';
 
@@ -451,7 +467,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -524,6 +540,14 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             // Last, so a schedule other code registers is kept as it is.
             // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- the host's own interval, stored with its task; no new schedule of SEO Pro Stack's.
             add_filter('cron_schedules', array(__CLASS__, 'host_cron_schedules'), PHP_INT_MAX);
+        }
+        // Writes of the scheduled tasks list keep other requests' changes,
+        // and cron runs remove extra copies of recurring tasks.
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-cron-list.php';
+        SEOProStack_Cron_List::init();
+        if (class_exists(self::MWAI_TASKS, false)) {
+            // Before AI Engine's own check, which uses priority 15.
+            add_action('init', array(__CLASS__, 'mwai_runner_check'), 14);
         }
         // Around Burst Statistics' database upgrade, which runs from its cron
         // tasks and, when cron cannot start, from its dashboard on admin_init:
@@ -797,6 +821,51 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             }
         }
         return false;
+    }
+
+    /**
+     * Put mwai_runner() in place of AI Engine's ensure_cron_scheduled(),
+     * which runs on every request (init, priority 15) and, when its task
+     * runner is more than 5 minutes late, removes it and schedules it again
+     * a minute later. Left alone when AI Engine's settings cannot be read.
+     */
+    public static function mwai_runner_check() {
+        global $wp_filter, $mwai_core;
+        if (!isset($wp_filter['init']->callbacks[15]) || !is_object($mwai_core) || !method_exists($mwai_core, 'get_option')) {
+            return;
+        }
+        foreach ($wp_filter['init']->callbacks[15] as $callback) {
+            $function = $callback['function'];
+            if (is_array($function) && is_object($function[0]) && 'ensure_cron_scheduled' === $function[1]
+                && is_a($function[0], self::MWAI_TASKS)) {
+                remove_action('init', $function, 15);
+                add_action('init', array(__CLASS__, 'mwai_runner'), 15);
+                return;
+            }
+        }
+    }
+
+    /**
+     * What AI Engine's ensure_cron_scheduled() does, without rescheduling a
+     * runner that is late: the runner for its developer mode (every 5
+     * seconds) or not (every minute) is scheduled when missing, and the other
+     * one removed. A late runner is due, so the next cron run runs it;
+     * removing it and scheduling it a minute later, from visitors' pages,
+     * wrote the scheduled tasks list on page loads and pushed the runner
+     * past each cron run that came every 5 minutes. AI Engine's Reset and
+     * its developer mode switch still remove and schedule it themselves.
+     */
+    public static function mwai_runner() {
+        global $mwai_core;
+        $dev      = is_object($mwai_core) && method_exists($mwai_core, 'get_option') && $mwai_core->get_option('dev_mode');
+        $hook     = $dev ? 'mwai_tasks_internal_dev_run' : 'mwai_tasks_internal_run';
+        $opposite = $dev ? 'mwai_tasks_internal_run' : 'mwai_tasks_internal_dev_run';
+        if (wp_next_scheduled($opposite)) {
+            wp_clear_scheduled_hook($opposite);
+        }
+        if (!wp_next_scheduled($hook)) {
+            wp_schedule_event(time() + ($dev ? 5 : 60), $dev ? 'five_seconds' : 'one_minute', $hook);
+        }
     }
 
     /**
