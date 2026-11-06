@@ -155,7 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.166 =
-* New, off by default: Hreflang codes with the site's country (Content): TranslatePress's hreflang codes get the site's own country (en-JE, es-US) in the page and the sitemap (#1313).
-* Faster: Image loading loads a Kadence Blocks Pro Advanced Slider's slide pictures as the slides come up, and fetches the first slide's first (#1312).
+* New, off by default: Hreflang codes with the site's country (Content): en-JE, not en-GB, in the page and sitemap (#1313).
+* Faster: Image loading loads Kadence Advanced Slider pictures as their slides come up, the first slide's first (#1312).
 
 Older: `changelog.txt`.
