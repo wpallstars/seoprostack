@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.167
+Stable tag: 1.3.168
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,13 +154,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Fixed: Keep pages cached fills the copy of each page browsers get when the page cache keeps a WebP copy (#1324).
-* Faster: the first slide's or hero row's picture loads once, not twice, with LiteSpeed Cache's WebP replacement (#1326).
-* Faster: background pictures of Kadence Blocks rows further down a page load as visitors scroll near them (#1329).
-* Fixed: text after a Kadence Advanced Slider keeps WordPress's curly quotes and dashes (#1331).
-
-= 1.3.167 =
-* New, off by default: Hreflang codes with the site's country (Content): en-JE, not en-GB, in the page and sitemap (#1313).
+= 1.3.168 =
+* Fixed: Keep pages cached fills the WebP copy (#1324).
+* Faster: first slide's picture loads once with WebP (#1326).
+* Faster: Kadence rows' pictures load as visitors near (#1329).
+* Fixed: curly quotes after an Advanced Slider (#1331).
 
 Older: `changelog.txt`.

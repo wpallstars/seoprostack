@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.167-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.168-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.167
+Version: 1.3.168
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2426,7 +2426,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.168
 
 - Fixed: **Keep pages cached** with LiteSpeed Cache's WebP replacement or WP-Optimize's WebP images on: those caches keep a separate copy of each page for browsers that accept WebP, which every current browser does, and Keep pages cached filled the other copy, so desktop visitors still waited for an uncached page. It now asks for each page as a browser does (#1324).
 - Faster: **Image loading** with LiteSpeed Cache's WebP replacement on: the picture preloaded for a Kadence Advanced Slider's first slide, or a hero row without smaller copies, was the JPEG, while LiteSpeed changed the slide's or row's CSS to its WebP copy, so phones fetched the picture twice and found the one they show only after the CSS. The preload now names the same copy as the CSS (#1326).
