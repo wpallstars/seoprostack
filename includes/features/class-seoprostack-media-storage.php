@@ -46,6 +46,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const STUCK = '_seoprostack_storage_stuck';
     /** Restore errors that belong to one attachment: the batch moves past it. */
     const STUCK_ERRORS = array('storage_signature', 'storage_memory', 'storage_restore_mismatch', 'storage_restore_record', 'storage_restore_missing');
+    /** Format copies written after removal, seen once: hash of their paths. */
+    const HEALED = '_seoprostack_storage_healed';
+    /** Where the batch's look for such pictures goes on. */
+    const HEAL_CURSOR = 'seoprostack_storage_job_heal_cursor';
     const BUDGET = 25;
     /** Safe destination descriptions and archived inventories share uninstall's job namespace. */
     const DESTINATIONS = 'seoprostack_storage_job_destinations';
@@ -2732,6 +2736,120 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Format copies (WebP, AVIF) on disk for a removed picture that its
+     * removal record does not list. A conversion that read the picture before
+     * its removal writes them after it (GitHub issue #1256).
+     *
+     * @param int $id Attachment ID.
+     * @return string[] Local paths, sorted; empty when nothing is unrecorded.
+     */
+    private static function unrecorded_copies($id) {
+        $root = self::root();
+        $removed = get_post_meta($id, self::REMOVED, true);
+        if (!$root || !is_array($removed) || empty($removed['files']) || !is_array($removed['files']) || ($removed['signature'] ?? '') !== self::config()['signature']) {
+            return array();
+        }
+        $prefix = self::config()['prefix'];
+        $found = array();
+        clearstatcache();
+        foreach ($removed['files'] as $key => $info) {
+            $relative = is_array($info) && isset($info['relative']) ? (string) $info['relative'] : '';
+            if (!self::recorded_path($relative, (string) $key) || false !== strpos($relative, 'seoprostack-originals-') || !preg_match('/\.(?:jpe?g|png)$/i', $relative)) {
+                continue;
+            }
+            foreach (array('webp', 'avif') as $format) {
+                $copy = $relative . '.' . $format;
+                $path = $root['dir'] . '/' . $copy;
+                if (!isset($removed['files'][$prefix . $copy]) && is_file($path) && self::within(realpath($path), realpath($root['dir']))) {
+                    $found[] = $path;
+                }
+            }
+        }
+        sort($found);
+        return $found;
+    }
+
+    /**
+     * Upload and remove format copies written after a picture's removal: bring
+     * its files back and start a new generation, so the batch uploads and
+     * removes everything together (GitHub issue #1256). A plain no-op for a
+     * picture that is not removed or has no such copies; the same copies are
+     * not tried twice.
+     *
+     * @param int $id Attachment ID.
+     * @return bool Whether a new generation was started.
+     */
+    public static function heal_late_copies($id) {
+        $id = (int) $id;
+        if ($id <= 0 || !self::ready()) {
+            return false;
+        }
+        self::fresh($id);
+        $signature = self::config()['signature'];
+        if (get_post_meta($id, self::LOCAL, true) !== $signature || !self::removed($id)) {
+            return false;
+        }
+        $copies = self::unrecorded_copies($id);
+        if (!$copies) {
+            return false;
+        }
+        $seen = hash("sha256", implode("\n", $copies));
+        if (get_post_meta($id, self::HEALED, true) === $seen) {
+            return false;
+        }
+        // A picture that can no longer be queued keeps its removal as it is.
+        if (0 !== strpos((string) get_post_mime_type($id), 'image/')) {
+            return false;
+        }
+        $kept = get_post_meta($id, self::LOCAL, true);
+        update_post_meta($id, self::HEALED, $seen);
+        if (is_wp_error(self::restore_attachment($id))) {
+            // Leave both markers as found, so a later batch tries again.
+            delete_post_meta($id, self::HEALED);
+            update_post_meta($id, self::LOCAL, $kept);
+            return false;
+        }
+        self::queue($id);
+        delete_post_meta($id, self::LOCAL, 'kept:' . $signature);
+        return true;
+    }
+
+    /**
+     * Look for removed pictures with unrecorded local copies, a few per batch,
+     * paged by ID through the whole library and then again.
+     *
+     * @param float $start Batch start.
+     * @param int $limit Most pictures looked at.
+     * @return int Pictures started again.
+     */
+    private static function heal_scan($start, $limit = 20) {
+        global $wpdb;
+        if (!self::removing()) {
+            return 0;
+        }
+        $cursor = (int) get_option(self::HEAL_CURSOR, 0);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded, ID-paged lookup through the meta_key index.
+        $ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
+            "SELECT r.post_id FROM {$wpdb->postmeta} r WHERE r.meta_key = %s AND r.post_id > %d ORDER BY r.post_id ASC LIMIT %d",
+            self::REMOVED, $cursor, max(1, (int) $limit)
+        )));
+        $healed = 0;
+        $stopped = false;
+        foreach ($ids as $id) {
+            // Restores stop well before the budget ends, leaving time to uploads.
+            if (!self::more_time($start, (int) (self::BUDGET * 0.6))) {
+                $stopped = true;
+                break;
+            }
+            $cursor = $id;
+            $healed += self::heal_late_copies($id) ? 1 : 0;
+        }
+        // Past the last removed picture: start from the first again.
+        update_option(self::HEAL_CURSOR, !$stopped && count($ids) < $limit ? 0 : $cursor, false);
+        return $healed;
+    }
+
+    /**
      * Queue after every metadata writer.
      *
      * @param array $data Metadata.
@@ -3106,6 +3224,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
             self::local_copies($start, $limit, (int) (self::BUDGET / 2));
+            if ($ready && (int) get_option(self::LOCAL_WAIT, 0) <= time()) {
+                self::heal_scan($start);
+            }
             if (SEOProStack_Media_Jobs::run_batch()) {
                 return 0;
             }
