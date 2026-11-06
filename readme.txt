@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.166
+Stable tag: 1.3.167
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,7 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.166 =
-* Faster: Image loading loads a Kadence Blocks Pro Advanced Slider's slide pictures as the slides come up, and fetches the first slide's first (#1312).
+= 1.3.167 =
+* New, off by default: Hreflang codes with the site's country (Content): en-JE, not en-GB, in the page and sitemap (#1313).
 
 Older: `changelog.txt`.
