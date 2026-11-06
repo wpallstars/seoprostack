@@ -157,6 +157,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = Unreleased =
 * Fixed: Keep pages cached fills the copy of each page browsers get when the page cache keeps a WebP copy (#1324).
 * Faster: the first slide's or hero row's picture loads once, not twice, with LiteSpeed Cache's WebP replacement (#1326).
+* Faster: background pictures of Kadence Blocks rows further down a page load as visitors scroll near them (#1329).
+* Fixed: text after a Kadence Advanced Slider keeps WordPress's curly quotes and dashes (#1331).
 
 = 1.3.167 =
 * New, off by default: Hreflang codes with the site's country (Content): en-JE, not en-GB, in the page and sitemap (#1313).
