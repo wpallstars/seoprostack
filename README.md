@@ -2424,6 +2424,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fixed: **Keep pages cached** with LiteSpeed Cache's WebP replacement or WP-Optimize's WebP images on: those caches keep a separate copy of each page for browsers that accept WebP, which every current browser does, and Keep pages cached filled the other copy, so desktop visitors still waited for an uncached page. It now asks for each page as a browser does (#1324).
+
 ### 1.3.167
 
 - New, off by default: **Hreflang codes with the site's country** (Content). With TranslatePress and a **Country** set (`JE`, `US`), each language's hreflang code, in the page and in the sitemap, has the site's country instead of its locale's (`en-JE` for `en_GB`, `es-US` for `es_MX`), so search engines know the pages are for that country. Language-only codes stay, and two languages never share a code (#1313).
