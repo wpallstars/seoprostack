@@ -49,6 +49,8 @@ if (!defined('ABSPATH')) {
  *             feature:{key}:{item} (and that item of it is chosen),
  *             option:{name} (the option is stored, for plugins that
  *             expect their whole option once it exists),
+ *             litespeed_cloudflare (LiteSpeed Cache's Cloudflare API is
+ *             connected: on, with a key and zone),
  *             litespeed_server, litespeed_crawler (that server lets
  *             LiteSpeed Cache's crawler run and the site has a
  *             sitemap), and more through the

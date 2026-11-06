@@ -71,6 +71,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Transient: database size, autoloaded options and products, read at most hourly. */
     const FACTS = 'seoprostack_hosting_facts';
 
+    /**
+     * The home page's cf-cache-status from the last cdn_probe(), lower case;
+     * empty when absent or the site did not answer.
+     *
+     * @var string
+     */
+    private static $cf_cache = '';
+
     /** Non-autoloaded daily object-cache facts and a cross-request probe. */
     const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
 
@@ -634,7 +642,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     public static function facts() {
         $audit = class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing();
         $facts = $audit ? SEOProStack_Health_CLI::stored_transient(self::FACTS) : get_transient(self::FACTS);
-        if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'], $facts['cdn_probe'])) {
+        if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'], $facts['cdn_probe'], $facts['cf_cache'])) {
             $facts['object_cache'] = self::object_cache_facts();
             return $facts;
         }
@@ -665,6 +673,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'products'       => $products && isset($products->publish) ? (int) $products->publish : 0,
             'cdn_probe'      => $audit ? array() : self::cdn_probe(),
         );
+        $facts['cf_cache'] = $audit ? '' : self::$cf_cache;
         if (!$audit) {
             set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
         }
@@ -1166,12 +1175,34 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * Whether Cloudflare keeps the home page (a Cache Rule that caches HTML)
+     * while LiteSpeed Cache cannot purge it: LiteSpeed Cache is active
+     * without its Cloudflare connection and Clear Cloudflare cache both on.
+     * An unknown answer (no header, or the server's own 403) never warns.
+     *
+     * @param array $facts From facts().
+     * @return bool
+     */
+    private static function cloudflare_keeps_pages(array $facts) {
+        $status = isset($facts['cf_cache']) ? (string) $facts['cf_cache'] : '';
+        if (!in_array($status, array('hit', 'miss', 'expired', 'revalidated', 'stale', 'updating'), true)) {
+            return false;
+        }
+        if (!in_array('litespeed-cache', self::active_slugs(), true)) {
+            return false;
+        }
+        return !(get_option(SEOProStack_Litespeed::PREFIX . 'cdn-cloudflare', false)
+            && get_option(SEOProStack_Litespeed::PREFIX . 'cdn-cloudflare_clear', false));
+    }
+
+    /**
      * Ask the home page for its headers and name the CDN that answered.
      * Each header is one the provider's own responses carry.
      *
      * @return string The CDN's name, an empty string for none, or unknown when the site did not answer.
      */
     private static function cdn_probe() {
+        self::$cf_cache = '';
         $response = wp_remote_head(home_url('/'), array(
             'timeout'     => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- at most hourly (facts()), mostly from Site Health's async test and the Plugins screen's background row; an uncached home page can take 2 s.
             'redirection' => 0,
@@ -1190,6 +1221,11 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             return '' !== $get($name);
         };
         $server = $get('server');
+        // Whether Cloudflare keeps the page: only when the site itself answered (not a 403 from the server, #1299).
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if ($code >= 200 && $code < 400) {
+            self::$cf_cache = $get('cf-cache-status');
+        }
         if ($has('cf-ray') || 'cloudflare' === $server) {
             return 'Cloudflare';
         }
@@ -1576,6 +1612,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $advice[] = array('recommended', SEOProStack_Litespeed::is_server()
                 ? __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; on a LiteSpeed server, use QUIC.cloud (it has a free plan), set up from LiteSpeed Cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack')
                 : __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; Cloudflare’s free plan is set up at Cloudflare, with its Cloudflare plugin here to clear its cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack'));
+        }
+        if (self::cloudflare_keeps_pages($needs['facts'])) {
+            $advice[] = array('recommended', __('Cloudflare keeps copies of this site’s pages, and nothing here clears them when LiteSpeed Cache purges, so after a plugin update or a purge visitors keep getting the old pages until Cloudflare’s edge cache expires (2 hours by default). In Cloudflare, create an API token limited to Zone → Cache Purge for this zone, enter it in LiteSpeed Cache → CDN → Cloudflare API, then turn on Clear Cloudflare cache. Edits to single posts still wait for that expiry; Cloudflare’s own plugin with APO purges single pages.', 'seoprostack'));
         }
         $cache  = $needs['facts']['object_cache'];
         if ('unreachable' === $cache['state']) {
