@@ -2791,7 +2791,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!$copies) {
             return false;
         }
-        $seen = md5(implode("\n", $copies));
+        $seen = hash("sha256", implode("\n", $copies));
         if (get_post_meta($id, self::HEALED, true) === $seen) {
             return false;
         }
