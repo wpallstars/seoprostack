@@ -428,7 +428,22 @@ final class SEOProStack_Litespeed {
         if ('litespeed_crawler' === $condition) {
             return self::is_server() && self::crawler_allowed() && '' !== self::crawler_sitemap();
         }
+        if ('litespeed_cloudflare' === $condition) {
+            return self::cloudflare_connected();
+        }
         return $holds;
+    }
+
+    /**
+     * Whether LiteSpeed Cache's Cloudflare API is connected: on, with a key
+     * and a zone. Only read; the preset never sets either.
+     *
+     * @return bool
+     */
+    private static function cloudflare_connected() {
+        return (bool) self::conf('cdn-cloudflare', false)
+            && '' !== (string) self::conf('cdn-cloudflare_key', '')
+            && '' !== (string) self::conf('cdn-cloudflare_zone', '');
     }
 
     /**

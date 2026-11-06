@@ -2,7 +2,7 @@
     "name": "LiteSpeed Cache",
     "tested": "7.9.1",
     "updated": "2026-10-07",
-    "notes": "Sets LiteSpeed Cache up to do, with SEO Pro Stack, what WP-Optimize does on LiteSpeed hosting. LiteSpeed Cache keeps pages and browser caching; SEO Pro Stack does images, Heartbeat, WordPress extras and script delay. Every site: notifications off (news and promotions fetched from LiteSpeed's servers), CSS and JS Minify off, and the whole cache purged when plugins or themes update, so pages never point at old CSS and JS. Minify is off because, without Combine, LiteSpeed Cache minifies and rewrites every CSS and JS file again on every page that is not in the page cache: on test sites that added 0.25 to 1.2 seconds to each such page, while compression and HTTP/2 already make the files small and quick. Combine avoids that cost but often breaks pages. Turning Minify back on works, at that cost to every uncached page. On a LiteSpeed server, SEO Pro Stack also turns the page cache and browser cache on; elsewhere it leaves them alone, because the page cache needs the server. Where the server also allows LiteSpeed Cache's crawler and the site has a sitemap, the crawler is turned on and crawls the whole sitemap once a day instead of every 3.5 days, so pages are cached again soon after a purge (every plugin, theme or core update purges them) and visitors mostly get cached pages. Pages already cached cost the server little, as LiteSpeed answers the crawler without building them. The crawler's sitemap stays as set in LiteSpeed Cache; when none is set, SEO Pro Stack gives it the site's sitemap index (Rank Math's, Yoast's or WordPress's own). Server IP is left alone: it is the site's own, and a wrong one stops the crawler; set it in LiteSpeed Cache (General) to crawl past a CDN such as Cloudflare. Where an SEO Pro Stack feature does a job, LiteSpeed's copy is turned off, so the two never both do it: Load JS Deferred with Delay scripts until people interact, Next-Gen Image Format with WebP and AVIF copies, Heartbeat control with Fewer Heartbeat requests (site and admin screens; editors are left alone), and Remove WordPress Emoji with Remove WordPress extras. Nothing that needs QUIC.cloud is turned on (critical and unused CSS, image optimisation, its CDN), and the object cache is left to the host. QUIC.cloud's CDN, which Hosting needs suggests on LiteSpeed servers without one, needs the site linked to a QUIC.cloud account first, which a preset cannot do: set it up from LiteSpeed Cache. Applying saves through LiteSpeed Cache's own code, so its .htaccess rules, WP_CACHE line and purges follow. On multisite only the settings for every site apply: LiteSpeed Cache keeps most settings for the whole network there.",
+    "notes": "Sets LiteSpeed Cache up to do, with SEO Pro Stack, what WP-Optimize does on LiteSpeed hosting. LiteSpeed Cache keeps pages and browser caching; SEO Pro Stack does images, Heartbeat, WordPress extras and script delay. Every site: notifications off (news and promotions fetched from LiteSpeed's servers), CSS and JS Minify off, and the whole cache purged when plugins or themes update, so pages never point at old CSS and JS. Minify is off because, without Combine, LiteSpeed Cache minifies and rewrites every CSS and JS file again on every page that is not in the page cache: on test sites that added 0.25 to 1.2 seconds to each such page, while compression and HTTP/2 already make the files small and quick. Combine avoids that cost but often breaks pages. Turning Minify back on works, at that cost to every uncached page. On a LiteSpeed server, SEO Pro Stack also turns the page cache and browser cache on; elsewhere it leaves them alone, because the page cache needs the server. Where the server also allows LiteSpeed Cache's crawler and the site has a sitemap, the crawler is turned on and crawls the whole sitemap once a day instead of every 3.5 days, so pages are cached again soon after a purge (every plugin, theme or core update purges them) and visitors mostly get cached pages. Pages already cached cost the server little, as LiteSpeed answers the crawler without building them. The crawler's sitemap stays as set in LiteSpeed Cache; when none is set, SEO Pro Stack gives it the site's sitemap index (Rank Math's, Yoast's or WordPress's own). Where LiteSpeed Cache’s Cloudflare API is connected (on, with a key and zone), Clear Cloudflare cache is turned on, so every purge, including the one after plugin and theme updates, clears Cloudflare’s copies of the pages too; the key and zone are never set from the preset (use a Cloudflare API token limited to Zone → Cache Purge). Server IP is left alone: it is the site's own, and a wrong one stops the crawler; set it in LiteSpeed Cache (General) to crawl past a CDN such as Cloudflare. Where an SEO Pro Stack feature does a job, LiteSpeed's copy is turned off, so the two never both do it: Load JS Deferred with Delay scripts until people interact, Next-Gen Image Format with WebP and AVIF copies, Heartbeat control with Fewer Heartbeat requests (site and admin screens; editors are left alone), and Remove WordPress Emoji with Remove WordPress extras. Nothing that needs QUIC.cloud is turned on (critical and unused CSS, image optimisation, its CDN), and the object cache is left to the host. QUIC.cloud's CDN, which Hosting needs suggests on LiteSpeed servers without one, needs the site linked to a QUIC.cloud account first, which a preset cannot do: set it up from LiteSpeed Cache. Applying saves through LiteSpeed Cache's own code, so its .htaccess rules, WP_CACHE line and purges follow. On multisite only the settings for every site apply: LiteSpeed Cache keeps most settings for the whole network there.",
     "options": {
         "litespeed.conf.news": "",
         "litespeed.conf.optm-css_min": "",
@@ -17,7 +17,8 @@
         "litespeed.conf.img_optm-webp": "0",
         "litespeed.conf.misc-heartbeat_front": "",
         "litespeed.conf.misc-heartbeat_back": "",
-        "litespeed.conf.optm-emoji_rm": ""
+        "litespeed.conf.optm-emoji_rm": "",
+        "litespeed.conf.cdn-cloudflare_clear": "1"
     },
     "defaults": {
         "litespeed.conf.news": "1",
@@ -33,7 +34,8 @@
         "litespeed.conf.img_optm-webp": "0",
         "litespeed.conf.misc-heartbeat_front": "",
         "litespeed.conf.misc-heartbeat_back": "",
-        "litespeed.conf.optm-emoji_rm": ""
+        "litespeed.conf.optm-emoji_rm": "",
+        "litespeed.conf.cdn-cloudflare_clear": ""
     },
     "when": {
         "litespeed.conf.cache": ["single_site", "litespeed_server"],
@@ -45,7 +47,8 @@
         "litespeed.conf.img_optm-webp": ["single_site", "feature:nextgen_images"],
         "litespeed.conf.misc-heartbeat_front": ["single_site", "feature:heartbeat_limit:site"],
         "litespeed.conf.misc-heartbeat_back": ["single_site", "feature:heartbeat_limit:admin"],
-        "litespeed.conf.optm-emoji_rm": ["single_site", "feature:wp_extras:emoji"]
+        "litespeed.conf.optm-emoji_rm": ["single_site", "feature:wp_extras:emoji"],
+        "litespeed.conf.cdn-cloudflare_clear": ["single_site", "litespeed_cloudflare"]
     },
     "settings": {
         "litespeed.conf.news": {
@@ -180,6 +183,16 @@
         "litespeed.conf.optm-emoji_rm": {
             "label": "Remove WordPress Emoji",
             "description": "Stops the WordPress emoji script. Turned off while SEO Pro Stack's Remove WordPress extras removes it.",
+            "values": {
+                "1": "On",
+                "": "Off",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "litespeed.conf.cdn-cloudflare_clear": {
+            "label": "Clear Cloudflare cache",
+            "description": "Purges Cloudflare's copies of the pages whenever LiteSpeed Cache purges everything, so pages Cloudflare keeps are not served old after an update. Set only where LiteSpeed Cache's Cloudflare API is connected.",
             "values": {
                 "1": "On",
                 "": "Off",
