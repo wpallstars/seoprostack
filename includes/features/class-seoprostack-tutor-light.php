@@ -43,6 +43,9 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
     /** The Kadence theme's stylesheet for Tutor LMS. */
     const KADENCE = 'kadence-tutorlms';
 
+    /** The Kadence theme's Tutor LMS part, which adds Tutor's rules to its inline CSS. */
+    const KADENCE_PART = 'Kadence\\TutorLMS\\Component';
+
     /**
      * Whether a Tutor shortcode or block rendered on this request.
      *
@@ -81,6 +84,8 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
         if (!self::enabled() || is_admin()) {
             return;
         }
+        // Before the Kadence theme builds its inline CSS (10).
+        add_action('wp_enqueue_scripts', array(__CLASS__, 'kadence_css'), 1);
         // After Tutor (10) and the Kadence theme's Tutor stylesheet (60).
         add_action('wp_enqueue_scripts', array(__CLASS__, 'dequeue'), PHP_INT_MAX);
         add_filter('pre_do_shortcode_tag', array(__CLASS__, 'shortcode'), 10, 2);
@@ -88,12 +93,44 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
     }
 
     /**
+     * Whether this page leaves Tutor's files out: not a Tutor page, and
+     * nobody logged in. Logged-in people keep everything: Tutor's toolbar
+     * items, its push notification prompt on the front page and its flash
+     * messages.
+     *
+     * @return bool
+     */
+    private static function light() {
+        return !self::$used && function_exists('tutor') && !is_user_logged_in() && !SEOProStack_Tutor_Light_Page::is_tutor_page();
+    }
+
+    /**
+     * Leave the Kadence theme's Tutor rules (course and course archive
+     * headers) out of its inline CSS on pages that do not use Tutor. They
+     * are only there while Tutor is loaded, so without this a page renders
+     * differently with and without Tutor, and Load plugins only where needed
+     * kept Tutor on it (GitHub issue #1264).
+     */
+    public static function kadence_css() {
+        global $wp_filter;
+        if (!isset($wp_filter['kadence_dynamic_css']) || !self::light()) {
+            return;
+        }
+        foreach ($wp_filter['kadence_dynamic_css']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                $function = $callback['function'];
+                if (is_array($function) && is_object($function[0]) && is_a($function[0], self::KADENCE_PART)) {
+                    remove_filter('kadence_dynamic_css', $function, $priority);
+                }
+            }
+        }
+    }
+
+    /**
      * Take Tutor's styles and scripts out of pages that do not use Tutor.
      */
     public static function dequeue() {
-        // Logged-in people keep everything: Tutor's toolbar items, its push
-        // notification prompt on the front page and its flash messages.
-        if (self::$used || !function_exists('tutor') || is_user_logged_in() || SEOProStack_Tutor_Light_Page::is_tutor_page()) {
+        if (!self::light()) {
             return;
         }
         $folders                  = self::folders();
