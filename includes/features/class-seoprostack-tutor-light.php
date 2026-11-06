@@ -9,7 +9,11 @@
  * (kadence-tutorlms) whenever Tutor is active. On a home page with no Tutor
  * content that was seven stylesheets holding up the first paint and about
  * fifteen scripts (GitHub issue #1258). This keeps them to Tutor's pages
- * (SEOProStack_Tutor_Light_Page).
+ * (SEOProStack_Tutor_Light_Page). Elsewhere it also leaves out the
+ * WordPress jQuery UI scripts Tutor queues, the Kadence theme's Tutor rules
+ * in its inline CSS and Tutor's body class, so such a page is the same as
+ * without Tutor, and Load plugins only where needed can skip Tutor there
+ * (GitHub issue #1264).
  *
  * Only dequeued: a script or style that another one needs still loads. If
  * a Tutor shortcode or block renders on another page anyway (in a Kadence
@@ -45,6 +49,23 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
 
     /** The Kadence theme's Tutor LMS part, which adds Tutor's rules to its inline CSS. */
     const KADENCE_PART = 'Kadence\\TutorLMS\\Component';
+
+    /**
+     * WordPress scripts Tutor LMS 4.2.0 queues on every page
+     * (TUTOR\Assets::frontend_scripts(), with its legacy scripts), which
+     * bring jQuery into the head and jQuery UI.
+     */
+    const CORE_SCRIPTS = array('jquery-ui-sortable', 'jquery-touch-punch');
+
+    /** Body class Tutor adds to every page. */
+    const BODY_CLASS = 'tutor-lms';
+
+    /**
+     * CORE_SCRIPTS already queued before Tutor's (wp_enqueue_scripts 10).
+     *
+     * @var string[]
+     */
+    private static $core_before = array();
 
     /**
      * Whether a Tutor shortcode or block rendered on this request.
@@ -86,8 +107,12 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
         }
         // Before the Kadence theme builds its inline CSS (10).
         add_action('wp_enqueue_scripts', array(__CLASS__, 'kadence_css'), 1);
+        // Around Tutor's own (10).
+        add_action('wp_enqueue_scripts', array(__CLASS__, 'core_before'), 9);
+        add_action('wp_enqueue_scripts', array(__CLASS__, 'core_after'), 11);
         // After Tutor (10) and the Kadence theme's Tutor stylesheet (60).
         add_action('wp_enqueue_scripts', array(__CLASS__, 'dequeue'), PHP_INT_MAX);
+        add_filter('body_class', array(__CLASS__, 'body_class'), 20);
         add_filter('pre_do_shortcode_tag', array(__CLASS__, 'shortcode'), 10, 2);
         add_filter('pre_render_block', array(__CLASS__, 'block'), 10, 2);
     }
@@ -126,6 +151,44 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
         }
     }
 
+    /** Note which of CORE_SCRIPTS were queued before Tutor's turn. */
+    public static function core_before() {
+        self::$core_before = array_values(array_intersect(wp_scripts()->queue, self::CORE_SCRIPTS));
+    }
+
+    /**
+     * Take out the CORE_SCRIPTS Tutor queued on a page that does not use
+     * Tutor. Right after Tutor's turn, so a plugin that queues one later
+     * still gets it.
+     */
+    public static function core_after() {
+        if (!self::light() || !is_callable(array('TUTOR\\Assets', 'should_load_legacy_scripts'))
+            || !call_user_func(array('TUTOR\\Assets', 'should_load_legacy_scripts'))) {
+            return;
+        }
+        $queue = wp_scripts()->queue;
+        foreach (self::CORE_SCRIPTS as $handle) {
+            if (in_array($handle, $queue, true) && !in_array($handle, self::$core_before, true)) {
+                wp_dequeue_script($handle);
+                self::$removed['scripts'][] = $handle;
+            }
+        }
+    }
+
+    /**
+     * Leave Tutor's body class off pages that do not use Tutor: nothing
+     * there styles or reads it once Tutor's files are out.
+     *
+     * @param string[] $classes Body classes.
+     * @return string[]
+     */
+    public static function body_class($classes) {
+        if (!is_array($classes) || !self::light()) {
+            return $classes;
+        }
+        return array_values(array_diff($classes, array(self::BODY_CLASS)));
+    }
+
     /**
      * Take Tutor's styles and scripts out of pages that do not use Tutor.
      */
@@ -135,11 +198,12 @@ class SEOProStack_Tutor_Light extends SEOProStack_Feature {
         }
         $folders                  = self::folders();
         self::$removed['styles']  = self::queued(wp_styles(), $folders, self::KADENCE);
-        self::$removed['scripts'] = self::queued(wp_scripts(), $folders, '');
+        $scripts                  = self::queued(wp_scripts(), $folders, '');
+        self::$removed['scripts'] = array_values(array_unique(array_merge(self::$removed['scripts'], $scripts)));
         foreach (self::$removed['styles'] as $handle) {
             wp_dequeue_style($handle);
         }
-        foreach (self::$removed['scripts'] as $handle) {
+        foreach ($scripts as $handle) {
             wp_dequeue_script($handle);
         }
     }
