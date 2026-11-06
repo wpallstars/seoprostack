@@ -18,7 +18,11 @@
  * go into the page as data. A small loader adds them on the visitor's first
  * pointer, touch, key, wheel or scroll, or when an inline chatbot comes
  * within DISTANCE pixels of the screen, then calls AI Engine's own
- * window.mwaiInitialize(), which mounts each container once.
+ * window.mwaiInitialize(), which mounts each container once. Each held
+ * stylesheet loads before the scripts, so the chatbot never mounts
+ * unstyled. An AI Engine whose chatbot.js has no mwaiInitialize() (older
+ * versions mount only on DOMContentLoaded) is left alone (GitHub issue
+ * #1268).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -45,6 +49,15 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
 
     /** How near the screen an inline chatbot is, in pixels, when it loads. */
     const DISTANCE = 600;
+
+    /** Whether this AI Engine's chatbot.js can mount late, per MWAI_VERSION. */
+    const SUPPORT_OPTION = 'seoprostack_ai_engine_later_support';
+
+    /** What chatbot.js defines to mount chatbots after the page has loaded. */
+    const INITIALIZER = 'mwaiInitialize';
+
+    /** Longest wait for a held stylesheet before the scripts load anyway, in ms. */
+    const STYLE_WAIT = 3000;
 
     /**
      * Handles taken out of the queue on this request.
@@ -74,13 +87,40 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        if (!self::enabled() || is_admin() || !defined('MWAI_VERSION')) {
+        if (!self::enabled() || is_admin() || !defined('MWAI_VERSION') || !self::supported()) {
             return;
         }
         add_action('wp_enqueue_scripts', array(__CLASS__, 'hold'), PHP_INT_MAX);
         // Before wp_print_footer_scripts (20) prints a chatbot added by a shortcode or block.
         add_action('wp_footer', array(__CLASS__, 'hold'), 19);
         add_action('wp_footer', array(__CLASS__, 'print_loader'), 21);
+    }
+
+    /**
+     * Whether this AI Engine's chatbot.js defines mwaiInitialize(): without
+     * it, a chatbot loaded after DOMContentLoaded never mounts. Read once per
+     * AI Engine version, then kept in an option.
+     *
+     * @return bool
+     */
+    private static function supported() {
+        $version = defined('MWAI_VERSION') ? (string) MWAI_VERSION : '';
+        if ('' === $version) {
+            return false;
+        }
+        $known = get_option(self::SUPPORT_OPTION);
+        if (is_array($known) && isset($known['version'], $known['ok']) && $version === $known['version']) {
+            return (bool) $known['ok'];
+        }
+        $ok   = false;
+        $file = defined('MWAI_PATH') ? trailingslashit((string) MWAI_PATH) . 'app/chatbot.js' : '';
+        if ('' !== $file && is_readable($file)) {
+            $code = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
+            $ok   = is_string($code) && false !== strpos($code, self::INITIALIZER);
+        }
+        // Autoloaded: read on every page view while AI Engine is active.
+        update_option(self::SUPPORT_OPTION, array('version' => $version, 'ok' => $ok), true);
+        return $ok;
     }
 
     /**
@@ -128,13 +168,15 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
      * After the footer's scripts: the held tags as data, and the loader.
      */
     public static function print_loader() {
-        if (!self::$held['scripts']) {
-            return;
-        }
         $scripts = wp_scripts();
         // Another script needed the chatbot's, so it loaded as before.
         $handles = array_values(array_diff(array_keys(self::$held['scripts']), $scripts->done));
         if (!$handles) {
+            // The chatbot loaded anyway: its stylesheets go in as usual.
+            if (self::$held['styles']) {
+                wp_styles()->do_items(array_keys(self::$held['styles']));
+            }
+            self::$held = array('styles' => array(), 'scripts' => array());
             return;
         }
         ob_start();
@@ -159,8 +201,9 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
     }
 
     /**
-     * The loader: adds the held stylesheets, then the scripts in order (each
-     * file after the one before has loaded), then mounts the chatbots.
+     * The loader: adds the held stylesheets, each before the next tag (or
+     * after STYLE_WAIT), then the scripts in order (each file after the one
+     * before has loaded), then mounts the chatbots.
      *
      * @return string
      */
@@ -172,7 +215,8 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
             . 'var t=d.createElement("template");try{t.innerHTML=JSON.parse(data.textContent);}catch(e){return;}'
             . 'var list=[].slice.call(t.content.children);'
             . '(function next(){var o=list.shift();if(!o){if(w.mwaiInitialize)w.mwaiInitialize();return;}'
-            . 'if(o.tagName!=="SCRIPT"){d.head.appendChild(o);next();return;}'
+            . 'if(o.tagName!=="SCRIPT"){if(o.tagName==="LINK"&&/\bstylesheet\b/i.test(o.rel)){var f=false,go=function(){if(!f){f=true;next();}};'
+            . 'o.onload=o.onerror=go;setTimeout(go,%2$d);d.head.appendChild(o);}else{d.head.appendChild(o);next();}return;}'
             . 'var s=d.createElement("script");[].forEach.call(o.attributes,function(a){s.setAttribute(a.name,a.value);});'
             . 'if(o.hasAttribute("src")){s.async=false;s.onload=s.onerror=next;d.body.appendChild(s);}else{s.text=o.text;d.body.appendChild(s);next();}})();}'
             . 'ev.forEach(function(e){w.addEventListener(e,load,{passive:true});});'
@@ -180,7 +224,8 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
             . 'if(c.length){if(!("IntersectionObserver" in w)){load();return;}'
             . 'io=new IntersectionObserver(function(es){for(var j=0;j<es.length;j++){if(es[j].isIntersecting){load();return;}}},{rootMargin:"%1$dpx 0px"});'
             . 'for(i=0;i<c.length;i++)io.observe(c[i]);}})(document,window);',
-            self::DISTANCE
+            self::DISTANCE,
+            self::STYLE_WAIT
         );
     }
 }
