@@ -359,6 +359,50 @@ new_log_text() {
 	return 0
 }
 
+# Every line the web logs gained since the install began, uncut.
+new_log_all() {
+	local index=0
+	local file start
+	for file in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
+		if [[ -f "$file" ]]; then
+			start=$((LOG_BEFORE[index] + 1))
+			if [[ "$(file_lines "$file")" -lt "${LOG_BEFORE[index]}" ]]; then
+				start=1
+			fi
+			tail -n +"$start" "$file"
+		fi
+		index=$((index + 1))
+	done
+	return 0
+}
+
+# Reads log lines on stdin; HOOKS is the space-separated hooks this run
+# executed. Prints "race HOOK" once per hook for WordPress's could_not_set
+# reschedule/unschedule error on one of them (our forced run and the site's
+# own cron runner handled the same event at once), and "line" for every other
+# line, which still fails the install.
+classify_log() {
+	local hooks=" $1 "
+	awk -v hooks="$hooks" '
+		{
+			if (match($0, /Cron (reschedule|unschedule) event error for hook: [^,]+, Error code: could_not_set/)) {
+				text = substr($0, RSTART, RLENGTH)
+				sub(/^Cron (reschedule|unschedule) event error for hook: /, "", text)
+				sub(/, Error code: could_not_set$/, "", text)
+				if (index(hooks, " " text " ") > 0) {
+					if (!(text in seen)) {
+						seen[text] = 1
+						print "race " text
+					}
+					next
+				}
+			}
+			print "line"
+		}
+	'
+	return 0
+}
+
 file_lines() {
 	local file="$1"
 	if [[ -f "$file" ]]; then
@@ -572,6 +616,7 @@ run_site_cron() {
 	while IFS= read -r hook; do
 		[[ -n "$hook" ]] || continue
 		CRON_TOTAL=$((CRON_TOTAL + 1))
+		CRON_HOOKS_RUN+="$hook "
 		status=0
 		out="$("${cmd[@]+"${cmd[@]}"}" "$WP_CLI" --path="$root" "$@" cron event run "$hook" 2>&1)" || status=$?
 		if [[ "$status" -eq 124 && "${#cmd[@]}" -gt 0 ]]; then
@@ -634,7 +679,7 @@ check_sites() {
 	local check_error="home check failed; "
 	local url_args=()
 	SITES_TOTAL=0 SITES_FAILED=0 SITES_PURGED=0 PURGE_FAILED=0 SITE_LINES=""
-	CRON_SUM_RUN=0 CRON_SUM_TOTAL=0 CRON_WARNED=""
+	CRON_SUM_RUN=0 CRON_SUM_TOTAL=0 CRON_WARNED="" CRON_HOOKS_RUN=""
 	MAIN_STATUS="?" MAIN_CODE="000" MAIN_CACHE="none" MAIN_REASON="" MAIN_RETRIED=""
 	kind="$(wp_bare "$root" eval 'echo is_multisite() ? "multisite" : "single";')" || return 1
 	case "$kind" in
@@ -733,7 +778,7 @@ apply_one() {
 	local backups="$5"
 	local plugins="$root/wp-content/plugins"
 	local main="$plugins/$SLUG/$SLUG.php"
-	local before after backup new_lines result="ok" warn="" index file current added
+	local before after backup new_lines result="ok" warn="" file classified
 	local comparison=0
 
 	before="$(plugin_version "$main")"
@@ -780,19 +825,17 @@ apply_one() {
 	fi
 
 	after="$(plugin_version "$main")"
+	# A truncated or rotated log contributes all of its current lines.
+	# Cron race lines for hooks this run executed are warnings, not new lines.
 	new_lines=0
-	index=0
-	for file in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
-		current="$(file_lines "$file")"
-		if [[ "$current" -lt "${LOG_BEFORE[index]}" ]]; then
-			# A truncated or rotated log contributes all of its current lines.
-			added="$current"
-		else
-			added=$((current - LOG_BEFORE[index]))
-		fi
-		new_lines=$((new_lines + added))
-		index=$((index + 1))
-	done
+	classified="$(new_log_all | classify_log "$CRON_HOOKS_RUN")"
+	while IFS= read -r file; do
+		case "$file" in
+		line) new_lines=$((new_lines + 1)) ;;
+		"race "*) warn+="cron race ${file#race }, " ;;
+		*) ;;
+		esac
+	done <<<"$classified"
 
 	# Single sites have no site row on which to show these warnings.
 	[[ "$PURGE_FAILED" -eq 0 ]] || warn+="purge failed, "

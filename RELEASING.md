@@ -156,9 +156,14 @@ expected in the GitHub zip too.
    does. A hook runs all its callbacks, so a shared hook also runs core and
    other-plugin callbacks, and a failure in one counts against the install.
    An event gets `DEPLOY_CRON_TIMEOUT` seconds (default 120, `0` for no
-   limit, which a host without `timeout` needs when there is an event to
-   run); one that times out is a warning, not a failure. On a network each
-   site runs its own.
+    limit, which a host without `timeout` needs when there is an event to
+    run); one that times out is a warning, not a failure. On a network each
+    site runs its own. When the site's own cron runner handles the same event
+    in the same second, WordPress logs `Cron reschedule event error for hook:
+    HOOK, Error code: could_not_set` (or `unschedule`). For a hook the check
+    just ran, that race is the check's own doing: it shows as `WARN cron race
+    HOOK` and is not counted in `new_log_lines`. The same line for any other
+    hook, and every other new line, still fails.
    Every site that is not archived, deleted or spam gets a guarded full load
    for its settings upgrade, a page cache purge and a home fetch with a query
    string unique to that fetch. The purge matters: WordPress versions the
