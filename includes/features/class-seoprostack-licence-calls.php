@@ -219,7 +219,10 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
     public static function is_licence_call($url, array $args) {
         $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
         $is   = false;
-        if ('' !== $host && empty($args['filename']) && !self::exempt_host($host)) {
+        // A picture, video or PDF is a file, not a licence endpoint, whatever
+        // its name says ("…-Licensed-Plumber.jpg").
+        $file = (bool) preg_match('/\.(jpe?g|png|gif|webp|avif|svg|ico|bmp|tiff?|mp4|webm|mov|pdf)$/', strtolower((string) wp_parse_url($url, PHP_URL_PATH)));
+        if ('' !== $host && !$file && empty($args['filename']) && !self::exempt_host($host)) {
             $body = self::body_text(isset($args['body']) ? $args['body'] : '');
             $text = strtolower($url . ' ' . $body);
             // Update data, versions and downloads are WordPress's update
@@ -258,6 +261,16 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
         foreach (array(home_url(), site_url()) as $own) {
             if (strtolower((string) wp_parse_url($own, PHP_URL_HOST)) === $host) {
                 return true;
+            }
+        }
+        // The site's own media storage: its files, like the site itself.
+        if (class_exists('SEOProStack_Media_Storage')) {
+            $config = SEOProStack_Media_Storage::config();
+            foreach (array('url', 'endpoint') as $key) {
+                $media = empty($config[$key]) ? '' : strtolower((string) wp_parse_url((string) $config[$key], PHP_URL_HOST));
+                if ('' !== $media && $media === $host) {
+                    return true;
+                }
             }
         }
         return false;
