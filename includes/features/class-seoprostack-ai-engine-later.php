@@ -112,15 +112,24 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
         if (is_array($known) && isset($known['version'], $known['ok']) && $version === $known['version']) {
             return (bool) $known['ok'];
         }
-        $ok   = false;
-        $file = defined('MWAI_PATH') ? trailingslashit((string) MWAI_PATH) . 'app/chatbot.js' : '';
-        if ('' !== $file && is_readable($file)) {
-            $code = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
-            $ok   = is_string($code) && false !== strpos($code, self::INITIALIZER);
-        }
+        $ok = self::has_initializer();
         // Autoloaded: read on every page view while AI Engine is active.
         update_option(self::SUPPORT_OPTION, array('version' => $version, 'ok' => $ok), true);
         return $ok;
+    }
+
+    /**
+     * Whether AI Engine's app/chatbot.js contains INITIALIZER.
+     *
+     * @return bool
+     */
+    private static function has_initializer() {
+        $file = defined('MWAI_PATH') ? trailingslashit((string) MWAI_PATH) . 'app/chatbot.js' : '';
+        if ('' === $file || !is_readable($file)) {
+            return false;
+        }
+        $code = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
+        return is_string($code) && false !== strpos($code, self::INITIALIZER);
     }
 
     /**
