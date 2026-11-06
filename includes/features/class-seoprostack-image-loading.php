@@ -20,7 +20,9 @@
  * at the size the screen needs when it has smaller copies (GH#1221). So is
  * the first slide's picture of a Kadence Blocks Pro Advanced Slider it
  * opens with, and each slider's other slides fetch theirs only as they come
- * up (SEOProStack_Kadence_Slider, GH#1312).
+ * up (SEOProStack_Kadence_Slider, GH#1312). Where LiteSpeed Cache's WebP
+ * replacement names its copy in the block's CSS, the preload names it too
+ * (GH#1326).
  *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
@@ -62,6 +64,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
 
     /** @var bool Whether an image already has high fetch priority. */
     private static $high_priority = false;
+
+    /** @var string[] The picture preloaded without a copy of SEO Pro Stack's, and its tag (GH#1326). */
+    private static $preloaded = array();
 
     /**
      * Settings.
@@ -224,7 +229,10 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
 
     /**
      * Preload a background picture at high priority: its AVIF or WebP copy
-     * when pages name copies, as the block's CSS then does.
+     * when pages name copies, as the block's CSS then does. Otherwise,
+     * LiteSpeed Cache's WebP replacement may name its own copy in the
+     * block's CSS at the end of the page, so the preload follows it there
+     * (litespeed_next_gen()).
      *
      * @param string $url Picture address.
      */
@@ -233,11 +241,58 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (class_exists('SEOProStack_Nextgen_Images')) {
             list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
         }
-        printf(
-            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">' . "\n",
+        $tag = self::preload_tag($url, $type);
+        echo $tag . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in preload_tag().
+        if ('' === $type && defined('LSCWP_V')) {
+            self::$preloaded = array($url, $tag);
+            add_filter('litespeed_buffer_after', array(__CLASS__, 'litespeed_next_gen'), 5);
+        }
+    }
+
+    /**
+     * A preload tag for a picture at high priority.
+     *
+     * @param string $url  Picture address.
+     * @param string $type Its type, or '' for none.
+     * @return string
+     */
+    private static function preload_tag($url, $type) {
+        return sprintf(
+            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">',
             esc_url($url),
             '' !== $type ? ' type="' . esc_attr($type) . '"' : ''
         );
+    }
+
+    /**
+     * LiteSpeed Cache's WebP replacement rewrites every CSS url() whose
+     * picture has a .webp or .avif file beside it, for browsers that get
+     * its WebP copy of the page, but not a preload's address: the browser
+     * then fetched the picture twice, and the copy the block's CSS names,
+     * the one it shows, only after the CSS (GH#1326). When the page names
+     * the preloaded picture's copy, as LiteSpeed rewrote it on this request,
+     * the preload names it too. Pages it left alone (logged in, not cached,
+     * a browser without WebP) keep the picture's own address.
+     *
+     * @param mixed $buffer The page, after LiteSpeed Cache's changes.
+     * @return mixed
+     */
+    public static function litespeed_next_gen($buffer) {
+        if (!is_string($buffer) || 2 !== count(self::$preloaded)) {
+            return $buffer;
+        }
+        list($url, $tag) = self::$preloaded;
+        self::$preloaded = array();
+        $end = strcspn($url, '?#');
+        foreach (array('avif', 'webp') as $format) {
+            // As LiteSpeed Cache's Media::replace_webp() names the copy.
+            $copy = substr($url, 0, $end) . '.' . $format . substr($url, $end);
+            if (false !== strpos($buffer, $copy)) {
+                $at = strpos($buffer, $tag);
+                return false === $at ? $buffer : substr_replace($buffer, self::preload_tag($copy, ''), $at, strlen($tag));
+            }
+        }
+        return $buffer;
     }
 
     /**

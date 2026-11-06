@@ -2427,6 +2427,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Fixed: **Keep pages cached** with LiteSpeed Cache's WebP replacement or WP-Optimize's WebP images on: those caches keep a separate copy of each page for browsers that accept WebP, which every current browser does, and Keep pages cached filled the other copy, so desktop visitors still waited for an uncached page. It now asks for each page as a browser does (#1324).
+- Faster: **Image loading** with LiteSpeed Cache's WebP replacement on: the picture preloaded for a Kadence Advanced Slider's first slide, or a hero row without smaller copies, was the JPEG, while LiteSpeed changed the slide's or row's CSS to its WebP copy, so phones fetched the picture twice and found the one they show only after the CSS. The preload now names the same copy as the CSS (#1326).
 
 ### 1.3.167
 
