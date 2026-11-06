@@ -148,6 +148,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'preload_pages'             => array(true, ''),
             'keep_pages_cached'         => array('' !== SEOProStack_Keep_Pages_Cached::page_cache(), __('For LiteSpeed Cache on a LiteSpeed server, or WP-Optimize’s page cache: neither is on.', 'seoprostack')),
             'image_loading'             => array(true, ''),
+            'jquery_footer'             => array(true, ''),
             'wp_extras'                 => array(true, ''),
             'woo_light'                 => array(isset($active['woocommerce']), __('For shops: WooCommerce is not active.', 'seoprostack')),
             'tutor_light'               => array(isset($active['tutor']), __('For Tutor LMS, which is not active.', 'seoprostack')),

@@ -118,6 +118,8 @@ final class SEOProStack_Setup {
         'SEOProStack_Keep_Pages_Cached',
         'SEOProStack_Used_Css',
         'SEOProStack_Delay_Scripts',
+        // After Delay scripts: its page buffer starts later, so it checks WordPress's own tags first.
+        'SEOProStack_Jquery_Footer',
         'SEOProStack_Fluentforms_Turnstile',
         'SEOProStack_Turnstile_Later',
         'SEOProStack_Ai_Engine_Later',
