@@ -93,25 +93,36 @@ final class SEOProStack_Used_Css_Scripts {
         if (!preg_match_all(self::SCRIPTS, $html, $scripts, PREG_SET_ORDER)) {
             return $found;
         }
+        list($files, $inline) = self::running($scripts);
+        foreach ($files as $file) {
+            $found = self::merge($found, self::file($file));
+        }
+        return self::merge($found, self::read($inline));
+    }
+
+    /**
+     * The local files and inline code of the scripts that run as the page
+     * loads.
+     *
+     * @param array<int,array<int,string>> $scripts Script elements (SCRIPTS matches).
+     * @return array{0: string[], 1: string} Files, and inline code (MAX_INLINE at most).
+     */
+    private static function running(array $scripts) {
         $inline = '';
         $files  = array();
         foreach ($scripts as $m) {
             $attrs = SEOProStack_Used_Css_Links::attributes('<script' . $m[1] . '>');
-            $type  = isset($attrs['type']) ? trim($attrs['type']) : '';
-            if ('' !== $type && !preg_match(self::RUNS, $type)) {
+            if (isset($attrs['type']) && '' !== trim($attrs['type']) && !preg_match(self::RUNS, trim($attrs['type']))) {
                 continue; // Waits for the visitor, or is data.
             }
             $file = isset($attrs['src']) ? SEOProStack_Used_Css_Links::script_file($attrs['src']) : '';
             if ('' !== $file) {
                 $files[$file] = true;
-            } elseif ('' !== trim($m[2]) && strlen($inline) < self::MAX_INLINE) {
+            } elseif (strlen($inline) < self::MAX_INLINE) {
                 $inline .= "\n" . $m[2];
             }
         }
-        foreach (array_keys($files) as $file) {
-            $found = self::merge($found, self::file($file));
-        }
-        return self::merge($found, self::read(substr($inline, 0, self::MAX_INLINE)));
+        return array(array_keys($files), substr($inline, 0, self::MAX_INLINE));
     }
 
     /**
