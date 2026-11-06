@@ -160,7 +160,4 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 * Faster: background pictures of Kadence Blocks rows further down a page load as visitors scroll near them (#1329).
 * Fixed: text after a Kadence Advanced Slider keeps WordPress's curly quotes and dashes (#1331).
 
-= 1.3.167 =
-* New, off by default: Hreflang codes with the site's country (Content): en-JE, not en-GB, in the page and sitemap (#1313).
-
 Older: `changelog.txt`.
