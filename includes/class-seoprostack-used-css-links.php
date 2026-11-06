@@ -7,7 +7,8 @@
  * Kadence theme (and a child theme of it), one of the plugins in PLUGINS,
  * SEO Pro Stack itself or WordPress's block library (filter
  * seoprostack_used_css_sources), and not on the list to load as it is. Also
- * maps the page's scripts to their files (SEOProStack_Used_Css_Scripts).
+ * maps the page's scripts to their files (SEOProStack_Used_Css_Scripts, and
+ * SEOProStack_Jquery_Footer's check of the scripts before jQuery).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -141,6 +142,23 @@ final class SEOProStack_Used_Css_Links {
             }
         }
         return '';
+    }
+
+    /**
+     * Whether an address is on this site: relative, or this site's host and port.
+     *
+     * @param string $url Address.
+     * @return bool
+     */
+    public static function on_site($url) {
+        $parts = wp_parse_url($url);
+        if (!is_array($parts)) {
+            return false;
+        }
+        if (empty($parts['host'])) {
+            return !empty($parts['path']) && empty($parts['scheme']);
+        }
+        return self::local_host($parts);
     }
 
     /**
