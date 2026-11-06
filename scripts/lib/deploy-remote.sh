@@ -652,17 +652,60 @@ run_site_cron() {
 	return 0
 }
 
-# Sets HOME_CODE/HOME_CACHE and advances FETCHES in the caller's shell.
+# Prints the origin server's IPv4 address for the site: LiteSpeed Cache's
+# Server IP, or else the address SEO Pro Stack learned from a web request
+# (the two sources Keep pages cached pins to). Prints nothing when neither
+# is set or valid. A host behind a CDN can refuse its own uncached fetch
+# that loops back through the CDN, so the home fetch goes to the origin.
+origin_ip() {
+	local root="$1"
+	shift
+	local ip
+	# shellcheck disable=SC2016 # PHP code, not shell.
+	ip="$(wp_bare "$root" "$@" eval '$ip = trim((string) get_option("litespeed.conf.server_ip", "")); if ("" === $ip) { $learned = get_option("seoprostack_origin_ip", array()); $ip = is_array($learned) && isset($learned["ip"]) ? trim((string) $learned["ip"]) : ""; } echo "originip:" . $ip;' 2>/dev/null)" || return 0
+	ip="${ip##*originip:}"
+	if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+		printf '%s\n' "$ip"
+	fi
+	return 0
+}
+
+# Sets HOME_CODE/HOME_CACHE/HOME_PINNED and advances FETCHES in the caller's
+# shell. With an origin IP as the second argument the fetch is pinned to it
+# (curl --resolve); a pinned fetch that does not connect falls back to DNS.
 home_check() {
 	local url="$1"
-	local headers fetch result final_url final_host rc=0
+	local ip="${2:-}"
+	local headers fetch result final_url final_host rc=0 scheme host port
+	local pin=()
 	FETCHES=$((FETCHES + 1))
 	HOME_CODE="000"
 	HOME_CACHE="none"
+	HOME_PINNED=""
 	fetch="deploy-check=${RUN_STAMP}-${FETCHES}"
 	headers="$(mktemp)" || return 1
+	if [[ -n "$ip" ]]; then
+		scheme="${url%%://*}"
+		host="${url#*://}"
+		host="${host%%/*}"
+		port=443
+		[[ "$scheme" != "http" ]] || port=80
+		if [[ "$host" == *:* ]]; then
+			port="${host##*:}"
+			host="${host%:*}"
+		fi
+		pin=(--resolve "${host}:${port}:${ip}")
+		HOME_PINNED=1
+	fi
 	result="$(curl -s -o /dev/null -L -D "$headers" -w '%{http_code} %{url_effective}' --max-time 30 \
-		"${url%/}/?${fetch}")" || rc=$?
+		${pin[@]+"${pin[@]}"} "${url%/}/?${fetch}")" || rc=$?
+	if [[ "$rc" -ne 0 && -n "$HOME_PINNED" ]]; then
+		# The pinned address did not answer: use DNS, with the 4xx rule.
+		HOME_PINNED=""
+		rc=0
+		result="$(curl -s -o /dev/null -L -D "$headers" -w '%{http_code} %{url_effective}' --max-time 30 \
+			"${url%/}/?${fetch}")" || rc=$?
+	fi
 	HOME_CODE="${result%% *}"
 	# A fetch curl did not finish (timeout, reset) is no answer, even when
 	# the headers said 200.
@@ -697,7 +740,7 @@ check_sites() {
 	local kind urls url status result reason warn load purged line network=0
 	local load_errors load_status summary first_code cron_note cron_before
 	local check_error="home check failed; "
-	local url_args=()
+	local url_args=() origin
 	SITES_TOTAL=0 SITES_FAILED=0 SITES_PURGED=0 PURGE_FAILED=0 SITE_LINES=""
 	CRON_SUM_RUN=0 CRON_SUM_TOTAL=0 CRON_WARNED="" CRON_HOOKS_RUN=""
 	MAIN_STATUS="?" MAIN_CODE="000" MAIN_CACHE="none" MAIN_REASON="" MAIN_RETRIED=""
@@ -753,7 +796,8 @@ check_sites() {
 		if ! status="$(wp_bare "$root" ${url_args[@]+"${url_args[@]}"} plugin list --name="$SLUG" --field=status)" || [[ -z "$status" ]]; then
 			reason+="status read failed; "
 		fi
-		home_check "$url" || reason+="$check_error"
+		origin="$(origin_ip "$root" ${url_args[@]+"${url_args[@]}"})"
+		home_check "$url" "$origin" || reason+="$check_error"
 		# A busy host can answer one fetch with 5xx (or not at all) while the
 		# site is fine: fetch once more after a pause, and fail only if that
 		# fails too. A pass on the second fetch is a warning, not silence.
@@ -761,9 +805,10 @@ check_sites() {
 		if [[ "$HOME_CODE" == 5* || "$HOME_CODE" == "000" ]]; then
 			first_code="$HOME_CODE"
 			sleep "$HOME_RETRY_DELAY"
-			home_check "$url" || [[ "$reason" == *"$check_error"* ]] || reason+="$check_error"
+			home_check "$url" "$origin" || [[ "$reason" == *"$check_error"* ]] || reason+="$check_error"
 		fi
-		# 4xx may be the host's firewall: report, but do not fail it.
+		# 4xx may be the host's firewall: report, but do not fail it (a pinned
+		# fetch skips the CDN, so a 4xx there is the origin's own answer).
 		if [[ "$HOME_CODE" == 5* || "$HOME_CODE" == "000" ]]; then
 			reason+="home failed${first_code:+ ($first_code, then $HOME_CODE)}; "
 		elif [[ -n "$first_code" ]]; then
@@ -777,11 +822,11 @@ check_sites() {
 			result="WARN ${warn%, }"
 		fi
 		if [[ "$SITES_TOTAL" -eq 1 ]]; then
-			MAIN_STATUS="$status" MAIN_CODE="$HOME_CODE" MAIN_CACHE="$HOME_CACHE"
+			MAIN_STATUS="$status" MAIN_CODE="${HOME_CODE}${HOME_PINNED:+ pinned}" MAIN_CACHE="$HOME_CACHE"
 			MAIN_REASON="${reason%; }" MAIN_RETRIED="$first_code"
 		fi
 		if [[ "$network" -eq 1 ]]; then
-			printf -v line '    site %s\tstatus=%s\tpurged=%s\t%s\thome=%s\tcache=%s\t%s\n' "$url" "${status:-?}" "$purged" "$cron_note" "$HOME_CODE" "$HOME_CACHE" "$result"
+			printf -v line '    site %s\tstatus=%s\tpurged=%s\t%s\thome=%s\tcache=%s\t%s\n' "$url" "${status:-?}" "$purged" "$cron_note" "${HOME_CODE}${HOME_PINNED:+ pinned}" "$HOME_CACHE" "$result"
 			SITE_LINES+="$line"
 		fi
 	done <<<"$urls"
