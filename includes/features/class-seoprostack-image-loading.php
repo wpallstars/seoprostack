@@ -17,7 +17,10 @@
  * When a post or page opens with a Kadence Blocks row with a background
  * picture, the picture is preloaded at high priority from the head
  * (GH#1204), as browsers otherwise find backgrounds only after the CSS;
- * at the size the screen needs when it has smaller copies (GH#1221).
+ * at the size the screen needs when it has smaller copies (GH#1221). So is
+ * the first slide's picture of a Kadence Blocks Pro Advanced Slider it
+ * opens with, and each slider's other slides fetch theirs only as they come
+ * up (SEOProStack_Kadence_Slider, GH#1312).
  *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
@@ -139,6 +142,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             // scripts (on a test page about 40 KB of them at 1 and earlier).
             add_action('wp_head', array(__CLASS__, 'kadence_preload'), -10);
         }
+        if (defined('KBP_VERSION') && !is_admin()) {
+            // Advanced Slider slides: only the slides shown, and the next,
+            // fetch their pictures (GH#1312).
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-slider.php';
+            SEOProStack_Kadence_Slider::boot();
+        }
     }
 
     /**
@@ -152,11 +161,16 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * measures the row and fetches the smallest that is enough instead,
      * never less sharp (SEOProStack_Kadence_Hero, GH#1221).
      *
+     * A Kadence Blocks Pro Advanced Slider the page opens with: its first
+     * slide's picture, which shows first (GH#1312).
+     *
      * Left alone, so no device fetches a picture it does not show: rows
      * hidden on a device, with their own tablet or phone background, a
-     * parallax or dynamic background, or Kadence's old row markup. Also
-     * left alone when the theme shows the featured image, which comes
-     * before the content: core keeps its high priority for that picture.
+     * parallax or dynamic background, or Kadence's old row markup; rows
+     * and sliders hidden by core's Block visibility or shown on a Kadence
+     * condition. Also left alone when the theme shows the featured image,
+     * which comes before the content: core keeps its high priority for
+     * that picture.
      *
      * The head comes before the rest of the page, so a header picture with
      * fetchpriority="high" in its own markup cannot be seen from here, and
@@ -171,29 +185,30 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (!$post instanceof WP_Post || post_password_required($post) || self::feature_shown($post)) {
             return;
         }
-        // Cheap check first: the content must open with a row.
+        // Cheap check first: the content must open with a row or a slider.
         $content = ltrim($post->post_content);
-        if (0 !== strpos($content, '<!-- wp:kadence/rowlayout ')) {
+        $slider  = 0 === strpos($content, '<!-- wp:kadence/slider ');
+        if (!$slider && 0 !== strpos($content, '<!-- wp:kadence/rowlayout ')) {
             return;
         }
         $blocks = parse_blocks($content);
-        $url    = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
-        if ('' === $url) {
-            return;
-        }
-        // The size each screen needs, when the picture has smaller copies:
-        // the browser measures the row and preloads it (GH#1221).
-        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-hero.php';
-        if (!SEOProStack_Kadence_Hero::start($blocks[0]['attrs'], $post)) {
-            $type = '';
-            if (class_exists('SEOProStack_Nextgen_Images')) {
-                list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
+        if ($slider) {
+            $url = isset($blocks[0]) ? self::kadence_first_slide($blocks[0]) : '';
+            if ('' === $url) {
+                return;
             }
-            printf(
-                '<link rel="preload" as="image" href="%s"%s fetchpriority="high">' . "\n",
-                esc_url($url),
-                '' !== $type ? ' type="' . esc_attr($type) . '"' : ''
-            );
+            self::preload($url);
+        } else {
+            $url = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
+            if ('' === $url) {
+                return;
+            }
+            // The size each screen needs, when the picture has smaller
+            // copies: the browser measures the row and preloads it (GH#1221).
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-hero.php';
+            if (!SEOProStack_Kadence_Hero::start($blocks[0]['attrs'], $post)) {
+                self::preload($url);
+            }
         }
         // One picture at high priority: core would otherwise give it to the
         // first large picture it meets, often the header's logo.
@@ -205,6 +220,68 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (function_exists('wp_high_priority_element_flag')) {
             wp_high_priority_element_flag(false);
         }
+    }
+
+    /**
+     * Preload a background picture at high priority: its AVIF or WebP copy
+     * when pages name copies, as the block's CSS then does.
+     *
+     * @param string $url Picture address.
+     */
+    private static function preload($url) {
+        $type = '';
+        if (class_exists('SEOProStack_Nextgen_Images')) {
+            list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
+        }
+        printf(
+            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">' . "\n",
+            esc_url($url),
+            '' !== $type ? ' type="' . esc_attr($type) . '"' : ''
+        );
+    }
+
+    /**
+     * The picture of a Kadence Blocks Pro Advanced Slider's first slide,
+     * which shows first on every device, or ''. Kadence Blocks Pro writes
+     * it into the slide's CSS, on its normal background only; a gradient
+     * there replaces it.
+     *
+     * @param array $block Parsed block.
+     * @return string
+     */
+    private static function kadence_first_slide(array $block) {
+        if (!defined('KBP_VERSION') || empty($block['blockName']) || 'kadence/slider' !== $block['blockName']
+            || !self::shown_always(isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array())) {
+            return '';
+        }
+        $slide = isset($block['innerBlocks'][0]) && is_array($block['innerBlocks'][0]) ? $block['innerBlocks'][0] : array();
+        $attrs = isset($slide['attrs']) && is_array($slide['attrs']) ? $slide['attrs'] : array();
+        if (empty($slide['blockName']) || 'kadence/slide' !== $slide['blockName'] || !self::shown_always($attrs)
+            || !in_array($attrs['backgroundType'] ?? 'normal', array('', 'normal'), true) || !empty($attrs['backgroundGradient'])) {
+            return '';
+        }
+        $url = $attrs['backgroundImg'][0]['img'] ?? '';
+        return is_string($url) && preg_match('#^(?:https?:)?//#i', $url) ? $url : '';
+    }
+
+    /**
+     * Whether a block shows for everyone: not hidden by core's Block
+     * visibility (WordPress 6.9: false, or a list of screen sizes) and
+     * not shown on a Kadence condition.
+     *
+     * @param array $attrs Block attributes.
+     * @return bool
+     */
+    private static function shown_always(array $attrs) {
+        if (isset($attrs['metadata']['blockVisibility']) && true !== $attrs['metadata']['blockVisibility']) {
+            return false;
+        }
+        foreach ((array) ($attrs['kadenceConditional'] ?? array()) as $condition) {
+            if (is_array($condition) && !empty($condition['enable'])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -244,8 +321,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
 
     /**
      * Whether a block is a Kadence Blocks row (kbVersion 2 or later) shown,
-     * with the same background, on every device: not hidden on one, with
-     * no tablet or phone background of its own and no dynamic background.
+     * with the same background, on every device and to everyone: not
+     * hidden on one, by Block visibility or on a condition, with no tablet
+     * or phone background of its own and no dynamic background.
      *
      * @param array $block Parsed block.
      * @param array $attrs Its attributes.
@@ -255,7 +333,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (empty($block['blockName']) || 'kadence/rowlayout' !== $block['blockName'] || empty($attrs['kbVersion']) || (int) $attrs['kbVersion'] < 2) {
             return false;
         }
-        return empty($attrs['vsdesk']) && empty($attrs['vstablet']) && empty($attrs['vsmobile'])
+        return self::shown_always($attrs) && empty($attrs['vsdesk']) && empty($attrs['vstablet']) && empty($attrs['vsmobile'])
             && empty($attrs['tabletBackground'][0]['enable']) && empty($attrs['mobileBackground'][0]['enable'])
             && empty($attrs['kadenceDynamic']['bgImg']['enable']);
     }
