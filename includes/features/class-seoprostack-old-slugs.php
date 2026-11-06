@@ -175,7 +175,15 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
         if ($types) {
             $in = implode(',', array_fill(0, count($types), '%s'));
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber,PluginCheck.Security.DirectDB.UnescapedDBParameter -- one placeholder per type, built from the count only.
-            $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id INNER JOIN {$wpdb->posts} o ON o.post_type = p.post_type AND o.post_name = pm.meta_value AND o.ID <> p.ID AND o.post_status IN ('publish', 'private') WHERE pm.meta_key = %s AND p.post_type IN ($in) AND (%d = 0 OR pm.post_id = %d OR o.ID = %d) LIMIT %d", array_merge(array(self::META), $types, array($id, $id, $id, $limit))), ARRAY_N));
+            if ($id) {
+                // One post: two indexed queries instead of one with an OR across tables.
+                // This post's old slugs that another published post now has (uses post_id).
+                $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id INNER JOIN {$wpdb->posts} o ON o.post_type = p.post_type AND o.post_name = pm.meta_value AND o.ID <> p.ID AND o.post_status IN ('publish', 'private') WHERE pm.meta_key = %s AND pm.post_id = %d AND p.post_type IN ($in) LIMIT %d", array_merge(array(self::META, $id), $types, array($limit))), ARRAY_N));
+                // Other posts' old slugs equal to this post's current slug (starts from this post).
+                $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->posts} o INNER JOIN {$wpdb->postmeta} pm ON pm.meta_key = %s AND pm.meta_value = o.post_name INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = o.post_type AND p.ID <> o.ID WHERE o.ID = %d AND o.post_status IN ('publish', 'private') AND p.post_type IN ($in) LIMIT %d", array_merge(array(self::META, $id), $types, array($limit))), ARRAY_N));
+            } else {
+                $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id INNER JOIN {$wpdb->posts} o ON o.post_type = p.post_type AND o.post_name = pm.meta_value AND o.ID <> p.ID AND o.post_status IN ('publish', 'private') WHERE pm.meta_key = %s AND p.post_type IN ($in) LIMIT %d", array_merge(array(self::META), $types, array($limit))), ARRAY_N));
+            }
         }
         // phpcs:enable
 
