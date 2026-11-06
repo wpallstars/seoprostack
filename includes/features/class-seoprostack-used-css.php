@@ -3,12 +3,14 @@
  * Used CSS: each page gets the CSS rules it uses, in the page, and the full
  * stylesheets load without holding up its first paint.
  *
- * Only for the Kadence theme, Kadence Blocks (Pro), Kadence Pro, Fluent
- * Forms (Pro) and WordPress's block library: the stylesheets SEO Pro Stack
- * recommends and tests, so it never has to support every other theme and
- * plugin (owner's decision, GitHub issue #1194). Everything works on the
- * site's own server, with no cloud service or licence, unlike FlyingPress
- * 5's and LiteSpeed Cache's unused-CSS services.
+ * Only for the Kadence theme (and a child theme of it), the plugins SEO Pro
+ * Stack recommends, their Pro add-ons, Kadence's own plugins, the plugins
+ * it works with (SEOProStack_Used_Css_Links::PLUGINS) and WordPress's block
+ * library: the stylesheets SEO Pro Stack recommends and tests, so it never
+ * has to support every other theme and plugin (owner's decisions, GitHub
+ * issues #1194 and #1260). Everything works on the site's own server, with
+ * no cloud service or licence, unlike FlyingPress 5's and LiteSpeed Cache's
+ * unused-CSS services.
  *
  * For visitors who are not logged in, on normal GET pages, each such
  * `<link rel="stylesheet">` becomes (SEOProStack_Used_Css_Page):
@@ -19,8 +21,9 @@
  *   once loaded), so every rule applies again soon after, as before;
  * - a `<noscript>` copy for browsers without JavaScript.
  * A rule is used when the page has every class, ID and element one of its
- * selectors names; classes the supported scripts add after the page loads
- * count as present (SEOProStack_Used_Css_Match). Which links are handled:
+ * selectors names; classes and elements the page's scripts may add after
+ * it loads count as present (SEOProStack_Used_Css_Match,
+ * SEOProStack_Used_Css_Scripts). Which links are handled:
  * SEOProStack_Used_Css_Links. The Kadence theme's local fonts stylesheet
  * (wp-content/fonts/, handle kadence-fonts-*) is handled too, and Kadence
  * Pro's dark mode script (kadence-dark-mode, up to 8 KB) is printed in the
@@ -51,6 +54,7 @@ require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-selector.php
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-parser.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-sheet.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-links.php';
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-scripts.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-match.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-page.php';
@@ -73,7 +77,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'speed',
                 'label'       => __('Load the CSS each page uses first', 'seoprostack'),
-                'description' => __('For the Kadence theme, Kadence Blocks, Fluent Forms and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. The Kadence theme’s local Google Fonts stylesheet loads without blocking, and Kadence Pro’s dark mode script goes into the page. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
+                'description' => __('For the Kadence theme, the plugins SEO Pro Stack recommends (Kadence Blocks, Fluent Forms, Tutor LMS and others) and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. The Kadence theme’s local Google Fonts stylesheet loads without blocking, and Kadence Pro’s dark mode script goes into the page. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
             ),
             self::EXCLUDE_KEY => array(
                 'type'        => 'lines',
@@ -141,18 +145,19 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
 
     /**
      * Recommended speed settings' entry (SEOProStack_Speed_Plan): recommended
-     * where the Kadence theme, Kadence Blocks or Fluent Forms is active.
+     * where the Kadence theme or one of the plugins whose stylesheets it
+     * handles is active.
      *
      * @return array{state:string,why:string,cost:string}
      */
     public static function plan() {
         // Active plugins as stored: one skipped on this screen still counts.
         if (!self::kadence_theme() && !array_intersect_key(self::active_plugins(), array_flip(SEOProStack_Used_Css_Links::PLUGINS))) {
-            return array('state' => 'skip', 'why' => __('For the Kadence theme, Kadence Blocks or Fluent Forms, none of which is active.', 'seoprostack'), 'cost' => '');
+            return array('state' => 'skip', 'why' => __('For the Kadence theme and the plugins SEO Pro Stack recommends, none of which is active.', 'seoprostack'), 'cost' => '');
         }
         return array(
             'state' => 'recommended',
-            'why'   => __('The Kadence theme, Kadence Blocks or Fluent Forms is active: each page waits for all their stylesheets before it shows anything.', 'seoprostack'),
+            'why'   => __('The Kadence theme or plugins SEO Pro Stack recommends are active: each page waits for all their stylesheets before it shows anything.', 'seoprostack'),
             'cost'  => __('Pages not in the page cache take a few milliseconds more to build. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
         );
     }

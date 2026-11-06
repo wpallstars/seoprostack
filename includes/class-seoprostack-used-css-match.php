@@ -3,12 +3,14 @@
  * Used CSS: which of a stylesheet's rules one page can use.
  *
  * A rule is used when the page has every class, ID and element one of its
- * selectors names. Classes that Kadence's, Kadence Blocks', Fluent Forms'
- * and their libraries' scripts add after the page loads (menus, drawers,
- * the sticky header, tabs, accordions, dark mode, form errors, the phone
- * field's flags, dropdowns and date pickers) count as present, so those
- * parts look right before the full stylesheets arrive. The
- * `seoprostack_used_css_classes` filter adds more ("name" or "prefix*").
+ * selectors names. Classes and elements the page's scripts may add after it
+ * loads count as present (SEOProStack_Used_Css_Scripts), and so do the
+ * classes in CLASSES that Kadence's, Kadence Blocks', Fluent Forms' and
+ * their libraries' scripts add (menus, drawers, the sticky header, tabs,
+ * accordions, dark mode, form errors, the phone field's flags, dropdowns
+ * and date pickers), so those parts look right before the full stylesheets
+ * arrive. The `seoprostack_used_css_classes` filter adds more ("name" or
+ * "prefix*").
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -67,6 +69,14 @@ final class SEOProStack_Used_Css_Match {
     private $prefixes = '';
 
     /**
+     * Words in the page's scripts that could be class or element names, and
+     * prefixes the scripts build class names from.
+     *
+     * @var array{names: array<string,bool>, prefixes: array<string,bool>}
+     */
+    private $scripts = array('names' => array(), 'prefixes' => array());
+
+    /**
      * Rules for one page.
      *
      * @param string $html Page.
@@ -85,6 +95,7 @@ final class SEOProStack_Used_Css_Match {
         if (null === $this->present) {
             $this->present  = self::tokens($this->html);
             $this->prefixes = self::prefixes();
+            $this->scripts  = SEOProStack_Used_Css_Scripts::classes($this->html);
             $this->html     = '';
         }
         $out = '';
@@ -138,9 +149,47 @@ final class SEOProStack_Used_Css_Match {
      */
     private function has($token) {
         if (!isset($this->present[$token])) {
-            $this->present[$token] = '' !== $this->prefixes && '' !== $token && '.' === $token[0] && preg_match($this->prefixes, substr($token, 1));
+            $this->present[$token] = '' !== $token && $this->added($token);
         }
         return $this->present[$token];
+    }
+
+    /**
+     * Whether a class or element the page's HTML does not have may be added
+     * by its scripts.
+     *
+     * @param string $token `.class`, `#id` or element.
+     * @return bool
+     */
+    private function added($token) {
+        if ('#' === $token[0]) {
+            return false;
+        }
+        if ('.' !== $token[0]) {
+            return isset($this->scripts['names'][$token]); // An element a script may create.
+        }
+        $class = substr($token, 1);
+        if (isset($this->scripts['names'][$class]) || ('' !== $this->prefixes && preg_match($this->prefixes, $class))) {
+            return true;
+        }
+        return $this->built($class);
+    }
+
+    /**
+     * Whether a class starts with a prefix a script builds class names
+     * from: each start of the name up to a - or _.
+     *
+     * @param string $class Class name.
+     * @return bool
+     */
+    private function built($class) {
+        $length = strlen($class);
+        for ($i = SEOProStack_Used_Css_Scripts::MIN_PREFIX - 1; $i < $length; $i++) {
+            if (('-' === $class[$i] || '_' === $class[$i]) && isset($this->scripts['prefixes'][substr($class, 0, $i + 1)])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
