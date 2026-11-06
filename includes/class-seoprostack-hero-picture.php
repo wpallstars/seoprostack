@@ -53,6 +53,35 @@ class SEOProStack_Hero_Picture {
     }
 
     /**
+     * A picture as the sizing scripts take it (SEOProStack_Kadence_Hero,
+     * SEOProStack_Kadence_Slider): each file's address written as CSS's
+     * url(…), and its empty fields at the end left out. LiteSpeed Cache's
+     * WebP replacement rewrites every url() in the page whose picture has a
+     * .webp (or .avif) file beside it, on the pages where it rewrites the
+     * block's CSS, so a script then sets, and preloads, the same copy that
+     * CSS would name (GH#1333). The addresses can go in url() as they are
+     * (css_url()).
+     *
+     * @param array $picture As get() gives it.
+     * @return array{w:int,h:int,c:array<int,array>}
+     */
+    public static function for_script(array $picture) {
+        $files = array();
+        foreach ($picture['c'] as $file) {
+            $entry = array($file[0], 'url(' . $file[1] . ')', $file[2], $file[3], $file[4]);
+            while (count($entry) > 2 && '' === end($entry)) {
+                array_pop($entry);
+            }
+            $files[] = $entry;
+        }
+        return array(
+            'w' => $picture['w'],
+            'h' => $picture['h'],
+            'c' => $files,
+        );
+    }
+
+    /**
      * An attachment's metadata, when the row's address can go in CSS, the
      * metadata has its file and the address is in its folder; null when
      * not. A missing size is caught by get().

@@ -1,8 +1,9 @@
 <?php
 /**
  * Kadence Blocks Pro Advanced Slider: only the slides shown fetch their
- * pictures, and the next ones once the first is in (GH#1312), for Image
- * loading (SEOProStack_Image_Loading).
+ * pictures, and the next ones once the first is in (GH#1312), each at the
+ * size the screen needs (GH#1333), for Image loading
+ * (SEOProStack_Image_Loading).
  *
  * Kadence Blocks Pro writes each slide's picture into the block's CSS, and
  * Splide keeps every slide rendered (stacked at opacity 0 when slides fade,
@@ -24,6 +25,30 @@
  * slide's picture, as before. Without JavaScript nothing waits, and
  * browsers without :not() selector lists (Selectors Level 4) drop the
  * rules, so nothing waits either.
+ *
+ * Sizes (GH#1333). A slide names one picture, often the full upload, so
+ * phones got it too. When a slide's picture has smaller copies of the same
+ * proportions (SEOProStack_Hero_Picture, as for the row a page opens with,
+ * GH#1221), a script right after the slider measures its slides and takes,
+ * for each, the smallest copy at least as wide as the pixels it paints,
+ * with 10% to spare, else the slide's own picture: never less sharp. The
+ * choice goes in a style rule per slide, by its kb-slide-<id> class, so
+ * Splide's loop copies get it too; the rule has !important but is less
+ * specific than the wait's, so slides still wait. If the slides grow or
+ * the screen's pixels get denser, a larger copy replaces it, never a
+ * smaller one. When a post or page opens with the slider, the first
+ * slide's choice is preloaded at high priority, in place of the head's
+ * preload of its own picture. Each file is written as CSS's url(…), so
+ * LiteSpeed Cache's WebP replacement, which rewrites every url() in the
+ * page whose picture has a .webp file beside it, names its copy there
+ * too, on the pages where it names it in the slide's CSS (GH#1326).
+ *
+ * Until the script after the slider has set its rules, a class on <html>
+ * hides that slider's pictures, so the full ones are not fetched as well.
+ * A script adds the class, so without JavaScript nothing is hidden, and it
+ * goes when the page is read even if the script after the slider did not
+ * run. Only `background-size: cover` and `contain` and a normal background
+ * (a gradient replaces the picture); classic themes only, as for the row.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -51,6 +76,18 @@ class SEOProStack_Kadence_Slider {
     /** Class on a slider whose slides all show their pictures (the fail-safe). */
     const ALL = 'sps-slides-all';
 
+    /** Class on <html> under which sliders' pictures wait for their size (GH#1333). */
+    const SIZING = 'sps-sizing';
+
+    /** Class on a slider once its slides' sizes are set. */
+    const SIZED = 'sps-sized';
+
+    /** @var string Unique ID of the slider the page opens with, when its first slide's chosen copy is preloaded from it. */
+    private static $opens = '';
+
+    /** @var string That slide's own picture, preloaded before the slider if it is not sized after all. */
+    private static $opens_url = '';
+
     /**
      * Register hooks.
      */
@@ -59,8 +96,38 @@ class SEOProStack_Kadence_Slider {
     }
 
     /**
-     * Before a slider on a front-end page: the style that keeps its other
-     * slides' pictures waiting, and the script that turns it on.
+     * When a post or page opens with the slider
+     * (SEOProStack_Image_Loading::kadence_preload()): whether its first
+     * slide's picture comes at the size the screen needs, so the script
+     * after the slider preloads the copy it takes. Then prints, for
+     * browsers without JavaScript, the preload of the slide's own picture.
+     *
+     * @param array  $block Parsed slider block.
+     * @param string $url   First slide's picture, as the head would preload it.
+     * @return bool
+     */
+    public static function opens(array $block, $url) {
+        $slider  = self::slider_id($block);
+        $first   = $block['innerBlocks'][0] ?? null;
+        $picture = '' !== $slider && is_array($first) && self::sizing($block) ? self::picture($first) : null;
+        if (!$picture) {
+            return false;
+        }
+        self::$opens     = $slider;
+        self::$opens_url = (string) $url;
+        $own             = $picture['c'][count($picture['c']) - 1];
+        printf(
+            '<noscript><link rel="preload" as="image" href="%s"%s fetchpriority="high"></noscript>' . "\n",
+            esc_url('' !== $own[3] ? $own[3] : $own[1]),
+            '' !== $own[4] ? ' type="' . esc_attr($own[4]) . '"' : ''
+        );
+        return true;
+    }
+
+    /**
+     * Around a slider on a front-end page: before it, the styles and
+     * scripts that size its slides' pictures and keep the other slides'
+     * waiting; after it, the script that sizes them.
      *
      * @param mixed $html  Block HTML.
      * @param array $block Parsed block.
@@ -70,9 +137,37 @@ class SEOProStack_Kadence_Slider {
         if (!is_string($html) || '' === $html || !is_array($block) || !self::front_page()) {
             return $html;
         }
+        $slider = self::slider_id($block);
+        // Not cleared once used: the content can be rendered more than once.
+        $opens = '' !== self::$opens && $slider === self::$opens;
+        if ('' === $slider || false === strpos($html, 'kb-advanced-slider-' . $slider)) {
+            return ($opens ? self::own_preload() : '') . $html;
+        }
+        $pictures = self::sizing($block) ? self::pictures($block) : array();
+        $first    = $block['innerBlocks'][0]['attrs']['uniqueID'] ?? '';
+        // The first slide's copy is preloaded only when it is sized.
+        $preload = $opens && $pictures && $first === $pictures[0]['n'];
+        $before  = $opens && !$preload ? self::own_preload() : '';
+        $after   = '';
+        if ($pictures) {
+            $before .= self::size_style($slider) . self::size_script();
+            $after   = self::size_call($slider, $pictures, $preload);
+        }
+        return $before . self::wait($html, $block) . $html . $after;
+    }
+
+    /**
+     * Before a slider: the style that keeps its other slides' pictures
+     * waiting, and the script that turns it on; '' when it does not apply.
+     *
+     * @param string $html  Block HTML.
+     * @param array  $block Parsed block.
+     * @return string
+     */
+    private static function wait($html, array $block) {
         $ids = self::ids($block);
-        if (!$ids || false === strpos($html, 'kb-advanced-slider-' . $ids[0]) || false === strpos($html, 'kb-slide-' . $ids[1])) {
-            return $html;
+        if (!$ids || false === strpos($html, 'kb-slide-' . $ids[1])) {
+            return '';
         }
         /**
          * Whether a Kadence Blocks Pro Advanced Slider's slides fetch their
@@ -83,9 +178,9 @@ class SEOProStack_Kadence_Slider {
          * @param array $block Parsed slider block.
          */
         if (!apply_filters('seoprostack_kadence_slider_wait', true, $block)) {
-            return $html;
+            return '';
         }
-        return self::style($ids[0], $ids[1]) . self::script() . $html;
+        return self::style($ids[0], $ids[1]) . self::script();
     }
 
     /**
@@ -102,6 +197,256 @@ class SEOProStack_Kadence_Slider {
     }
 
     /**
+     * A block's unique ID, when it can go in a CSS class name; '' when not.
+     *
+     * @param mixed $id Unique ID.
+     * @return string
+     */
+    private static function usable_id($id) {
+        return is_string($id) && preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id) ? $id : '';
+    }
+
+    /**
+     * The slider's unique ID, when it can go in a CSS class name; '' when not.
+     *
+     * @param array $block Parsed slider block.
+     * @return string
+     */
+    private static function slider_id(array $block) {
+        return self::usable_id($block['attrs']['uniqueID'] ?? '');
+    }
+
+    /**
+     * Whether a slider's slides may come at the size each screen needs:
+     * classic themes (block themes render the content before the head), and
+     * the filter.
+     *
+     * @param array $block Parsed slider block.
+     * @return bool
+     */
+    private static function sizing(array $block) {
+        if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
+            return false;
+        }
+        /**
+         * Whether a Kadence Blocks Pro Advanced Slider's slides get their
+         * pictures at the size each screen needs. Off: every screen gets the
+         * picture each slide names.
+         *
+         * @param bool  $on    Default true.
+         * @param array $block Parsed slider block.
+         */
+        return (bool) apply_filters('seoprostack_kadence_slider_sizes', true, $block);
+    }
+
+    /**
+     * The slides' pictures that have smaller copies, in slide order.
+     *
+     * @param array $block Parsed slider block.
+     * @return array<int,array>
+     */
+    private static function pictures(array $block) {
+        $slides = isset($block['innerBlocks']) && is_array($block['innerBlocks']) ? $block['innerBlocks'] : array();
+        $ids    = array();
+        foreach ($slides as $slide) {
+            $id = $slide['attrs']['backgroundImg'][0]['id'] ?? 0;
+            if (is_numeric($id) && (int) $id > 0) {
+                $ids[] = (int) $id;
+            }
+        }
+        // One query for the attachments and their metadata, not two a slide.
+        if ($ids && function_exists('_prime_post_caches')) {
+            _prime_post_caches(array_unique($ids), false, true);
+        }
+        $list = array();
+        foreach ($slides as $slide) {
+            $picture = is_array($slide) ? self::picture($slide) : null;
+            if ($picture) {
+                $list[] = $picture;
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * A slide's picture with its smaller copies (SEOProStack_Hero_Picture),
+     * and the slide's unique ID as n: for a normal background without a
+     * gradient, sized cover (Kadence Blocks Pro's default) or contain. Null
+     * when not, or when the picture has no smaller copies.
+     *
+     * @param array $slide Parsed slide block.
+     * @return array|null
+     */
+    private static function picture(array $slide) {
+        $attrs = isset($slide['attrs']) && is_array($slide['attrs']) ? $slide['attrs'] : array();
+        $image = $attrs['backgroundImg'][0] ?? null;
+        $id    = self::usable_id($attrs['uniqueID'] ?? '');
+        if (empty($slide['blockName']) || 'kadence/slide' !== $slide['blockName'] || '' === $id || !is_array($image)
+            || !in_array($attrs['backgroundType'] ?? 'normal', array('', 'normal'), true) || !empty($attrs['backgroundGradient'])
+            || !in_array($image['size'] ?? '', array('', 'cover', 'contain'), true)) {
+            return null;
+        }
+        require_once __DIR__ . '/class-seoprostack-hero-picture.php';
+        $picture = SEOProStack_Hero_Picture::get($image['id'] ?? 0, $image['img'] ?? '');
+        if (!$picture || count($picture['c']) < 2) {
+            return null;
+        }
+        $picture['n'] = $id;
+        return $picture;
+    }
+
+    /**
+     * The preload of the first slide's own picture, before a slider the
+     * head left it to that was not sized after all.
+     *
+     * @return string
+     */
+    private static function own_preload() {
+        return '' === self::$opens_url ? '' : sprintf('<link rel="preload" as="image" href="%s" fetchpriority="high">', esc_url(self::$opens_url));
+    }
+
+    /**
+     * The style that hides a slider's pictures until its sizes are set.
+     *
+     * @param string $slider Slider's unique ID (letters, digits, - and _).
+     * @return string
+     */
+    private static function size_style($slider) {
+        return '<style class="seoprostack-slide-sizes" data-no-optimize="1">html.' . self::SIZING . ' .kb-advanced-slider-' . $slider . ':not(.' . self::SIZED
+            . ') .wp-block-kadence-slide>.kb-advanced-slide>.kb-advanced-slide-inner-wrap{background-image:none!important}</style>';
+    }
+
+    /**
+     * After a slider: the script that sizes its slides' pictures, with
+     * each picture's proportions and files, narrowest first, as width and
+     * url(…) (then, when there are, image-set() of its copies, the address
+     * to preload and its type).
+     *
+     * @param string $slider   Slider's unique ID (letters, digits, - and _).
+     * @param array  $pictures Pictures, as picture() gives them.
+     * @param bool   $preload  Whether the first picture's copy is preloaded.
+     * @return string
+     */
+    private static function size_call($slider, array $pictures, $preload) {
+        $list = array();
+        foreach ($pictures as $picture) {
+            $list[] = SEOProStack_Hero_Picture::for_script($picture) + array('n' => $picture['n']);
+        }
+        $data = array(
+            's' => $slider,
+            'f' => $preload ? 1 : 0,
+            'p' => $list,
+        );
+        // No < in the content (wptexturize(), see script()); JSON_HEX_TAG
+        // writes it, and >, as \u003C and \u003E.
+        $json = (string) wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
+        return wp_get_inline_script_tag('window.seoprostackSlideSizes&&seoprostackSlideSizes(document.currentScript,' . $json . ')', SEOProStack_Kadence_Hero::SCRIPT_ATTRS);
+    }
+
+    /**
+     * The script that sizes the slides' pictures, as the page is read;
+     * once a page, whichever slider's copy runs first. No "<" (script()).
+     *
+     * @return string
+     */
+    private static function size_script() {
+        $script = <<<'JS'
+(function (d, w) {
+    var e = d.documentElement;
+    // Once, as the page is read; left alone when run late by an optimiser.
+    if (w.seoprostackSlideSizes || 'loading' !== d.readyState || !e.classList || !w.getComputedStyle || !d.head) { return; }
+    e.classList.add('sps-sizing');
+    // Whatever happens below, every slider shows its pictures once the page is read.
+    d.addEventListener('DOMContentLoaded', function () { e.classList.remove('sps-sizing'); });
+    w.seoprostackSlideSizes = function (s, h) {
+        var k = 'kb-advanced-slider-' + h.s, root = s && s.previousElementSibling;
+        if (!root || !root.classList.contains(k)) { root = d.querySelector('.' + k); }
+        if (!root) { return; }
+        try { size(root, k, h.p, h.f); } finally { root.classList.add('sps-sized'); }
+    };
+    function size(root, k, p, preload) {
+        var wraps = root.getElementsByClassName('kb-advanced-slide-inner-wrap'), st = d.createElement('style'), b, f, l, o;
+        // The slides' box: the largest laid out (before Splide starts, the first slide).
+        function box() {
+            var r = { w: 0, h: 0 };
+            Array.prototype.forEach.call(wraps, function (x) {
+                var c = x.getBoundingClientRect();
+                r.w = Math.max(r.w, c.width);
+                r.h = Math.max(r.h, c.height);
+            });
+            return r;
+        }
+        // Device pixels a picture paints across, with 10% to spare.
+        function need(q, r) {
+            var a = q.w / q.h;
+            if (!r.w || !r.h) { return 0; }
+            return ('cover' === q.z ? Math.max(r.w, r.h * a) : Math.min(r.w, r.h * a)) * (w.devicePixelRatio || 1) * 1.1;
+        }
+        // The narrowest file that is enough, else the slide's own (the last).
+        function pick(q, r) {
+            var n = need(q, r), j = 0;
+            if (!n) { return q.c.length - 1; }
+            while (q.c.length - 1 > j && n > q.c[j][0]) { j++; }
+            return j;
+        }
+        function rules() {
+            var css = '';
+            p.forEach(function (q) {
+                var f, sel;
+                if (!q.z) { return; }
+                f = q.c[q.i];
+                sel = '.' + k + ' .kb-slide-' + q.n + '>.kb-advanced-slide>.kb-advanced-slide-inner-wrap{background-image:';
+                css += sel + f[1] + '!important}';
+                // Browsers without image-set() types drop this one and keep the url().
+                if (f[2]) { css += sel + f[2] + '!important}'; }
+            });
+            st.textContent = css;
+        }
+        b = box();
+        p.forEach(function (q) {
+            var x = root.querySelector('.kb-slide-' + q.n + '>.kb-advanced-slide>.kb-advanced-slide-inner-wrap');
+            q.z = x ? w.getComputedStyle(x).backgroundSize : '';
+            if ('cover' === q.z || 'contain' === q.z) { q.i = pick(q, b); } else { q.z = ''; }
+        });
+        // The first slide's file, at high priority, as the head would have.
+        if (preload && p[0]) {
+            f = p[0].c[p[0].z ? p[0].i : p[0].c.length - 1];
+            l = d.createElement('link');
+            l.rel = 'preload';
+            l.as = 'image';
+            if (f[4]) { l.type = f[4]; }
+            l.setAttribute('fetchpriority', 'high');
+            l.href = f[3] || f[1].slice(4, -1);
+            d.head.appendChild(l);
+        }
+        rules();
+        d.head.appendChild(st);
+        // Larger when the slides grow, or when the screen's pixels get denser
+        // (the window moved to another display, or zoomed); never smaller.
+        function grow() {
+            var r = box(), more = 0;
+            p.forEach(function (q) {
+                var j = q.z ? pick(q, r) : 0;
+                if (j > q.i) { q.i = j; more = 1; }
+            });
+            if (more) { rules(); }
+        }
+        if (w.ResizeObserver) {
+            o = new w.ResizeObserver(grow);
+            o.observe(root);
+            Array.prototype.forEach.call(wraps, function (x) { o.observe(x); });
+        }
+        (function watch() {
+            var m = w.matchMedia && w.matchMedia('(resolution: ' + (w.devicePixelRatio || 1) + 'dppx)');
+            if (m && m.addEventListener) { m.addEventListener('change', function () { grow(); watch(); }, { once: true }); }
+        })();
+    }
+})(document, window);
+JS;
+        return wp_get_inline_script_tag($script, SEOProStack_Kadence_Hero::SCRIPT_ATTRS);
+    }
+
+    /**
      * The slider's unique ID and its first slide's, when both can go in a
      * CSS class name and another slide has a picture; none when not.
      *
@@ -110,14 +455,8 @@ class SEOProStack_Kadence_Slider {
      */
     private static function ids(array $block) {
         $slides = isset($block['innerBlocks']) && is_array($block['innerBlocks']) ? array_values($block['innerBlocks']) : array();
-        $first  = $slides[0]['attrs']['uniqueID'] ?? '';
-        $ids    = array($block['attrs']['uniqueID'] ?? '', $first);
-        foreach ($ids as $id) {
-            if (!is_string($id) || !preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id)) {
-                return array();
-            }
-        }
-        if (empty($slides[0]['blockName']) || 'kadence/slide' !== $slides[0]['blockName']) {
+        $ids    = array(self::slider_id($block), self::usable_id($slides[0]['attrs']['uniqueID'] ?? ''));
+        if ('' === $ids[0] || '' === $ids[1] || empty($slides[0]['blockName']) || 'kadence/slide' !== $slides[0]['blockName']) {
             return array();
         }
         foreach (array_slice($slides, 1) as $slide) {

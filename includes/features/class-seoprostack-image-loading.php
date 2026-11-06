@@ -20,7 +20,8 @@
  * at the size the screen needs when it has smaller copies (GH#1221). So is
  * the first slide's picture of a Kadence Blocks Pro Advanced Slider it
  * opens with, and each slider's other slides fetch theirs only as they come
- * up (SEOProStack_Kadence_Slider, GH#1312). Where LiteSpeed Cache's WebP
+ * up (SEOProStack_Kadence_Slider, GH#1312), each at the size the screen
+ * needs when it has smaller copies (GH#1333). Where LiteSpeed Cache's WebP
  * replacement names its copy in the block's CSS, the preload names it too
  * (GH#1326). Rows further down fetch their background pictures as the
  * visitor scrolls near them (SEOProStack_Kadence_Rows, GH#1329).
@@ -174,7 +175,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * never less sharp (SEOProStack_Kadence_Hero, GH#1221).
      *
      * A Kadence Blocks Pro Advanced Slider the page opens with: its first
-     * slide's picture, which shows first (GH#1312).
+     * slide's picture, which shows first (GH#1312); when it has smaller
+     * copies, the script after the slider preloads the one the screen needs
+     * instead (SEOProStack_Kadence_Slider::opens(), GH#1333).
      *
      * Left alone, so no device fetches a picture it does not show: rows
      * hidden on a device, with their own tablet or phone background, a
@@ -209,7 +212,11 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             if ('' === $url) {
                 return;
             }
-            self::preload($url);
+            // The size each screen needs, when the picture has smaller
+            // copies: the script after the slider preloads it (GH#1333).
+            if (!class_exists('SEOProStack_Kadence_Slider') || !SEOProStack_Kadence_Slider::opens($blocks[0], $url)) {
+                self::preload($url);
+            }
         } else {
             $url = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
             if ('' === $url) {
