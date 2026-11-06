@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.161
+Stable tag: 1.3.162
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,8 +154,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.161 =
-* Faster: Tutor LMS files and AI Engine's chatbot load only where used; Load plugins only where needed skips Tutor elsewhere (#1258, #1261, #1264).
-* Faster: Used CSS covers recommended plugins (#1260); media storage originals leave wp_options (#1252).
+= 1.3.162 =
+* Faster: SEO Pro Stack's own small stylesheets are in the page (#1257).
+* Fix: AI Engine chatbot on first use, scheduled task saves, media storage retries, licence checks and dark mode icons (#1268, #1270, #1266, #1256, #1255, #1279).
 
 Older: `changelog.txt`.
