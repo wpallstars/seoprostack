@@ -119,6 +119,25 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         'xmlrpc_enabled', 'xmlrpc_methods', 'rest_authentication_errors', 'registration_errors', 'lostpassword_post',
     );
 
+    /**
+     * Callbacks on always-load and login hooks that do nothing on the page
+     * views that skip plugins (SEOProStack_Plugin_Loader::front_request():
+     * GET of index.php, not the REST API), so they do not make their plugin
+     * always load or count as checking logins. Tutor LMS and Tutor LMS Pro
+     * 4.2.0: api_auth() changes the user only on a Tutor REST route; the
+     * others run when someone logs in or registers, which loads every
+     * plugin. A login form that shows Tutor's fields renders differently
+     * without it, so the address keeps it (GitHub issue #1264).
+     */
+    const FRONT_INERT_CALLBACKS = array(
+        'determine_current_user' => array('TUTOR\\RestAuth::api_auth'),
+        'authenticate'           => array('TutorPro\\Auth\\SpamProtection::auth_check'),
+        'wp_authenticate_user'   => array('TUTOR_PRO\\EmailVerification::check_status', 'TutorPro\\Auth\\_2FA::check_login'),
+        'wp_login'               => array('TUTOR\\User::update_user_last_login', 'TUTOR\\User::set_timezone'),
+        'login_form'             => array('TUTOR\\User::add_timezone_input', 'TutorPro\\Auth\\SpamProtection::extend_login_form'),
+        'registration_errors'    => array('TutorPro\\Auth\\SpamProtection::handle_registration_spam_protection'),
+    );
+
     /** Hooks that change how email is sent. */
     const FRONT_EMAIL_HOOKS = array(
         'phpmailer_init', 'wp_mail', 'pre_wp_mail', 'wp_mail_from', 'wp_mail_from_name', 'wp_mail_content_type',
@@ -2424,8 +2443,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                     if ('woocommerce/woocommerce.php' !== SEOProStack_Plugin_Loader::plugin_for_callback($function)) {
                         continue;
                     }
-                    $id = is_array($function) ? (is_object($function[0]) ? get_class($function[0]) : $function[0]) . '::' . $function[1] : $function;
-                    if (!isset($public_hooks[$name]) || !in_array($id, $public_hooks[$name], true)) {
+                    if (!isset($public_hooks[$name]) || !in_array(self::callback_id($function), $public_hooks[$name], true)) {
                         return false;
                     }
                 }
@@ -2612,9 +2630,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             if ('' === $kind) {
                 continue;
             }
+            $inert = isset(self::FRONT_INERT_CALLBACKS[$name]) ? self::FRONT_INERT_CALLBACKS[$name] : array();
             foreach ($hook->callbacks as $callbacks) {
                 foreach ($callbacks as $callback) {
-                    $note(SEOProStack_Plugin_Loader::plugin_for_callback($callback['function']), $kind);
+                    if (!$inert || !in_array(self::callback_id($callback['function']), $inert, true)) {
+                        $note(SEOProStack_Plugin_Loader::plugin_for_callback($callback['function']), $kind);
+                    }
                 }
             }
         }
@@ -2652,6 +2673,20 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $notes[$plugin] = array_values(array_intersect($order, array_keys($kinds)));
         }
         return $notes;
+    }
+
+    /**
+     * A hook callback as Class::method, or the function's name; '' for a
+     * closure or invokable object.
+     *
+     * @param mixed $function Callback.
+     * @return string
+     */
+    private static function callback_id($function) {
+        if (is_array($function) && isset($function[0], $function[1]) && is_string($function[1])) {
+            return (is_object($function[0]) ? get_class($function[0]) : (string) $function[0]) . '::' . $function[1];
+        }
+        return is_string($function) ? $function : '';
     }
 
     /**
