@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: Keep pages cached fills the copy of each page browsers get when the page cache keeps a WebP copy (#1324).
+
 = 1.3.167 =
 * New, off by default: Hreflang codes with the site's country (Content): en-JE, not en-GB, in the page and sitemap (#1313).
 

@@ -25,6 +25,13 @@ final class SEOProStack_Keep_Cached_Requests {
     const AGENT  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 SEOProStack-KeepCached';
     const MOBILE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 SEOProStack-KeepCached';
 
+    /**
+     * What a browser accepts when it opens a page (Chrome's). With WebP on,
+     * LiteSpeed Cache and WP-Optimize keep a separate copy for browsers that
+     * accept WebP, which every current browser does: this fills that copy (#1324).
+     */
+    const ACCEPT = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8';
+
     /** Answers that mean the server refuses requests for now (bot protection, limits, maintenance). */
     const REFUSED = array(403, 429, 503);
 
@@ -234,7 +241,7 @@ final class SEOProStack_Keep_Cached_Requests {
             'timeout'     => self::TIMEOUT, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- in WP-Cron, never on a visitor's page: an uncached page can take several seconds to build.
             'redirection' => 0,
             'user-agent'  => $agent,
-            'headers'     => array('Accept' => 'text/html,application/xhtml+xml'),
+            'headers'     => array('Accept' => self::ACCEPT),
             // Core's filter for requests to the site itself, as its loopback test uses.
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
         );
