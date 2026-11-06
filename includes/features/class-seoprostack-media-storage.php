@@ -3366,7 +3366,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // One attachment must not hold up the whole library. Its files stay
             // local; the timed mark expires after KEPT_RETRY and the picture is
             // checked again (retry-failed or a changed connection revisit it sooner).
-            update_post_meta($id, self::LOCAL, self::kept_timed_mark());
+            self::record_timed_mark($id);
             return true;
         }
         if (!$removing && in_array($result->get_error_code(), self::STUCK_ERRORS, true)) {
@@ -3806,6 +3806,43 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function kept_timed_mark() {
         return 'kept:' . self::config()['signature'] . ':' . time();
+    }
+
+    /**
+     * Store the timed kept mark unless the picture already has the permanent
+     * one (a restore may have set it while the removal check was running).
+     * One conditional UPDATE, so a concurrent permanent mark is never overwritten.
+     *
+     * @param int $id Attachment ID.
+     */
+    private static function record_timed_mark($id) {
+        global $wpdb;
+        $permanent = 'kept:' . self::config()['signature'];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-set on one meta row.
+        $updated = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND meta_value <> %s", self::kept_timed_mark(), (int) $id, self::LOCAL, $permanent));
+        if ($updated) {
+            wp_cache_delete((int) $id, 'post_meta');
+            return;
+        }
+        // No row yet: add it (unique, so a row added meanwhile stays).
+        add_post_meta($id, self::LOCAL, self::kept_timed_mark(), true);
+    }
+
+    /**
+     * When the earliest timed kept mark of this connection expires, so the
+     * picture is looked at again even when nothing else is due.
+     *
+     * @return int|null
+     */
+    private static function timed_mark_wake() {
+        global $wpdb;
+        $signature = self::config()['signature'];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded lookup of the kept marks.
+        $oldest = $wpdb->get_var($wpdb->prepare(
+            "SELECT MIN(CAST(SUBSTRING_INDEX(meta_value, ':', -1) AS UNSIGNED)) FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s AND CAST(SUBSTRING_INDEX(meta_value, ':', -1) AS UNSIGNED) > %d",
+            self::LOCAL, $wpdb->esc_like('kept:' . $signature . ':') . '%', time() - self::KEPT_RETRY
+        ));
+        return $oldest ? (int) $oldest + self::KEPT_RETRY : null;
     }
 
     /**
@@ -4417,6 +4454,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return time();
         }
         $due = self::local_wake();
+        if (self::removing()) {
+            $due = self::earliest($due, self::timed_mark_wake());
+        }
         if (self::original_jobs_due()) {
             $due = null === $due ? time() + HOUR_IN_SECONDS : min($due, time() + HOUR_IN_SECONDS);
         }
