@@ -901,7 +901,8 @@ Only Fluent Forms' own Turnstile script in its standard forms, from Fluent Forms
 
 On by default (#1261). With a site-wide chatbot, AI Engine loads its chatbot script (about 350 KB), React, ReactDOM and the chatbot's theme stylesheet in the head of every page, before anything is drawn: on two Kadence sites they were the first requests holding up the page, an estimated 3 to 5 s on a phone. With this on, they load when the visitor first moves the mouse, taps, scrolls or presses a key, or when a chatbot placed in the page (a shortcode or block, not a popup) comes within 600 px of the screen; a chatbot in the first screen loads straight away. The chatbot then appears and works as before (AI Engine's own `mwaiInitialize()` mounts it).
 
-- The tags WordPress would have printed, with inline scripts and translations, are added in their order; scripts other plugins also need (React for another block) load as before, and if another script needs the chatbot's, nothing changes.
+- The tags WordPress would have printed, with inline scripts and translations, are added in their order, the chatbot's stylesheet before its script; scripts other plugins also need (React for another block) load as before, and if another script needs the chatbot's, nothing changes.
+- Only with an AI Engine whose chatbot script has `mwaiInitialize()` (AI Engine and AI Engine Pro 3.9 have it); with an older one, the chatbot loads as before. This is checked once for each AI Engine version (#1268).
 - Not in the admin, the block editor, feeds, embeds, the Customizer or AMP pages. Return false from `seoprostack_ai_engine_later` to load it as before on a page.
 
 ### Delayed Google Analytics (Speed)

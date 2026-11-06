@@ -106,6 +106,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_updates_full';
     // Correct update counts: updates counted with every plugin loaded.
     $options[] = 'seoprostack_update_counts';
+    // Load AI Engine's chatbot on first use: whether the AI Engine version can mount late.
+    $options[] = 'seoprostack_ai_engine_later_support';
     $options[] = 'seoprostack_access_roles';
     $options[] = 'seoprostack_admin_bar_items';
     $options[] = 'seoprostack_admin_menu';
