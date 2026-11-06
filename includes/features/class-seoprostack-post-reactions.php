@@ -295,6 +295,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.js', array(), SEOPROSTACK_VERSION, true);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackReactions = ' . wp_json_encode(self::script_config()) . ';', 'before');
         wp_register_style(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.css', array(), SEOPROSTACK_VERSION);
+        // Core prints a small stylesheet with a path in the page, not as a render-blocking link, and keeps the inline colour rules.
+        wp_style_add_data(self::HANDLE, 'path', SEOPROSTACK_DIR . 'assets/post-reactions.css');
         $css = self::colour_css();
         if ('' !== $css) {
             wp_add_inline_style(self::HANDLE, $css);

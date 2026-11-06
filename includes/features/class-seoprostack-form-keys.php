@@ -207,6 +207,8 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
     public static function enqueue_style() {
         $css = 'assets/form-keys.css';
         wp_enqueue_style(self::HANDLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
+        // Small and needed for the first paint: core prints it in the page (wp_maybe_inline_styles), not as a render-blocking link.
+        wp_style_add_data(self::HANDLE, 'path', SEOPROSTACK_DIR . $css);
     }
 
     /**
