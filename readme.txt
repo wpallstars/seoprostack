@@ -73,7 +73,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **External link icons**: script-free. **Modal links** open drawers and modals.
 * **Links skip redirects**: link straight to Rank Math's permanent on-site redirect targets.
 * **Internal linking tools** (off): suggestions and undo.
-* **Speed settings**, **Preload pages**, **Keep pages cached** after purges, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing and no Rank Math stats bar.
+* **Speed settings**, **Preload pages**, **Keep pages cached** after purges, **Delay scripts**, **Delayed Google Analytics**, faster Kadence Blocks editing, no Rank Math stats bar and AI Engine's chatbot loaded on first use.
 * **Load the CSS each page uses first** (off): Kadence, Kadence Blocks and Fluent Forms pages show sooner, worked out on your server.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.

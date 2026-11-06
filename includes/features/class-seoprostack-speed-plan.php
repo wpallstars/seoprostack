@@ -154,6 +154,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'kadence_icon_picker'       => array(isset($active['kadence-blocks']), __('For Kadence Blocks, which is not active.', 'seoprostack')),
             'rank_math_no_stats_bar'    => array(isset($active['seo-by-rank-math']), __('For Rank Math, which is not active.', 'seoprostack')),
             'fluentforms_turnstile_later' => array(isset($active['fluentform']), __('For Fluent Forms, which is not active.', 'seoprostack')),
+            'ai_engine_later'           => array(isset($active['ai-engine']) || isset($active['ai-engine-pro']), __('For AI Engine, which is not active.', 'seoprostack')),
             'heartbeat_limit'           => array(true, ''),
             'database_cleanup'          => array(true, ''),
             'autoload_options'          => array(!is_multisite(), __('For single sites.', 'seoprostack')),
