@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.160-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.161-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.160
+Version: 1.3.161
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2391,6 +2391,14 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.161
+
+- New, on by default: **Lighter Tutor LMS pages** (Speed). Tutor LMS loads its styles and scripts, and with them React, on every page; the Kadence theme adds its own Tutor stylesheet. They now load only on Tutor's own pages and on pages with Tutor blocks or shortcodes. People who are logged in get every page as before (#1258).
+- New, on by default: **Load AI Engine's chatbot on first use** (Speed). A site-wide AI Engine chatbot loaded React and its own files in every page's head; they now load when the visitor first moves, taps, scrolls or types, or when a chatbot placed in the page comes near the screen. The chatbot works as before (#1261).
+- Faster: **Load the CSS each page uses first** covers every plugin SEO Pro Stack recommends that puts stylesheets on pages, and keeps the rules for classes that those plugins' and the theme's scripts add, such as open menus (#1260).
+- Faster: **Load plugins only where needed** skips Tutor LMS on pages without Tutor content. Its login and REST callbacks no longer make it load everywhere, and **Lighter Tutor LMS pages** leaves out the rest of what Tutor added to those pages (#1264).
+- Faster: **Media in cloud storage** keeps the record of each kept original in its own table instead of one `wp_options` row per picture, and moves the existing rows there in the background (#1252).
 
 ### 1.3.160
 
