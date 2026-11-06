@@ -172,7 +172,17 @@ final class SEOProStack_Used_Css_Match {
         if (isset($this->scripts['names'][$class]) || ('' !== $this->prefixes && preg_match($this->prefixes, $class))) {
             return true;
         }
-        // A prefix a script builds the class from: each start of the name up to a - or _.
+        return $this->built($class);
+    }
+
+    /**
+     * Whether a class starts with a prefix a script builds class names
+     * from: each start of the name up to a - or _.
+     *
+     * @param string $class Class name.
+     * @return bool
+     */
+    private function built($class) {
         $length = strlen($class);
         for ($i = SEOProStack_Used_Css_Scripts::MIN_PREFIX - 1; $i < $length; $i++) {
             if (('-' === $class[$i] || '_' === $class[$i]) && isset($this->scripts['prefixes'][substr($class, 0, $i + 1)])) {
