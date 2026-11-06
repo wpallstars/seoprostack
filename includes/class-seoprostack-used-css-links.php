@@ -4,9 +4,10 @@
  *
  * A plain `<link rel="stylesheet">` that holds up the page (no onload, not
  * disabled, plain media other than print), served from this site, from the
- * Kadence parent theme, Kadence Blocks (Pro), Kadence Pro, Fluent Forms
- * (Pro) or WordPress's block library (filter seoprostack_used_css_sources),
- * and not on the list to load as it is.
+ * Kadence theme (and a child theme of it), one of the plugins in PLUGINS
+ * or WordPress's block library (filter seoprostack_used_css_sources), and
+ * not on the list to load as it is. Also maps the page's scripts to their
+ * files (SEOProStack_Used_Css_Scripts).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -23,11 +24,45 @@ if (!defined('ABSPATH')) {
 
 final class SEOProStack_Used_Css_Links {
 
-    /** Plugin folders whose stylesheets are handled, with the Kadence theme and the block library. */
-    const PLUGINS = array('kadence-blocks', 'kadence-blocks-pro', 'kadence-pro', 'fluentform', 'fluentformpro');
+    /**
+     * Plugin folders whose stylesheets are handled, with the Kadence theme
+     * and the block library: the plugins SEO Pro Stack recommends that put
+     * stylesheets on the front end (admin/data/free-plugins.php and
+     * pro-plugins.php), their Pro add-ons, Kadence's own plugins, and the
+     * plugins SEO Pro Stack works with (Readabler, IndieWeb, WP Grid
+     * Builder). Owner's decision, GitHub issue #1260, replacing the shorter
+     * list of issue #1194. Not for other themes and plugins: support would
+     * have no end (filter seoprostack_used_css_sources, unsupported).
+     */
+    const PLUGINS = array(
+        // Kadence.
+        'kadence-blocks', 'kadence-blocks-pro', 'kadence-pro', 'kadence-conversions', 'kadence-woo-extras',
+        'kadence-shop-kit', 'kadence-galleries', 'kadence-reading-time', 'kadence-related-content', 'kadence-creative-kit',
+        // Fluent and WPManageNinja.
+        'fluentform', 'fluentformpro', 'fluentform-signature', 'fluentforms-pdf', 'fluent-booking', 'fluent-booking-pro',
+        'fluent-cart', 'fluent-cart-pro', 'fluent-community', 'fluent-community-pro', 'fluent-support', 'fluent-support-pro',
+        'fluent-crm', 'fluentcampaign-pro', 'fluent-boards', 'fluent-boards-pro', 'fluent-affiliate', 'fluent-player',
+        'wp-payment-form', 'ninja-tables', 'ninja-tables-pro', 'ninja-charts', 'ninja-job-board',
+        'wp-social-reviews', 'wp-social-ninja-pro',
+        // Courses, AI, consent, languages, shops.
+        'tutor', 'tutor-pro', 'ai-engine', 'ai-engine-pro', 'complianz-gdpr', 'complianz-gdpr-premium',
+        'complianz-terms-conditions', 'translatepress-multilingual', 'translatepress-business', 'woocommerce',
+        'woo-stripe-payment', 'pymntpl-paypal-woocommerce', 'slicewp',
+        // Content, events, reviews and the IndieWeb.
+        'seo-by-rank-math', 'seo-by-rank-math-pro', 'code-block-pro', 'ics-calendar', 'eventon-lite',
+        'easy-video-reviews', 'custom-feed-for-tiktok', 'simple-cloudflare-turnstile', 'syndication-links', 'webmention',
+        'indieweb', 'readabler', 'wp-grid-builder',
+    );
 
     /** Folders whose stylesheets are handled, or null before they are worked out. */
     private static $sources = null;
+
+    /**
+     * URL paths and the folders they serve, or null before they are worked out.
+     *
+     * @var array<string,string>|null
+     */
+    private static $roots = null;
 
     /**
      * A tag's attributes: lower-case name => value (entities decoded).
@@ -82,6 +117,26 @@ final class SEOProStack_Used_Css_Links {
             if (0 === strpos($path, $url_path)) {
                 $file = $dir . substr($path, strlen($url_path));
                 return (self::handled($file) || self::kadence_fonts($attrs, $file)) && is_file($file) ? $file : '';
+            }
+        }
+        return '';
+    }
+
+    /**
+     * The local file of a script on this site, in any folder.
+     *
+     * @param string $src Address.
+     * @return string Empty when it is elsewhere or not a .js file.
+     */
+    public static function script_file($src) {
+        $path = self::path($src, '.js');
+        if ('' === $path) {
+            return '';
+        }
+        foreach (self::roots() as $url_path => $dir) {
+            if (0 === strpos($path, $url_path)) {
+                $file = $dir . substr($path, strlen($url_path));
+                return is_file($file) ? $file : '';
             }
         }
         return '';
@@ -216,10 +271,14 @@ final class SEOProStack_Used_Css_Links {
      * @return array<string,string>
      */
     private static function roots() {
+        if (null !== self::$roots) {
+            return self::$roots;
+        }
         $roots = array();
         $pairs = array(
             array(plugins_url(), WP_PLUGIN_DIR),
             array(get_template_directory_uri(), get_template_directory()),
+            array(get_stylesheet_directory_uri(), get_stylesheet_directory()),
             array(content_url(), WP_CONTENT_DIR),
             array(includes_url(), ABSPATH . WPINC),
         );
@@ -229,6 +288,7 @@ final class SEOProStack_Used_Css_Links {
         uksort($roots, function ($a, $b) {
             return strlen($b) - strlen($a);
         });
+        self::$roots = $roots;
         return $roots;
     }
 
@@ -259,7 +319,9 @@ final class SEOProStack_Used_Css_Links {
                 $sources[] = wp_normalize_path(WP_PLUGIN_DIR) . '/' . $slug . '/';
             }
             if (SEOProStack_Used_Css::kadence_theme()) {
+                // The Kadence theme, and a child theme of it.
                 $sources[] = trailingslashit(wp_normalize_path(get_template_directory()));
+                $sources[] = trailingslashit(wp_normalize_path(get_stylesheet_directory()));
             }
             /**
              * Folders whose stylesheets Used CSS handles. Only the default
