@@ -113,23 +113,31 @@ class SEOProStack_Ai_Engine_Later extends SEOProStack_Feature {
             return (bool) $known['ok'];
         }
         $ok = self::has_initializer();
+        if (null === $ok) {
+            // The file could not be read: leave AI Engine alone now, and try again on a later request.
+            return false;
+        }
         // Autoloaded: read on every page view while AI Engine is active.
         update_option(self::SUPPORT_OPTION, array('version' => $version, 'ok' => $ok), true);
         return $ok;
     }
 
     /**
-     * Whether AI Engine's app/chatbot.js contains INITIALIZER.
+     * Whether AI Engine's app/chatbot.js contains INITIALIZER; null when the
+     * file could not be read, so that is not kept as an answer.
      *
-     * @return bool
+     * @return bool|null
      */
     private static function has_initializer() {
         $file = defined('MWAI_PATH') ? trailingslashit((string) MWAI_PATH) . 'app/chatbot.js' : '';
         if ('' === $file || !is_readable($file)) {
-            return false;
+            return null;
         }
         $code = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
-        return is_string($code) && false !== strpos($code, self::INITIALIZER);
+        if (!is_string($code)) {
+            return null;
+        }
+        return false !== strpos($code, self::INITIALIZER);
     }
 
     /**
