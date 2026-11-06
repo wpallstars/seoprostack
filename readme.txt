@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.160
+Stable tag: 1.3.161
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -19,13 +19,13 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person admin colours; dark copies in uploads/seoprostack-dark go on deactivation.
+* **Light, Dark or System**: per-person admin colours; dark copies go on deactivation.
 * **Developer admins**: limit plugin, theme, admin and address changes.
 * **Organise the admin menu** with role previews.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
 * **Quiet Freemius prompts**, **Quiet Appsero prompts** and **Quiet Imagify suggestions**.
 * **Dev tab in the block editor**.
-* **Tidy admin screens**, **WooCommerce admin**, **Login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeats**, **Limit revisions** and **Lighter WooCommerce pages**.
+* **Tidy admin screens**, **WooCommerce admin**, **Login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeats** and **Limit revisions**.
 * **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
 = Safer logins and access =
@@ -90,7 +90,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) applies them, and later changes, on its own.
 * **Site templates**: WP-CLI apply, compare and undo; plugin updates keep edited parts.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
-* **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects, within time limits, using CPU.
+* **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects.
 * **Agency** orders and client dashboard; **Recommended** themes, plugins, hosting and tools.
 
 = Affiliate disclosure =
@@ -154,7 +154,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.160 =
-* Faster: Media in cloud storage keeps its index of stored addresses in its own table instead of one wp_options row per file, and moves the existing rows there in the background (#1251).
+= 1.3.161 =
+* Faster: Tutor LMS files and AI Engine's chatbot load only where used; Load plugins only where needed skips Tutor elsewhere (#1258, #1261, #1264).
+* Faster: Used CSS covers recommended plugins (#1260); media storage originals leave wp_options (#1252).
 
 Older: `changelog.txt`.
