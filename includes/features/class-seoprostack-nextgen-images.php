@@ -529,6 +529,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         update_post_meta($attachment_id, self::META, $record);
         update_post_meta($attachment_id, self::DONE, $signature);
         do_action('seoprostack_media_files_changed', $attachment_id);
+        // Files removed from this server while the copies were made: upload
+        // and remove the copies with the rest (GitHub issue #1256).
+        if (class_exists('SEOProStack_Media_Storage')) {
+            SEOProStack_Media_Storage::heal_late_copies($attachment_id);
+        }
         return $record;
     }
 
