@@ -40,6 +40,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const FLAG = 'seoprostack_storage_removed';
     /** Removing and restoring pause until this time after the service failed. */
     const LOCAL_WAIT = 'seoprostack_storage_local_wait';
+    /** A picture kept after one retryable removal failure is checked again after this many seconds (GH#1266). */
+    const KEPT_RETRY = 600;
     /** Background restore failed for this attachment alone: the signature it failed under. */
     const STUCK = '_seoprostack_storage_stuck';
     /** Restore errors that belong to one attachment: the batch moves past it. */
@@ -2796,7 +2798,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         update_option(self::JOB . 'originalkeep', wp_generate_uuid4(), false);
         if (self::REMOVE === $key && $value && !self::config()['missing']) {
             // Switched on again: files kept here earlier may go now.
-            delete_metadata('post', 0, self::LOCAL, 'kept:' . self::config()['signature'], true);
+            self::forget_kept_marks();
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
@@ -2829,8 +2831,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $signature = self::config()['signature'];
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded queue lookup, as waiting().
         return array_map('intval', $wpdb->get_col($wpdb->prepare(
-            "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'uploaded' LEFT JOIN {$wpdb->postmeta} l ON l.post_id = p.ID AND l.meta_key = %s WHERE p.post_type = 'attachment' AND (l.meta_id IS NULL OR l.meta_value NOT IN (%s, %s)) ORDER BY p.ID DESC LIMIT %d",
-            self::DONE, self::upload_marker(), self::STATE, self::LOCAL, $signature, 'kept:' . $signature, max(1, (int) $limit)
+            "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'uploaded' LEFT JOIN {$wpdb->postmeta} l ON l.post_id = p.ID AND l.meta_key = %s WHERE p.post_type = 'attachment' AND (l.meta_id IS NULL OR (l.meta_value NOT IN (%s, %s) AND NOT (l.meta_value LIKE %s AND CAST(SUBSTRING_INDEX(l.meta_value, ':', -1) AS UNSIGNED) > %d))) ORDER BY p.ID DESC LIMIT %d",
+            self::DONE, self::upload_marker(), self::STATE, self::LOCAL, $signature, 'kept:' . $signature, $wpdb->esc_like('kept:' . $signature . ':') . '%', time() - self::KEPT_RETRY, max(1, (int) $limit)
         )));
     }
 
@@ -3362,8 +3364,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         if ($removing && self::removal_retryable($result) && ++$service_failures < 2) {
             // One attachment must not hold up the whole library. Its files stay
-            // local; retry-failed or a changed connection can revisit the mark.
-            update_post_meta($id, self::LOCAL, 'kept:' . self::config()['signature']);
+            // local; the timed mark expires after KEPT_RETRY and the picture is
+            // checked again (retry-failed or a changed connection revisit it sooner).
+            self::record_timed_mark($id);
             return true;
         }
         if (!$removing && in_array($result->get_error_code(), self::STUCK_ERRORS, true)) {
@@ -3505,7 +3508,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::is_waiting($id)) {
             return false;
         }
-        return 'kept:' . $signature === $local ? self::remove_now_kept() : null;
+        return self::kept_now($local, $signature) ? self::remove_now_kept() : null;
     }
 
     /**
@@ -3540,7 +3543,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
                 self::fresh($id);
                 $local = get_post_meta($id, self::LOCAL, true);
-                $results[$id] = 'kept:' . $signature === $local ? self::remove_now_kept() : $local === $signature;
+                $results[$id] = self::kept_now($local, $signature) ? self::remove_now_kept() : $local === $signature;
             }
             if ($retry) {
                 // The service is failing: the pictures not reached wait for the next call.
@@ -3792,7 +3795,88 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (get_post_meta($id, self::DONE, true) !== self::upload_marker() || get_post_meta($id, self::GENERATION, true) !== $generation) {
             return true;
         }
-        return get_post_meta($id, self::LOCAL, true) === 'kept:' . $signature;
+        return self::kept_now(get_post_meta($id, self::LOCAL, true), $signature);
+    }
+
+    /**
+     * The mark for a picture kept after one retryable failure: the kept mark
+     * and when, so removal looks at it again after KEPT_RETRY (GH#1266).
+     *
+     * @return string
+     */
+    private static function kept_timed_mark() {
+        return 'kept:' . self::config()['signature'] . ':' . time();
+    }
+
+    /**
+     * Store the timed kept mark unless the picture already has the permanent
+     * one (a restore may have set it while the removal check was running).
+     * One conditional UPDATE, so a concurrent permanent mark is never overwritten.
+     *
+     * @param int $id Attachment ID.
+     */
+    private static function record_timed_mark($id) {
+        global $wpdb;
+        $permanent = 'kept:' . self::config()['signature'];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-set on one meta row.
+        $updated = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND meta_value <> %s", self::kept_timed_mark(), (int) $id, self::LOCAL, $permanent));
+        if ($updated) {
+            wp_cache_delete((int) $id, 'post_meta');
+            return;
+        }
+        // No row yet: add it (unique, so a row added meanwhile stays).
+        add_post_meta($id, self::LOCAL, self::kept_timed_mark(), true);
+    }
+
+    /**
+     * When the earliest timed kept mark of this connection expires, so the
+     * picture is looked at again even when nothing else is due.
+     *
+     * @return int|null
+     */
+    private static function timed_mark_wake() {
+        global $wpdb;
+        $signature = self::config()['signature'];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded lookup of the kept marks.
+        $oldest = $wpdb->get_var($wpdb->prepare(
+            "SELECT MIN(CAST(SUBSTRING_INDEX(meta_value, ':', -1) AS UNSIGNED)) FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s AND CAST(SUBSTRING_INDEX(meta_value, ':', -1) AS UNSIGNED) > %d",
+            self::LOCAL, $wpdb->esc_like('kept:' . $signature . ':') . '%', time() - self::KEPT_RETRY
+        ));
+        return $oldest ? (int) $oldest + self::KEPT_RETRY : null;
+    }
+
+    /**
+     * Whether a removal-pass mark keeps the picture's files now: a permanent
+     * kept mark (mismatch, change, restore), or a retryable one under KEPT_RETRY old.
+     *
+     * @param mixed $local The picture's LOCAL meta.
+     * @param string $signature This connection's signature.
+     * @return bool
+     */
+    private static function kept_now($local, $signature) {
+        if (!is_string($local)) {
+            return false;
+        }
+        $prefix = 'kept:' . $signature;
+        if ($local === $prefix) {
+            return true;
+        }
+        if (0 !== strpos($local, $prefix . ':')) {
+            return false;
+        }
+        return (int) substr($local, strlen($prefix) + 1) > time() - self::KEPT_RETRY;
+    }
+
+    /** Drop every kept mark of this connection, retryable ones included. */
+    private static function forget_kept_marks() {
+        global $wpdb;
+        $prefix = 'kept:' . self::config()['signature'];
+        delete_metadata('post', 0, self::LOCAL, $prefix, true);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded by the meta key and the mark's prefix.
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s", self::LOCAL, $wpdb->esc_like($prefix . ':') . '%'));
+        if (function_exists('wp_cache_supports') && wp_cache_supports('flush_group')) {
+            wp_cache_flush_group('post_meta');
+        }
     }
 
     /**
@@ -4370,6 +4454,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return time();
         }
         $due = self::local_wake();
+        if (self::removing()) {
+            $due = self::earliest($due, self::timed_mark_wake());
+        }
         if (self::original_jobs_due()) {
             $due = null === $due ? time() + HOUR_IN_SECONDS : min($due, time() + HOUR_IN_SECONDS);
         }
@@ -6646,7 +6733,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             delete_option(self::CURSOR);
             // Local copies kept after a failed check, and pictures whose
             // restore failed, are looked at again.
-            delete_metadata('post', 0, self::LOCAL, 'kept:' . self::config()['signature'], true);
+            self::forget_kept_marks();
             delete_metadata('post', 0, self::STUCK, '', true);
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
