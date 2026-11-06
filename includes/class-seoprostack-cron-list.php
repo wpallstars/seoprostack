@@ -70,7 +70,17 @@ class SEOProStack_Cron_List {
         if (null === $stored || $stored === $old_value) {
             return $value;
         }
-        return self::merge($stored, $old_value, $value);
+        $merged = self::merge($stored, $old_value, $value);
+        if ($merged === $stored) {
+            // Another request already applied this change: the update will
+            // affect no rows and core will not refresh this request's cached
+            // copy, which would leave it stale. Drop the caches so the next
+            // read (a retry included) sees the stored list.
+            wp_cache_delete('alloptions', 'options');
+            wp_cache_delete('cron', 'options');
+            wp_cache_delete('notoptions', 'options');
+        }
+        return $merged;
     }
 
     /**
