@@ -96,11 +96,15 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   leave them to plugins that specialise in them (LiteSpeed Cache,
   WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
   through their presets, saving through their own code. One exception, at
-  the owner's request (#1194): **Load the CSS each page uses first** (Used
-  CSS) for the stylesheets of the Kadence theme, Kadence Blocks, Kadence
-  Pro, Fluent Forms and WordPress's block library only, worked out on the
-  site's own server. Do not widen it to other themes or plugins; the
-  `seoprostack_used_css_sources` filter is for site owners, unsupported.
+  the owner's request (#1194, widened in #1260): **Load the CSS each page
+  uses first** (Used CSS) for the stylesheets of the Kadence theme (and a
+  child theme of it), the plugins SEO Pro Stack recommends, their Pro
+  add-ons, Kadence's own plugins, the plugins it works with
+  (`SEOProStack_Used_Css_Links::PLUGINS`) and WordPress's block library,
+  worked out on the site's own server. When a plugin is added to or removed
+  from Free Plugins or Pro Plugins, update that list too. Do not widen it to
+  other themes or plugins; the `seoprostack_used_css_sources` filter is for
+  site owners, unsupported.
 - Link Whisper retirement does not need historic click data or replacement
   analytics (owner's choice): leave the toolkit's click counting off for the
   rollout; separate analytics plugins and apps can cover those needs.
