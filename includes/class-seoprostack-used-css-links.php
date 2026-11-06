@@ -4,10 +4,10 @@
  *
  * A plain `<link rel="stylesheet">` that holds up the page (no onload, not
  * disabled, plain media other than print), served from this site, from the
- * Kadence theme (and a child theme of it), one of the plugins in PLUGINS
- * or WordPress's block library (filter seoprostack_used_css_sources), and
- * not on the list to load as it is. Also maps the page's scripts to their
- * files (SEOProStack_Used_Css_Scripts).
+ * Kadence theme (and a child theme of it), one of the plugins in PLUGINS,
+ * SEO Pro Stack itself or WordPress's block library (filter
+ * seoprostack_used_css_sources), and not on the list to load as it is. Also
+ * maps the page's scripts to their files (SEOProStack_Used_Css_Scripts).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -25,14 +25,15 @@ if (!defined('ABSPATH')) {
 final class SEOProStack_Used_Css_Links {
 
     /**
-     * Plugin folders whose stylesheets are handled, with the Kadence theme
-     * and the block library: the plugins SEO Pro Stack recommends that put
-     * stylesheets on the front end (admin/data/free-plugins.php and
-     * pro-plugins.php), their Pro add-ons, Kadence's own plugins, and the
-     * plugins SEO Pro Stack works with (Readabler, IndieWeb, WP Grid
-     * Builder). Owner's decision, GitHub issue #1260, replacing the shorter
-     * list of issue #1194. Not for other themes and plugins: support would
-     * have no end (filter seoprostack_used_css_sources, unsupported).
+     * Plugin folders whose stylesheets are handled, with the Kadence theme,
+     * SEO Pro Stack's own folder and the block library: the plugins SEO Pro
+     * Stack recommends that put stylesheets on the front end
+     * (admin/data/free-plugins.php and pro-plugins.php), their Pro add-ons,
+     * Kadence's own plugins, and the plugins SEO Pro Stack works with
+     * (Readabler, IndieWeb, WP Grid Builder). Owner's decision, GitHub issue
+     * #1260, replacing the shorter list of issue #1194. Not for other themes
+     * and plugins: support would have no end (filter
+     * seoprostack_used_css_sources, unsupported).
      */
     const PLUGINS = array(
         // Kadence.
@@ -318,6 +319,11 @@ final class SEOProStack_Used_Css_Links {
             foreach (self::PLUGINS as $slug) {
                 $sources[] = wp_normalize_path(WP_PLUGIN_DIR) . '/' . $slug . '/';
             }
+            // SEO Pro Stack's own front-end stylesheets, such as its blocks'
+            // (GitHub issues #1260 and #1303): a block rendered in wp_footer
+            // after priority 1, after WordPress's last wp_maybe_inline_styles()
+            // pass, keeps its style as a link (hoisted into the head).
+            $sources[] = trailingslashit(wp_normalize_path(SEOPROSTACK_DIR));
             if (SEOProStack_Used_Css::kadence_theme()) {
                 // The Kadence theme, and a child theme of it.
                 $sources[] = trailingslashit(wp_normalize_path(get_template_directory()));
