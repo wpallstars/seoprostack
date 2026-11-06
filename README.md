@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.165-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.166-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.165
+Version: 1.3.166
 
 <!-- github-only:start -->
 ## Screenshots
@@ -596,6 +596,15 @@ A compact language button beside Kadence Pro's **Dark Mode** switch in the heade
 - Uses Kadence's palette, so it follows the light and dark mode switch. Only a small stylesheet and script load, and only on pages that show it.
 - Turn TranslatePress's floating switcher off and remove its shortcode from the header and footer, so only one switcher shows. A theme that prints its own switcher on the same Kadence actions (the Property Services Directory child theme up to 0.1.28) keeps it, and this one stays hidden.
 - Other themes can hide this switcher and its assets without changing the setting: `add_filter( 'seoprostack_language_switcher_skip', '__return_true' );`. Pages excluded by TranslatePress also show no switcher. When no country flag ships with SEO Pro Stack, the language's TranslatePress flag is used, including uploaded custom flags.
+
+### Hreflang codes with the site's country (Content)
+
+Gives every language's hreflang code the site's own country, so search engines read a Jersey site's English pages as English for Jersey (`en-JE`), not for the United Kingdom (`en-GB`), and a Californian site's Spanish pages as Spanish for the United States (`es-US`), not for Mexico. **Off by default**; nothing changes without TranslatePress or without a **Country**.
+
+- **Country**: the site's two-letter ISO code (`JE`, `US`, `CA`, `BE`). Empty or not two letters: TranslatePress's own codes stay.
+- TranslatePress takes each code from its language's locale (`en_GB` → `en-GB`). With a country, the country part of each code changes (`fr_FR` → `fr-JE`, `zh_Hant_TW` → `zh-Hant-JE`), in the page's head and in TranslatePress SEO Pack's sitemap. Language-only codes (`en`, `fr`), which TranslatePress also writes, and languages without a country (`lv`, `et`) stay.
+- Two languages never get the same code: where they would (`en_GB` and `en_US`, or `fr_FR` beside `fr_BE` on a Belgian site), both keep TranslatePress's. A site offering one language in several countries, such as a demonstration of every variant, keeps its codes that way.
+- Uses TranslatePress's `trp_hreflang` filter at priority 20; TranslatePress's settings and the language URLs are untouched. For the main language search engines should prefer, use TranslatePress's own **Enable the hreflang x-default tag for language** (Advanced settings).
 
 ### Readabler colours (Content)
 
@@ -2413,8 +2422,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.166
 
+- New, off by default: **Hreflang codes with the site's country** (Content). With TranslatePress and a **Country** set (`JE`, `US`), each language's hreflang code, in the page and in the sitemap, has the site's country instead of its locale's (`en-JE` for `en_GB`, `es-US` for `es_MX`), so search engines know the pages are for that country. Language-only codes stay, and two languages never share a code (#1313).
 - Faster: **Image loading** with a Kadence Blocks Pro **Advanced Slider**: every slide's picture used to load with the page, all competing with the first (on one 17-slide home page, 4.9 MB, and the first slide came 15 seconds in on PageSpeed's phone). Now the first slide's picture loads first, preloaded when the page opens with the slider, and each other slide's loads as the slider comes to it, one slide ahead. Filter `seoprostack_kadence_slider_wait` (#1312).
 
 ### 1.3.165
