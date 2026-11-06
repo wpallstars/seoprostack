@@ -337,9 +337,32 @@ log_files() {
 	done
 	LOG_FILES=(${unique[@]+"${unique[@]}"})
 	LOG_BEFORE=()
+	LOG_FIRST=()
 	for path in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
 		LOG_BEFORE+=("$(file_lines "$path")")
+		LOG_FIRST+=("$(first_line "$path")")
 	done
+	return 0
+}
+
+# First line of a file, to tell a rotated or replaced log from a grown one.
+first_line() {
+	local file="$1"
+	if [[ -f "$file" ]]; then
+		head -n 1 "$file" 2>/dev/null || true
+	fi
+	return 0
+}
+
+# Line to read a log from: after the baseline, or from the top when the log
+# shrank or its first line changed (rotated, however far it has regrown).
+log_start() {
+	local file="$1" before="$2" first="$3"
+	if [[ "$(file_lines "$file")" -lt "$before" ]] || { [[ "$before" -gt 0 ]] && [[ "$(first_line "$file")" != "$first" ]]; }; then
+		printf '1'
+	else
+		printf '%s' "$((before + 1))"
+	fi
 	return 0
 }
 
@@ -348,10 +371,7 @@ new_log_text() {
 	local file start
 	for file in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
 		if [[ -f "$file" ]]; then
-			start=$((LOG_BEFORE[index] + 1))
-			if [[ "$(file_lines "$file")" -lt "${LOG_BEFORE[index]}" ]]; then
-				start=1
-			fi
+			start="$(log_start "$file" "${LOG_BEFORE[index]}" "${LOG_FIRST[index]}")"
 			tail -n +"$start" "$file" | head -n 10
 		fi
 		index=$((index + 1))
@@ -365,10 +385,7 @@ new_log_all() {
 	local file start
 	for file in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
 		if [[ -f "$file" ]]; then
-			start=$((LOG_BEFORE[index] + 1))
-			if [[ "$(file_lines "$file")" -lt "${LOG_BEFORE[index]}" ]]; then
-				start=1
-			fi
+			start="$(log_start "$file" "${LOG_BEFORE[index]}" "${LOG_FIRST[index]}")"
 			tail -n +"$start" "$file"
 		fi
 		index=$((index + 1))
@@ -385,7 +402,9 @@ classify_log() {
 	local hooks=" $1 "
 	awk -v hooks="$hooks" '
 		{
-			if (match($0, /Cron (reschedule|unschedule) event error for hook: [^,]+, Error code: could_not_set/)) {
+			if (match($0, /Cron (reschedule|unschedule) event error for hook: [^,]+, Error code: could_not_set/) \
+				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*(PHP [A-Za-z ]+:[[:space:]]*)?$/ \
+				&& substr($0, RSTART + RLENGTH) ~ /^[[:space:]]*$/) {
 				text = substr($0, RSTART, RLENGTH)
 				sub(/^Cron (reschedule|unschedule) event error for hook: /, "", text)
 				sub(/, Error code: could_not_set$/, "", text)
@@ -616,7 +635,6 @@ run_site_cron() {
 	while IFS= read -r hook; do
 		[[ -n "$hook" ]] || continue
 		CRON_TOTAL=$((CRON_TOTAL + 1))
-		CRON_HOOKS_RUN+="$hook "
 		status=0
 		out="$("${cmd[@]+"${cmd[@]}"}" "$WP_CLI" --path="$root" "$@" cron event run "$hook" 2>&1)" || status=$?
 		if [[ "$status" -eq 124 && "${#cmd[@]}" -gt 0 ]]; then
@@ -627,6 +645,8 @@ run_site_cron() {
 			CRON_FAILURE+="cron $hook failed (exit $status: ${detail:0:300}); "
 		else
 			CRON_RUN=$((CRON_RUN + 1))
+			# Only a hook that ran to completion can have raced with the site's cron.
+			CRON_HOOKS_RUN+="$hook "
 		fi
 	done <<<"$hooks"
 	return 0

@@ -161,8 +161,9 @@ expected in the GitHub zip too.
     site runs its own. When the site's own cron runner handles the same event
     in the same second, WordPress logs `Cron reschedule event error for hook:
     HOOK, Error code: could_not_set` (or `unschedule`). For a hook the check
-    just ran, that race is the check's own doing: it shows as `WARN cron race
-    HOOK` and is not counted in `new_log_lines`. The same line for any other
+    just ran to completion, this message shows as `WARN cron race HOOK` and
+    is not counted in `new_log_lines`; the warning does not confirm a race, as
+    a cron-storage failure can log the same message. The same line for any other
     hook, and every other new line, still fails.
    Every site that is not archived, deleted or spam gets a guarded full load
    for its settings upgrade, a page cache purge and a home fetch with a query
