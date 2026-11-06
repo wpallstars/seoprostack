@@ -86,11 +86,11 @@ final class SEOProStack_Keep_Cached_Queue {
      */
     private static function forget() {
         wp_cache_delete(self::OPTION, 'options');
-        $missing = wp_cache_get('notoptions', 'options');
-        if (is_array($missing) && isset($missing[self::OPTION])) {
-            unset($missing[self::OPTION]);
-            wp_cache_set('notoptions', $missing, 'options');
-        }
+        // Delete the whole list of options known to be missing, rather than
+        // reading, changing and writing back this request's copy of it,
+        // which could overwrite another request's change to the list.
+        // WordPress rebuilds it as options are read.
+        wp_cache_delete('notoptions', 'options');
     }
 
     /**
