@@ -1788,6 +1788,29 @@ html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block
 	fill: var(--sps-ui-surface);
 }
 
+/*
+ * On an accent ground (a selected List View row, a pressed or primary
+ * button) Kadence's icons follow the text: the literal blue fills and
+ * strokes (Icon List sets #0058b0 on its shapes) take the text colour, and
+ * the white details take the ground colour so they stay visible.
+ */
+html.sps-dark :is(.is-selected, .is-pressed, .is-primary) :is(.block-editor-block-types-list__item-icon, .block-editor-block-icon) svg {
+	--kadence-color: currentcolor;
+	--kadence-color-white: var(--wp-admin-theme-color, var(--sps-ui-accent));
+}
+
+html.sps-dark :is(.is-selected, .is-pressed, .is-primary) :is(.block-editor-block-types-list__item-icon, .block-editor-block-icon) svg :is([fill="#0058b0" i], [fill="#0057ae" i], [fill="#0159b0" i], [fill="#0073e6" i]) {
+	fill: currentcolor;
+}
+
+html.sps-dark :is(.is-selected, .is-pressed, .is-primary) :is(.block-editor-block-types-list__item-icon, .block-editor-block-icon) svg :is([stroke="#0058b0" i], [stroke="#0057ae" i], [stroke="#0159b0" i], [stroke="#0073e6" i]) {
+	stroke: currentcolor;
+}
+
+html.sps-dark :is(.is-selected, .is-pressed, .is-primary) :is(.block-editor-block-types-list__item-icon, .block-editor-block-icon) svg:has(:is([fill="#0058b0" i], [fill="#0057ae" i], [fill="#0159b0" i], [fill="#0073e6" i])) :is([fill="#fff" i], [fill="#ffffff" i]) {
+	fill: var(--wp-admin-theme-color, var(--sps-ui-accent));
+}
+
 html.sps-dark .block-editor-block-types-list__item-icon {
 	color: var(--sps-ui-text);
 }
