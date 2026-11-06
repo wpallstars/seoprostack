@@ -289,7 +289,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             // pictures() skips HTML without images and leaves existing pictures alone.
             add_filter('render_block', array(__CLASS__, 'pictures'), 30);
             // Kadence Blocks' background pictures (GH#1204): rows, columns
-            // and slider slides, in the CSS Kadence prints and its styles.
+            // and slider slides, in the CSS Kadence prints and its styles;
+            // Kadence Blocks Pro's Advanced Slider slides in its head CSS.
             if (defined('KADENCE_BLOCKS_VERSION')) {
                 add_filter('kadence_blocks_row_slider_attrs', array(__CLASS__, 'kadence_attrs'), 20);
                 add_filter('kadence_blocks_row_wrapper_args', array(__CLASS__, 'kadence_attrs'), 20);
@@ -1517,14 +1518,16 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
-     * The block CSS Kadence Blocks prints in the head, just before it is
-     * printed.
+     * The block CSS Kadence Blocks and Kadence Blocks Pro (Advanced Slider
+     * slides, GH#1312) print in the head, just before it is printed.
      */
     public static function kadence_head_css() {
         $styles = wp_styles();
-        $after  = $styles->get_data('kadence_blocks_css', 'after');
-        if (is_array($after) && $after) {
-            $styles->add_data('kadence_blocks_css', 'after', array_map(array(__CLASS__, 'css_image_sets'), $after));
+        foreach (array('kadence_blocks_css', 'kadence_blocks_pro_css') as $handle) {
+            $after = $styles->get_data($handle, 'after');
+            if (is_array($after) && $after) {
+                $styles->add_data($handle, 'after', array_map(array(__CLASS__, 'css_image_sets'), $after));
+            }
         }
     }
 

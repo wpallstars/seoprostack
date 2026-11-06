@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Image loading loads a Kadence Blocks Pro Advanced Slider's slide pictures as the slides come up, and fetches the first slide's first (#1312).
+
 = 1.3.165 =
 * New, on by default: Load jQuery at the end of the page (Speed), when nothing earlier in the page needs it (#1307).
 
