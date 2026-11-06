@@ -174,7 +174,7 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
         $types = self::dateless_types();
         if ($types) {
             $in = implode(',', array_fill(0, count($types), '%s'));
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber,PluginCheck.Security.DirectDB.UnescapedDBParameter -- one placeholder per type, built from the count only.
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber,PluginCheck.Security.DirectDB.UnescapedDBParameter -- one placeholder per type, built from the count only.
             if ($id) {
                 // One post: two indexed queries instead of one with an OR across tables.
                 // This post's old slugs that another published post now has (uses post_id).
@@ -184,6 +184,7 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
             } else {
                 $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id INNER JOIN {$wpdb->posts} o ON o.post_type = p.post_type AND o.post_name = pm.meta_value AND o.ID <> p.ID AND o.post_status IN ('publish', 'private') WHERE pm.meta_key = %s AND p.post_type IN ($in) LIMIT %d", array_merge(array(self::META), $types, array($limit))), ARRAY_N));
             }
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber,PluginCheck.Security.DirectDB.UnescapedDBParameter
         }
         // phpcs:enable
 
