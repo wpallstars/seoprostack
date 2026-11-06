@@ -2795,8 +2795,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (get_post_meta($id, self::HEALED, true) === $seen) {
             return false;
         }
+        // A picture that can no longer be queued keeps its removal as it is.
+        if (0 !== strpos((string) get_post_mime_type($id), 'image/')) {
+            return false;
+        }
+        $kept = get_post_meta($id, self::LOCAL, true);
         update_post_meta($id, self::HEALED, $seen);
         if (is_wp_error(self::restore_attachment($id))) {
+            // Leave both markers as found, so a later batch tries again.
+            delete_post_meta($id, self::HEALED);
+            update_post_meta($id, self::LOCAL, $kept);
             return false;
         }
         self::queue($id);
@@ -2824,15 +2832,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::REMOVED, $cursor, max(1, (int) $limit)
         )));
         $healed = 0;
+        $stopped = false;
         foreach ($ids as $id) {
-            if (!self::more_time($start, self::BUDGET)) {
+            // Restores stop well before the budget ends, leaving time to uploads.
+            if (!self::more_time($start, (int) (self::BUDGET * 0.6))) {
+                $stopped = true;
                 break;
             }
             $cursor = $id;
             $healed += self::heal_late_copies($id) ? 1 : 0;
         }
         // Past the last removed picture: start from the first again.
-        update_option(self::HEAL_CURSOR, count($ids) < $limit ? 0 : $cursor, false);
+        update_option(self::HEAL_CURSOR, !$stopped && count($ids) < $limit ? 0 : $cursor, false);
         return $healed;
     }
 
@@ -3211,7 +3222,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
             self::local_copies($start, $limit, (int) (self::BUDGET / 2));
-            if ($ready) {
+            if ($ready && (int) get_option(self::LOCAL_WAIT, 0) <= time()) {
                 self::heal_scan($start);
             }
             if (SEOProStack_Media_Jobs::run_batch()) {
