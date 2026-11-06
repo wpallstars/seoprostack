@@ -22,7 +22,8 @@
  * opens with, and each slider's other slides fetch theirs only as they come
  * up (SEOProStack_Kadence_Slider, GH#1312). Where LiteSpeed Cache's WebP
  * replacement names its copy in the block's CSS, the preload names it too
- * (GH#1326).
+ * (GH#1326). Rows further down fetch their background pictures as the
+ * visitor scrolls near them (SEOProStack_Kadence_Rows, GH#1329).
  *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
@@ -146,6 +147,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             // First in the head, before other plugins' inline styles and
             // scripts (on a test page about 40 KB of them at 1 and earlier).
             add_action('wp_head', array(__CLASS__, 'kadence_preload'), -10);
+            if (!is_admin()) {
+                // Rows further down: their background pictures wait until
+                // the visitor scrolls near them (GH#1329).
+                require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-rows.php';
+                SEOProStack_Kadence_Rows::boot();
+            }
         }
         if (defined('KBP_VERSION') && !is_admin()) {
             // Advanced Slider slides: only the slides shown, and the next,
