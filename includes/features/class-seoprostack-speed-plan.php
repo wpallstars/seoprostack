@@ -150,6 +150,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'image_loading'             => array(true, ''),
             'wp_extras'                 => array(true, ''),
             'woo_light'                 => array(isset($active['woocommerce']), __('For shops: WooCommerce is not active.', 'seoprostack')),
+            'tutor_light'               => array(isset($active['tutor']), __('For Tutor LMS, which is not active.', 'seoprostack')),
             'kadence_library_on_demand' => array(isset($active['kadence-blocks']), __('For Kadence Blocks, which is not active.', 'seoprostack')),
             'kadence_icon_picker'       => array(isset($active['kadence-blocks']), __('For Kadence Blocks, which is not active.', 'seoprostack')),
             'rank_math_no_stats_bar'    => array(isset($active['seo-by-rank-math']), __('For Rank Math, which is not active.', 'seoprostack')),
