@@ -151,6 +151,10 @@ class SEOProStack_Kadence_Slider {
      * The script that turns the wait on, as the page is read; once a page,
      * whichever slider's copy runs first.
      *
+     * It is printed in the post's content, so it has no "<": wptexturize()
+     * reads one there as the start of a tag, turns each & after it into
+     * &#038; and leaves the rest of the content without curly quotes.
+     *
      * @return string
      */
     private static function script() {
@@ -174,10 +178,9 @@ class SEOProStack_Kadence_Slider {
         // Splide marks the slide it shows: a slider with none by now shows
         // every slide's picture, as before.
         setTimeout(function () {
-            var s = d.querySelectorAll('.wp-block-kadence-slider'), i;
-            for (i = 0; i < s.length; i++) {
-                if (!s[i].querySelector('.wp-block-kadence-slide.is-active')) { s[i].classList.add('sps-slides-all'); }
-            }
+            Array.prototype.forEach.call(d.querySelectorAll('.wp-block-kadence-slider'), function (s) {
+                if (!s.querySelector('.wp-block-kadence-slide.is-active')) { s.classList.add('sps-slides-all'); }
+            });
         }, 1000);
     });
 })(document, window);

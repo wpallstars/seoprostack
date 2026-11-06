@@ -189,32 +189,34 @@ class SEOProStack_Kadence_Rows {
      * The script that turns the wait on as the page is read, and watches
      * each row its row script names.
      *
+     * It is printed in the post's content, so it has no "<": wptexturize()
+     * reads one there as the start of a tag, turns each & after it into
+     * &#038; and leaves the rest of the content without curly quotes.
+     *
      * @return string
      */
     private static function script() {
         $script = <<<'JS'
 (function (d, w) {
-    var e = d.documentElement, o;
+    var e = d.documentElement, o, each = Array.prototype.forEach;
     // As the page is read; left alone when run late by an optimiser.
-    if (w.seoprostackRows || 'loading' !== d.readyState || !e.classList || !d.querySelectorAll || !w.IntersectionObserver) { return; }
+    if (w.seoprostackRows || 'loading' !== d.readyState || !e.classList || !d.querySelectorAll || !w.IntersectionObserver || !each) { return; }
     o = new w.IntersectionObserver(function (list) {
-        for (var i = 0; i < list.length; i++) {
-            if (list[i].isIntersecting) { list[i].target.classList.add('sps-near'); o.unobserve(list[i].target); }
-        }
+        each.call(list, function (n) {
+            if (n.isIntersecting) { n.target.classList.add('sps-near'); o.unobserve(n.target); }
+        });
     }, { rootMargin: '1250px 0px' });
     function watch(id) {
-        var r = d.querySelectorAll('.kb-row-layout-id' + id), i;
-        for (i = 0; i < r.length; i++) { o.observe(r[i]); }
+        each.call(d.querySelectorAll('.kb-row-layout-id' + id), function (r) { o.observe(r); });
     }
     e.classList.add('sps-rows');
     w.seoprostackRows = function (s, id) {
-        var r = s && s.previousElementSibling;
-        if (r && r.classList.contains('kb-row-layout-id' + id)) { o.observe(r); } else { watch(id); }
+        var r = s ? s.previousElementSibling : null;
+        if (r ? r.classList.contains('kb-row-layout-id' + id) : false) { o.observe(r); } else { watch(id); }
     };
     // Rows whose own script did not run (removed or moved by an optimiser).
     w.addEventListener('load', function () {
-        var s = d.querySelectorAll('style.seoprostack-rows[data-row]'), i;
-        for (i = 0; i < s.length; i++) { watch(s[i].getAttribute('data-row')); }
+        each.call(d.querySelectorAll('style.seoprostack-rows'), function (s) { watch(s.getAttribute('data-row')); });
     });
 })(document, window);
 JS;
