@@ -130,6 +130,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Database_Cleanup',
         'SEOProStack_Autoload_Options',
         'SEOProStack_Woo_Light',
+        'SEOProStack_Tutor_Light',
         'SEOProStack_Kadence_Library',
         'SEOProStack_Kadence_Icon_Picker',
         'SEOProStack_Rank_Math_Stats_Bar',
