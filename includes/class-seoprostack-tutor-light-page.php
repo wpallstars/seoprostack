@@ -184,9 +184,8 @@ final class SEOProStack_Tutor_Light_Page {
     private static function option_pages() {
         $ids = array();
         foreach ((array) get_option('tutor_option', array()) as $name => $value) {
-            if (is_string($name) && preg_match('/_page(_id)?$/', $name) && false === strpos($name, 'per_page')
-                && is_numeric($value) && (int) $value > 0) {
-                $ids[] = (int) $value;
+            if (preg_match('/^(?!.*per_page)\w*_page(_id)?$/', (string) $name) && absint($value) > 0) {
+                $ids[] = absint($value);
             }
         }
         return $ids;
