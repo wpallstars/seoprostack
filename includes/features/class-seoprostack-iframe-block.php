@@ -120,6 +120,8 @@ class SEOProStack_Iframe_Block extends SEOProStack_Feature {
         }
         // boot() runs on init, which is where blocks are registered.
         register_block_type(SEOPROSTACK_DIR . 'blocks/iframe');
+        // Core gives only its own blocks' styles a path; with one, the small stylesheet is printed in the page, not as a render-blocking link.
+        wp_style_add_data(generate_block_asset_handle('seoprostack/iframe', 'style'), 'path', SEOPROSTACK_DIR . 'blocks/iframe/style.css');
         add_filter('allowed_block_types_all', array(__CLASS__, 'restrict_inserter'), 10, 2);
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_settings'));
     }
