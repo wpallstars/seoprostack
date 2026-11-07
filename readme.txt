@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: the first Kadence picture is asked for from the head when its block sets its height (#1337).
+
 = 1.3.170 =
 * Faster: Kadence background sliders paint at full width from the start (#1339).
 
