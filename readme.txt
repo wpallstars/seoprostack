@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: Load the CSS each page uses first keeps the rules for panels scripts build, such as Readabler's voice navigation (#1355).
+
 = 1.3.173 =
 * Fixed: on a multisite network, pages no longer stay uncached after an update whose files kept old times (#1351).
 
