@@ -26,7 +26,8 @@
  *
  * On a network, a purge of every site (Network Admin, updates, as LiteSpeed
  * Cache decides it; any WP-Optimize purge) fills each site's main pages,
- * from the site where it happened.
+ * from the site where it happened: every site's first pages, then each
+ * site's others (SEOProStack_Keep_Cached_Pages::network()).
  *
  * A LiteSpeed page cache can also be emptied from outside the site, which
  * runs none of its code: another site on the same hosting account sending

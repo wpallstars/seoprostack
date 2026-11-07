@@ -54,12 +54,14 @@ final class SEOProStack_Keep_Cached_Queue {
      *               (for every site), site (the next network site), crawl (start
      *               LiteSpeed Cache's crawler after), preload (start WP-Optimize's
      *               preload after), since (first purge not yet worked out), purges
-     *               (count), opened (count), stops (batches stopped in a row).
+     *               (count), opened (count), stops (batches stopped in a row), round
+     *               (a network fill's round: 1, every site's first pages; 2, the rest
+     *               of each site's main pages).
      */
     public static function get() {
         self::forget();
         $queue = get_option(self::OPTION, array());
-        $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'blogs' => array(), 'added' => array(), 'site' => 0, 'since' => 0, 'purges' => 0, 'opened' => 0, 'stops' => 0);
+        $queue = (is_array($queue) ? $queue : array()) + array('urls' => array(), 'blogs' => array(), 'added' => array(), 'site' => 0, 'round' => 1, 'since' => 0, 'purges' => 0, 'opened' => 0, 'stops' => 0);
         return array(
             'urls'    => array_values(array_filter((array) $queue['urls'], 'is_string')),
             'blogs'   => array_map('intval', (array) $queue['blogs']),
@@ -67,6 +69,7 @@ final class SEOProStack_Keep_Cached_Queue {
             'full'    => !empty($queue['full']),
             'network' => !empty($queue['network']),
             'site'    => (int) $queue['site'],
+            'round'   => 2 === (int) $queue['round'] ? 2 : 1,
             'crawl'   => !empty($queue['crawl']),
             'preload' => !empty($queue['preload']),
             'since'   => (int) $queue['since'],
@@ -105,7 +108,8 @@ final class SEOProStack_Keep_Cached_Queue {
         $queue['network'] = $queue['network'] || $network;
         $queue['preload'] = $queue['preload'] || $preload;
         if ($network) {
-            $queue['site'] = 0;
+            $queue['site']  = 0;
+            $queue['round'] = 1;
         }
         $queue['since']   = $queue['since'] ? $queue['since'] : time();
         ++$queue['purges'];
@@ -159,13 +163,13 @@ final class SEOProStack_Keep_Cached_Queue {
      * @return array The queue as stored now.
      */
     public static function plan(array $queue, $start, $budget) {
-        $planned = SEOProStack_Keep_Cached_Pages::plan_network($queue['network'], $queue['site'], $start, $budget, count($queue['urls']));
+        $planned = SEOProStack_Keep_Cached_Pages::plan_network($queue['network'], $queue['site'], $start, $budget, count($queue['urls']), $queue['round']);
         $latest          = self::get();
         $latest['urls']  = array_slice(self::merge($latest['urls'], $planned['urls']), 0, SEOProStack_Keep_Cached_Pages::MAX);
         $latest['blogs'] = array_intersect_key($latest['blogs'] + $planned['blogs'], array_flip($latest['urls']));
         $latest['crawl'] = $latest['crawl'] || SEOProStack_Keep_Cached_Requests::litespeed_crawler();
         if ($latest['purges'] === $queue['purges']) {
-            $latest = array_merge($latest, array('full' => !$planned['done'], 'network' => !$planned['done'], 'site' => $planned['site'], 'since' => $planned['done'] ? 0 : $latest['since']));
+            $latest = array_merge($latest, array('full' => !$planned['done'], 'network' => !$planned['done'], 'site' => $planned['site'], 'round' => $planned['round'], 'since' => $planned['done'] ? 0 : $latest['since']));
         }
         update_option(self::OPTION, $latest, false);
         return $latest;

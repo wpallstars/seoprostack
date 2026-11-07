@@ -20,11 +20,30 @@ final class SEOProStack_Keep_Cached_Pages {
     /**
      * Most main pages per site: the home page, the header's and footer's
      * menus and links, the home page's other links and the posts page.
+     * Sites with a large header menu and a home page of links have 80 to
+     * 100; at 50, a home page's own links were left to LiteSpeed Cache's
+     * crawler, which goes in sitemap order and took most of an hour to
+     * reach them (GitHub issue #1363).
      */
-    const MAIN_MAX = 50;
+    const MAIN_MAX = 150;
 
-    /** The same, per site, when every site of a network is filled. */
+    /**
+     * Most pages in all where a crawler or preload covers the rest: the
+     * newest pages and posts fill any room the main pages leave.
+     */
+    const COVERED_MAX = 50;
+
+    /**
+     * A network fill's first round, per site: the home page and the first
+     * header links, so every site gets them in one round (#1240).
+     */
     const NETWORK_MAIN_MAX = 10;
+
+    /**
+     * Its second round, per site: the rest of the main pages, read from the
+     * site's home page as on a single site, and the newest pages and posts
+     * up to this many in all.
+     */
     const NETWORK_MORE_MAX = 25;
 
     /**
@@ -41,9 +60,10 @@ final class SEOProStack_Keep_Cached_Pages {
      */
     public static function to_open($network) {
         if ($network && is_multisite()) {
-            return self::network(0, 0, 0, 0)['urls'];
+            $first = self::network(0, 0, 0, 0, 1)['urls'];
+            return array_merge($first, self::network(0, 0, 0, count($first), 2)['urls']);
         }
-        return self::of_site(self::MAIN_MAX, SEOProStack_Keep_Cached_Requests::covered() ? self::MAIN_MAX : self::MAX, true);
+        return self::of_site(self::MAIN_MAX, SEOProStack_Keep_Cached_Requests::covered() ? self::COVERED_MAX : self::MAX, true);
     }
 
     /**
@@ -54,13 +74,14 @@ final class SEOProStack_Keep_Cached_Pages {
      * @param float $start   Batch start time.
      * @param int   $budget  Batch time budget.
      * @param int   $waiting Addresses already waiting.
-     * @return array{urls:string[],blogs:array<string,int>,site:int,done:bool}
+     * @param int   $round   Network fill round: 1 (first pages) or 2 (the rest).
+     * @return array{urls:string[],blogs:array<string,int>,site:int,round:int,done:bool}
      */
-    public static function plan_network($network, $site, $start, $budget, $waiting) {
+    public static function plan_network($network, $site, $start, $budget, $waiting, $round = 1) {
         if ($network && is_multisite()) {
-            return self::network($site, $start, $budget, $waiting);
+            return self::network($site, $start, $budget, $waiting, $round);
         }
-        return array('urls' => self::to_open(false), 'blogs' => array(), 'site' => 0, 'done' => true);
+        return array('urls' => self::to_open(false), 'blogs' => array(), 'site' => 0, 'round' => 1, 'done' => true);
     }
 
     /**
@@ -71,7 +92,7 @@ final class SEOProStack_Keep_Cached_Pages {
      *
      * @param int  $main      Most main pages.
      * @param int  $total     Most pages in all.
-     * @param bool $read_home Read the home page for its links (not on a network fill).
+     * @param bool $read_home Read the home page for its links (not in a network fill's first round).
      * @return string[]
      */
     private static function of_site($main, $total, $read_home) {
@@ -246,27 +267,39 @@ final class SEOProStack_Keep_Cached_Pages {
 
     /**
      * Pages of every site of the network where Keep pages cached is on and
-     * a page cache is kept, each site's worked out on that site.
+     * a page cache is kept, each site's worked out on that site, in two
+     * rounds: first every site's home page and first header links, then
+     * each site's other main pages (its home page read for its links, as on
+     * a single site) and newest pages and posts. In one round, the sites at
+     * the end of a large network waited for every other site's whole set
+     * (#1240); with only the first round, a network site's footer, most of
+     * a large header and its home page's links waited for the crawler
+     * (#1363).
      *
      * @param int   $site    Network site ID to plan next.
      * @param float $start   Batch start time.
      * @param int   $budget  Batch time budget.
      * @param int   $waiting Addresses already waiting.
-     * @return array{urls:string[],blogs:array<string,int>,site:int,done:bool}
+     * @param int   $round   1 or 2.
+     * @return array{urls:string[],blogs:array<string,int>,site:int,round:int,done:bool}
      */
-    private static function network($site, $start, $budget, $waiting) {
+    private static function network($site, $start, $budget, $waiting, $round) {
+        $round = 2 === (int) $round ? 2 : 1;
+        // A site's whole list must fit, as the queue keeps only MAX addresses.
+        $most  = 1 === $round ? self::NETWORK_MAIN_MAX : max(self::MAIN_MAX, self::NETWORK_MORE_MAX);
         $urls  = array();
         $blogs = array();
-        while (self::NETWORK_MORE_MAX <= self::MAX - $waiting - count($urls) && (!$start || microtime(true) - $start < $budget)) {
+        while ($most <= self::MAX - $waiting - count($urls) && (!$start || microtime(true) - $start < $budget)) {
             $id = self::next_site($site);
             if (!$id) {
-                self::rewrite_init();
-                return array('urls' => $urls, 'blogs' => $blogs, 'site' => 0, 'done' => true);
+                return self::network_end($urls, $blogs, $round);
             }
             switch_to_blog($id);
             self::rewrite_init();
             if (self::fills_here()) {
-                foreach (self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MORE_MAX, false) as $url) {
+                $first = self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MAIN_MAX, false);
+                $site_urls = 1 === $round ? $first : array_diff(self::of_site(self::MAIN_MAX, self::NETWORK_MORE_MAX, true), $first);
+                foreach ($site_urls as $url) {
                     $urls[]       = $url;
                     $blogs[$url] = $id;
                 }
@@ -274,12 +307,26 @@ final class SEOProStack_Keep_Cached_Pages {
             restore_current_blog();
             $site = self::next_site($id + 1);
             if (!$site) {
-                self::rewrite_init();
-                return array('urls' => $urls, 'blogs' => $blogs, 'site' => 0, 'done' => true);
+                return self::network_end($urls, $blogs, $round);
             }
         }
         self::rewrite_init();
-        return array('urls' => $urls, 'blogs' => $blogs, 'site' => $site, 'done' => false);
+        return array('urls' => $urls, 'blogs' => $blogs, 'site' => $site, 'round' => $round, 'done' => false);
+    }
+
+    /**
+     * A network round reached the last site: the second round starts at the
+     * first site, or the fill is planned.
+     *
+     * @param string[]           $urls  Addresses planned.
+     * @param array<string, int> $blogs Address => site ID.
+     * @param int                $round The round that ended.
+     * @return array{urls:string[],blogs:array<string,int>,site:int,round:int,done:bool}
+     */
+    private static function network_end(array $urls, array $blogs, $round) {
+        self::rewrite_init();
+        $done = 2 === $round;
+        return array('urls' => $urls, 'blogs' => $blogs, 'site' => 0, 'round' => $done ? 1 : 2, 'done' => $done);
     }
 
     /**

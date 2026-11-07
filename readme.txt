@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Keep pages cached opens every header, footer and home page link first, networks too (#1363).
+
 = 1.3.174 =
 * Fixed: Load the CSS each page uses first keeps the rules for panels scripts build, such as Readabler's voice navigation (#1355).
 
