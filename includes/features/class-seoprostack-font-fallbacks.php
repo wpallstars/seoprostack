@@ -10,16 +10,18 @@
  * link), this adds `"<Family> Fallback"` faces: a local font (Arial, or
  * Times New Roman for serif fonts) resized with size-adjust and
  * ascent/descent/line-gap overrides to the web font's measurements, regular
- * and bold separately, and its capitals A to Z sized on their own (a face
- * with that unicode-range) when they differ. A second set, `"<Family> Fallback 2"`, does the same
- * from Roboto and Noto Serif for Android phones, which have no Arial. Each
+ * and bold separately, with its capitals A to Z and its spaces sized on
+ * their own (a face with that unicode-range) when they differ. A second set,
+ * `"<Family> Fallback 2"`, does the same from Roboto and Noto Serif for
+ * Android phones, which have no Arial. Each
  * font-family declaration in the page's own `<style>` elements (and each
  * --*font-family custom property, as the Kadence theme's) gets them after
  * the web font, and a small script starts loading them as the head is read,
  * so they are ready for the first paint (GitHub issue #1372).
  *
- * Measurements: assets/font-metrics/metrics.json, made from Capsize's
- * @capsizecss/metrics (MIT, SEEK) by scripts/update-font-metrics.sh. Fonts it
+ * Measurements: assets/font-metrics/metrics.json, made by
+ * scripts/update-font-metrics.sh from Capsize's @capsizecss/metrics (MIT,
+ * SEEK; the heights) and the fonts Google Fonts serves (the widths). Fonts it
  * does not know are left as they are. No requests and no font files.
  *
  * Average-width matching cannot fit every line: a heading whose letters are
@@ -69,6 +71,20 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
             array('timesNewRoman', array('Times New Roman', 'TimesNewRomanPSMT', 'Liberation Serif', 'LiberationSerif', 'Tinos', 'Tinos-Regular'), array('Times New Roman Bold', 'TimesNewRomanPS-BoldMT', 'Liberation Serif Bold', 'LiberationSerif-Bold', 'Tinos Bold', 'Tinos-Bold')),
             array('notoSerif', array('Noto Serif', 'NotoSerif-Regular'), array('Noto Serif Bold', 'NotoSerif-Bold')),
         ),
+    );
+
+    /** Characters that get a face of their own: spaces and capitals. */
+    const PARTS = array(
+        'space' => 'U+20,U+A0',
+        'caps'  => 'U+41-5A',
+    );
+
+    /** The unicode-range of the face for the rest, by the parts given their own. */
+    const REST = array(
+        ''           => '',
+        'space'      => 'U+0-1F,U+21-9F,U+A1-10FFFF',
+        'caps'       => 'U+0-40,U+5B-10FFFF',
+        'space caps' => 'U+0-1F,U+21-40,U+5B-9F,U+A1-10FFFF',
     );
 
     /** Font stylesheets on this site read for their @font-face rules, at most. */
@@ -225,20 +241,20 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         $loads   = array();
         foreach ($families as $family) {
             list($name, $m) = $family;
-            $bold           = count($m) >= 13;
+            $bold           = count($m) >= 15;
             foreach (self::BASES['e' === $m[0] ? 'e' : 's'] as $i => $base) {
                 $local = $metrics['bases'][$base[0]];
                 $fname = $name . ' Fallback' . ($i ? ' 2' : '');
-                $css  .= self::face($fname, array_slice($m, 1, 6), array_slice($local, 0, 6), $base[1], $bold ? '100 500' : 'normal');
+                $css  .= self::face($fname, array_slice($m, 1, 7), array_slice($local, 0, 7), $base[1], $bold ? '100 500' : 'normal');
                 $loads[] = '400 1em "' . $fname . '"';
                 if ($bold) {
-                    $css    .= self::face($fname, array_slice($m, 7, 6), array_slice($local, 6, 6), $base[2], '600 900');
+                    $css    .= self::face($fname, array_slice($m, 8, 7), array_slice($local, 7, 7), $base[2], '600 900');
                     $loads[] = '700 1em "' . $fname . '"';
                 }
             }
         }
-        // "aA": the face for small letters and the one for capitals.
-        $script = '(function(f){if(f&&f.load){' . wp_json_encode($loads, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES) . '.forEach(function(s){f.load(s,"aA").then(null,function(){})})}})(document.fonts)';
+        // "aA ": the faces for small letters, capitals and spaces.
+        $script = '(function(f){if(f&&f.load){' . wp_json_encode($loads, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES) . '.forEach(function(s){f.load(s,"aA ").then(null,function(){})})}})(document.fonts)';
         return '<style id="seoprostack-font-fallbacks">' . $css . '</style>'
             . '<script id="seoprostack-font-fallbacks-js" data-seoprostack-nodelay>' . $script . '</script>';
     }
@@ -247,31 +263,41 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      * One fallback face.
      *
      * @param string $name   Family.
-     * @param array  $font   The web font's [unitsPerEm, ascent, descent, lineGap, xWidthAvg, capsWidthAvg].
+     * @param array  $font   The web font's [unitsPerEm, ascent, descent, lineGap, lowerWidth, capsWidth, spaceWidth].
      * @param array  $local  The local font's, the same.
      * @param array  $locals Its local() names.
      * @param string $weight Weights it is for.
      * @return string
      */
     private static function face($name, array $font, array $local, array $locals, $weight) {
-        if (count($font) < 6 || count($local) < 6 || $local[0] <= 0 || $local[4] <= 0 || $font[0] <= 0) {
+        if (count($font) < 7 || count($local) < 7 || $font[0] <= 0 || $local[0] <= 0
+            || min($font[4], $font[5], $font[6], $local[4], $local[5], $local[6]) <= 0) {
             return '';
         }
-        $size = ($font[4] / $font[0]) / ($local[4] / $local[0]);
-        $caps = $font[5] > 0 && $local[5] > 0 ? ($font[5] / $font[0]) / ($local[5] / $local[0]) : 0;
-        $src  = implode(',', array_map(function ($l) {
+        $ratio = function ($i) use ($font, $local) {
+            return ($font[$i] / $font[0]) / ($local[$i] / $local[0]);
+        };
+        $size  = $ratio(4);
+        $src   = implode(',', array_map(function ($l) {
             return 'local("' . $l . '")';
         }, $locals));
-        if (!$caps || abs($caps / $size - 1) < 0.01) {
-            return self::rule($name, $src, $weight, $size, $font, '');
+        // Fonts' small letters, capitals and spaces are not in the same
+        // proportion (Poppins Bold's capitals are narrower than Arial Bold's,
+        // its small letters wider and its space much narrower), so capitals
+        // and spaces get faces of their own, sized to the web font's: a line
+        // wraps nearer where the web font's does. All have the web font's
+        // height, so lines keep their height. The face with the space gives
+        // the ex and ch units while the web font loads.
+        $parts = array();
+        $css   = '';
+        foreach (array('space' => 6, 'caps' => 5) as $part => $i) {
+            $own = $ratio($i);
+            if (abs($own / $size - 1) >= 0.01) {
+                $parts[] = $part;
+                $css    .= self::rule($name, $src, $weight, $own, $font, self::PARTS[$part]);
+            }
         }
-        // Fonts' capitals and small letters are not in the same proportion
-        // (Poppins Bold's capitals are narrower than Arial Bold's, its small
-        // letters wider), so A to Z get a face of their own, sized to the web
-        // font's capitals: a line in capitals wraps where the web font's does.
-        // Both have the web font's height, so lines keep their height.
-        return self::rule($name, $src, $weight, $size, $font, 'U+0-40,U+5B-10FFFF')
-            . self::rule($name, $src, $weight, $caps, $font, 'U+41-5A');
+        return self::rule($name, $src, $weight, $size, $font, self::REST[implode(' ', $parts)]) . $css;
     }
 
     /**
@@ -356,7 +382,7 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
                 continue;
             }
             $font = $metrics['fonts'][$key];
-            if (is_array($font) && count($font) >= 7) {
+            if (is_array($font) && count($font) >= 8) {
                 $out[$key] = array($name, $font);
             }
         }
@@ -448,7 +474,7 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
             $data          = '' === $json ? null : json_decode((string) $json, true);
             self::$metrics = is_array($data) && isset($data['fonts'], $data['bases']) ? $data : array();
             foreach (array('arial', 'roboto', 'timesNewRoman', 'notoSerif') as $base) {
-                if (empty(self::$metrics['bases'][$base]) || count(self::$metrics['bases'][$base]) < 12) {
+                if (empty(self::$metrics['bases'][$base]) || count(self::$metrics['bases'][$base]) < 14) {
                     self::$metrics = array();
                     break;
                 }

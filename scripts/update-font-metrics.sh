@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Refresh the font measurements of Keep text still while fonts load
 # (assets/font-metrics/) from the newest @capsizecss/metrics release on npm,
-# which follows new Google Fonts, and measure each family's capital letters
-# from Google Fonts. Run it now and then, and commit the result.
+# which follows new Google Fonts, and measure each family's small letters,
+# capitals and space from Google Fonts. Run it now and then, and commit the
+# result.
 #
 # Usage: scripts/update-font-metrics.sh
 #

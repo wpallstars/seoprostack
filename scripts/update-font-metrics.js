@@ -9,23 +9,24 @@
  *                                     (SEOProStack_Font_Fallbacks):
  *     version   the @capsizecss/metrics version
  *     fonts     lower-case family name => [category, unitsPerEm, ascent,
- *               descent, lineGap, xWidthAvg, capsWidthAvg] for the regular
- *               face, and six more for the bold (700) face when the family
- *               has one. Category: s sans-serif, e serif, d display,
- *               h handwriting. Monospace and icon, emoji and barcode fonts
- *               are left out.
+ *               descent, lineGap, lowerWidth, capsWidth, spaceWidth] for
+ *               the regular face, and seven more for the bold (700) face
+ *               when the family has one. Category: s sans-serif, e serif,
+ *               d display, h handwriting. Monospace and icon, emoji and
+ *               barcode fonts are left out.
  *     bases     the local fonts the fallbacks are made from (Arial, Times New
  *               Roman, Roboto, Noto Serif), in the same shape.
  *   assets/font-metrics/LICENSE.txt   sources and licence
  *
- * xWidthAvg is Capsize's average character width for Latin text, weighted by
- * how often each letter appears in English; it sets size-adjust.
- * capsWidthAvg is the same for the capital letters A to Z, measured here from
- * the TrueType copy Google Fonts serves with just those letters (Arimo and
- * Tinos for Arial and Times New Roman: they have the same widths). Fonts'
- * capitals and small letters are not in the same proportion, so the
- * fallback sizes its capitals on their own (0 when not measured: a font not
- * on Google Fonts). No font file is kept.
+ * The heights (unitsPerEm, ascent, descent, lineGap) are Capsize's. The
+ * widths, in the font's units, are measured here from the TrueType copy
+ * Google Fonts serves with just the letters a to z, A to Z and the space
+ * (Arimo and Tinos for Arial and Times New Roman: they have the same
+ * widths): lowerWidth and capsWidth are the average small letter and capital,
+ * weighted by how often each letter appears in English, and spaceWidth is the
+ * space. Fonts' small letters, capitals and spaces are not in the same
+ * proportion, so the fallback sizes each on its own. A family Google Fonts
+ * does not serve at these weights is left out. No font file is kept.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -48,9 +49,12 @@ const SKIP = /^(Material (Icons|Symbols)|Noto (Color )?Emoji|Libre Barcode|Redac
 /* The local fonts, and the Google Fonts family with their widths. */
 const BASES = { arial: 'Arimo', timesNewRoman: 'Tinos', roboto: 'Roboto', notoSerif: 'Noto Serif' };
 const GOOGLE_CSS = 'https://fonts.googleapis.com/css2';
-/* Capitals, most used first, and how often each appears in English (%). */
-const CAPS = 'ETAOINSHRDLCUMWFGYPBVKJXQZ';
-const CAPS_FREQ = [12.70, 9.06, 8.17, 7.51, 6.97, 6.75, 6.33, 6.09, 5.99, 4.25, 4.03, 2.78, 2.76, 2.41, 2.36, 2.23, 2.02, 1.97, 1.93, 1.29, 0.98, 0.77, 0.15, 0.15, 0.10, 0.07];
+/* Letters, most used first, and how often each appears in English (%). */
+const LOWER = 'etaoinshrdlcumwfgypbvkjxqz';
+const CAPS = LOWER.toUpperCase();
+const FREQ = [12.70, 9.06, 8.17, 7.51, 6.97, 6.75, 6.33, 6.09, 5.99, 4.25, 4.03, 2.78, 2.76, 2.41, 2.36, 2.23, 2.02, 1.97, 1.93, 1.29, 0.98, 0.77, 0.15, 0.15, 0.10, 0.07];
+/* The characters measured: a Google Fonts text= subset of just these. */
+const MEASURED = LOWER + CAPS + ' ';
 /* Google Fonts requests at a time. */
 const PARALLEL = 12;
 
@@ -144,34 +148,46 @@ function cmapLookup(b, at) {
 	return null;
 }
 
-/* Average advance width of A to Z (English frequency), per em, or 0. */
-function capsPerEm(b) {
+/*
+ * [small letters' average, capitals' average, space] advance widths per em
+ * (letters weighted by English frequency), or null when a character is
+ * missing.
+ */
+function widthsPerEm(b) {
 	const t = sfntTables(b);
 	if (!t.head || !t.hhea || !t.hmtx || !t.cmap) {
-		return 0;
+		return null;
 	}
 	const upm = b.readUInt16BE(t.head + 18);
 	const metrics = b.readUInt16BE(t.hhea + 34);
 	const glyph = cmapLookup(b, t.cmap);
 	if (!glyph || !upm || !metrics) {
-		return 0;
+		return null;
 	}
-	let sum = 0;
-	let weight = 0;
-	for (let i = 0; i < CAPS.length; i++) {
-		const g = glyph(CAPS.charCodeAt(i));
-		if (!g) {
-			return 0;
+	const advance = (ch) => {
+		const g = glyph(ch.charCodeAt(0));
+		return g ? b.readUInt16BE(t.hmtx + Math.min(g, metrics - 1) * 4) / upm : 0;
+	};
+	const average = (letters) => {
+		let sum = 0;
+		let weight = 0;
+		for (let i = 0; i < letters.length; i++) {
+			const w = advance(letters[i]);
+			if (!w) {
+				return 0;
+			}
+			sum += w * FREQ[i];
+			weight += FREQ[i];
 		}
-		sum += b.readUInt16BE(t.hmtx + Math.min(g, metrics - 1) * 4) * CAPS_FREQ[i];
-		weight += CAPS_FREQ[i];
-	}
-	return sum / weight / upm;
+		return sum / weight;
+	};
+	const out = [average(LOWER), average(CAPS), advance(' ')];
+	return out.every((v) => v > 0) ? out : null;
 }
 
-/* Capital letters' average width per em of a Google Fonts family: weight => value. */
-async function googleCaps(family, weights) {
-	const url = GOOGLE_CSS + '?family=' + encodeURIComponent(family) + ':wght@' + weights.join(';') + '&text=' + CAPS;
+/* A Google Fonts family's widths per em (widthsPerEm): weight => values. */
+async function googleWidths(family, weights) {
+	const url = GOOGLE_CSS + '?family=' + encodeURIComponent(family) + ':wght@' + weights.join(';') + '&text=' + encodeURIComponent(MEASURED);
 	for (let attempt = 1; attempt <= 3; attempt++) {
 		try {
 			const res = await fetch(url);
@@ -184,8 +200,9 @@ async function googleCaps(family, weights) {
 			const out = {};
 			for (const m of (await res.text()).matchAll(/font-weight:\s*(\d+);[^}]*?src:\s*url\(([^)]+)\)\s*format\('truetype'\)/g)) {
 				const font = await fetch(m[2]);
-				if (font.ok) {
-					out[m[1]] = capsPerEm(Buffer.from(await font.arrayBuffer()));
+				const widths = font.ok ? widthsPerEm(Buffer.from(await font.arrayBuffer())) : null;
+				if (widths) {
+					out[m[1]] = widths;
 				}
 			}
 			return out;
@@ -211,11 +228,10 @@ async function eachLimited(items, fn) {
 	await Promise.all(workers);
 }
 
-/* [unitsPerEm, ascent, descent, lineGap, xWidthAvg] of one face. */
+/* [unitsPerEm, ascent, descent, lineGap] of one face. */
 function face(m) {
-	const latin = m.subsets && m.subsets.latin && m.subsets.latin.xWidthAvg;
-	const values = [m.unitsPerEm, m.ascent, m.descent, m.lineGap, latin || m.xWidthAvg];
-	return values.every((v) => Number.isFinite(v)) && m.unitsPerEm > 0 && values[4] > 0 ? values : null;
+	const values = [m.unitsPerEm, m.ascent, m.descent, m.lineGap];
+	return values.every((v) => Number.isFinite(v)) && m.unitsPerEm > 0 ? values : null;
 }
 
 /* Regular, then bold when the family has a bold face: { regular, bold }. */
@@ -227,11 +243,21 @@ function faces(m) {
 	return { regular, bold: m.variants && m.variants['700'] ? face(m.variants['700']) : null };
 }
 
-/* A family's values, each face with its capitals' width (in its units) added. */
+/*
+ * A family's values, each face with its widths (in its units) added, or null
+ * when Google Fonts does not serve it. Bold is left out when Google Fonts has
+ * none at 700.
+ */
 async function measured(f, google) {
-	const caps = await googleCaps(google, f.bold ? [400, 700] : [400]);
-	const add = (values, weight) => values.concat(Math.round((caps[weight] || 0) * values[0]));
-	return f.bold ? add(f.regular, '400').concat(add(f.bold, '700')) : add(f.regular, '400');
+	let widths = await googleWidths(google, f.bold ? [400, 700] : [400]);
+	if (f.bold && !widths['400']) {
+		widths = await googleWidths(google, [400]);
+	}
+	if (!widths['400']) {
+		return null;
+	}
+	const add = (values, weight) => values.concat(widths[weight].map((w) => Math.round(w * values[0])));
+	return f.bold && widths['700'] ? add(f.regular, '400').concat(add(f.bold, '700')) : add(f.regular, '400');
 }
 
 async function main() {
@@ -251,18 +277,24 @@ async function main() {
 			}
 		});
 		let done = 0;
+		const left = [];
 		await eachLimited(todo, async (item) => {
-			fonts[item.key] = [item.cat].concat(await measured(item.f, item.name));
+			const values = await measured(item.f, item.name);
+			if (values) {
+				fonts[item.key] = [item.cat].concat(values);
+			} else {
+				left.push(item.name);
+			}
 			if (++done % 200 === 0) {
-				console.log('Measured capitals: ' + done + ' of ' + todo.length);
+				console.log('Measured widths: ' + done + ' of ' + todo.length);
 			}
 		});
 		const bases = {};
 		for (const key of Object.keys(BASES)) {
 			const f = all[key] ? faces(all[key]) : null;
 			const values = f && f.bold ? await measured(f, BASES[key]) : null;
-			if (!values || !values[5] || !values[11]) {
-				throw new Error('no regular and bold metrics and capitals for ' + key);
+			if (!values || values.length !== 14) {
+				throw new Error('no regular and bold metrics and widths for ' + key);
 			}
 			bases[key] = values;
 		}
@@ -278,17 +310,16 @@ async function main() {
 			'Font metrics in this folder',
 			'',
 			'metrics.json is made from ' + PACKAGE + ' ' + pkg.version + ' (https://github.com/seek-oss/capsize),',
-			'by SEEK, under the MIT License below: the measurements of Google Fonts and',
-			'common system fonts, for Keep text still while fonts load. The capital',
-			'letters\' average widths are measured by scripts/update-font-metrics.js from',
-			'the fonts Google Fonts serves (each under its own open licence). No font',
-			'files.',
+			'by SEEK, under the MIT License below: the heights of Google Fonts, for Keep',
+			'text still while fonts load. The widths of the small letters, capitals and',
+			'space are measured by scripts/update-font-metrics.js from the fonts Google',
+			'Fonts serves (each under its own open licence). No font files.',
 			'',
 			licence,
 			'',
 		].join('\n'));
 		const keys = Object.keys(sorted);
-		console.log(PACKAGE + ' ' + pkg.version + ': ' + keys.length + ' families, ' + keys.filter((k) => sorted[k].length > 7).length + ' with bold, ' + keys.filter((k) => sorted[k][6] > 0).length + ' with capitals measured.');
+		console.log(PACKAGE + ' ' + pkg.version + ': ' + keys.length + ' families, ' + keys.filter((k) => sorted[k].length > 8).length + ' with bold; left out (not on Google Fonts at 400): ' + left.sort().join(', '));
 	} finally {
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}
