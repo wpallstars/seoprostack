@@ -229,6 +229,29 @@ class SEOProStack_Cron_List {
     }
 
     /**
+     * When a hook is next due in the list as stored now, read past the
+     * caches: a run that read its due events at its start sees here whether
+     * another request has since moved one. Null when the hook is not in the
+     * list or the list cannot be read.
+     *
+     * @param string $hook The hook.
+     * @return int|null
+     */
+    public static function next_stored($hook) {
+        $stored = self::stored();
+        if (null === $stored) {
+            return null;
+        }
+        $next = null;
+        foreach (self::events($stored) as $event) {
+            if ($event[1] === $hook && (null === $next || (int) $event[0] < $next)) {
+                $next = (int) $event[0];
+            }
+        }
+        return $next;
+    }
+
+    /**
      * The list as stored now, read from the database past every cache
      * (another request may have written it since this one read it); null
      * when it cannot be read.

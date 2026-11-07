@@ -437,6 +437,11 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             delete_option(SEOProStack_Keep_Cached_Queue::OPTION);
             return;
         }
+        // A purge during a cron run moves the fill back, but core still calls the copy of the event it read at the start: leave the moved one to run at its new time.
+        $moved = class_exists('SEOProStack_Cron_List', false) ? SEOProStack_Cron_List::next_stored(SEOProStack_Keep_Cached_Queue::HOOK) : null;
+        if (null !== $moved && $moved > time()) {
+            return;
+        }
         $start  = microtime(true);
         $budget = 'cli' === PHP_SAPI && is_main_site() ? self::CLI_BUDGET : self::BUDGET;
         if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
