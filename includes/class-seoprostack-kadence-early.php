@@ -192,7 +192,18 @@ class SEOProStack_Kadence_Early {
     b = h.b[m('(max-width: 767px)').matches ? 2 : (m('(max-width: 1024px)').matches ? 1 : 0)];
     if (!b) { return; }
     v = e.clientWidth;
-    t = 'r' === b[0] ? v * b[1] : ('vh' === b[0] ? e.clientHeight * b[1] / 100 : ('vw' === b[0] ? v * b[1] / 100 : b[1]));
+    // 100vh as CSS has it: on phones, taller than the window while the
+    // address bar shows. Measured on an empty element, before the page has
+    // any other to lay out.
+    function vh() {
+        var x = d.createElement('div'), y;
+        x.style.cssText = 'position:absolute;top:0;left:0;width:0;height:100vh;visibility:hidden';
+        e.appendChild(x);
+        y = x.offsetHeight || e.clientHeight;
+        e.removeChild(x);
+        return y;
+    }
+    t = 'r' === b[0] ? v * b[1] : ('vh' === b[0] ? vh() * b[1] / 100 : ('vw' === b[0] ? v * b[1] / 100 : b[1]));
     // The fewest device pixels the picture paints across, with 10% to spare.
     n = ('contain' === h.z ? Math.min(v, t * h.p.w / h.p.h) : Math.max(v, t * h.p.w / h.p.h)) * (w.devicePixelRatio || 1) * 1.1;
     for (j = 0; j < h.p.c.length - 1 && h.p.c[j][0] < n; j++) {}
