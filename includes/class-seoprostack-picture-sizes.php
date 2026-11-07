@@ -85,7 +85,7 @@ class SEOProStack_Picture_Sizes {
             return;
         }
         self::$seen[$id] = true;
-        if (!self::missing($meta) || (int) get_post_meta($id, self::TRIED, true) > time() - self::RETRY) {
+        if (!self::missing($meta) || !wp_attachment_is_image($id) || (int) get_post_meta($id, self::TRIED, true) > time() - self::RETRY) {
             return;
         }
         $queue = self::queue();
@@ -168,7 +168,9 @@ class SEOProStack_Picture_Sizes {
      */
     private static function make($id) {
         $meta = wp_get_attachment_metadata($id);
-        if (!wp_attachment_is_image($id) || !is_array($meta) || !self::missing($meta)) {
+        // Not a watermarked picture: its files are marked in place, so new
+        // sizes would carry a mark Watermark pictures could not remove.
+        if (!wp_attachment_is_image($id) || !is_array($meta) || !self::missing($meta) || get_post_meta($id, '_seoprostack_watermark', true)) {
             return false;
         }
         $before       = count((array) ($meta['sizes'] ?? array()));
@@ -220,25 +222,12 @@ class SEOProStack_Picture_Sizes {
      * @param int[] $posts Post IDs.
      */
     private static function refresh(array $posts) {
-        $litespeed = has_action('litespeed_purge');
-        foreach ($posts as $post_id) {
-            if ($litespeed) {
-                // Only this page: litespeed_purge_post also purges what its
-                // Purge Rules list, often every page (GH#1399).
-                do_action('litespeed_purge', 'Po.' . $post_id); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's hook.
-            }
-        }
-        if (!$litespeed) {
-            SEOProStack_Page_Cache::purge_posts($posts);
-        }
+        SEOProStack_Page_Cache::purge_posts($posts, true);
         if (!class_exists('SEOProStack_Keep_Pages_Cached') || !SEOProStack_Keep_Pages_Cached::enabled() || '' === SEOProStack_Keep_Pages_Cached::page_cache()) {
             return;
         }
-        $urls = array();
-        foreach ($posts as $post_id) {
-            $urls[] = (int) get_option('page_on_front') === $post_id ? home_url('/') : (string) get_permalink($post_id);
-        }
-        $urls = SEOProStack_Keep_Cached_Pages::clean(array_filter($urls), count($urls));
+        // The home page's own address for the front page (get_page_link()).
+        $urls = SEOProStack_Keep_Cached_Pages::clean(array_filter(array_map('get_permalink', $posts)), count($posts));
         if ($urls) {
             SEOProStack_Keep_Cached_Queue::add($urls, self::DELAY);
         }

@@ -135,9 +135,12 @@ final class SEOProStack_Page_Cache {
      * action.
      *
      * @since 1.3.89
-     * @param int[] $ids Post IDs, attachments included.
+     * @param int[] $ids  Post IDs, attachments included.
+     * @param bool  $only With LiteSpeed Cache, purge only the posts' own
+     *                    pages (their post tag), not what its Purge Rules
+     *                    list, often every page (GH#1399, GH#1406).
      */
-    public static function purge_posts($ids) {
+    public static function purge_posts($ids, $only = false) {
         $ids = array_unique(array_filter(array_map('intval', (array) $ids), static function ($id) {
             return $id > 0;
         }));
@@ -147,7 +150,7 @@ final class SEOProStack_Page_Cache {
         $litespeed = (bool) has_action('litespeed_purge_post');
         $wpo = self::wp_optimize_on() && method_exists('WPO_Page_Cache', 'delete_single_post_cache');
         foreach ($ids as $id) {
-            if ($litespeed && 'attachment' === get_post_type($id)) {
+            if ($litespeed && ($only || 'attachment' === get_post_type($id))) {
                 // litespeed_purge_post skips the inherit status, and
                 // litespeed_purge_url leaves an admin notice; LiteSpeed tags
                 // every single page with its post ID (Tag::TYPE_POST).
