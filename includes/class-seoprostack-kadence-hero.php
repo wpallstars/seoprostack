@@ -95,6 +95,9 @@ class SEOProStack_Kadence_Hero {
         self::$row = $id;
         add_filter('render_block_kadence/rowlayout', array(__CLASS__, 'after_row'), 30, 2);
         self::head($id, $slider, $pictures);
+        // The first picture from the head, when the row sets its height (GH#1337).
+        require_once __DIR__ . '/class-seoprostack-kadence-early.php';
+        echo SEOProStack_Kadence_Early::row($id, $attrs, $pictures[0]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() of a JSON-encoded script.
         return true;
     }
 
@@ -216,7 +219,7 @@ class SEOProStack_Kadence_Hero {
         try { run(s); } finally { show(); }
     };
     function run(s) {
-        var k = 'kb-row-layout-id' + h.id, row = s && s.previousElementSibling, box, first, size, i, c, l;
+        var k = 'kb-row-layout-id' + h.id, row = s && s.previousElementSibling, box, first, size, i, j, c, l, g = w.seoprostackEarly;
         if (!row || !row.classList.contains(k)) { row = d.querySelector('.' + k); }
         box = row;
         if (row && h.s) {
@@ -248,16 +251,24 @@ class SEOProStack_Kadence_Hero {
                 if (f[2]) { list[m].style.setProperty('background-image', f[2], 'important'); }
             }
         }
-        for (i = 0; i < h.p.length; i++) { set(h.p[i], pick(h.p[i])); }
-        c = h.p[0].c[h.p[0].i];
-        l = d.createElement('link');
-        l.rel = 'preload';
-        l.as = 'image';
-        if (c[4]) { l.type = c[4]; }
-        l.setAttribute('fetchpriority', 'high');
-        // c[1] is url(…): the address inside it.
-        l.href = c[3] || c[1].slice(4, -1);
-        d.head.appendChild(l);
+        // The copy the head fetched for the first picture (GH#1337), or -1.
+        g = g && 'r' + h.id === g.k ? g.i : -1;
+        for (i = 0; i < h.p.length; i++) {
+            j = pick(h.p[i]);
+            // The head's copy when it is enough, so it is fetched once.
+            set(h.p[i], i || g < j ? j : g);
+        }
+        if (g !== h.p[0].i) {
+            c = h.p[0].c[h.p[0].i];
+            l = d.createElement('link');
+            l.rel = 'preload';
+            l.as = 'image';
+            if (c[4]) { l.type = c[4]; }
+            l.setAttribute('fetchpriority', 'high');
+            // c[1] is url(…): the address inside it.
+            l.href = c[3] || c[1].slice(4, -1);
+            d.head.appendChild(l);
+        }
         // Larger when the row grows, or when the screen's pixels get denser
         // (the window moved to another display, or zoomed); never smaller.
         function grow() {

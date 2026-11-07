@@ -181,6 +181,11 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * copies, the script after the slider preloads the one the screen needs
      * instead (SEOProStack_Kadence_Slider::opens(), GH#1333).
      *
+     * When a full-width row or slider sets its height for the screen size,
+     * a script here, before the stylesheets, fetches the copy it needs at
+     * least, so the picture does not wait for the parser to reach the block
+     * (SEOProStack_Kadence_Early, GH#1337).
+     *
      * Left alone, so no device fetches a picture it does not show: rows
      * hidden on a device, with their own tablet or phone background, a
      * parallax or dynamic background, or Kadence's old row markup; rows
@@ -221,6 +226,11 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             $tag   = self::preload_html($url);
             $sized = class_exists('SEOProStack_Kadence_Slider') && SEOProStack_Kadence_Slider::opens($blocks[0], $tag);
             echo ($sized ? '<noscript>' . $tag . '</noscript>' : $tag) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in preload_tag().
+            // With JavaScript, the copy this screen needs at least, from
+            // here, when the slider sets its height (GH#1337).
+            if ($sized) {
+                echo SEOProStack_Kadence_Slider::early($blocks[0]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() of a JSON-encoded script.
+            }
         } else {
             $url = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
             if ('' === $url) {

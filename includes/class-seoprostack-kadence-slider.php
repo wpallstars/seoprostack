@@ -119,6 +119,25 @@ class SEOProStack_Kadence_Slider {
     }
 
     /**
+     * For the slider a post or page opens with, once opens() has taken it:
+     * the head's script that fetches its first slide's picture, when the
+     * slider sets its height (SEOProStack_Kadence_Early, GH#1337); '' when not.
+     *
+     * @param array $block Parsed slider block.
+     * @return string
+     */
+    public static function early(array $block) {
+        $first   = $block['innerBlocks'][0] ?? null;
+        $picture = '' !== self::$opens && self::$opens === self::slider_id($block) && is_array($first) ? self::picture($first) : null;
+        if (!$picture) {
+            return '';
+        }
+        require_once __DIR__ . '/class-seoprostack-kadence-early.php';
+        $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        return SEOProStack_Kadence_Early::slider(self::$opens, $attrs, $picture, (string) ($first['attrs']['backgroundImg'][0]['size'] ?? ''));
+    }
+
+    /**
      * Around a slider on a front-end page: before it, the styles and
      * scripts that size its slides' pictures and keep the other slides'
      * waiting; after it, the script that sizes them.
@@ -353,12 +372,14 @@ class SEOProStack_Kadence_Slider {
     // Whatever happens below, every slider shows its pictures once the page is read.
     d.addEventListener('DOMContentLoaded', function () { e.classList.remove('sps-sizing'); });
     w.seoprostackSlideSizes = function (s, h) {
-        var k = 'kb-advanced-slider-' + h.s, root = s && s.previousElementSibling;
+        var k = 'kb-advanced-slider-' + h.s, root = s && s.previousElementSibling, g = w.seoprostackEarly;
         if (!root || !root.classList.contains(k)) { root = d.querySelector('.' + k); }
         if (!root) { return; }
-        try { size(root, k, h.p, h.f); } finally { root.classList.add('sps-sized'); }
+        // The copy the head fetched for the first slide (GH#1337), or -1.
+        g = h.f && g && 's' + h.s === g.k ? g.i : -1;
+        try { size(root, k, h.p, h.f, g); } finally { root.classList.add('sps-sized'); }
     };
-    function size(root, k, p, preload) {
+    function size(root, k, p, preload, g) {
         var wraps = root.getElementsByClassName('kb-advanced-slide-inner-wrap'), st = d.createElement('style'), b, f, l, o;
         // The slides' box: the largest laid out (before Splide starts, the first slide).
         function box() {
@@ -406,8 +427,12 @@ class SEOProStack_Kadence_Slider {
             q.z = mode(q);
             if (q.z) { q.i = pick(q, b); }
         });
-        // The first slide's file, at high priority, as the head would have.
-        if (preload && p[0]) {
+        // The head's copy of the first slide's picture when it is enough
+        // (never fewer pixels than this script's), so it is fetched once.
+        if (p[0] && p[0].z && g >= p[0].i) {
+            p[0].i = g;
+        } else if (preload && p[0]) {
+            // The first slide's file, at high priority, as the head would have.
             f = p[0].c[p[0].z ? p[0].i : p[0].c.length - 1];
             l = d.createElement('link');
             l.rel = 'preload';
