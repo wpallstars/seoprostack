@@ -208,9 +208,11 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
                 wp_schedule_event(time() + MINUTE_IN_SECONDS, 'daily', self::HOOK);
             }
             $state = get_site_option(self::STATE, false);
-            if (is_array($state) && isset($state['status'], $state['hosts']) && 'written' === $state['status'] && is_array($state['hosts'])
-                && (!isset($state['hash']) || self::hash($state['hosts']) !== $state['hash'])) {
-                // An update changed the rules: write them again, for the same hosts.
+            if (is_array($state) && isset($state['status'], $state['hosts']) && is_array($state['hosts'])
+                && ('unwritable' === $state['status']
+                    || ('written' === $state['status'] && (!isset($state['hash']) || self::hash($state['hosts']) !== $state['hash'])))) {
+                // The file could not be written (try again), or an update
+                // changed the rules: write them again, for the same hosts.
                 self::save(self::still_valid($state['hosts'], self::main_hosts()));
             }
             return;
