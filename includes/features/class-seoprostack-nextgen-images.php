@@ -21,7 +21,9 @@
  * that ignore "Vary: Accept" can cache pictures without the private header.
  *
  * Pictures are converted in the background with WP-Cron: new uploads, edited
- * and replaced pictures, and every existing picture, newest first. A copy is
+ * and replaced pictures, and every existing picture, newest first. When
+ * pictures wait with no batch to convert them, a daily look starts one
+ * (GH#1396). A copy is
  * only kept when it is smaller than its original. Animated pictures are left
  * alone. Copies CompressX made (in wp-content/compressx-nextgen) are moved
  * next to the pictures instead of being made again, so they keep working
@@ -69,6 +71,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
 
     /** Option: what this site last put in the rules, so syncing is free when nothing changed. */
     const SYNCED = 'seoprostack_nextgen_synced';
+
+    /** Option: when this site last looked for pictures left waiting with no batch to convert them (GH#1396). */
+    const RESTART = 'seoprostack_nextgen_restart';
 
     /** Transient: whether a test request got a copy, for the rules then in place. */
     const CHECK = 'seoprostack_nextgen_check';
@@ -278,6 +283,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         }
 
         add_action(self::HOOK, array(__CLASS__, 'run_batch'));
+        if (is_admin() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
+            // After plugins and themes have added their image editors.
+            add_action('wp_loaded', array(__CLASS__, 'maybe_restart'));
+        }
 
         if (!is_admin() && SEOProStack_Settings::get('nextgen_picture')) {
             // After core's wp_filter_content_tags (12), so lazy loading and sizes are set.
@@ -1203,6 +1212,29 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             self::schedule();
         } else {
             wp_clear_scheduled_hook(self::HOOK);
+        }
+    }
+
+    /**
+     * Once a day, in WP-Cron, WP-CLI or an admin screen: start the batches
+     * again when pictures wait and none is scheduled (GH#1396). Batches start
+     * when settings are saved, pictures are uploaded or edited, or the
+     * settings panel opens, and stop when nothing waits; but what they make
+     * can change with none of those, when this server's image editor learns
+     * AVIF or a new setting's default reaches the site. Every picture then
+     * waits for the new copies, until someone opens the settings panel,
+     * which on a network's other sites may be never. The day's mark is
+     * autoloaded, so on other requests the check reads no more than that.
+     */
+    public static function maybe_restart() {
+        $now  = time();
+        $last = (int) get_option(self::RESTART, 0);
+        if ($last <= $now && $last > $now - DAY_IN_SECONDS) {
+            return;
+        }
+        update_option(self::RESTART, $now, true);
+        if (!wp_next_scheduled(self::HOOK) && self::waiting(1)) {
+            self::schedule();
         }
     }
 
@@ -2287,6 +2319,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     public static function deactivate($network_wide = false) {
         wp_clear_scheduled_hook(self::HOOK);
         delete_option(self::SYNCED);
+        delete_option(self::RESTART);
         delete_transient(self::CHECK);
         $state = (array) get_site_option(self::RULES, array());
         $sites = isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array();
