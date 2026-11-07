@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-10-04T09:31:06Z",
+  "generated_at": "2026-11-07T01:09:22Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,84 +11,84 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 338,
-    "code": 61667,
-    "comments": 20150,
-    "blanks": 5928,
+    "source_files": 895,
+    "code": 146016,
+    "comments": 47627,
+    "blanks": 12966,
     "languages": 9,
-    "dependencies": 12
+    "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 155,
-      "code": 41976,
-      "comments": 18735,
-      "blanks": 4001,
-      "percentage": 68.07,
+      "files": 290,
+      "code": 79097,
+      "comments": 42718,
+      "blanks": 7570,
+      "percentage": 54.17,
       "color": "#4F5D95"
     },
     {
-      "name": "JavaScript",
-      "files": 29,
-      "code": 5847,
-      "comments": 740,
-      "blanks": 450,
-      "percentage": 9.48,
-      "color": "#f1e05a"
-    },
-    {
       "name": "JSON",
-      "files": 98,
-      "code": 5266,
+      "files": 447,
+      "code": 29523,
       "comments": 0,
       "blanks": 0,
-      "percentage": 8.54,
+      "percentage": 20.22,
       "color": "#292929"
     },
     {
+      "name": "JavaScript",
+      "files": 51,
+      "code": 11854,
+      "comments": 1877,
+      "blanks": 811,
+      "percentage": 8.12,
+      "color": "#f1e05a"
+    },
+    {
+      "name": "CSS",
+      "files": 20,
+      "code": 10563,
+      "comments": 1452,
+      "blanks": 2556,
+      "percentage": 7.23,
+      "color": "#563d7c"
+    },
+    {
       "name": "Shell",
-      "files": 14,
-      "code": 2657,
-      "comments": 434,
-      "blanks": 277,
-      "percentage": 4.31,
+      "files": 23,
+      "code": 6994,
+      "comments": 1413,
+      "blanks": 548,
+      "percentage": 4.79,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
-      "files": 15,
-      "code": 2647,
+      "files": 19,
+      "code": 5674,
       "comments": 0,
-      "blanks": 667,
-      "percentage": 4.29,
+      "blanks": 1394,
+      "percentage": 3.89,
       "color": "#083fa1"
     },
     {
-      "name": "CSS",
-      "files": 14,
-      "code": 2342,
-      "comments": 174,
-      "blanks": 478,
-      "percentage": 3.8,
-      "color": "#563d7c"
-    },
-    {
       "name": "SVG",
-      "files": 2,
-      "code": 539,
-      "comments": 18,
-      "blanks": 6,
-      "percentage": 0.87,
+      "files": 31,
+      "code": 1643,
+      "comments": 48,
+      "blanks": 12,
+      "percentage": 1.13,
       "color": "#6e7781"
     },
     {
       "name": "YAML",
-      "files": 10,
-      "code": 385,
-      "comments": 46,
-      "blanks": 47,
-      "percentage": 0.62,
+      "files": 13,
+      "code": 660,
+      "comments": 116,
+      "blanks": 73,
+      "percentage": 0.45,
       "color": "#cb171e"
     },
     {
@@ -102,9 +102,11 @@
     }
   ],
   "dependencies": {
-    "direct": 6,
-    "locked": 12,
-    "total": 12,
+    "direct": 7,
+    "runtime": 0,
+    "dev": 7,
+    "locked": 14,
+    "total": 14,
     "ecosystems": [
       "composer"
     ],
@@ -112,9 +114,21 @@
       {
         "path": "composer.json",
         "ecosystem": "composer",
-        "direct": 6,
-        "locked": 12,
+        "direct": 7,
+        "runtime": 0,
+        "dev": 7,
+        "locked": 14,
         "dependencies": [
+          "automattic/vipwpcs",
+          "dealerdirect/phpcodesniffer-composer-installer",
+          "phpcompatibility/phpcompatibility-wp",
+          "phpstan/extension-installer",
+          "phpstan/phpstan",
+          "szepeviktor/phpstan-wordpress",
+          "wp-coding-standards/wpcs"
+        ],
+        "dev_dependencies": [
+          "automattic/vipwpcs",
           "dealerdirect/phpcodesniffer-composer-installer",
           "phpcompatibility/phpcompatibility-wp",
           "phpstan/extension-installer",
