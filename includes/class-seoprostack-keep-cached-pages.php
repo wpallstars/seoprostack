@@ -28,8 +28,9 @@ final class SEOProStack_Keep_Cached_Pages {
     const MAIN_MAX = 150;
 
     /**
-     * Most pages in all where a crawler or preload covers the rest: the
-     * newest pages and posts fill any room the main pages leave.
+     * Where a crawler or preload covers the rest: the newest pages and posts
+     * are added until there are this many in all. Main pages are all kept,
+     * even when there are more of them.
      */
     const COVERED_MAX = 50;
 
@@ -294,17 +295,10 @@ final class SEOProStack_Keep_Cached_Pages {
             if (!$id) {
                 return self::network_end($urls, $blogs, $round);
             }
-            switch_to_blog($id);
-            self::rewrite_init();
-            if (self::fills_here()) {
-                $first = self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MAIN_MAX, false);
-                $site_urls = 1 === $round ? $first : array_diff(self::of_site(self::MAIN_MAX, self::NETWORK_MORE_MAX, true), $first);
-                foreach ($site_urls as $url) {
-                    $urls[]       = $url;
-                    $blogs[$url] = $id;
-                }
+            foreach (self::network_site($id, $round) as $url) {
+                $urls[]       = $url;
+                $blogs[$url] = $id;
             }
-            restore_current_blog();
             $site = self::next_site($id + 1);
             if (!$site) {
                 return self::network_end($urls, $blogs, $round);
@@ -312,6 +306,26 @@ final class SEOProStack_Keep_Cached_Pages {
         }
         self::rewrite_init();
         return array('urls' => $urls, 'blogs' => $blogs, 'site' => $site, 'round' => $round, 'done' => false);
+    }
+
+    /**
+     * One network site's pages for a round, worked out on that site: none
+     * when Keep pages cached is off there or no page cache is kept.
+     *
+     * @param int $id    Site ID.
+     * @param int $round 1 (home page and first header links) or 2 (the rest).
+     * @return string[]
+     */
+    private static function network_site($id, $round) {
+        $urls = array();
+        switch_to_blog($id);
+        self::rewrite_init();
+        if (self::fills_here()) {
+            $first = self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MAIN_MAX, false);
+            $urls  = 1 === $round ? $first : array_values(array_diff(self::of_site(self::MAIN_MAX, self::NETWORK_MORE_MAX, true), $first));
+        }
+        restore_current_blog();
+        return $urls;
     }
 
     /**
