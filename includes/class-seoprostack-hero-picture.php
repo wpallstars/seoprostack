@@ -99,7 +99,7 @@ class SEOProStack_Hero_Picture {
         if (!self::css_url($url)) {
             return 0;
         }
-        $key = 'hero_url_id_' . md5($url);
+        $key = 'hero_url_id_' . substr(hash('sha256', $url), 0, 32);
         $id  = wp_cache_get($key, 'seoprostack');
         if (false === $id) {
             $id = (int) attachment_url_to_postid($url);
