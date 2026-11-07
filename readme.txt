@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Kadence background sliders paint at full width from the start (#1339).
+
 = 1.3.169 =
 * Faster: Advanced Slider slides at each screen's size (#1333).
 

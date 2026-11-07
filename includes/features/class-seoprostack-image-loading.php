@@ -24,7 +24,9 @@
  * needs when it has smaller copies (GH#1333). Where LiteSpeed Cache's WebP
  * replacement names its copy in the block's CSS, the preload names it too
  * (GH#1326). Rows further down fetch their background pictures as the
- * visitor scrolls near them (SEOProStack_Kadence_Rows, GH#1329).
+ * visitor scrolls near them (SEOProStack_Kadence_Rows, GH#1329), and a row
+ * background slider's first slide shows at its full width before the
+ * slider's script runs (GH#1339).
  *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
