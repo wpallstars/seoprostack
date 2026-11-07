@@ -112,7 +112,7 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Keep text still while web fonts load', 'seoprostack'),
-                'description' => __('While a page’s web fonts (Google Fonts, such as the Kadence theme’s) load, text shows in a local font such as Arial, then moves when the web font arrives, which speed scores count as layout shift. This sizes the local font to each web font’s measurements, regular and bold, so text hardly moves. It knows about 1,900 fonts (Google Fonts and common system fonts) and leaves others as they are. No requests and no font files; turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache.', 'seoprostack'),
+                'description' => __('While a page’s web fonts (Google Fonts, such as the Kadence theme’s) load, text shows in a local font such as Arial, then moves when the web font arrives, which speed scores count as layout shift. This sizes the local font to each web font’s measurements, regular and bold, so text hardly moves. It knows about 1,870 Google Fonts and leaves others as they are. No requests and no font files; turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache.', 'seoprostack'),
             ),
             self::SKIP_KEY => array(
                 'type'        => 'lines',
