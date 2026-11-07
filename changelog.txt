@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.176 =
 * Fixed: Load plugins only where needed keeps what the site's pages learned when other plugins refresh their update caches and bookkeeping (GitHub issue #1367). Plugins with an older copy of EDD Software Licensing's updater cache their update details under an MD5 of their slug with no prefix (array('timeout' => …, 'value' => …); RECORD_OPTIONS had only the prefixed edd_sl_), and it expires after a few hours, to be deleted and saved again by wp-admin's update checks and by any WP-CLI command: on one site a read-only wp plugin list at that moment forgot everything learned, and three sites had 2 to 6 such options each. Plugin Update Checker's update state (external_updates-{slug}), AI Engine's list of settings backups (mwai_settings_backups; the list had the prefix mwai_settings_backup_) and MainWP Child's request ID clean-up (mainwp_child_request_ids_cleanup; the list had mainwp_child_request_id_) did the same from wp-admin views and AJAX, in the records of why pages learned again on eight Kadence sites over a day. Each time, pages that reach PHP loaded every plugin until a visitor's page learned again, and every checked address was checked again. record_write() now counts an option named only by an MD5 as a record when its value has exactly those two keys (from the hook, or the stored row when it is deleted, matched as stored), RECORD_OPTIONS lists the three others, and names ending in "-" are prefixes too.
 
 = 1.3.175 =
