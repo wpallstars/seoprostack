@@ -17364,7 +17364,6 @@ msgstr "Cores de ligação"
 msgid "Link on hover"
 msgstr "Link ao passar o cursor"
 
-# machine translation
 #: blocks/brand-icon/block.json
 msgctxt "block title"
 msgid "Brand icon"
@@ -17406,7 +17405,6 @@ msgctxt "block keyword"
 msgid "simple icons"
 msgstr "ícones simples"
 
-# machine translation
 #: blocks/client-dashboard/block.json
 msgctxt "block title"
 msgid "Client dashboard"
@@ -17448,7 +17446,6 @@ msgctxt "block keyword"
 msgid "portal"
 msgstr "portal"
 
-# machine translation
 #: blocks/form-modal/block.json
 msgctxt "block title"
 msgid "Form modal"
@@ -17520,7 +17517,6 @@ msgctxt "block keyword"
 msgid "newsletter"
 msgstr "boletim informativo"
 
-# machine translation
 #: blocks/iframe/block.json
 msgctxt "block title"
 msgid "iFrame"
@@ -17562,7 +17558,6 @@ msgctxt "block keyword"
 msgid "map"
 msgstr "mapa"
 
-# machine translation
 #: blocks/link-card/block.json
 msgctxt "block title"
 msgid "Link card"
@@ -17604,7 +17599,6 @@ msgctxt "block keyword"
 msgid "url"
 msgstr "URL"
 
-# machine translation
 #: blocks/lists/block.json
 msgctxt "block title"
 msgid "Your lists"
@@ -17694,11 +17688,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "paywall"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Curta, salve e compartilhe."
+msgstr "Curta, salve e compartilhe"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -17736,7 +17729,6 @@ msgctxt "block keyword"
 msgid "favourite"
 msgstr "favorito"
 
-# machine translation
 #: blocks/related-posts/block.json
 msgctxt "block title"
 msgid "Related posts"
@@ -17778,7 +17770,6 @@ msgctxt "block keyword"
 msgid "categories"
 msgstr "categorias"
 
-# machine translation
 #: blocks/review-links/block.json
 msgctxt "block title"
 msgid "Review links"
@@ -17832,7 +17823,6 @@ msgctxt "block description"
 msgid "A header button opening the visitor’s lists: Liked and the lists they name."
 msgstr "Um botão no cabeçalho que abre as listas do visitante: Curtidas e os nomes das listas que ele menciona."
 
-# machine translation
 #: blocks/saved-posts/block.json
 msgctxt "block title"
 msgid "Saved posts"
@@ -17856,7 +17846,6 @@ msgctxt "block keyword"
 msgid "reading list"
 msgstr "lista de leitura"
 
-# machine translation
 #: blocks/screenshot/block.json
 msgctxt "block title"
 msgid "Screenshot"
@@ -17898,11 +17887,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "miniatura"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Adicionar à lista de favoritos"
+msgstr "Adicionar à minha lista"
 
 # machine translation
 #: blocks/shortlist-button/block.json
