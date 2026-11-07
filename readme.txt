@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Kadence background pictures saved without their Media Library ID sized for each screen too (#1347).
+
 = 1.3.171 =
 * Faster: Kadence pictures: the first asked for from the head (#1337), row and column backgrounds sized for each screen (#1341).
 
