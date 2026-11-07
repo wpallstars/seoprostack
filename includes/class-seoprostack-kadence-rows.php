@@ -28,6 +28,24 @@
  * rows with a background slider, video or gradient, Kadence's old row
  * markup, and rows Kadence Blocks' own optimizer lazy-loads.
  *
+ * At the size the screen needs (GH#1341): Kadence Blocks writes the
+ * picture a row or column names, usually the full upload, into the CSS, so
+ * phones got the whole file where it paints a small box (on one home page
+ * a 293 KiB picture for a column 126 pixels wide). When the picture has
+ * smaller copies of the same proportions (SEOProStack_Hero_Picture), the
+ * script after the row has them, and as the row comes near it measures
+ * the row and sets the narrowest copy at least as wide as the pixels it
+ * paints, with 10% to spare, as for the row a page opens with (#1221); a
+ * larger one when the row grows or the screen's pixels get denser, never
+ * a smaller one. Kadence Blocks columns with a background picture wait
+ * and are sized the same way, from a style before the column and a script
+ * inside it, after its inner column: Kadence places a row's columns with
+ * :nth-child(… of *:not(style)), which a style beside them does not
+ * change and a script would. Left as before: background sizes other than
+ * cover and contain, fixed and parallax pictures, rows with a tablet or
+ * phone background of their own or a dynamic one, columns with a hover
+ * picture, overlays, and pictures without smaller copies.
+ *
  * Rows with a background slider: their first slide shows at its full width
  * before the slider's script runs (GH#1339). Kadence Blocks takes the
  * margin and padding off the slider's list only under .kb-splide, which
@@ -75,6 +93,7 @@ class SEOProStack_Kadence_Rows {
      */
     public static function boot() {
         add_filter('render_block_kadence/rowlayout', array(__CLASS__, 'around_row'), 30, 2);
+        add_filter('render_block_kadence/column', array(__CLASS__, 'around_column'), 30, 2);
     }
 
     /**
@@ -114,8 +133,172 @@ class SEOProStack_Kadence_Rows {
             self::$script = true;
             $before      .= self::script();
         }
-        // The ID is letters, digits, - and _.
-        return $before . $html . wp_get_inline_script_tag("window.seoprostackRows&&seoprostackRows(document.currentScript,'" . $id . "')", SEOProStack_Kadence_Hero::SCRIPT_ATTRS);
+        $picture = self::row_sizable($attrs) ? self::picture($attrs['bgImgID'] ?? 0, $attrs['bgImg'] ?? '', $block) : null;
+        return $before . $html . self::call($id, $picture, false);
+    }
+
+    /**
+     * Around a Kadence Blocks column with a background picture on a
+     * front-end page (GH#1341): a style before it that keeps the picture
+     * waiting, and inside it, after its inner column, the script that has it
+     * watched and sized.
+     *
+     * @param mixed $html  Block HTML.
+     * @param array $block Parsed block.
+     * @return mixed
+     */
+    public static function around_column($html, $block) {
+        if (!is_string($html) || '' === $html || !is_array($block) || !self::front_page()) {
+            return $html;
+        }
+        $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        $id    = $attrs['uniqueID'] ?? '';
+        $image = isset($attrs['backgroundImg'][0]) && is_array($attrs['backgroundImg'][0]) ? $attrs['backgroundImg'][0] : array();
+        $end   = strrpos($html, '</div>');
+        if (!is_string($id) || !preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id) || !self::column_waits($attrs, $image)
+            || false === strpos($html, 'kadence-column' . $id) || false === strpos($html, 'kt-inside-inner-col')
+            || false !== strpos($html, 'data-kadence-lazy-') || false === $end || '' !== trim(substr($html, $end + 6))) {
+            return $html;
+        }
+        /**
+         * Whether a Kadence Blocks column's background picture waits until
+         * the visitor scrolls near the column (and then comes at the size
+         * the screen needs, see seoprostack_kadence_bg_sizes). Off: it loads
+         * with the page, as Kadence Blocks has it.
+         *
+         * @param bool  $on    Default true.
+         * @param array $block Parsed column block.
+         */
+        if (!apply_filters('seoprostack_kadence_column_wait', true, $block)) {
+            return $html;
+        }
+        $before = self::style($id, true);
+        if (!self::$script) {
+            self::$script = true;
+            $before      .= self::script();
+        }
+        $picture = self::column_sizable($attrs, $image) ? self::picture($image['bgImgID'] ?? 0, $image['bgImg'] ?? '', $block) : null;
+        // The script goes last in the column (its last </div> closes it).
+        return $before . substr($html, 0, $end) . self::call($id, $picture, true) . substr($html, $end);
+    }
+
+    /**
+     * The one-line script after a row, or inside a column: has it watched,
+     * with its picture's copies when it has them.
+     *
+     * @param string     $id      Unique ID (letters, digits, - and _).
+     * @param array|null $picture As SEOProStack_Hero_Picture::get() gives it, or null.
+     * @param bool       $column  Whether it is a column's.
+     * @return string
+     */
+    private static function call($id, $picture, $column) {
+        $args = "document.currentScript,'" . $id . "'";
+        if ($picture || $column) {
+            // No < in the content (script()); JSON_HEX_TAG writes it, and
+            // >, as \u003C and \u003E. Each file as url(…), so LiteSpeed
+            // Cache's WebP replacement names its copy here too (GH#1333).
+            $args .= ',' . ($picture ? (string) wp_json_encode(SEOProStack_Hero_Picture::for_script($picture), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) : '0');
+        }
+        return wp_get_inline_script_tag('window.seoprostackRows&&seoprostackRows(' . $args . ($column ? ',1' : '') . ')', SEOProStack_Kadence_Hero::SCRIPT_ATTRS);
+    }
+
+    /**
+     * A row's or column's picture when it has smaller copies and the filter
+     * says yes; null when not.
+     *
+     * @param mixed $attachment Attachment ID.
+     * @param mixed $url        Address the block names.
+     * @param array $block      Parsed block.
+     * @return array|null
+     */
+    private static function picture($attachment, $url, array $block) {
+        if (!is_string($url) || '' === $url) {
+            return null;
+        }
+        /**
+         * Whether a Kadence Blocks row's or column's background picture
+         * comes at the size the screen needs, when it waits until near. Off:
+         * the picture the block names, as Kadence Blocks has it.
+         *
+         * @param bool  $on    Default true.
+         * @param array $block Parsed row or column block.
+         */
+        if (!apply_filters('seoprostack_kadence_bg_sizes', true, $block)) {
+            return null;
+        }
+        require_once __DIR__ . '/class-seoprostack-hero-picture.php';
+        $picture = SEOProStack_Hero_Picture::get($attachment, $url);
+        return $picture && count($picture['c']) > 1 ? $picture : null;
+    }
+
+    /**
+     * Whether a waiting row's own picture can be sized: one picture on
+     * every device (no tablet, phone or dynamic background), sized cover,
+     * contain or unset, and not fixed (it would paint across the window).
+     *
+     * @param array $attrs Row attributes.
+     * @return bool
+     */
+    private static function row_sizable(array $attrs) {
+        return in_array($attrs['bgImgSize'] ?? '', array('', 'cover', 'contain'), true)
+            && !in_array($attrs['bgImgAttachment'] ?? '', array('fixed', 'parallax'), true)
+            && empty($attrs['tabletBackground'][0]['enable']) && empty($attrs['mobileBackground'][0]['enable'])
+            && !self::dynamic_background($attrs);
+    }
+
+    /**
+     * Whether a column's background picture waits until near: Kadence's
+     * normal background type with a picture. A column away from the window
+     * cannot be hovered, so its hover settings stay as they are.
+     *
+     * @param array $attrs Column attributes.
+     * @param array $image Its backgroundImg[0].
+     * @return bool
+     */
+    private static function column_waits(array $attrs, array $image) {
+        return in_array($attrs['backgroundType'] ?? '', array('', 'normal'), true)
+            && is_string($image['bgImg'] ?? null) && '' !== $image['bgImg'];
+    }
+
+    /**
+     * Whether a waiting column's picture can be sized: sized cover, contain
+     * or unset, not fixed or parallax, no dynamic background, and nothing
+     * on hover that changes the picture (Kadence's hover colour sets
+     * background-image none, a hover picture or gradient replaces it; the
+     * copy is set on the inner column with !important, which would win).
+     *
+     * @param array $attrs Column attributes.
+     * @param array $image Its backgroundImg[0].
+     * @return bool
+     */
+    private static function column_sizable(array $attrs, array $image) {
+        foreach (array($attrs['backgroundHover'] ?? '', $attrs['backgroundImgHover'][0]['bgImg'] ?? '', $attrs['gradientHover'] ?? '') as $hover) {
+            if (!is_string($hover) || '' !== $hover) {
+                return false;
+            }
+        }
+        return in_array($image['bgImgSize'] ?? '', array('', 'cover', 'contain'), true)
+            && !in_array($image['bgImgAttachment'] ?? '', array('fixed', 'parallax'), true)
+            && !self::dynamic_background($attrs);
+    }
+
+    /**
+     * Whether a block has a dynamic background picture turned on (Kadence
+     * Blocks Pro's kadenceDynamic, keyed by attribute path: bgImg for a row,
+     * backgroundImg:0:bgImg for a column). Its picture is put in at render,
+     * so the attribute's picture is not the one shown.
+     *
+     * @param array $attrs Block attributes.
+     * @return bool
+     */
+    private static function dynamic_background(array $attrs) {
+        $dynamic = isset($attrs['kadenceDynamic']) && is_array($attrs['kadenceDynamic']) ? $attrs['kadenceDynamic'] : array();
+        foreach ($dynamic as $key => $field) {
+            if ((false !== stripos((string) $key, 'background') || false !== stripos((string) $key, 'bgimg')) && is_array($field) && !empty($field['enable'])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -224,19 +407,25 @@ class SEOProStack_Kadence_Rows {
 
     /**
      * The row's style: its pictures and its overlay's wait under HIDE until
-     * the row is near (NEAR).
+     * the row is near (NEAR). A column's: its inner column's picture.
      *
-     * @param string $id Row's unique ID (letters, digits, - and _).
+     * @param string $id     Unique ID (letters, digits, - and _).
+     * @param bool   $column Whether it is a column's.
      * @return string
      */
-    private static function style($id) {
+    private static function style($id, $column = false) {
+        if ($column) {
+            return '<style class="seoprostack-rows" data-column="' . $id . '" data-no-optimize="1">html.' . self::HIDE . ' .kadence-column' . $id . ':not(.' . self::NEAR . ')>.kt-inside-inner-col{background-image:none!important}</style>';
+        }
         $row = 'html.' . self::HIDE . ' .kb-row-layout-id' . $id . ':not(.' . self::NEAR . ')';
         return '<style class="seoprostack-rows" data-row="' . $id . '" data-no-optimize="1">' . $row . ',' . $row . '>.kt-row-layout-overlay{background-image:none!important}</style>';
     }
 
     /**
      * The script that turns the wait on as the page is read, and watches
-     * each row its row script names.
+     * each row or column its own script names; as one comes near, it sets
+     * the copy of its picture the screen needs, when its script gave the
+     * copies (GH#1341).
      *
      * It is printed in the post's content, so it has no "<": wptexturize()
      * reads one there as the start of a tag, turns each & after it into
@@ -247,25 +436,91 @@ class SEOProStack_Kadence_Rows {
     private static function script() {
         $script = <<<'JS'
 (function (d, w) {
-    var e = d.documentElement, o, each = Array.prototype.forEach;
+    var e = d.documentElement, o, r, all = [], each = Array.prototype.forEach;
     // As the page is read; left alone when run late by an optimiser.
-    if (w.seoprostackRows || 'loading' !== d.readyState || !e.classList || !d.querySelectorAll || !w.IntersectionObserver || !each) { return; }
+    if (w.seoprostackRows || 'loading' !== d.readyState || !e.classList || !d.querySelectorAll || !w.IntersectionObserver || !each || !w.getComputedStyle) { return; }
     o = new w.IntersectionObserver(function (list) {
         each.call(list, function (n) {
-            if (n.isIntersecting) { n.target.classList.add('sps-near'); o.unobserve(n.target); }
+            if (n.isIntersecting) { o.unobserve(n.target); near(n.target); }
         });
     }, { rootMargin: '1250px 0px' });
-    function watch(id) {
-        each.call(d.querySelectorAll('.kb-row-layout-id' + id), function (r) { o.observe(r); });
+    // A larger copy when the box grows; never a smaller one.
+    r = w.ResizeObserver ? new w.ResizeObserver(function (list) {
+        each.call(list, function (n) { if (n.target.spsOwner) { size(n.target.spsOwner); } });
+    }) : null;
+    // A row paints its own background; a column, its inner column.
+    function box(el) {
+        var c = el.firstElementChild;
+        if (!el.classList.contains('wp-block-kadence-column')) { return el; }
+        while (c && !c.classList.contains('kt-inside-inner-col')) { c = c.nextElementSibling; }
+        return c;
+    }
+    // The narrowest file at least as wide as the pixels the picture paints,
+    // with 10% to spare, else the block's own (the last); set only when
+    // larger than the one set before.
+    function size(el) {
+        var p = el.spsPicture, b = el.spsBox, z = w.getComputedStyle(b).backgroundSize, q, a, n, j = 0, f;
+        if ('cover' !== z && 'contain' !== z) { return; }
+        q = b.getBoundingClientRect();
+        if (!q.width || !q.height) { return; }
+        a = p.w / p.h;
+        n = ('cover' === z ? Math.max(q.width, q.height * a) : Math.min(q.width, q.height * a)) * (w.devicePixelRatio || 1) * 1.1;
+        while (p.c.length - 1 > j && n > p.c[j][0]) { j++; }
+        if (el.spsIndex >= j) { return; }
+        el.spsIndex = j;
+        f = p.c[j];
+        // f[1] is url(…); f[2], when there, image-set() of its AVIF and WebP copies.
+        b.style.setProperty('background-image', f[1], 'important');
+        if (f[2]) { b.style.setProperty('background-image', f[2], 'important'); }
+    }
+    // Before its pictures may load: the copy first, so only that is fetched.
+    function near(el) {
+        var b = el.spsPicture ? box(el) : null;
+        if (b) {
+            el.spsBox = b;
+            el.spsIndex = -1;
+            b.spsOwner = el;
+            try { size(el); } catch (x) {}
+            if (r) { r.observe(b); }
+            all.push(el);
+        }
+        el.classList.add('sps-near');
+    }
+    function watch(k, p) {
+        each.call(d.querySelectorAll('.' + k), function (el) {
+            if (el.classList.contains('sps-near')) { return; }
+            if (p) { el.spsPicture = p; }
+            o.observe(el);
+        });
+    }
+    // Already near as it is read (a column in the first row): now, not a
+    // frame later from the observer.
+    function check(el) {
+        var q = el.getBoundingClientRect(), h = w.innerHeight || e.clientHeight;
+        if (q.bottom + 1250 > 0 && h + 1250 > q.top) { near(el); } else { o.observe(el); }
     }
     e.classList.add('sps-rows');
-    w.seoprostackRows = function (s, id) {
-        var r = s ? s.previousElementSibling : null;
-        if (r ? r.classList.contains('kb-row-layout-id' + id) : false) { o.observe(r); } else { watch(id); }
+    // s: the script; a row's comes after it, a column's is its last child.
+    w.seoprostackRows = function (s, id, p, c) {
+        var k = (c ? 'kadence-column' : 'kb-row-layout-id') + id, el = s ? (c ? s.parentNode : s.previousElementSibling) : null;
+        if (el && el.classList && el.classList.contains(k)) {
+            if (p) { el.spsPicture = p; }
+            check(el);
+        } else {
+            watch(k, p);
+        }
     };
-    // Rows whose own script did not run (removed or moved by an optimiser).
+    // Denser pixels (the window moved to another display, or zoomed).
+    (function dense() {
+        var m = w.matchMedia && w.matchMedia('(resolution: ' + (w.devicePixelRatio || 1) + 'dppx)');
+        if (m && m.addEventListener) { m.addEventListener('change', function () { each.call(all, function (el) { size(el); }); dense(); }, { once: true }); }
+    })();
+    // Rows and columns whose own script did not run (removed or moved by an optimiser).
     w.addEventListener('load', function () {
-        each.call(d.querySelectorAll('style.seoprostack-rows'), function (s) { watch(s.getAttribute('data-row')); });
+        each.call(d.querySelectorAll('style.seoprostack-rows'), function (s) {
+            var row = s.getAttribute('data-row');
+            watch(row ? 'kb-row-layout-id' + row : 'kadence-column' + s.getAttribute('data-column'));
+        });
     });
 })(document, window);
 JS;
