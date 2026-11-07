@@ -24,6 +24,11 @@
 #                      default).
 #   --apply            Install the release on each of them.
 #   --allow-downgrade  Allow installing a release older than the installed version.
+#   --keep-releases N  After a successful --apply, remove this plugin's older run
+#                      folders on the host (v<version>-<time> in ~/.{slug}-deploy),
+#                      keeping the current run and every run of the newest N tags
+#                      (default 3; 0 keeps everything). Skipped while another
+#                      deploy holds the lock. Other files there stay.
 #   --cloudflare-token-env NAME  The environment variable that holds a
 #                      Cloudflare API token limited to Zone > Cache Purge. With
 #                      it, each updated site's zone is purged from this
@@ -90,6 +95,7 @@ APPLY=0
 # token itself in an argument), and the token, read from it in main().
 CF_TOKEN_ENV=""
 CF_TOKEN=""
+KEEP_RELEASES=3
 # Zones already handled in this run, one "ZONE_ID<TAB>RESULT" per line.
 CF_DONE=""
 CF_PURGED=0
@@ -151,7 +157,7 @@ parse_args() {
 		local arg="$1"
 		local value="${2:-}"
 		case "$arg" in
-		--host | --tag | --parent | --skip | --wp-cli | --web-error-log | --cloudflare-token-env)
+		--host | --tag | --parent | --skip | --wp-cli | --web-error-log | --cloudflare-token-env | --keep-releases)
 			[[ $# -ge 2 ]] || die "$arg needs a value"
 			[[ "$value" != -* ]] || die "$arg needs a value, not an option: $value"
 			case "$arg" in
@@ -162,6 +168,7 @@ parse_args() {
 			--wp-cli) WP_CLI="$value" ;;
 			--web-error-log) WEB_ERROR_LOG="$value" ;;
 			--cloudflare-token-env) CF_TOKEN_ENV="$value" ;;
+			--keep-releases) KEEP_RELEASES="$value" ;;
 			*) ;; # The outer pattern lists every option that takes a value.
 			esac
 			shift
@@ -182,6 +189,7 @@ parse_args() {
 	[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "--tag must be vX.Y.Z, not '$TAG'"
 	VERSION="${TAG#v}"
 	[[ -n "$PARENT" ]] || die "--parent cannot be empty"
+	[[ "$KEEP_RELEASES" =~ ^[0-9]+$ ]] || die "--keep-releases takes a whole number, not '$KEEP_RELEASES'"
 	if [[ -n "$CF_TOKEN_ENV" ]]; then
 		[[ "$CF_TOKEN_ENV" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || die "--cloudflare-token-env takes the NAME of an environment variable, not a token"
 		CF_TOKEN="${!CF_TOKEN_ENV:-}"
@@ -392,6 +400,51 @@ dry_run() {
 	return 0
 }
 
+# Runs on the host (bash -s): removes old run folders of this plugin, keeping
+# the current run and every run of the newest KEEP tags. Only directories named
+# v<version>-<YYYYMMDDTHHMMSSZ> are touched, and nothing is removed while a
+# deploy holds the lock.
+# shellcheck disable=SC2016 # The host expands these, not this shell.
+readonly PRUNE_REMOTE='
+base="$1"; keep="$2"; current="$3"
+cd "$HOME/$base" 2>/dev/null || exit 0
+if [ -d .lock ]; then echo "skipped: another deploy holds the lock"; exit 0; fi
+runs=""
+for d in v*-*Z; do
+	[ -d "$d" ] && [ ! -L "$d" ] || continue
+	printf "%s\n" "$d" | grep -Eq "^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{8}T[0-9]{6}Z$" || continue
+	runs="$runs$d
+"
+done
+[ -n "$runs" ] || exit 0
+tags="$(printf "%s" "$runs" | sed "s/-[0-9]*T[0-9]*Z$//" | sort -u | sort -t. -k1.2,1nr -k2,2nr -k3,3nr | head -n "$keep")"
+count=0; kb=0
+for d in $(printf "%s" "$runs"); do
+	[ "$d" != "$current" ] || continue
+	printf "%s\n" "$tags" | grep -qxF "${d%-*}" && continue
+	size="$(du -sk "$d" 2>/dev/null | cut -f1)"
+	if rm -rf "$d"; then
+		count=$((count + 1)); kb=$((kb + ${size:-0}))
+		echo "removed $d"
+	fi
+done
+echo "pruned $count run folder(s), freed $((kb / 1024)) MB"
+'
+
+# After a successful install: keep the current run and the newest KEEP_RELEASES
+# tags on the host. A failure here only warns; the deploy has succeeded.
+prune_host() {
+	local current="$1"
+	local out
+	[[ "$KEEP_RELEASES" -gt 0 ]] || return 0
+	if out="$(remote "bash -s -- $(remote_words ".$SLUG-deploy" "$KEEP_RELEASES" "$current")" <<<"$PRUNE_REMOTE")"; then
+		printf '\nOld run folders on %s (keeping the newest %s tags):\n%s\n' "$HOST" "$KEEP_RELEASES" "  ${out//$'\n'/$'\n'  }"
+	else
+		printf '\nWARN could not remove old run folders on %s (the deploy itself succeeded).\n' "$HOST" >&2
+	fi
+	return 0
+}
+
 apply() {
 	local stamp base run dir command status=0
 	stamp="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -421,6 +474,7 @@ apply() {
 		return 1
 	fi
 	printf '\nDeployed %s on %s. To undo one install: rm -rf its wp-content/plugins/%s, then tar -xzf its backup into wp-content/plugins.\n' "$TAG" "$HOST" "$SLUG"
+	prune_host "$TAG-$stamp"
 	return 0
 }
 
