@@ -15,6 +15,7 @@ Usage: sync-block-titles.py file.po [...]
 """
 import os
 import re
+import shutil
 import sys
 
 
@@ -42,7 +43,11 @@ def plain_strings(blocks):
         if field(lines, 'msgctxt') is not None or field(lines, 'msgid_plural') is not None:
             continue
         msgid, msgstr = field(lines, 'msgid'), field(lines, 'msgstr')
-        if msgid and msgstr:
+        marked = '# machine translation' in lines
+        fuzzy = any('fuzzy' in re.split(r'\s*,\s*', line[2:].strip())
+                    for line in lines if line.startswith('#,'))
+        # Unreviewed (marked or fuzzy) wording must not be copied as reviewed.
+        if msgid and msgstr and not marked and not fuzzy:
             plain[msgid] = msgstr
     return plain
 
@@ -55,9 +60,12 @@ def synced_block(block, plain):
     msgid = field(lines, 'msgid')
     if msgid not in plain:
         return None
-    new = [line for line in lines if line != '# machine translation']
-    start = next(i for i, line in enumerate(new) if line.startswith('msgstr '))
-    return '\n'.join(new[:start] + ['msgstr "%s"' % plain[msgid]])
+    start = next(i for i, line in enumerate(lines) if line.startswith('msgstr '))
+    end = start + 1
+    while end < len(lines) and lines[end].startswith('"'):
+        end += 1
+    head = [line for line in lines[:start] if line != '# machine translation']
+    return '\n'.join([*head, 'msgstr "%s"' % plain[msgid], *lines[end:]])
 
 
 def sync(path):
@@ -72,8 +80,11 @@ def sync(path):
             blocks[index] = result
             changed += 1
     if changed:
-        with open(path, 'w', encoding='utf-8') as handle:
+        tmp = path + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as handle:
             handle.write('\n\n'.join(blocks))
+        shutil.copymode(path, tmp)
+        os.replace(tmp, path)
     print('%s: %d block title entries synced' % (path, changed))
 
 
@@ -81,6 +92,6 @@ LANGUAGES = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lang
 
 for name in sys.argv[1:]:
     # Only bundled catalogues: a bare file name, never a path.
-    if not re.fullmatch(r'seoprostack-[A-Za-z_]+\.po', os.path.basename(name)):
+    if not re.fullmatch(r'seoprostack-[A-Za-z0-9_@-]+\.po', os.path.basename(name)):
         sys.exit('Not a bundled catalogue: %s' % os.path.basename(name))
     sync(os.path.normpath(os.path.join(LANGUAGES, os.path.basename(name))))

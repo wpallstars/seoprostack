@@ -16320,6 +16320,7 @@ msgstr "Linkfarben"
 msgid "Link on hover"
 msgstr "Link beim Überfahren mit der Maus"
 
+# machine translation
 #: blocks/brand-icon/block.json
 msgctxt "block title"
 msgid "Brand icon"
@@ -16402,6 +16403,7 @@ msgctxt "block keyword"
 msgid "portal"
 msgstr "Portal"
 
+# machine translation
 #: blocks/form-modal/block.json
 msgctxt "block title"
 msgid "Form modal"
@@ -16473,6 +16475,7 @@ msgctxt "block keyword"
 msgid "newsletter"
 msgstr "Newsletter"
 
+# machine translation
 #: blocks/iframe/block.json
 msgctxt "block title"
 msgid "iFrame"
@@ -16514,6 +16517,7 @@ msgctxt "block keyword"
 msgid "map"
 msgstr "Karte"
 
+# machine translation
 #: blocks/link-card/block.json
 msgctxt "block title"
 msgid "Link card"
@@ -16685,6 +16689,7 @@ msgctxt "block keyword"
 msgid "favourite"
 msgstr "Favorit"
 
+# machine translation
 #: blocks/related-posts/block.json
 msgctxt "block title"
 msgid "Related posts"
@@ -16726,6 +16731,7 @@ msgctxt "block keyword"
 msgid "categories"
 msgstr "Kategorien"
 
+# machine translation
 #: blocks/review-links/block.json
 msgctxt "block title"
 msgid "Review links"
@@ -16779,6 +16785,7 @@ msgctxt "block description"
 msgid "A header button opening the visitor’s lists: Liked and the lists they name."
 msgstr "Ein Button in der Kopfzeile öffnet die Besucherlisten: „Gefällt mir“ und die von den Besuchern benannten Listen."
 
+# machine translation
 #: blocks/saved-posts/block.json
 msgctxt "block title"
 msgid "Saved posts"
@@ -16802,6 +16809,7 @@ msgctxt "block keyword"
 msgid "reading list"
 msgstr "Leseliste"
 
+# machine translation
 #: blocks/screenshot/block.json
 msgctxt "block title"
 msgid "Screenshot"
