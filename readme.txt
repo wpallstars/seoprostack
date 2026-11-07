@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: WebP and AVIF images starts converting again when pictures wait with nothing converting them, as after the server learns AVIF (#1396).
+
 = 1.3.179 =
 * Faster: Image loading gives pictures and Kadence backgrounds whose block names another Media Library picture (imported templates) their smaller copies (#1387).
 

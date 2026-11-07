@@ -2459,6 +2459,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **WebP and AVIF images** starts converting again when pictures are waiting and nothing is converting them. That happened when what it makes changed without its settings being saved, such as the server learning AVIF or a new default reaching the site: pictures then waited for their AVIF copies until someone opened Media settings, and browsers got the larger WebP copies. On one network, 326 pictures on ten sites were waiting. Now a daily check starts the conversion again (#1396).
+
 ### 1.3.179
 
 - Faster: **Image loading**: pictures whose block names another Media Library picture, as blocks from imported templates often do, now get WordPress's smaller copies, width and height too. WordPress found the copies through that ID only, so phones got the full upload: on one Kadence home page, six pictures shown about 126 pixels wide arrived 1,365 to 2,048 pixels wide, 675 KB before the page's largest paint. The picture that owns the file is found by its address, and is never less sharp than before. Kadence Blocks row, column and slide backgrounds whose block saved such an ID now come at the size the screen needs too: on the same page, the column picture that was the largest paint came at full size (#1387).

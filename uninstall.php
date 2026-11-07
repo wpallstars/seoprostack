@@ -81,6 +81,7 @@ function seoprostack_uninstall_site() {
 
     $options[] = 'seoprostack_dashboard_widgets';
     $options[] = 'seoprostack_nextgen_synced';
+    $options[] = 'seoprostack_nextgen_restart';
     $options[] = 'seoprostack_watermark_dir';
     $options[] = 'seoprostack_cpt_base_taken';
     $options[] = 'seoprostack_maintenance_token';
