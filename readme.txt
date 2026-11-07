@@ -155,7 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* Faster: Image loading gives pictures whose block names another Media Library picture (imported templates) their smaller copies, width and height (#1387).
+* Faster: Image loading gives pictures and Kadence backgrounds whose block names another Media Library picture (imported templates) their smaller copies (#1387).
 
 = 1.3.178 =
 * New (on): Redirect to the main address before WordPress loads: www or bare-domain redirects the site already makes are answered by the server, without waiting for WordPress (#1383).
