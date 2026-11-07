@@ -28,6 +28,11 @@
  * background slider's first slide shows at its full width before the
  * slider's script runs (GH#1339).
  *
+ * A picture whose block names another attachment than the file it shows,
+ * as an imported template's often does, gets what core gives every other
+ * picture from the attachment that owns the file: width and height, its
+ * smaller copies (srcset and sizes) and the loading attributes (GH#1387).
+ *
  * Pictures that load straight away (logos, high fetch priority, the first
  * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
  * by rewriting the page with JavaScript, such as LiteSpeed Cache and
@@ -71,6 +76,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
 
     /** @var string[] The picture preloaded without a copy of SEO Pro Stack's, and its tag (GH#1326). */
     private static $preloaded = array();
+
+    /** @var int[] The attachment that owns each uploads file looked up this request, or 0 (GH#1387). */
+    private static $owners = array();
 
     /**
      * Settings.
@@ -143,6 +151,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             return;
         }
         add_filter('wp_omit_loading_attr_threshold', array(__CLASS__, 'threshold'), 20);
+        // Before Media storage (10) maps the picture by its attachment, and
+        // before content_image() measures it.
+        add_filter('wp_content_img_tag', array(__CLASS__, 'own_sizes'), 5, 3);
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 20, 2);
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
@@ -505,6 +516,144 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             }
         }
         return false;
+    }
+
+    /**
+     * A content picture whose wp-image-N class names an attachment that does
+     * not own its file, as a block from an imported template keeps the
+     * template's ID (GH#1387). Core found no sizes for it, so it added no
+     * width, height, srcset or sizes, and every visitor got the full-size
+     * file; nor loading attributes, as core leaves a picture without width
+     * and height alone. Core's own steps run again here, in its order, with
+     * the attachment that owns the file. Pictures whose attachment owns the
+     * file (core has decided), SVGs and pictures outside the uploads folder
+     * are left alone.
+     *
+     * @param string $image   HTML img tag.
+     * @param string $context Content filter context.
+     * @param int    $id      The attachment core found from the class, or 0.
+     * @return string
+     */
+    public static function own_sizes($image, $context = '', $id = 0) {
+        global $wp_current_filter;
+
+        $named = (int) $id;
+        if (!is_string($image) || $named <= 0 || false !== strpos($image, ' srcset=')) {
+            return $image;
+        }
+        // As content_image(): nested Post Content blocks are left to the outer pass.
+        if ('the_content' === $context && count(array_keys((array) $wp_current_filter, 'the_content', true)) > 1) {
+            return $image;
+        }
+        $tag = new WP_HTML_Tag_Processor($image);
+        if (!$tag->next_tag(array('tag_name' => 'IMG'))) {
+            return $image;
+        }
+        $file = self::uploads_file($tag->get_attribute('src'));
+        if ('' === $file || self::owns($named, $file)) {
+            return $image;
+        }
+        $owner = self::owner($file);
+        if (!$owner || $owner === $named) {
+            return $image;
+        }
+        $unsized = false === strpos($image, ' width=') && false === strpos($image, ' height=');
+        if ($unsized) {
+            $image = wp_img_tag_add_width_and_height_attr($image, $context, $owner);
+        }
+        $image = wp_img_tag_add_srcset_and_sizes_attr($image, $context, $owner);
+        // Core counts and marks a picture only once it has width and height.
+        if ($unsized && false !== strpos($image, ' width=') && false !== strpos($image, ' height=')
+            && function_exists('wp_img_tag_add_loading_optimization_attrs')) {
+            $image = wp_img_tag_add_loading_optimization_attrs($image, $context);
+        }
+        if (function_exists('wp_img_tag_add_auto_sizes')) {
+            $image = wp_img_tag_add_auto_sizes($image);
+        }
+        // Media storage serves a picture by the attachment core found.
+        if (class_exists('SEOProStack_Media_Storage')
+            && false !== has_filter('wp_content_img_tag', array('SEOProStack_Media_Storage', 'content_image'))) {
+            $image = SEOProStack_Media_Storage::content_image($image, $context, $owner);
+        }
+        return $image;
+    }
+
+    /**
+     * A picture's file relative to this site's uploads folder, as attachments
+     * store it, or '' when it is elsewhere or an SVG.
+     *
+     * @param mixed $src The picture's address.
+     * @return string
+     */
+    private static function uploads_file($src) {
+        if (!is_string($src) || '' === $src) {
+            return '';
+        }
+        $uploads = wp_get_upload_dir();
+        if (!empty($uploads['error']) || empty($uploads['baseurl'])) {
+            return '';
+        }
+        // Either scheme, as attachment_url_to_postid() takes it.
+        $base = (string) preg_replace('#^https?:#i', '', trailingslashit($uploads['baseurl']));
+        $url  = (string) preg_replace('#^https?:#i', '', substr($src, 0, strcspn($src, '?#')));
+        if (0 !== strpos($url, $base)) {
+            return '';
+        }
+        $file = rawurldecode(substr($url, strlen($base)));
+        return '' !== $file && false === strpos($file, '..') && !preg_match('/\.svgz?$/i', $file) ? $file : '';
+    }
+
+    /**
+     * Whether an attachment's file, its original or one of its sizes is
+     * this uploads file.
+     *
+     * @param int    $id   Attachment ID.
+     * @param string $file File relative to the uploads folder.
+     * @return bool
+     */
+    private static function owns($id, $file) {
+        $meta = $id > 0 ? wp_get_attachment_metadata($id) : false;
+        if (!is_array($meta) || empty($meta['file']) || !is_string($meta['file']) || dirname($meta['file']) !== dirname($file)) {
+            return false;
+        }
+        $names = array(wp_basename($meta['file']));
+        if (!empty($meta['original_image']) && is_string($meta['original_image'])) {
+            $names[] = $meta['original_image'];
+        }
+        foreach (isset($meta['sizes']) && is_array($meta['sizes']) ? $meta['sizes'] : array() as $size) {
+            if (is_array($size) && !empty($size['file'])) {
+                $names[] = (string) $size['file'];
+            }
+        }
+        return in_array(wp_basename($file), $names, true);
+    }
+
+    /**
+     * The picture attachment that owns an uploads file, or 0: found by its
+     * address as core's attachment_url_to_postid() finds it, also without a
+     * -WxH size suffix, and with -scaled added (the file WordPress keeps for
+     * a large upload). Once per file a request.
+     *
+     * @param string $file File relative to the uploads folder.
+     * @return int
+     */
+    private static function owner($file) {
+        if (isset(self::$owners[$file])) {
+            return self::$owners[$file];
+        }
+        $uploads  = wp_get_upload_dir();
+        $original = (string) preg_replace('/-[0-9]+x[0-9]+(\.[A-Za-z0-9]+)$/', '$1', $file);
+        $scaled   = (string) preg_replace('/(?<!-scaled)(\.[A-Za-z0-9]+)$/', '-scaled$1', $original);
+        $owner    = 0;
+        foreach (array_unique(array($file, $original, $scaled)) as $candidate) {
+            $found = (int) attachment_url_to_postid(trailingslashit($uploads['baseurl']) . $candidate);
+            if ($found > 0 && wp_attachment_is_image($found) && self::owns($found, $file)) {
+                $owner = $found;
+                break;
+            }
+        }
+        self::$owners[$file] = $owner;
+        return $owner;
     }
 
     /**
