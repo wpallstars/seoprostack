@@ -68,6 +68,29 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
     /** Attribute that page-rewriting lazy loaders skip. */
     const NO_LAZY = 'data-no-lazy';
 
+    /** Blocks a short row of text before the hero row may hold (GH#1402). */
+    const BAND_BLOCKS = array(
+        'kadence/column',
+        'kadence/advancedheading',
+        'kadence/advancedbtn',
+        'kadence/singlebtn',
+        'core/heading',
+        'core/paragraph',
+        'core/list',
+        'core/list-item',
+        'core/buttons',
+        'core/button',
+    );
+
+    /** Most characters of text that row may hold (GH#1402). */
+    const BAND_TEXT = 300;
+
+    /** In a block's JSON: a media file, a picture attribute with a value, or dynamic content. */
+    const BAND_MEDIA = '/\.(?:jpe?g|png|gif|webp|avif|svg|bmp|ico|mp4|m4v|webm|ogv|mov)\b|"(?:bgImg|overlayBgImg|img|src)":"[^"]|"kadenceDynamic":/i';
+
+    /** @var array<int,array|null> The block each post's pictures open with (opening_block()). */
+    private static $opening = array();
+
     /** @var int Pictures encountered in the main loop's output this request. */
     private static $pictures = 0;
 
@@ -197,6 +220,10 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * least, so the picture does not wait for the parser to reach the block
      * (SEOProStack_Kadence_Early, GH#1337).
      *
+     * A short row of text alone before the hero row, such as a band with a
+     * heading on a colour or gradient, is passed over: the row after it is
+     * the one the page opens with (opening_block(), GH#1402).
+     *
      * Left alone, so no device fetches a picture it does not show: rows
      * hidden on a device, with their own tablet or phone background, a
      * parallax or dynamic background, or Kadence's old row markup; rows
@@ -224,9 +251,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (!$slider && 0 !== strpos($content, '<!-- wp:kadence/rowlayout ')) {
             return;
         }
-        $blocks = parse_blocks($content);
+        $block = self::opening_block($post);
+        if (null === $block) {
+            return;
+        }
         if ($slider) {
-            $url = isset($blocks[0]) ? self::kadence_first_slide($blocks[0]) : '';
+            $url = self::kadence_first_slide($block);
             if ('' === $url) {
                 return;
             }
@@ -235,22 +265,22 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             // is only for browsers without JavaScript, or goes before the
             // slider if it is not sized after all (GH#1333).
             $tag   = self::preload_html($url);
-            $sized = class_exists('SEOProStack_Kadence_Slider') && SEOProStack_Kadence_Slider::opens($blocks[0], $tag);
+            $sized = class_exists('SEOProStack_Kadence_Slider') && SEOProStack_Kadence_Slider::opens($block, $tag);
             echo ($sized ? '<noscript>' . $tag . '</noscript>' : $tag) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in preload_tag().
             // With JavaScript, the copy this screen needs at least, from
             // here, when the slider sets its height (GH#1337).
             if ($sized) {
-                echo SEOProStack_Kadence_Slider::early($blocks[0]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() of a JSON-encoded script.
+                echo SEOProStack_Kadence_Slider::early($block); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() of a JSON-encoded script.
             }
         } else {
-            $url = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
+            $url = self::kadence_background($block);
             if ('' === $url) {
                 return;
             }
             // The size each screen needs, when the picture has smaller
             // copies: the browser measures the row and preloads it (GH#1221).
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-hero.php';
-            if (!SEOProStack_Kadence_Hero::start($blocks[0]['attrs'], $post)) {
+            if (!SEOProStack_Kadence_Hero::start($block['attrs'], $post)) {
                 self::preload($url);
             }
         }
@@ -264,6 +294,90 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (function_exists('wp_high_priority_element_flag')) {
             wp_high_priority_element_flag(false);
         }
+    }
+
+    /**
+     * The block a post's pictures open with: its first block, or, when that
+     * is a short Kadence Blocks row of text alone (band()) and the next is a
+     * Kadence Blocks row, the next (GH#1402). On one Kadence home page a
+     * heading band on a gradient came first, so the hero row's picture
+     * below it, the page's largest paint, was neither preloaded nor sized.
+     * Null when the post has no blocks. Once a request per post; also used
+     * by SEOProStack_Kadence_Rows, which leaves this row alone.
+     *
+     * @param WP_Post $post Post.
+     * @return array|null Parsed block.
+     */
+    public static function opening_block(WP_Post $post) {
+        if (array_key_exists($post->ID, self::$opening)) {
+            return self::$opening[$post->ID];
+        }
+        $blocks = array();
+        foreach (parse_blocks(ltrim($post->post_content)) as $block) {
+            // Leave out the white space between blocks.
+            if (!empty($block['blockName']) || '' !== trim((string) ($block['innerHTML'] ?? ''))) {
+                $blocks[] = $block;
+                if (2 === count($blocks)) {
+                    break;
+                }
+            }
+        }
+        $first = $blocks[0] ?? null;
+        if (isset($blocks[1]) && 'kadence/rowlayout' === ($blocks[1]['blockName'] ?? '') && is_array($first) && self::band($first)) {
+            $first = $blocks[1];
+        }
+        self::$opening[$post->ID] = $first;
+        return $first;
+    }
+
+    /**
+     * Whether a block is a short Kadence Blocks row of text alone, such as a
+     * heading band on a colour or gradient (GH#1402): a normal, gradient or
+     * slider background tab, no minimum height, nothing in it naming a
+     * picture, video or dynamic content, only columns, headings,
+     * paragraphs, lists and buttons, and at most BAND_TEXT characters of
+     * text. It is short enough that the row after it starts on the first
+     * screen.
+     *
+     * @param array $block Parsed block.
+     * @return bool
+     */
+    private static function band(array $block) {
+        $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        if ('kadence/rowlayout' !== ($block['blockName'] ?? '')
+            || !in_array($attrs['backgroundSettingTab'] ?? 'normal', array('', 'normal', 'gradient', 'slider'), true)
+            || !empty($attrs['minHeight']) || !empty($attrs['minHeightTablet']) || !empty($attrs['minHeightMobile'])
+            || preg_match(self::BAND_MEDIA, (string) wp_json_encode($block, JSON_UNESCAPED_SLASHES))) {
+            return false;
+        }
+        $text = self::band_text(isset($block['innerBlocks']) && is_array($block['innerBlocks']) ? $block['innerBlocks'] : array());
+        return $text >= 0 && $text <= self::BAND_TEXT;
+    }
+
+    /**
+     * Characters of text in blocks a band may hold, or -1 when one is
+     * another kind.
+     *
+     * @param array $blocks Parsed blocks.
+     * @return int
+     */
+    private static function band_text(array $blocks) {
+        $text = 0;
+        foreach ($blocks as $block) {
+            if (!is_array($block) || !in_array($block['blockName'] ?? '', self::BAND_BLOCKS, true)) {
+                return -1;
+            }
+            if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
+                $inner = self::band_text($block['innerBlocks']);
+                if ($inner < 0) {
+                    return -1;
+                }
+                $text += $inner;
+            } else {
+                $text += strlen(trim(wp_strip_all_tags((string) ($block['innerHTML'] ?? ''))));
+            }
+        }
+        return $text;
     }
 
     /**

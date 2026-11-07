@@ -23,8 +23,9 @@
  * late, nothing waits; once the page has loaded, rows whose script did not
  * run are watched too.
  *
- * Left alone: the row a post or page opens with (its picture is fetched
- * first, SEOProStack_Image_Loading::kadence_preload()), parallax rows,
+ * Left alone: the row a post or page opens with, or the row after a short
+ * row of text alone there (its picture is fetched first,
+ * SEOProStack_Image_Loading::kadence_preload(), GH#1402), parallax rows,
  * rows with a background slider, video or gradient, Kadence's old row
  * markup, and rows Kadence Blocks' own optimizer lazy-loads.
  *
@@ -372,7 +373,8 @@ class SEOProStack_Kadence_Rows {
 
     /**
      * The unique ID of the Kadence row the post or page shown opens with,
-     * from its first block's comment, or ''.
+     * or ''. After a short row of text alone, the row after it
+     * (SEOProStack_Image_Loading::opening_block(), GH#1402).
      *
      * @return string
      */
@@ -382,13 +384,13 @@ class SEOProStack_Kadence_Rows {
         }
         self::$first = '';
         $post        = is_singular() ? get_queried_object() : null;
-        if (!$post instanceof WP_Post) {
+        if (!$post instanceof WP_Post || 0 !== strpos(ltrim($post->post_content), '<!-- wp:kadence/rowlayout ')) {
             return '';
         }
-        // A block comment's attributes never hold "-->": the editor escapes it.
-        if (preg_match('#^<!-- wp:kadence/rowlayout (\{.*?\}) /?-->#s', ltrim($post->post_content), $match)) {
-            $attrs        = json_decode($match[1], true);
-            self::$first  = is_array($attrs) && isset($attrs['uniqueID']) && is_string($attrs['uniqueID']) ? $attrs['uniqueID'] : '';
+        $block = SEOProStack_Image_Loading::opening_block($post);
+        $id    = $block['attrs']['uniqueID'] ?? '';
+        if (is_array($block) && 'kadence/rowlayout' === ($block['blockName'] ?? '') && is_string($id)) {
+            self::$first = $id;
         }
         return self::$first;
     }
