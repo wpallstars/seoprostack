@@ -53,9 +53,13 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     /**
      * Site option: whether the server reads .htaccess files (yes or no)
      * and the root folder, noted from the main site's web requests, since
-     * WP-CLI (and a host's cron through it) can tell neither.
+     * the command line (WP-CLI, or a host's cron job running PHP) can tell
+     * neither. See ask_server().
      */
     const SERVER = 'seoprostack_host_redirect_server';
+
+    /** The admin-ajax.php action ask_server() sends; nothing handles it. */
+    const NOTE_ACTION = 'seoprostack_host_note';
 
     /** Daily check, and the one soon after an address changes. */
     const HOOK = 'seoprostack_host_redirect_check';
@@ -235,6 +239,33 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     }
 
     /**
+     * Nothing noted yet, and this run cannot tell: WP-CLI, or WP-Cron run by
+     * PHP on the command line, as hosts' cron jobs do with DISABLE_WP_CRON
+     * (all the Hostinger sites #1383 was for). A site whose admin screens
+     * nobody opens would wait for ever, so open the main site's
+     * admin-ajax.php once, straight to this server as verify() does: that
+     * is an admin request, so boot() notes the server and root folder from
+     * it (remember()); the action is one nothing handles, so admin-ajax.php
+     * answers 400 and does nothing else. Then read the note again.
+     */
+    private static function ask_server() {
+        if ('' !== self::server_now() || null !== self::reads_htaccess()) {
+            return;
+        }
+        self::get_here(add_query_arg('action', self::NOTE_ACTION, is_multisite() ? get_admin_url(get_main_site_id(), 'admin-ajax.php') : admin_url('admin-ajax.php')));
+        // The web request saved the note: drop this run's cached copies.
+        if (is_multisite()) {
+            $network = get_current_network_id();
+            wp_cache_delete($network . ':' . self::SERVER, 'site-options');
+            wp_cache_delete($network . ':notoptions', 'site-options');
+            return;
+        }
+        wp_cache_delete(self::SERVER, 'options');
+        wp_cache_delete('notoptions', 'options');
+        wp_cache_delete('alloptions', 'options');
+    }
+
+    /**
      * The note from this request, else from an earlier web request.
      *
      * @return array{reads?:string,root?:string}
@@ -356,6 +387,7 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
             self::remove();
             return;
         }
+        self::ask_server();
         if (false === self::reads_htaccess()) {
             self::save(array());
             return;
@@ -440,20 +472,15 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     }
 
     /**
-     * Open the other address's home page from the server, without following
-     * redirects, and return where it sends visitors when that is the main
-     * host's home page with a 301 or 308. Sent straight to this server when
-     * SEO Pro Stack knows its address (as Keep pages cached does), since
-     * some hosts refuse a server's own requests that come back through a
-     * CDN (#1242), and the rules answer here, not at the CDN.
+     * GET an address on this site without following redirects, sent
+     * straight to this server when SEO Pro Stack knows its address (as Keep
+     * pages cached does), since some hosts refuse a server's own requests
+     * that come back through a CDN (#1242).
      *
-     * @param string $other Other host.
-     * @param string $main  Main host.
-     * @return string The main address's scheme and host, or '' when not.
+     * @param string $url Address.
+     * @return array|WP_Error Response.
      */
-    public static function verify($other, $main) {
-        $scheme  = 'https' === wp_parse_url(home_url('/'), PHP_URL_SCHEME) ? 'https' : 'http';
-        $url     = $scheme . '://' . $other . '/?' . self::QUERY . '=' . wp_generate_password(8, false);
+    private static function get_here($url) {
         $resolve = null;
         if (is_readable(SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php')) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-keep-cached-requests.php';
@@ -474,6 +501,24 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         if ($resolve) {
             remove_action('http_api_curl', $resolve);
         }
+        return $response;
+    }
+
+    /**
+     * Open the other address's home page from the server, without following
+     * redirects, and return where it sends visitors when that is the main
+     * host's home page with a 301 or 308. Sent straight to this server when
+     * SEO Pro Stack knows its address (as Keep pages cached does), since
+     * some hosts refuse a server's own requests that come back through a
+     * CDN (#1242), and the rules answer here, not at the CDN.
+     *
+     * @param string $other Other host.
+     * @param string $main  Main host.
+     * @return string The main address's scheme and host, or '' when not.
+     */
+    public static function verify($other, $main) {
+        $scheme   = 'https' === wp_parse_url(home_url('/'), PHP_URL_SCHEME) ? 'https' : 'http';
+        $response = self::get_here($scheme . '://' . $other . '/?' . self::QUERY . '=' . wp_generate_password(8, false));
         if (is_wp_error($response) || !in_array((int) wp_remote_retrieve_response_code($response), array(301, 308), true)) {
             return '';
         }
@@ -544,8 +589,8 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         $file   = self::file();
         $status = 'written';
         if (null === $reads || '' === $file) {
-            // Not known yet from a web request (only WP-CLI so far): write
-            // nothing; the first admin screen notes it and checks again.
+            // Not known yet from a web request (ask_server() got no answer):
+            // write nothing; the next check or admin screen notes it.
             $status = 'waiting';
         } elseif (!$reads) {
             // This server reads no .htaccess files: write nothing.
