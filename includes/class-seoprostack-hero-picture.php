@@ -94,10 +94,11 @@ class SEOProStack_Hero_Picture {
      * (GH#1347): Kadence rows from imported templates, or with a picture
      * given by address, have bgImg but no bgImgID. attachment_url_to_postid()
      * matches this site's uploads address of an attachment's own file (or
-     * its -scaled one), so other addresses, a CDN's or a size copy's, stay
-     * 0 and the picture stays as the block names it. Kept per address for a
-     * day in the object cache, 0 too, so each picture is looked up once
-     * while the cache holds it.
+     * its -scaled one); a size copy's address is tried without its -WxH
+     * suffix too (GH#1387), and get() checks the attachment has that size.
+     * Other addresses, a CDN's, stay 0 and the picture stays as the block
+     * names it. Kept per address for a day in the object cache, 0 too, so
+     * each picture is looked up once while the cache holds it.
      *
      * @param mixed $url Address the block names.
      * @return int
@@ -109,7 +110,11 @@ class SEOProStack_Hero_Picture {
         $key = 'hero_url_id_' . substr(hash('sha256', $url), 0, 32);
         $id  = wp_cache_get($key, 'seoprostack');
         if (false === $id) {
-            $id = (int) attachment_url_to_postid($url);
+            $id       = (int) attachment_url_to_postid($url);
+            $original = (string) preg_replace('/-[0-9]+x[0-9]+(\.[A-Za-z0-9]+)$/', '$1', substr($url, 0, strcspn($url, '?#')));
+            if (!$id && $original !== $url) {
+                $id = (int) attachment_url_to_postid($original);
+            }
             wp_cache_set($key, $id, 'seoprostack', DAY_IN_SECONDS);
         }
         return (int) $id;
