@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New, on by default: Keep text still while web fonts load: local fonts sized to match each web font (#1372).
+
 = 1.3.176 =
 * Fixed: Load plugins only where needed keeps what it learned when plugins refresh update caches (#1367).
 

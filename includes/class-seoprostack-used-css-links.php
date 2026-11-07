@@ -131,7 +131,29 @@ final class SEOProStack_Used_Css_Links {
      * @return string Empty when it is elsewhere or not a .js file.
      */
     public static function script_file($src) {
-        $path = self::path($src, '.js');
+        return self::site_file($src, '.js');
+    }
+
+    /**
+     * The local file of a stylesheet on this site, in any folder (for
+     * SEOProStack_Font_Fallbacks, which reads only the web fonts it declares).
+     *
+     * @param string $href Address.
+     * @return string Empty when it is elsewhere or not a .css file.
+     */
+    public static function stylesheet_file($href) {
+        return self::site_file($href, '.css');
+    }
+
+    /**
+     * The local file of an address on this site, in any folder.
+     *
+     * @param string $url Address.
+     * @param string $ext File extension, with the dot.
+     * @return string Empty when it is elsewhere or not such a file.
+     */
+    private static function site_file($url, $ext) {
+        $path = self::path($url, $ext);
         if ('' === $path) {
             return '';
         }
