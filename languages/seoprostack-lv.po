@@ -17823,11 +17823,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "maksas siena"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Patīk, saglabā un kopīgo"
+msgstr "Atzīmē, saglabā un kopīgo"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -18027,11 +18026,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "sīktēls"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Pievienot īsajam sarakstam"
+msgstr "Pievienot manam sarakstam"
 
 # machine translation
 #: blocks/shortlist-button/block.json

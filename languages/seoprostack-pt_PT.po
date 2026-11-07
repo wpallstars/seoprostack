@@ -17694,11 +17694,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "paywall"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Curta, guarde e partilhe."
+msgstr "Gosta, guarda e partilha"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -17898,11 +17897,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "miniatura"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Adicionar à lista de favoritos"
+msgstr "Adicionar à minha lista"
 
 # machine translation
 #: blocks/shortlist-button/block.json

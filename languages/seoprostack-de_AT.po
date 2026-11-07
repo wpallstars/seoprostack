@@ -16362,7 +16362,6 @@ msgctxt "block keyword"
 msgid "simple icons"
 msgstr "einfache Symbole"
 
-# machine translation
 #: blocks/client-dashboard/block.json
 msgctxt "block title"
 msgid "Client dashboard"
@@ -16560,7 +16559,6 @@ msgctxt "block keyword"
 msgid "url"
 msgstr "URL"
 
-# machine translation
 #: blocks/lists/block.json
 msgctxt "block title"
 msgid "Your lists"
@@ -16650,11 +16648,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "Bezahlschranke"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Liken, speichern und teilen"
+msgstr "Gefällt mir, merken und teilen"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -16854,11 +16851,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "Miniaturansicht"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Zur Merkliste hinzufügen"
+msgstr "Zur Merkliste"
 
 # machine translation
 #: blocks/shortlist-button/block.json

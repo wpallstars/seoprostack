@@ -17823,7 +17823,6 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "płatna ściana"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
@@ -18027,11 +18026,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "zwięzły"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Dodaj do listy skróconej"
+msgstr "Dodaj do mojej listy"
 
 # machine translation
 #: blocks/shortlist-button/block.json

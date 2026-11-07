@@ -16495,7 +16495,6 @@ msgctxt "block keyword"
 msgid "simple icons"
 msgstr "eenvoudige pictogrammen"
 
-# machine translation
 #: blocks/client-dashboard/block.json
 msgctxt "block title"
 msgid "Client dashboard"
@@ -16693,11 +16692,10 @@ msgctxt "block keyword"
 msgid "url"
 msgstr "URL"
 
-# machine translation
 #: blocks/lists/block.json
 msgctxt "block title"
 msgid "Your lists"
-msgstr "Uw lijsten"
+msgstr "Je lijsten"
 
 # machine translation
 #: blocks/lists/block.json
@@ -16783,11 +16781,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "betaalmuur"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Vind ik leuk, opslaan en delen"
+msgstr "Vind ik leuk, bewaren en delen"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -16987,11 +16984,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "miniatuur"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Toevoegen aan favorieten"
+msgstr "Op mijn lijst"
 
 # machine translation
 #: blocks/shortlist-button/block.json

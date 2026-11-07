@@ -17694,11 +17694,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "tasuline müür"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Meeldi, salvesta ja jaga"
+msgstr "Meeldib, salvesta ja jaga"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -17898,11 +17897,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "pisipilt"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Lisa nimekirja"
+msgstr "Lisa minu nimekirja"
 
 # machine translation
 #: blocks/shortlist-button/block.json
