@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.177-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.178-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.177
+Version: 1.3.178
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2458,7 +2458,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.178
 
 - New, on by default: **Redirect to the main address before WordPress loads** (Speed). Visitors who type the site's address without `www.` (or with it, where the site has none) no longer wait for WordPress to send them on, which took 0.6 to 5 seconds on five Hostinger sites behind Cloudflare: the server answers with the same redirect from `.htaccess`. Each address is checked first, and only a redirect the site already makes is added; Apache and LiteSpeed servers (#1383).
 - Redirect to the main address also starts on sites whose scheduled jobs run only from the server's cron job (`DISABLE_WP_CRON`, as on Hostinger) and whose admin screens nobody opens: the check asks the site itself which server it runs on (#1383).
