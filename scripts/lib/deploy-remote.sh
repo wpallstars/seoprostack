@@ -866,6 +866,25 @@ swap_plugin_folder() {
 	return 0
 }
 
+# Swap by two renames so running jobs never find the folder missing.
+# Activation (and network activation) is kept: the folder and main file
+# names do not change. If the swap cannot be made (no unzip, a different
+# filesystem, an odd zip), nothing has changed and install --force runs.
+install_build() {
+	local root="$1"
+	local name="$2"
+	local zip="$3"
+	local plugins="$4"
+	local backup="$5"
+
+	swap_plugin_folder "$plugins" "$zip" && return 0
+	if ! active_guard "$root" "" "" --skip-plugins --skip-themes plugin install "$zip" --force >/dev/null; then
+		printf '%s\tFAIL: guarded install stopped; restore: tar -xzf %q -C %q\n' "$name" "$backup" "$plugins"
+		return 1
+	fi
+	return 0
+}
+
 apply_one() {
 	local root="$1"
 	local name="$2"
@@ -907,17 +926,9 @@ apply_one() {
 		return 0
 	fi
 
-	# Swap by two renames so running jobs never find the folder missing.
-	# Activation (and network activation) is kept: the folder and main file
-	# names do not change. If the swap cannot be made (no unzip, a different
-	# filesystem, an odd zip), nothing has changed and install --force runs.
-	if ! swap_plugin_folder "$plugins" "$zip"; then
-		# Activation (and network activation) is kept by install --force.
-		if ! active_guard "$root" "" "" --skip-plugins --skip-themes plugin install "$zip" --force >/dev/null; then
-			printf '%s\tFAIL: guarded install stopped; restore: tar -xzf %q -C %q\n' "$name" "$backup" "$plugins"
-			FAILED=1
-			return 0
-		fi
+	if ! install_build "$root" "$name" "$zip" "$plugins" "$backup"; then
+		FAILED=1
+		return 0
 	fi
 	# Each site's guarded full load runs its own settings upgrade.
 	if ! check_sites "$root"; then
