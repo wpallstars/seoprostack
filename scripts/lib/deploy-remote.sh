@@ -835,6 +835,37 @@ check_sites() {
 	return 0
 }
 
+# Replace $plugins/$SLUG with the folder in the zip using two rename() calls
+# inside the plugins folder (same filesystem, so each is atomic). Returns 1
+# with the live folder untouched if anything fails before the first rename;
+# if the second rename fails the old folder is put back.
+swap_plugin_folder() {
+	local plugins="$1"
+	local zip="$2"
+	local stamp staging old
+	stamp="$(date +%s)-$$"
+	staging="$plugins/.$SLUG-new-$stamp"
+	old="$plugins/.$SLUG-old-$stamp"
+
+	command -v unzip >/dev/null 2>&1 || return 1
+	mkdir "$staging" || return 1
+	if ! unzip -q "$zip" -d "$staging" || [[ ! -f "$staging/$SLUG/$SLUG.php" ]]; then
+		rm -rf "$staging"
+		return 1
+	fi
+	if ! mv "$plugins/$SLUG" "$old"; then
+		rm -rf "$staging"
+		return 1
+	fi
+	if ! mv "$staging/$SLUG" "$plugins/$SLUG"; then
+		mv "$old" "$plugins/$SLUG"
+		rm -rf "$staging"
+		return 1
+	fi
+	rm -rf "$staging" "$old"
+	return 0
+}
+
 apply_one() {
 	local root="$1"
 	local name="$2"
@@ -876,11 +907,17 @@ apply_one() {
 		return 0
 	fi
 
-	# Activation (and network activation) is kept by install --force.
-	if ! active_guard "$root" "" "" --skip-plugins --skip-themes plugin install "$zip" --force >/dev/null; then
-		printf '%s\tFAIL: guarded install stopped; restore: tar -xzf %q -C %q\n' "$name" "$backup" "$plugins"
-		FAILED=1
-		return 0
+	# Swap by two renames so running jobs never find the folder missing.
+	# Activation (and network activation) is kept: the folder and main file
+	# names do not change. If the swap cannot be made (no unzip, a different
+	# filesystem, an odd zip), nothing has changed and install --force runs.
+	if ! swap_plugin_folder "$plugins" "$zip"; then
+		# Activation (and network activation) is kept by install --force.
+		if ! active_guard "$root" "" "" --skip-plugins --skip-themes plugin install "$zip" --force >/dev/null; then
+			printf '%s\tFAIL: guarded install stopped; restore: tar -xzf %q -C %q\n' "$name" "$backup" "$plugins"
+			FAILED=1
+			return 0
+		fi
 	fi
 	# Each site's guarded full load runs its own settings upgrade.
 	if ! check_sites "$root"; then
