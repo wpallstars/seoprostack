@@ -85,8 +85,8 @@ class SEOProStack_Kadence_Slider {
     /** @var string Unique ID of the slider the page opens with, when its first slide's chosen copy is preloaded from it. */
     private static $opens = '';
 
-    /** @var string That slide's own picture, preloaded before the slider if it is not sized after all. */
-    private static $opens_url = '';
+    /** @var string Preload of that slide's own picture, printed before the slider if it is not sized after all. */
+    private static $opens_tag = '';
 
     /**
      * Register hooks.
@@ -102,25 +102,25 @@ class SEOProStack_Kadence_Slider {
      * after the slider preloads the copy it takes. Then prints, for
      * browsers without JavaScript, the preload of the slide's own picture.
      *
-     * @param array  $block Parsed slider block.
-     * @param string $url   First slide's picture, as the head would preload it.
+     * @param array $block Parsed slider block.
      * @return bool
      */
-    public static function opens(array $block, $url) {
+    public static function opens(array $block) {
         $slider  = self::slider_id($block);
         $first   = $block['innerBlocks'][0] ?? null;
         $picture = '' !== $slider && is_array($first) && self::sizing($block) ? self::picture($first) : null;
         if (!$picture) {
             return false;
         }
-        self::$opens     = $slider;
-        self::$opens_url = (string) $url;
-        $own             = $picture['c'][count($picture['c']) - 1];
-        printf(
-            '<noscript><link rel="preload" as="image" href="%s"%s fetchpriority="high"></noscript>' . "\n",
+        $own         = $picture['c'][count($picture['c']) - 1];
+        self::$opens = $slider;
+        // Its AVIF or WebP copy, as the slide's CSS names it, when pages name copies.
+        self::$opens_tag = sprintf(
+            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">',
             esc_url('' !== $own[3] ? $own[3] : $own[1]),
             '' !== $own[4] ? ' type="' . esc_attr($own[4]) . '"' : ''
         );
+        echo '<noscript>' . self::$opens_tag . '</noscript>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
         return true;
     }
 
@@ -302,7 +302,7 @@ class SEOProStack_Kadence_Slider {
      * @return string
      */
     private static function own_preload() {
-        return '' === self::$opens_url ? '' : sprintf('<link rel="preload" as="image" href="%s" fetchpriority="high">', esc_url(self::$opens_url));
+        return self::$opens_tag;
     }
 
     /**

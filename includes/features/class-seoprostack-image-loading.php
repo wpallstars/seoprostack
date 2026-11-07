@@ -214,7 +214,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             }
             // The size each screen needs, when the picture has smaller
             // copies: the script after the slider preloads it (GH#1333).
-            if (!class_exists('SEOProStack_Kadence_Slider') || !SEOProStack_Kadence_Slider::opens($blocks[0], $url)) {
+            if (!class_exists('SEOProStack_Kadence_Slider') || !SEOProStack_Kadence_Slider::opens($blocks[0])) {
                 self::preload($url);
             }
         } else {
