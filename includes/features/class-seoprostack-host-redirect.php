@@ -550,15 +550,24 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
             echo '<p>' . esc_html__('The addresses are checked within a few minutes.', 'seoprostack') . '</p>';
         } elseif ('other' === $status) {
             echo '<p>' . esc_html__('This server does not read .htaccess files, so WordPress keeps sending visitors to the main address.', 'seoprostack') . '</p>';
-        } elseif (!$hosts) {
-            echo '<p>' . esc_html__('No other address sends visitors here, so there is nothing to add.', 'seoprostack') . '</p>';
+        } elseif ('unwritable' === $status && !$hosts) {
+            // A block left from before an address changed could send visitors
+            // round in a loop, so it must go.
+            echo '<p>' . esc_html(sprintf(
+                /* translators: 1: .htaccess file path, 2: block marker */
+                __('%1$s could not be changed. If it still has lines between “# BEGIN %2$s” and “# END %2$s”, remove them: they may send visitors to an address that is no longer the main one.', 'seoprostack'),
+                self::file(),
+                self::MARKER
+            )) . '</p>';
         } elseif ('unwritable' === $status) {
             echo '<p>' . esc_html(sprintf(
                 /* translators: %s: .htaccess file path */
-                __('%s could not be changed. To answer these addresses before WordPress loads, add these lines to the top of it:', 'seoprostack'),
+                __('%s could not be changed. To answer these addresses before WordPress loads, put these lines at the top of it, in place of any SEO Pro Stack main address lines already there:', 'seoprostack'),
                 self::file()
             )) . '</p>';
             echo '<pre class="sps-code">' . esc_html('# BEGIN ' . self::MARKER . "\n" . implode("\n", self::rules($hosts)) . "\n# END " . self::MARKER) . '</pre>';
+        } elseif (!$hosts) {
+            echo '<p>' . esc_html__('No other address sends visitors here, so there is nothing to add.', 'seoprostack') . '</p>';
         } else {
             $list = array();
             foreach ($hosts as $other => $target) {
