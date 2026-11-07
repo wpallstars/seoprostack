@@ -411,14 +411,17 @@ new_log_all() {
 # executed. Prints "race HOOK" once per hook for WordPress's could_not_set
 # reschedule/unschedule error on one of them (our forced run and the site's
 # own cron runner handled the same event at once), and "line" for every other
-# line, which still fails the install.
+# line, which still fails the install. wp-cron.php (WordPress 6.1 and later)
+# goes on after the code with ", Error message: ..., Data: {...}" (the
+# event as JSON); until #1349 only the bare form matched, so no real race
+# line was ever let through and network deploys failed on them.
 classify_log() {
 	local hooks=" $1 "
 	awk -v hooks="$hooks" '
 		{
 			if (match($0, /Cron (reschedule|unschedule) event error for hook: [^,]+, Error code: could_not_set/) \
 				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*(PHP [A-Za-z ]+:[[:space:]]*)?$/ \
-				&& substr($0, RSTART + RLENGTH) ~ /^[[:space:]]*$/) {
+				&& substr($0, RSTART + RLENGTH) ~ /^(, Error message: .*, Data: .*)?[[:space:]]*$/) {
 				text = substr($0, RSTART, RLENGTH)
 				sub(/^Cron (reschedule|unschedule) event error for hook: /, "", text)
 				sub(/, Error code: could_not_set$/, "", text)
