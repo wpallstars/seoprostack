@@ -33,29 +33,42 @@ def field(lines, key):
     return ''.join(re.findall(r'"((?:[^"\\]|\\.)*)"', '\n'.join(out)))
 
 
-def sync(path):
-    with open(path, encoding='utf-8') as handle:
-        text = handle.read()
-    blocks = text.split('\n\n')
+def plain_strings(blocks):
+    """Map msgid to msgstr for every translated plain entry."""
     plain = {}
     for block in blocks:
         lines = block.split('\n')
-        if field(lines, 'msgctxt') is None and field(lines, 'msgid_plural') is None:
-            msgid, msgstr = field(lines, 'msgid'), field(lines, 'msgstr')
-            if msgid and msgstr:
-                plain[msgid] = msgstr
+        if field(lines, 'msgctxt') is not None or field(lines, 'msgid_plural') is not None:
+            continue
+        msgid, msgstr = field(lines, 'msgid'), field(lines, 'msgstr')
+        if msgid and msgstr:
+            plain[msgid] = msgstr
+    return plain
+
+
+def synced_block(block, plain):
+    """Return the block with the reviewed msgstr, or None if unchanged."""
+    lines = block.split('\n')
+    if field(lines, 'msgctxt') != 'block title' or '# machine translation' not in lines:
+        return None
+    msgid = field(lines, 'msgid')
+    if msgid not in plain:
+        return None
+    new = [line for line in lines if line != '# machine translation']
+    start = next(i for i, line in enumerate(new) if line.startswith('msgstr '))
+    return '\n'.join(new[:start] + ['msgstr "%s"' % plain[msgid]])
+
+
+def sync(path):
+    with open(path, encoding='utf-8') as handle:
+        blocks = handle.read().split('\n\n')
+    plain = plain_strings(blocks)
     changed = 0
     for index, block in enumerate(blocks):
-        lines = block.split('\n')
-        if field(lines, 'msgctxt') != 'block title' or '# machine translation' not in lines:
-            continue
-        msgid = field(lines, 'msgid')
-        if msgid not in plain:
-            continue
-        new = [line for line in lines if line != '# machine translation']
-        start = next(i for i, line in enumerate(new) if line.startswith('msgstr '))
-        blocks[index] = '\n'.join(new[:start] + ['msgstr "%s"' % plain[msgid]])
-        changed += 1
+        result = synced_block(block, plain)
+        if result is not None:
+            blocks[index] = result
+            changed += 1
     if changed:
         with open(path, 'w', encoding='utf-8') as handle:
             handle.write('\n\n'.join(blocks))
