@@ -55,12 +55,23 @@ final class SEOProStack_Page_Cache {
 
     /**
      * Purge the page caches once for this version.
+     *
+     * Only a newer version purges. A request still running an older
+     * version's code (PHP's opcode cache can keep it after an update that
+     * did not change the files' times) leaves the caches and the stored
+     * version alone; otherwise it and the new code would each purge every
+     * page and store their own version, on every request. After going back
+     * to an older version, purge the page cache by hand.
      */
     public static function after_update() {
-        $state = get_option(self::OPTION, array());
-        $state = is_array($state) ? $state : array();
-        $same  = isset($state['version']) && SEOPROSTACK_VERSION === $state['version'];
+        $state  = get_option(self::OPTION, array());
+        $state  = is_array($state) ? $state : array();
+        $stored = isset($state['version']) && is_string($state['version']) ? $state['version'] : '';
+        $same   = SEOPROSTACK_VERSION === $stored;
         if ($same && empty($state['waiting'])) {
+            return;
+        }
+        if (!$same && '' !== $stored && version_compare($stored, SEOPROSTACK_VERSION, '>')) {
             return;
         }
 
