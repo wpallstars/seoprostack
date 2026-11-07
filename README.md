@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.176-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.177-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.176
+Version: 1.3.177
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2448,11 +2448,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.177
 
 - New, on by default: **Keep text still while web fonts load** (Speed). While a page's web fonts load, text shows in a local font such as Arial and moves when the web font arrives, which speed scores count as layout shift. The local font is now resized to each web font's measurements (about 1,870 Google Fonts: heights from Capsize, widths measured from the fonts), regular and bold, with capitals and spaces sized on their own, so text hardly moves. On 12 Kadence home pages, layout shift fell on 7, by up to 0.19 (#1372).
 - Faster: **Load the CSS each page uses first** covers the front-end stylesheets of 10 more recommended plugins: Fluent Forms' block, Fluent Comments, Burst Statistics' shortcodes, Secure Custom Fields' front-end forms, YellowPencil (free and Pro), Tutor LMS Certificate Builder, Kadence Captcha, Kadence Pattern Hub, SEO Pro Cookie Consent and SEO Pro Directory, so pages that use them no longer wait for those stylesheets (#1377).
 - Fixed: the **LiteSpeed Cache** preset turns LiteSpeed's CSS Combine, Generate UCSS and Load CSS Asynchronously off where **Load the CSS each page uses first** is on. That feature steps aside on the whole site while any of them is on, and LiteSpeed's versions wait on QUIC.cloud, so pages waited for every stylesheet (#1379).
+- Fixed: **Keep pages cached** no longer runs a fill early: when a purge moved it back while WP-Cron was already running it, the run now leaves it to its new time (#1362).
+- New: Czech (cs_CZ) translation of the strings visitors see; the **Language switcher** takes subdivision flags such as England's (`GB-ENG`) for English, and has the Czech flag (#1308, #1309).
 
 ### 1.3.176
 
