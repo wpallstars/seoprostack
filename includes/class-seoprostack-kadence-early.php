@@ -14,7 +14,9 @@
  * A script in the head, before any stylesheet, works out the fewest pixels
  * the picture can paint on this screen, from what the block itself says:
  * the screen's width (only for a full-width row or slider, as wide as the
- * screen) and a height the block sets for this screen size (Kadence's
+ * screen under the Kadence theme on a page without a sidebar; with a
+ * sidebar, or another theme, it may be narrower, and nothing is printed)
+ * and a height the block sets for this screen size (Kadence's
  * desktop, tablet and phone sizes): the slider's ratio or fixed height, or
  * the row's minimum height, in px, vh or vw. Its content can only make it
  * taller, so a `cover` picture paints at least that many pixels, and a
@@ -106,7 +108,11 @@ class SEOProStack_Kadence_Early {
      * @return bool
      */
     private static function wanted(array $attrs) {
-        if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
+        // A full-width block is as wide as the window only under Kadence (or
+        // a child theme of it, both classic) on a page without a sidebar:
+        // there Kadence keeps it in the content column. Elsewhere the head
+        // cannot tell its width, and the script after it chooses.
+        if ('kadence' !== get_template() || !function_exists('Kadence\kadence') || \Kadence\kadence()->has_sidebar()) {
             return false;
         }
         /**
