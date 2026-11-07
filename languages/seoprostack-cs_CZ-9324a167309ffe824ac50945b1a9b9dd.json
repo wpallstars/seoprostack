@@ -1,0 +1,84 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/review-links\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "Form": [
+                ""
+            ],
+            "Choose a form": [
+                ""
+            ],
+            "%s (no form on this site)": [
+                ""
+            ],
+            "Shows after the form is sent: thanks, the comment with Copy review, and review links for %s.": [
+                ""
+            ],
+            "Shows after the form is sent: thanks only. Set the targets of the googlereview, facebookreview or trustpilotreview short links to show review links.": [
+                ""
+            ],
+            "Feedback form": [
+                ""
+            ],
+            "The keyed Fluent form on this page that collects the rating and comment.": [
+                ""
+            ],
+            "Rating field name": [
+                ""
+            ],
+            "Default: rating.": [
+                ""
+            ],
+            "Comment field name": [
+                ""
+            ],
+            "Default: comment.": [
+                ""
+            ],
+            "High rating from": [
+                ""
+            ],
+            "Only the wording changes: review links show for every rating.": [
+                ""
+            ],
+            "Wording": [
+                ""
+            ],
+            "Thanks, high rating": [
+                ""
+            ],
+            "Default: Thank you for your feedback!": [
+                ""
+            ],
+            "Thanks, low rating": [
+                ""
+            ],
+            "Default: Thank you for telling us. We\u2019ll be in touch to put things right.": [
+                ""
+            ],
+            "Review request, high rating": [
+                ""
+            ],
+            "Review request, low rating": [
+                ""
+            ],
+            "Copy button": [
+                ""
+            ],
+            "Default: Copy review": [
+                ""
+            ],
+            "Review links": [
+                ""
+            ]
+        }
+    }
+}

@@ -1,0 +1,180 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/term-list\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "None": [
+                ""
+            ],
+            "Columns": [
+                ""
+            ],
+            "Terms": [
+                ""
+            ],
+            "Link": [
+                ""
+            ],
+            "Taxonomy": [
+                ""
+            ],
+            "Square": [
+                ""
+            ],
+            "Show as": [
+                ""
+            ],
+            "List": [
+                ""
+            ],
+            "Grid": [
+                ""
+            ],
+            "Tag cloud": [
+                ""
+            ],
+            "Comma-separated": [
+                ""
+            ],
+            "A\u2013Z index": [
+                ""
+            ],
+            "Drop-down": [
+                ""
+            ],
+            "All terms": [
+                ""
+            ],
+            "This post\u2019s terms": [
+                ""
+            ],
+            "Name": [
+                ""
+            ],
+            "Most posts first": [
+                ""
+            ],
+            "Random": [
+                ""
+            ],
+            "Under headings": [
+                ""
+            ],
+            "Accordion": [
+                ""
+            ],
+            "Tabs": [
+                ""
+            ],
+            "Theme default": [
+                ""
+            ],
+            "Dot": [
+                ""
+            ],
+            "Circle": [
+                ""
+            ],
+            "Numbers": [
+                ""
+            ],
+            "No groups": [
+                ""
+            ],
+            "By top-level term": [
+                ""
+            ],
+            "By Tag Groups group": [
+                ""
+            ],
+            "Terms to show": [
+                ""
+            ],
+            "The terms of the post or page the block is on, or of each post in a Query Loop.": [
+                ""
+            ],
+            "Show letter links": [
+                ""
+            ],
+            "Show as boxes": [
+                ""
+            ],
+            "Show post counts": [
+                ""
+            ],
+            "Show child terms": [
+                ""
+            ],
+            "Off shows only top-level terms.": [
+                ""
+            ],
+            "Show empty terms": [
+                ""
+            ],
+            "Text when there are no terms": [
+                ""
+            ],
+            "Leave empty to show nothing.": [
+                ""
+            ],
+            "Order and number": [
+                ""
+            ],
+            "Order": [
+                ""
+            ],
+            "Most terms to show": [
+                ""
+            ],
+            "0 shows all. When there are more, those with the most posts are shown.": [
+                ""
+            ],
+            "Fewest posts a term needs": [
+                ""
+            ],
+            "Groups": [
+                ""
+            ],
+            "Group terms": [
+                ""
+            ],
+            "Show groups": [
+                ""
+            ],
+            "Tag cloud sizes": [
+                ""
+            ],
+            "Smallest text (em)": [
+                ""
+            ],
+            "Largest text (em)": [
+                ""
+            ],
+            "Terms with more posts are larger. Set both the same for one size.": [
+                ""
+            ],
+            "Spacing and markers": [
+                ""
+            ],
+            "List marker": [
+                ""
+            ],
+            "Space between items (px)": [
+                ""
+            ],
+            "Link colours": [
+                ""
+            ],
+            "Link on hover": [
+                ""
+            ]
+        }
+    }
+}
