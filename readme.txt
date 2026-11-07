@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Advanced Slider slides at each screen's size (#1333).
+
 = 1.3.168 =
 * Fixed: Keep pages cached fills the WebP copy (#1324).
 * Faster: first slide's picture loads once with WebP (#1326).

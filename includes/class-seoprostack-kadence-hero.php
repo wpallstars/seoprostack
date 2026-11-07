@@ -11,8 +11,10 @@
  * measures it and takes the smallest copy at least as wide as the pixels
  * it paints, with 10% to spare for fonts and late styles, else the row's
  * own picture: never less sharp than before. The copy is preloaded at high
- * priority (its AVIF or WebP copy when pages name copies) and set on the
- * row, or on each slide of a background slider with its own picture's
+ * priority (its AVIF or WebP copy when pages name copies, or LiteSpeed
+ * Cache's WebP copy where it names it in the row's CSS: the script has
+ * each file as url(…), which LiteSpeed rewrites too, GH#1333) and set on
+ * the row, or on each slide of a background slider with its own picture's
  * copy. If the row grows later (fonts, a turned phone, a wider window) or
  * the screen's pixels get denser (another display, zoom), a larger copy
  * replaces it, never a smaller one. The copies come from the attachment
@@ -189,10 +191,16 @@ class SEOProStack_Kadence_Hero {
             esc_url('' !== $own[3] ? $own[3] : $own[1]),
             '' !== $own[4] ? ' type="' . esc_attr($own[4]) . '"' : ''
         );
+        $list = array();
+        foreach ($pictures as $picture) {
+            // Each file as url(…), so LiteSpeed Cache's WebP replacement
+            // names its copy here too (GH#1333).
+            $list[] = SEOProStack_Hero_Picture::for_script($picture) + (isset($picture['n']) ? array('n' => $picture['n']) : array());
+        }
         $data = array(
             'id' => $id,
             's'  => $slider,
-            'p'  => $pictures,
+            'p'  => $list,
         );
         $script = <<<'JS'
 (function (d, w, h) {
@@ -235,7 +243,7 @@ class SEOProStack_Kadence_Hero {
             var f = p.c[j], list = els(p), m;
             p.i = j;
             for (m = 0; m < list.length; m++) {
-                list[m].style.setProperty('background-image', "url('" + f[1] + "')", 'important');
+                list[m].style.setProperty('background-image', f[1], 'important');
                 // Browsers without image-set() types keep the url().
                 if (f[2]) { list[m].style.setProperty('background-image', f[2], 'important'); }
             }
@@ -247,7 +255,8 @@ class SEOProStack_Kadence_Hero {
         l.as = 'image';
         if (c[4]) { l.type = c[4]; }
         l.setAttribute('fetchpriority', 'high');
-        l.href = c[3] || c[1];
+        // c[1] is url(…): the address inside it.
+        l.href = c[3] || c[1].slice(4, -1);
         d.head.appendChild(l);
         // Larger when the row grows, or when the screen's pixels get denser
         // (the window moved to another display, or zoomed); never smaller.
