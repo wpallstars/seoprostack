@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Image loading makes the missing 1536 and 2048 pixel copies of Kadence row and slide pictures in the background, so phones get a copy at the size they need, not the full upload (#1406).
+
 = 1.3.182 =
 * Faster: Image loading preloads the Kadence hero row's picture, at the size the screen needs, when a short row of text alone comes before it (#1402).
 
