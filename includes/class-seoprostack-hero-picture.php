@@ -27,23 +27,30 @@ class SEOProStack_Hero_Picture {
      * one's MIME type. Addresses are the ones pages get, through Media in
      * cloud storage's mapping when it serves the picture. Null when the
      * address is not one of the attachment's files. Without an ID, the
-     * attachment is looked up from the address (url_id()).
+     * attachment is looked up from the address (url_id()); so it is when
+     * the ID's attachment does not have the address's file, as a block
+     * from an imported template keeps the template's ID, of a picture that
+     * is not here or of another one (GH#1387).
      *
      * @param mixed $id  Attachment ID.
      * @param mixed $url Address the row names.
      * @return array{w:int,h:int,c:array<int,array>}|null
      */
     public static function get($id, $url) {
-        $id   = is_numeric($id) && (int) $id > 0 ? (int) $id : self::url_id($url);
-        $meta = self::meta($id, $url);
-        if (!$meta) {
+        $id = is_numeric($id) && (int) $id > 0 ? (int) $id : 0;
+        list($meta, $width, $height) = self::sized($id, $url);
+        if ($width < 1) {
+            $found = self::url_id($url);
+            if ($found < 1 || $found === $id) {
+                return null;
+            }
+            $id = $found;
+            list($meta, $width, $height) = self::sized($id, $url);
+        }
+        if (!$meta || $width < 1 || $height < 1) {
             return null;
         }
-        $sizes = (array) ($meta['sizes'] ?? array());
-        list($width, $height) = self::named($meta, $sizes, wp_basename(rawurldecode((string) wp_parse_url($url, PHP_URL_PATH))));
-        if ($width < 1 || $height < 1) {
-            return null;
-        }
+        $sizes    = (array) ($meta['sizes'] ?? array());
         $copies   = self::copies($id, $sizes, $width, $height);
         $copies[] = self::file($width, self::served_url($url, $id));
         return array(
@@ -87,10 +94,11 @@ class SEOProStack_Hero_Picture {
      * (GH#1347): Kadence rows from imported templates, or with a picture
      * given by address, have bgImg but no bgImgID. attachment_url_to_postid()
      * matches this site's uploads address of an attachment's own file (or
-     * its -scaled one), so other addresses, a CDN's or a size copy's, stay
-     * 0 and the picture stays as the block names it. Kept per address for a
-     * day in the object cache, 0 too, so each picture is looked up once
-     * while the cache holds it.
+     * its -scaled one); a size copy's address is tried without its -WxH
+     * suffix too (GH#1387), and get() checks the attachment has that size.
+     * Other addresses, a CDN's, stay 0 and the picture stays as the block
+     * names it. Kept per address for a day in the object cache, 0 too, so
+     * each picture is looked up once while the cache holds it.
      *
      * @param mixed $url Address the block names.
      * @return int
@@ -102,7 +110,11 @@ class SEOProStack_Hero_Picture {
         $key = 'hero_url_id_' . substr(hash('sha256', $url), 0, 32);
         $id  = wp_cache_get($key, 'seoprostack');
         if (false === $id) {
-            $id = (int) attachment_url_to_postid($url);
+            $id       = (int) attachment_url_to_postid($url);
+            $original = (string) preg_replace('/-[0-9]+x[0-9]+(\.[A-Za-z0-9]+)$/', '$1', substr($url, 0, strcspn($url, '?#')));
+            if (!$id && $original !== $url) {
+                $id = (int) attachment_url_to_postid($original);
+            }
             wp_cache_set($key, $id, 'seoprostack', DAY_IN_SECONDS);
         }
         return (int) $id;
@@ -120,6 +132,24 @@ class SEOProStack_Hero_Picture {
     private static function meta($id, $url) {
         $meta = $id > 0 && self::css_url($url) ? wp_get_attachment_metadata($id) : false;
         return is_array($meta) && !empty($meta['file']) && self::in_folder($meta['file'], $url) ? $meta : null;
+    }
+
+    /**
+     * An attachment's metadata (meta()) and the width and height of the
+     * address's file in it, its own file or one of its sizes; null and
+     * zeros when it has none of them.
+     *
+     * @param int   $id  Attachment ID, or 0.
+     * @param mixed $url Address the block names.
+     * @return array{0:array|null,1:int,2:int}
+     */
+    private static function sized($id, $url) {
+        $meta = self::meta($id, $url);
+        if (!$meta) {
+            return array(null, 0, 0);
+        }
+        list($width, $height) = self::named($meta, (array) ($meta['sizes'] ?? array()), wp_basename(rawurldecode((string) wp_parse_url($url, PHP_URL_PATH))));
+        return array($meta, $width, $height);
     }
 
     /**
