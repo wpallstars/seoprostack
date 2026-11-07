@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.173
+Stable tag: 1.3.174
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,10 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.174 =
 * Fixed: Load the CSS each page uses first keeps the rules for panels scripts build, such as Readabler's voice navigation (#1355).
-
-= 1.3.173 =
-* Fixed: on a multisite network, pages no longer stay uncached after an update whose files kept old times (#1351).
 
 Older: `changelog.txt`.

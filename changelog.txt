@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.174 =
 * Fixed: Load the CSS each page uses first keeps the rules for elements the page's scripts create with an ID (GitHub issue #1355). SEOProStack_Used_Css_Match::added() counted words in the page's running scripts (SEOProStack_Used_Css_Scripts, #1260) as classes and elements but never as IDs, so an ID rule was kept only when the served HTML had the ID. Readabler's readabler.min.js, which runs as the page loads, builds its voice navigation panel in code (const e="mdp-readabler-voice-navigation"; t.id=e; t.setAttribute("aria-hidden","true")), and only #mdp-readabler-voice-navigation{position:fixed;…} and #mdp-readabler-voice-navigation[aria-hidden=true]{display:none} place and hide it: on one network subsite's home page (7 November 2026, 1.3.173, desktop 1280 px, the full stylesheets blocked), the panel and its command list sat below the footer, 23,801 px tall, until readabler.min.css arrived, and the screenshot check's footer shot moved up 17 px. added() now counts an #id the HTML lacks as present when it is a word in those scripts, as for classes; scripts that wait for the visitor are still not read. On that page this keeps at most 70 more rules, 11.9 KB before compression, of Readabler's 93.7 KB stylesheet.
 
 = 1.3.173 =
