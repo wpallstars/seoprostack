@@ -2,7 +2,10 @@ Font metrics in this folder
 
 metrics.json is made from @capsizecss/metrics 4.4.0 (https://github.com/seek-oss/capsize),
 by SEEK, under the MIT License below: the measurements of Google Fonts and
-common system fonts, for Keep text still while fonts load. No font files.
+common system fonts, for Keep text still while fonts load. The capital
+letters' average widths are measured by scripts/update-font-metrics.js from
+the fonts Google Fonts serves (each under its own open licence). No font
+files.
 
 MIT License
 

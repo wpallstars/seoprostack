@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Refresh the font measurements of Keep text still while fonts load
 # (assets/font-metrics/) from the newest @capsizecss/metrics release on npm,
-# which follows new Google Fonts. Run it now and then, and commit the result.
+# which follows new Google Fonts, and measure each family's capital letters
+# from Google Fonts. Run it now and then, and commit the result.
 #
 # Usage: scripts/update-font-metrics.sh
 #
-# Needs Node.js 18 or newer (for fetch) and tar. Contacts registry.npmjs.org
-# only; nothing is published.
+# Needs Node.js 18 or newer (for fetch) and tar. Contacts registry.npmjs.org,
+# fonts.googleapis.com and fonts.gstatic.com (a few thousand small requests,
+# some minutes); nothing is published.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Marcus Quinn
