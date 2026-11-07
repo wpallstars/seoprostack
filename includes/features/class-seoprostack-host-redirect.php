@@ -193,8 +193,9 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     }
 
     /**
-     * Keep the daily check in step with the switch, on the main site only.
-     * Switched off: take the block away.
+     * Keep the daily check in step with the switch, on the main site only,
+     * and a written block in step with this version's rules. Switched off:
+     * take the block away.
      */
     public static function maybe_schedule() {
         if (is_multisite() && !is_main_site()) {
@@ -205,6 +206,12 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
             if (!$next) {
                 // The first check soon, then daily.
                 wp_schedule_event(time() + MINUTE_IN_SECONDS, 'daily', self::HOOK);
+            }
+            $state = get_site_option(self::STATE, false);
+            if (is_array($state) && isset($state['status'], $state['hosts']) && 'written' === $state['status'] && is_array($state['hosts'])
+                && (!isset($state['hash']) || self::hash($state['hosts']) !== $state['hash'])) {
+                // An update changed the rules: write them again, for the same hosts.
+                self::save(self::still_valid($state['hosts'], self::main_hosts()));
             }
             return;
         }
@@ -478,8 +485,20 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         update_site_option(self::STATE, array(
             'hosts'   => $hosts,
             'status'  => $status,
+            'hash'    => self::hash($hosts),
             'checked' => time(),
         ));
+    }
+
+    /**
+     * Fingerprint of the rules for these hosts, so an update that changes
+     * the rules writes them again.
+     *
+     * @param array<string,string> $hosts Other host => target.
+     * @return string
+     */
+    private static function hash(array $hosts) {
+        return md5(implode("\n", self::rules($hosts)));
     }
 
     /**
