@@ -113,6 +113,52 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         if (is_admin() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
             self::maybe_schedule();
         }
+        add_filter('wp_redirect', array(__CLASS__, 'loop_guard'), 10, 2);
+    }
+
+    /**
+     * WordPress is sending a visitor from one address to its www twin (or
+     * back) while the block sends that address back again: a loop, left
+     * when the site's address changed without WordPress's hooks (a
+     * migration or a search and replace) or while the file could not be
+     * written. Drop that address's rule at once. Reads the file only for
+     * such a redirect, which a working block never lets reach WordPress.
+     *
+     * @param mixed $location Where WordPress sends the visitor.
+     * @param mixed $status   HTTP status.
+     * @return mixed Location, unchanged.
+     */
+    public static function loop_guard($location, $status = 302) {
+        unset($status);
+        global $is_apache;
+        if (empty($is_apache) || !is_string($location) || empty($_SERVER['HTTP_HOST'])) {
+            return $location;
+        }
+        $from = strtolower((string) preg_replace('/:\d+$/', '', sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST']))));
+        $to   = strtolower((string) wp_parse_url($location, PHP_URL_HOST));
+        if ('' === $to || ('www.' . $from !== $to && 'www.' . $to !== $from)) {
+            return $location;
+        }
+        $file = self::file();
+        $text = '' !== $file && is_readable($file) ? (string) file_get_contents($file) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+        if (false === strpos($text, '# BEGIN ' . self::MARKER) || false === strpos($text, self::host_condition($to))) {
+            return $location;
+        }
+        $state = get_site_option(self::STATE, array());
+        $hosts = is_array($state) && isset($state['hosts']) && is_array($state['hosts']) ? self::still_valid($state['hosts'], self::main_hosts()) : array();
+        unset($hosts[$to]);
+        self::save($hosts);
+        return $location;
+    }
+
+    /**
+     * The rule's condition for one address.
+     *
+     * @param string $host Host.
+     * @return string
+     */
+    private static function host_condition($host) {
+        return 'RewriteCond %{HTTP_HOST} ^' . str_replace('.', '\.', $host) . '(:[0-9]+)?$ [NC]';
     }
 
     /**
@@ -475,7 +521,7 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         }
         $lines = array('<IfModule mod_rewrite.c>', 'RewriteEngine On');
         foreach ($hosts as $other => $target) {
-            $lines[] = 'RewriteCond %{HTTP_HOST} ^' . str_replace('.', '\.', $other) . '(:[0-9]+)?$ [NC]';
+            $lines[] = self::host_condition($other);
             $lines[] = 'RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$';
             // The request line, not REQUEST_URI: after WordPress's rules send a
             // missing file to index.php, the rules run again with that URI.
