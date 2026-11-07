@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Keep pages cached fills the whole site again after a post is saved, where LiteSpeed Cache's purge rule Pages empties every page (#1399).
+
 = 1.3.180 =
 * Fix: WebP and AVIF images starts converting again when pictures wait with nothing converting them, as after the server learns AVIF (#1396).
 

@@ -23,6 +23,9 @@
  * After a post is published or updated, its page and the home page are
  * opened again a minute later; after it is unpublished, the home page
  * (LiteSpeed Cache; WP-Optimize does that itself with preload after purge on).
+ * With LiteSpeed Cache's purge rule Pages (on by default) or All pages,
+ * that save emptied every page of the site, so it is filled as after Purge
+ * All (#1399).
  *
  * On a network, a purge of every site (Network Admin, updates, as LiteSpeed
  * Cache decides it; any WP-Optimize purge) fills each site's main pages,
@@ -157,6 +160,7 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- every five minutes (CHECK_INTERVAL): one request LiteSpeed answers without PHP while it holds the page.
         add_filter('cron_schedules', array(__CLASS__, 'check_schedule'));
         add_action('litespeed_purged_all', array(__CLASS__, 'litespeed_purged'));
+        add_action('litespeed_purged_post', array(__CLASS__, 'litespeed_post_purged'), 10, 1);
         add_action('wpo_cache_flush', array(__CLASS__, 'wp_optimize_purged'));
         add_action('transition_post_status', array(__CLASS__, 'post_changed'), 10, 3);
     }
@@ -340,6 +344,37 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      */
     public static function litespeed_purged() {
         SEOProStack_Keep_Cached_Queue::fill_later(self::network_purge());
+    }
+
+    /**
+     * LiteSpeed Cache purged a post's pages (a post published, updated,
+     * unpublished, trashed or deleted, or its comment count changed). With
+     * its Purge Rules For Publish/Update set to Pages (on by default), that
+     * empties every WordPress page of this site, the front page among them;
+     * with All pages, the whole site. Neither runs Purge All, so fill this
+     * site as after it: its main pages, then LiteSpeed Cache's crawler, or
+     * the rest where the crawler is off. post_changed() still reopens the
+     * post itself first. Saves one after another move the fill back, for up
+     * to 10 minutes after the first (#1399).
+     *
+     * Only for a post LiteSpeed Cache applies those rules to: one of a
+     * built-in or viewable type (\LiteSpeed\Purge::_get_purge_tags_by_post()).
+     *
+     * @param int $post_id Post.
+     */
+    public static function litespeed_post_purged($post_id) {
+        if ((defined('WP_IMPORTING') && WP_IMPORTING) || 'litespeed' !== SEOProStack_Keep_Cached_Requests::page_cache()) {
+            return;
+        }
+        if (!SEOProStack_Litespeed::conf('purge-post_p', false) && !SEOProStack_Litespeed::conf('purge-post_all', false)) {
+            return;
+        }
+        $type = get_post_type_object((string) get_post_type((int) $post_id));
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's own filter, read as it reads it.
+        if ($type && !$type->_builtin && !is_post_type_viewable($type) && apply_filters('litespeed_purge_post_skip_non_viewable', true, (int) $post_id)) {
+            return;
+        }
+        SEOProStack_Keep_Cached_Queue::fill_later(false);
     }
 
     /**
