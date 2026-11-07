@@ -15,8 +15,8 @@
  * seen on is opened again. More copies never make a browser fetch a larger
  * file (it takes the smallest that is enough), so never less sharp. Sizes
  * a site removed (remove_image_size()) are not registered, so not made.
- * Next-gen images makes the new files' AVIF and WebP copies, as for any
- * upload.
+ * WebP and AVIF images makes the new files' AVIF and WebP copies in the
+ * same run, before the page is purged (GH#1409).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -177,7 +177,13 @@ class SEOProStack_Picture_Sizes {
         self::$making = (int) $id;
         $result       = wp_update_image_subsizes($id);
         self::$making = 0;
-        return is_array($result) && count((array) ($result['sizes'] ?? array())) > $before;
+        $more         = is_array($result) && count((array) ($result['sizes'] ?? array())) > $before;
+        if ($more && class_exists('SEOProStack_Nextgen_Images')) {
+            // Their AVIF and WebP copies now, before the page is purged and
+            // opened again: a batch could be minutes away (GH#1409).
+            SEOProStack_Nextgen_Images::convert_now($id);
+        }
+        return $more;
     }
 
     /**
