@@ -174,9 +174,12 @@ expected in the GitHub zip too.
    An event gets `DEPLOY_CRON_TIMEOUT` seconds (default 120, `0` for no
     limit, which a host without `timeout` needs when there is an event to
     run); one that times out is a warning, not a failure. On a network each
-    site runs its own. When the site's own cron runner handles the same event
-    in the same second, WordPress logs `Cron reschedule event error for hook:
-    HOOK, Error code: could_not_set` (or `unschedule`). For a hook the check
+    site runs its own. `wp cron event run` takes no lock, so when the site's
+    own cron runner (`wp-cron.php` from the host's cron job) has already read
+    the same due event, whichever runs it second logs `Cron reschedule event
+    error for hook: HOOK, Error code: could_not_set` (or `unschedule`),
+    followed on WordPress 6.1 and later by `, Error message: …, Data: …`
+    (#1349). For a hook the check
     just ran to completion, this message shows as `WARN cron race HOOK` and
     is not counted in `new_log_lines`; the warning does not confirm a race, as
     a cron-storage failure can log the same message. The same line for any other
