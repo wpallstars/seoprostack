@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.172 =
 * Faster: Image loading sizes Kadence Blocks row, column, hero row and Advanced Slider slide background pictures saved without an attachment ID (GitHub issue #1347). SEOProStack_Hero_Picture::get() returned null for ID 0 (meta() needs an ID above 0), so rows with bgImg but no bgImgID (from imported templates, or with a picture given by address) kept the full upload: on one home page, both row pictures. get() now resolves the ID from the address with attachment_url_to_postid() when none is saved and the address can go in CSS (new SEOProStack_Hero_Picture::url_id()), kept per address for a day in the object cache (group seoprostack, 0 too). It matches only this site's uploads address of an attachment's own file (or its -scaled one), so a CDN's, a size copy's or a theme's address stays unsized, and meta() still checks the address is in the attachment's folder. On a test page made from the #1337 and #1341 pages with every bgImgID removed, the head script, hero script and each row's and column's copies matched the page with IDs.
 
 = 1.3.171 =
