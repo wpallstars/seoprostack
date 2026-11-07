@@ -1,0 +1,63 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/spectra\/convert.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "Convert": [
+                ""
+            ],
+            "Buttons": [
+                ""
+            ],
+            "Heading": [
+                ""
+            ],
+            "Converted %d Spectra block. Check it, then save.": [
+                ""
+            ],
+            "%d Spectra block could not be converted and is left as it is.": [
+                ""
+            ],
+            "a Heading block": [
+                ""
+            ],
+            "Image": [
+                ""
+            ],
+            "an Image block": [
+                ""
+            ],
+            "a Buttons block": [
+                ""
+            ],
+            "Testimonial": [
+                ""
+            ],
+            "Quote blocks": [
+                ""
+            ],
+            "Taxonomy List": [
+                ""
+            ],
+            "a Term list block": [
+                ""
+            ],
+            "core blocks": [
+                ""
+            ],
+            "Convert all %d": [
+                ""
+            ],
+            "Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save.": [
+                ""
+            ]
+        }
+    }
+}

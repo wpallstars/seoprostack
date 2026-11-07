@@ -1,0 +1,141 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/link-card\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "Address": [
+                ""
+            ],
+            "None": [
+                ""
+            ],
+            "Cancel": [
+                ""
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                ""
+            ],
+            "Link": [
+                ""
+            ],
+            "Picture": [
+                ""
+            ],
+            "Title": [
+                ""
+            ],
+            "Open in a new tab": [
+                ""
+            ],
+            "Page address": [
+                ""
+            ],
+            "Change address": [
+                ""
+            ],
+            "Copying the picture to your Media Library\u2026": [
+                ""
+            ],
+            "The picture could not be copied.": [
+                ""
+            ],
+            "Looking for the site\u2019s icon\u2026": [
+                ""
+            ],
+            "The site\u2019s icon could not be copied.": [
+                ""
+            ],
+            "Reading the page\u2026": [
+                ""
+            ],
+            "Fill in the title and description in the block settings.": [
+                ""
+            ],
+            "Card": [
+                ""
+            ],
+            "Read the page again": [
+                ""
+            ],
+            "Description": [
+                ""
+            ],
+            "Site name": [
+                ""
+            ],
+            "On the right": [
+                ""
+            ],
+            "On the left": [
+                ""
+            ],
+            "Above": [
+                ""
+            ],
+            "Beside the text when the card is wide enough.": [
+                ""
+            ],
+            "Picture shape": [
+                ""
+            ],
+            "Its own shape": [
+                ""
+            ],
+            "Wide, as in social previews": [
+                ""
+            ],
+            "Square": [
+                ""
+            ],
+            "Fill the card\u2019s height": [
+                ""
+            ],
+            "Pictures show whole, at the same height in every card. Fill the card\u2019s height crops them.": [
+                ""
+            ],
+            "Copy the picture": [
+                ""
+            ],
+            "Use the page\u2019s picture": [
+                ""
+            ],
+            "Use the site\u2019s icon": [
+                ""
+            ],
+            "Ask search engines not to follow (nofollow)": [
+                ""
+            ],
+            "Someone who can upload files needs to open this card to add its picture.": [
+                ""
+            ],
+            "Link card": [
+                ""
+            ],
+            "Paste the address of a page to show a preview card.": [
+                ""
+            ],
+            "Show card": [
+                ""
+            ],
+            "This is a Bookmark Card. Convert it to a Link card to keep its picture on your site.": [
+                ""
+            ],
+            "Convert to Link card": [
+                ""
+            ],
+            "Default": [
+                ""
+            ],
+            "Horizontal": [
+                ""
+            ]
+        }
+    }
+}
