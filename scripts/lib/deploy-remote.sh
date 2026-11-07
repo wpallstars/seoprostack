@@ -800,6 +800,49 @@ cdn_lines() {
 	return 0
 }
 
+# The plugin's own scheduled events, once, on one site after a good load. A
+# cron callback must not change the activation lists either. Sets the CRON_*
+# results and adds to the CRON_SUM_* totals.
+cron_step() {
+	local root="$1"
+	shift
+	local cron_before
+	if cron_before="$(active_snapshot "$root")"; then
+		run_site_cron "$root" "$@"
+		active_check "$root" "$cron_before" "" "" || CRON_FAILURE+="activation lists changed during cron; "
+	else
+		CRON_RUN=0 CRON_TOTAL=0 CRON_WARN=""
+		CRON_FAILURE="cron skipped: activation snapshot failed; "
+	fi
+	CRON_SUM_RUN=$((CRON_SUM_RUN + CRON_RUN))
+	CRON_SUM_TOTAL=$((CRON_SUM_TOTAL + CRON_TOTAL))
+	return 0
+}
+
+# Notes one site's address for the Cloudflare purge; without a token, checks
+# the plain home address. Sets CDN_WARN to the warning (with its separator)
+# or "", and MAIN_CF for the first site.
+cdn_step() {
+	local url="$1"
+	CDN_URLS+="$url"$'\n'
+	CDN_WARN=""
+	[[ "$CDN_PURGE" -eq 0 ]] || return 0
+	cf_stale_check "$url"
+	[[ -n "$CF_STALE" ]] || return 0
+	CDN_WARN="$(cf_warning "$CF_STALE"), "
+	[[ "$SITES_TOTAL" -ne 1 ]] || MAIN_CF="$CF_STALE"
+	return 0
+}
+
+# Prints the @cdn lines of the install and sets CDN_FIELD, the cdn= value.
+cdn_announce() {
+	CDN_FIELD="-"
+	[[ "$CDN_PURGE" -eq 1 ]] || return 0
+	CDN_FIELD="@CDN@"
+	printf '%s' "$CDN_URLS" | cdn_lines
+	return 0
+}
+
 # Called directly: counters, the main row and network lines are results.
 check_sites() {
 	local root="$1"
@@ -835,15 +878,7 @@ check_sites() {
 			esac
 			# The plugin's own scheduled events, once, after a good load.
 			# A cron callback must not change the activation lists either.
-			if cron_before="$(active_snapshot "$root")"; then
-				run_site_cron "$root" ${url_args[@]+"${url_args[@]}"}
-				active_check "$root" "$cron_before" "" "" || CRON_FAILURE+="activation lists changed during cron; "
-			else
-				CRON_RUN=0 CRON_TOTAL=0 CRON_WARN=""
-				CRON_FAILURE="cron skipped: activation snapshot failed; "
-			fi
-			CRON_SUM_RUN=$((CRON_SUM_RUN + CRON_RUN))
-			CRON_SUM_TOTAL=$((CRON_SUM_TOTAL + CRON_TOTAL))
+			cron_step "$root" ${url_args[@]+"${url_args[@]}"}
 			cron_note="cron=${CRON_RUN}/${CRON_TOTAL}"
 			[[ -z "$CRON_FAILURE" ]] || reason+="$CRON_FAILURE"
 			[[ -z "$CRON_WARN" ]] || {
@@ -882,14 +917,8 @@ check_sites() {
 			warn+="home retried ($first_code), "
 		fi
 		[[ "$HOME_CACHE" != *hit* || "$HOME_CACHE" == redirected:* ]] || warn+="cached, "
-		CDN_URLS+="$url"$'\n'
-		if [[ "$CDN_PURGE" -eq 0 ]]; then
-			cf_stale_check "$url"
-			if [[ -n "$CF_STALE" ]]; then
-				warn+="$(cf_warning "$CF_STALE"), "
-				[[ "$SITES_TOTAL" -ne 1 ]] || MAIN_CF="$CF_STALE"
-			fi
-		fi
+		cdn_step "$url"
+		warn+="$CDN_WARN"
 		if [[ -n "$reason" ]]; then
 			result="FAIL: ${reason%; }"
 			SITES_FAILED=$((SITES_FAILED + 1))
@@ -1063,13 +1092,9 @@ apply_one() {
 	elif [[ -n "$warn" ]]; then
 		result="WARN ${warn%, }"
 	fi
-	local cdn="-"
-	if [[ "$CDN_PURGE" -eq 1 ]]; then
-		cdn="@CDN@"
-		printf '%s' "$CDN_URLS" | cdn_lines
-	fi
+	cdn_announce
 	printf '%s\t%s -> %s\tstatus=%s\tpurged=%s/%s\tcron=%s/%s\thome=%s\tcache=%s\tcdn=%s\tnew_log_lines=%s' \
-		"$name" "${before:-?}" "${after:-?}" "$MAIN_STATUS" "$SITES_PURGED" "$SITES_TOTAL" "$CRON_SUM_RUN" "$CRON_SUM_TOTAL" "$MAIN_CODE" "$MAIN_CACHE" "$cdn" "$new_lines"
+		"$name" "${before:-?}" "${after:-?}" "$MAIN_STATUS" "$SITES_PURGED" "$SITES_TOTAL" "$CRON_SUM_RUN" "$CRON_SUM_TOTAL" "$MAIN_CODE" "$MAIN_CACHE" "$CDN_FIELD" "$new_lines"
 	if [[ -n "$SITE_LINES" ]]; then
 		printf '\tsites=%s/%s' "$((SITES_TOTAL - SITES_FAILED))" "$SITES_TOTAL"
 	fi
