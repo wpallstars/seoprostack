@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.177
+Stable tag: 1.3.178
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,13 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New (on): www or bare-domain redirects skip WordPress (#1383).
-
-= 1.3.177 =
-* New (on): Keep text still while web fonts load (#1372).
-* Faster: Load the CSS each page uses first covers 10 more plugins (#1377, #1379).
-* Fixed: Keep pages cached fills on time after purges (#1362).
-* New: Czech translation and flags (#1308, #1309).
+= 1.3.178 =
+* New (on): Redirect to the main address before WordPress loads: www or bare-domain redirects the site already makes are answered by the server, without waiting for WordPress (#1383).
 
 Older: `changelog.txt`.
