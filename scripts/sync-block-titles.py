@@ -3,7 +3,8 @@
 # SPDX-FileCopyrightText: 2026 Marcus Quinn
 # Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
 # Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
-"""Copy the reviewed plain msgstr into same-msgid "block title" entries.
+"""
+Copy the reviewed plain msgstr into same-msgid "block title" entries.
 
 Block titles come from block.json and are machine-translated on first fill.
 When the same msgid already has a reviewed plain entry, that wording wins, so
