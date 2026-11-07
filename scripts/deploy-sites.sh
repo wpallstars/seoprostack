@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Roll out a published release (RELEASING.md step 5): install its zip on every
 # WordPress install on one SSH host that already has the plugin.
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Marcus Quinn
+# Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt
+# Provenance: wpas-e4502af0f07e8a92. Copies, even of part, keep these lines.
 #
 # Usage: scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z
 #                                [--parent PATTERN] [--skip NAME]...
@@ -62,11 +66,6 @@
 #
 # Needs gh (signed in for a private repository), ssh, and bash, WP-CLI, tar
 # and curl on the host; aidevops users can use wp-fleet-helper.sh instead.
-
-# SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2026 Marcus Quinn
-# Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt
-# Provenance: wpas-e4502af0f07e8a92. Copies, even of part, keep these lines.
 
 set -euo pipefail
 
