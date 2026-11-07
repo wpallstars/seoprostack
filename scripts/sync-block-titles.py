@@ -12,6 +12,7 @@ the block editor and the front end name things alike, and the
 
 Usage: sync-block-titles.py file.po [...]
 """
+import os
 import re
 import sys
 
@@ -61,5 +62,10 @@ def sync(path):
     print('%s: %d block title entries synced' % (path, changed))
 
 
-for target in sys.argv[1:]:
-    sync(target)
+LANGUAGES = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'languages')
+
+for name in sys.argv[1:]:
+    # Only bundled catalogues: a bare file name, never a path.
+    if not re.fullmatch(r'seoprostack-[A-Za-z_]+\.po', os.path.basename(name)):
+        sys.exit('Not a bundled catalogue: %s' % os.path.basename(name))
+    sync(os.path.normpath(os.path.join(LANGUAGES, os.path.basename(name))))
