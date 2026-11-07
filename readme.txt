@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.181
+Stable tag: 1.3.182
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,10 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.182 =
 * Faster: Image loading preloads the Kadence hero row's picture, at the size the screen needs, when a short row of text alone comes before it (#1402).
-
-= 1.3.181 =
-* Faster: Keep pages cached fills the whole site again after a post is saved, where LiteSpeed Cache's purge rule Pages empties every page (#1399).
 
 Older: `changelog.txt`.
