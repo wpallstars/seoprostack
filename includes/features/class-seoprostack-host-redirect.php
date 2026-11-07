@@ -445,7 +445,9 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         foreach ($hosts as $other => $target) {
             $lines[] = 'RewriteCond %{HTTP_HOST} ^' . str_replace('.', '\.', $other) . '(:[0-9]+)?$ [NC]';
             $lines[] = 'RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$';
-            $lines[] = 'RewriteCond %{REQUEST_URI} !^/\.well-known/';
+            // The request line, not REQUEST_URI: after WordPress's rules send a
+            // missing file to index.php, the rules run again with that URI.
+            $lines[] = 'RewriteCond %{THE_REQUEST} !\s(https?://[^/\s]+)?/\.well-known/ [NC]';
             $lines[] = 'RewriteCond %{QUERY_STRING} !(^|&)' . self::QUERY . '=';
             $lines[] = 'RewriteRule ^ ' . $target . '%{REQUEST_URI} [R=301,L]';
         }
