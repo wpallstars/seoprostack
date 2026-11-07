@@ -853,16 +853,30 @@ swap_plugin_folder() {
 		rm -rf "$staging"
 		return 1
 	fi
+	# A signal between the two renames would leave the plugin only in $old:
+	# put it back before exiting.
+	# shellcheck disable=SC2064
+	trap "[[ -d '$plugins/$SLUG' ]] || mv '$old' '$plugins/$SLUG'; rm -rf '$staging'; exit 143" INT TERM HUP
 	if ! mv "$plugins/$SLUG" "$old"; then
+		trap - INT TERM HUP
 		rm -rf "$staging"
 		return 1
 	fi
 	if ! mv "$staging/$SLUG" "$plugins/$SLUG"; then
-		mv "$old" "$plugins/$SLUG"
+		if ! mv "$old" "$plugins/$SLUG"; then
+			trap - INT TERM HUP
+			printf '%s\tFAIL: folder swap and rollback failed; old copy kept at %s\n' "$SLUG" "$old" >&2
+			return 2
+		fi
+		trap - INT TERM HUP
 		rm -rf "$staging"
 		return 1
 	fi
-	rm -rf "$staging" "$old"
+	trap - INT TERM HUP
+	rm -rf "$staging"
+	if ! rm -rf "$old"; then
+		printf '%s\tWARN: could not remove old folder %s\n' "$SLUG" "$old" >&2
+	fi
 	return 0
 }
 
@@ -877,7 +891,14 @@ install_build() {
 	local plugins="$4"
 	local backup="$5"
 
-	swap_plugin_folder "$plugins" "$zip" && return 0
+	local swap_rc=0
+	swap_plugin_folder "$plugins" "$zip" || swap_rc=$?
+	[[ "$swap_rc" -eq 0 ]] && return 0
+	if [[ "$swap_rc" -eq 2 ]]; then
+		printf '%s\tFAIL: folder swap rollback failed; restore: tar -xzf %q -C %q\n' "$name" "$backup" "$plugins"
+		return 1
+	fi
+	printf '%s\tWARN: folder swap failed; using wp plugin install --force\n' "$name" >&2
 	if ! active_guard "$root" "" "" --skip-plugins --skip-themes plugin install "$zip" --force >/dev/null; then
 		printf '%s\tFAIL: guarded install stopped; restore: tar -xzf %q -C %q\n' "$name" "$backup" "$plugins"
 		return 1
