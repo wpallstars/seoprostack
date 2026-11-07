@@ -144,7 +144,23 @@ expected in the GitHub zip too.
     log lines gained. Networks add `sites=PASSED/TOTAL` and one indented
    `site` line per site, with its status, `purged=yes`, `no` or `failed`, home
    code, cache headers and result.
-   After each site's full load, the plugin's own WP-Cron events (hooks in the
+    Cloudflare: a Cache Rule that caches HTML keeps the pre-deploy pages for up
+    to the edge TTL (2 hours by default), while the home fetch's unique query
+    string never sees them. Add `--cloudflare-token-env NAME`, naming an
+    environment variable that holds an API token limited to Zone → Cache Purge,
+    and the script purges each updated site's zone from your computer (the
+    token never reaches the host and is never printed): it finds the zone from
+    the site's host name, trying its parent domains, and sends
+    `purge_everything` once per zone per run. The install line shows
+    `cdn=purged`, `cdn=failed MESSAGE` (a failed purge does not fail the
+    install) or `cdn=-` without the option, and the summary counts the zones.
+    The dry run with the option lists the zones it would purge and purges
+    nothing. Without the option the script fetches each site's plain home
+    address once after the install and warns `WARN Cloudflare keeps pages from
+    before the deploy (age=N s); purge the zone or pass --cloudflare-token-env`
+    when Cloudflare answers `cf-cache-status: HIT` with an `age` older than the
+    install.
+    After each site's full load, the plugin's own WP-Cron events (hooks in the
    site's cron schedule with a callback in the plugin's folder) run once on
    that site, each in its own `wp cron event run` process, shown as `cron=N/M`
    on the install line. A fatal error that only a cron callback reaches does
