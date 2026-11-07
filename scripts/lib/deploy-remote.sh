@@ -630,8 +630,10 @@ PHP
 # home fetch or the web PHP log: the host's cron job runs WP-Cron from the
 # command line. Running an event early reschedules it, as wp cron event run
 # does by hand. An event gets DEPLOY_CRON_TIMEOUT seconds (default 120, 0 for
-# no limit); one that times out is a warning, not a failure. Sets CRON_RUN,
-# CRON_TOTAL, CRON_FAILURE and CRON_WARN for the site.
+# no limit); one that times out is a warning, not a failure. A single event
+# the site's own cron ran between the list and its run here (WP-CLI: Invalid
+# cron event) is a note, not a failure, and not counted as run here (GH#1369).
+# Sets CRON_RUN, CRON_TOTAL, CRON_FAILURE and CRON_WARN for the site.
 run_site_cron() {
 	local root="$1"
 	shift
@@ -661,6 +663,8 @@ run_site_cron() {
 		if [[ "$status" -eq 124 && "${#cmd[@]}" -gt 0 ]]; then
 			CRON_WARN+="cron $hook timed out (${limit}s), "
 			CRON_RUN=$((CRON_RUN + 1))
+		elif [[ "$status" -ne 0 && "$out" == *"Invalid cron event '$hook'"* && "$out" != *"Fatal error"* && "$out" != *"WordPress database error"* && "$out" != *"Error establishing a database connection"* ]]; then
+			CRON_WARN+="cron $hook ran meanwhile, "
 		elif [[ "$status" -ne 0 || "$out" == *"PHP Fatal error"* || "$out" == *"Fatal error:"* || "$out" == *"WordPress database error"* || "$out" == *"Error establishing a database connection"* ]]; then
 			detail="$(printf '%s\n' "$out" | tail -n 3 | LC_ALL=C tr '\t\r\n' '   ' | LC_ALL=C tr -cd '[:print:]')"
 			CRON_FAILURE+="cron $hook failed (exit $status: ${detail:0:300}); "
@@ -886,7 +890,7 @@ check_sites() {
 			[[ -z "$CRON_FAILURE" ]] || reason+="$CRON_FAILURE"
 			[[ -z "$CRON_WARN" ]] || {
 				warn+="$CRON_WARN"
-				CRON_WARNED=1
+				CRON_WARNED+="$CRON_WARN"
 			}
 		else
 			load_status=$?
@@ -1089,7 +1093,7 @@ apply_one() {
 
 	# Single sites have no site row on which to show these warnings.
 	[[ "$PURGE_FAILED" -eq 0 ]] || warn+="purge failed, "
-	[[ -z "$CRON_WARNED" || -n "$SITE_LINES" ]] || warn+="cron timed out, "
+	[[ -z "$CRON_WARNED" || -n "$SITE_LINES" ]] || warn+="$CRON_WARNED"
 	[[ "$MAIN_CACHE" != *hit* || "$MAIN_CACHE" == redirected:* ]] || warn+="cached, "
 	[[ -z "$MAIN_RETRIED" ]] || warn+="home retried ($MAIN_RETRIED), "
 	# A network's site rows carry this warning; a single site has no row.
