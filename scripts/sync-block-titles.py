@@ -60,6 +60,7 @@ def synced_block(block, plain):
 
 
 def sync(path):
+    """Sync the block title entries of one catalogue and report the count."""
     with open(path, encoding='utf-8') as handle:
         blocks = handle.read().split('\n\n')
     plain = plain_strings(blocks)
