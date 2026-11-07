@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.176
+Stable tag: 1.3.177
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,12 +154,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New, on by default: Keep text still while web fonts load: local fonts sized to match each web font (#1372).
-* Faster: Load the CSS each page uses first covers 10 more recommended plugins (#1377).
-* Fixed: LiteSpeed Cache preset turns its CSS options off with Load the CSS each page uses first (#1379).
-
-= 1.3.176 =
-* Fixed: Load plugins only where needed keeps what it learned when plugins refresh update caches (#1367).
+= 1.3.177 =
+* New (on): Keep text still while web fonts load (#1372).
+* Faster: Load the CSS each page uses first covers 10 more plugins (#1377, #1379).
+* Fixed: Keep pages cached fills on time after purges (#1362).
+* New: Czech translation and flags (#1308, #1309).
 
 Older: `changelog.txt`.
