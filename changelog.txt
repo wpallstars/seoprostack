@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.180 =
 * Fix: WebP and AVIF images starts converting again when pictures wait with no batch to convert them (GitHub issue #1396). Batches started when its settings were saved, pictures were uploaded or edited, the Media Library bulk action ran or its settings panel opened, and stopped when nothing waited; but what they make (formats and qualities, signature()) can change with none of those, when the server's image editor learns AVIF or a new setting's default (Make AVIF copies) reaches the site. Every picture then waited for its new copies until someone opened Media settings: on one 11-site network (7 November 2026) ten sites had 326 pictures waiting and no batch, so browsers got WebP copies rather than AVIF ones (82 KB rather than 57 KB for one slider picture). Once a day, on a WP-Cron, WP-CLI or admin request after wp_loaded, SEOProStack_Nextgen_Images::maybe_restart() schedules a batch when none is scheduled and waiting(1) finds a picture; an autoloaded option (seoprostack_nextgen_restart) holds the day's mark, so other requests read nothing more, and deactivation and uninstall remove it.
 
 = 1.3.179 =
