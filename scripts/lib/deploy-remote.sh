@@ -943,6 +943,13 @@ check_sites() {
 # inside the plugins folder (same filesystem, so each is atomic). Returns 1
 # with the live folder untouched if anything fails before the first rename;
 # if the second rename fails the old folder is put back.
+#
+# The release zip gives every file the same fixed time (reproducible builds)
+# and unzip keeps it, but PHP's OPcache revalidates a file only when its time
+# changes: the web server would go on running the old version's code, and
+# assets versioned by file time would keep their old addresses. So the
+# extracted files get the current time first, as WordPress's own updater
+# gives them.
 swap_plugin_folder() {
 	local plugins="$1"
 	local zip="$2"
@@ -953,7 +960,8 @@ swap_plugin_folder() {
 
 	command -v unzip >/dev/null 2>&1 || return 1
 	mkdir "$staging" || return 1
-	if ! unzip -q "$zip" -d "$staging" || [[ ! -f "$staging/$SLUG/$SLUG.php" ]]; then
+	if ! unzip -q "$zip" -d "$staging" || [[ ! -f "$staging/$SLUG/$SLUG.php" ]] \
+		|| ! find "$staging/$SLUG" -exec touch -c {} +; then
 		rm -rf "$staging"
 		return 1
 	fi

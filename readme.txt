@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: on a multisite network, pages no longer stay uncached after an update whose files kept old times (#1351).
+
 = 1.3.172 =
 * Faster: Kadence background pictures saved without their Media Library ID sized for each screen too (#1347).
 
