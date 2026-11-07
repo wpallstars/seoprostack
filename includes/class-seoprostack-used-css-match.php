@@ -3,8 +3,8 @@
  * Used CSS: which of a stylesheet's rules one page can use.
  *
  * A rule is used when the page has every class, ID and element one of its
- * selectors names. Classes and elements the page's scripts may add after it
- * loads count as present (SEOProStack_Used_Css_Scripts), and so do the
+ * selectors names. Classes, IDs and elements the page's scripts may add
+ * after it loads count as present (SEOProStack_Used_Css_Scripts), and so do the
  * classes in CLASSES that Kadence's, Kadence Blocks', Fluent Forms' and
  * their libraries' scripts add (menus, drawers, the sticky header, tabs,
  * accordions, dark mode, form errors, the phone field's flags, dropdowns
@@ -69,8 +69,8 @@ final class SEOProStack_Used_Css_Match {
     private $prefixes = '';
 
     /**
-     * Words in the page's scripts that could be class or element names, and
-     * prefixes the scripts build class names from.
+     * Words in the page's scripts that could be class, ID or element names,
+     * and prefixes the scripts build class names from.
      *
      * @var array{names: array<string,bool>, prefixes: array<string,bool>}
      */
@@ -155,15 +155,17 @@ final class SEOProStack_Used_Css_Match {
     }
 
     /**
-     * Whether a class or element the page's HTML does not have may be added
-     * by its scripts.
+     * Whether a class, ID or element the page's HTML does not have may be
+     * added by its scripts. IDs count too (#1355): Readabler's script builds
+     * its voice navigation panel as `t.id = e` with e a string, and only
+     * `#mdp-readabler-voice-navigation[aria-hidden=true]` hides it.
      *
      * @param string $token `.class`, `#id` or element.
      * @return bool
      */
     private function added($token) {
         if ('#' === $token[0]) {
-            return false;
+            return isset($this->scripts['names'][substr($token, 1)]); // An element a script may create with this ID.
         }
         if ('.' !== $token[0]) {
             return isset($this->scripts['names'][$token]); // An element a script may create.

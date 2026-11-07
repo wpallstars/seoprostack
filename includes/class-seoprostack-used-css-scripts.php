@@ -1,14 +1,16 @@
 <?php
 /**
- * Used CSS: class names the page's scripts may add after it loads.
+ * Used CSS: class names (and IDs) the page's scripts may add after it loads.
  *
  * Scripts open menus, start sliders, show form errors and animate blocks by
- * adding classes the page's HTML does not have yet. Rules for those classes
- * must be in the page, or those parts look wrong until the full stylesheets
- * arrive (GitHub issue #1260: Kadence Blocks' slider adds `kb-splide`, its
- * Pro animations `aos-init` and `aos-animate`). A list kept by hand
+ * adding classes the page's HTML does not have yet, and build panels with
+ * IDs of their own. Rules for those must be in the page, or those parts
+ * look wrong until the full stylesheets arrive (GitHub issue #1260: Kadence
+ * Blocks' slider adds `kb-splide`, its Pro animations `aos-init` and
+ * `aos-animate`; #1355: Readabler builds `#mdp-readabler-voice-navigation`,
+ * hidden only by an ID rule). A list kept by hand
  * (SEOProStack_Used_Css_Match::CLASSES) goes stale with each plugin update,
- * so every word in the page's scripts that could be a class name counts as
+ * so every word in the page's scripts that could be a class name or ID counts as
  * present, as PurgeCSS does; and so does every prefix a script builds class
  * names from ("kt-active-tab-" + n, `${prefix}`). Which scripts: those that
  * run without the visitor doing anything, so before the full stylesheets
@@ -55,7 +57,7 @@ final class SEOProStack_Used_Css_Scripts {
     /** A script element: 1 is the rest of its opening tag, 2 its code. */
     const SCRIPTS = '#<script\b([^>]*)>(.*?)</script\s*>#is';
 
-    /** Words that could be class names. */
+    /** Words that could be class names or IDs. */
     const WORDS = '/-?[A-Za-z_][A-Za-z0-9_-]+/';
 
     /** A string ending in - or _ that code adds to: "name-" + x, `name-${x}`. */
@@ -78,8 +80,8 @@ final class SEOProStack_Used_Css_Scripts {
     private static $read = array();
 
     /**
-     * Words in the page's scripts that could be class names, and prefixes
-     * the scripts build class names from.
+     * Words in the page's scripts that could be class names or IDs, and
+     * prefixes the scripts build class names from.
      *
      * @param string $html Page.
      * @return array{names: array<string,bool>, prefixes: array<string,bool>}
