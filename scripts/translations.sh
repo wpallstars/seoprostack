@@ -34,6 +34,9 @@ if [[ "$mode" != pot ]]; then
     # Every bundled locale: languages/seoprostack-<locale>.po.
     for po in "$root"/languages/seoprostack-*.po; do
         [[ -f "$po" ]] || continue
+        # Block titles reuse the reviewed plain entry of the same msgid, so a
+        # machine-translated refresh cannot bring back different wording.
+        python3 "$root/scripts/sync-block-titles.py" "$po" > /dev/null
         msgfmt --check --check-format -o "${po%.po}.mo" "$po"
         # Keep JS entries in the PO: the same source is also used for MO files.
         wp i18n make-json "$po" "$root/languages" --no-purge --pretty-print

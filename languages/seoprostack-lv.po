@@ -17493,7 +17493,6 @@ msgstr "Saites krāsas"
 msgid "Link on hover"
 msgstr "Saite uz kursora"
 
-# machine translation
 #: blocks/brand-icon/block.json
 msgctxt "block title"
 msgid "Brand icon"
@@ -17535,7 +17534,6 @@ msgctxt "block keyword"
 msgid "simple icons"
 msgstr "vienkāršas ikonas"
 
-# machine translation
 #: blocks/client-dashboard/block.json
 msgctxt "block title"
 msgid "Client dashboard"
@@ -17577,7 +17575,6 @@ msgctxt "block keyword"
 msgid "portal"
 msgstr "portāls"
 
-# machine translation
 #: blocks/form-modal/block.json
 msgctxt "block title"
 msgid "Form modal"
@@ -17649,7 +17646,6 @@ msgctxt "block keyword"
 msgid "newsletter"
 msgstr "informatīvais biļetens"
 
-# machine translation
 #: blocks/iframe/block.json
 msgctxt "block title"
 msgid "iFrame"
@@ -17691,7 +17687,6 @@ msgctxt "block keyword"
 msgid "map"
 msgstr "karte"
 
-# machine translation
 #: blocks/link-card/block.json
 msgctxt "block title"
 msgid "Link card"
@@ -17733,7 +17728,6 @@ msgctxt "block keyword"
 msgid "url"
 msgstr "URL"
 
-# machine translation
 #: blocks/lists/block.json
 msgctxt "block title"
 msgid "Your lists"
@@ -17823,11 +17817,10 @@ msgctxt "block keyword"
 msgid "paywall"
 msgstr "maksas siena"
 
-# machine translation
 #: blocks/post-reactions/block.json
 msgctxt "block title"
 msgid "Like, save and share"
-msgstr "Patīk, saglabā un kopīgo"
+msgstr "Atzīmē, saglabā un kopīgo"
 
 # machine translation
 #: blocks/post-reactions/block.json
@@ -17865,7 +17858,6 @@ msgctxt "block keyword"
 msgid "favourite"
 msgstr "iecienītākais"
 
-# machine translation
 #: blocks/related-posts/block.json
 msgctxt "block title"
 msgid "Related posts"
@@ -17907,7 +17899,6 @@ msgctxt "block keyword"
 msgid "categories"
 msgstr "kategorijas"
 
-# machine translation
 #: blocks/review-links/block.json
 msgctxt "block title"
 msgid "Review links"
@@ -17961,7 +17952,6 @@ msgctxt "block description"
 msgid "A header button opening the visitor’s lists: Liked and the lists they name."
 msgstr "Galvenes poga, kas atver apmeklētāja sarakstus: “Patīk” un saraksti, kurus viņi nosauc."
 
-# machine translation
 #: blocks/saved-posts/block.json
 msgctxt "block title"
 msgid "Saved posts"
@@ -17985,7 +17975,6 @@ msgctxt "block keyword"
 msgid "reading list"
 msgstr "lasīšanas saraksts"
 
-# machine translation
 #: blocks/screenshot/block.json
 msgctxt "block title"
 msgid "Screenshot"
@@ -18027,11 +18016,10 @@ msgctxt "block keyword"
 msgid "thumbnail"
 msgstr "sīktēls"
 
-# machine translation
 #: blocks/shortlist-button/block.json
 msgctxt "block title"
 msgid "Add to shortlist"
-msgstr "Pievienot īsajam sarakstam"
+msgstr "Pievienot manam sarakstam"
 
 # machine translation
 #: blocks/shortlist-button/block.json
