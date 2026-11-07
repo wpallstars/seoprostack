@@ -2435,6 +2435,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fixed: **Load plugins only where needed** keeps what the site's pages learned when other plugins refresh their update caches and bookkeeping. Plugins with an older copy of EDD Software Licensing's updater, Plugin Update Checker, AI Engine and MainWP Child save these from wp-admin and any WP-CLI command, and each time pages that reach PHP loaded every plugin, and every checked address was checked again, until the site learned again (#1367).
+
 ### 1.3.175
 
 - Faster: **Keep pages cached** opens every link in the header, the footer and the home page before the rest of the site. It stopped at 50 pages, so on sites with a large menu and a home page of links some waited up to an hour for LiteSpeed Cache's crawler; and on a network, after a network-wide purge, each site got only its home page and first nine header links. A network now fills every site's first pages, then each site's other main pages, its home page read for its links (#1363).
