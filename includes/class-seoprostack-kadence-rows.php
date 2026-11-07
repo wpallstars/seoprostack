@@ -28,6 +28,16 @@
  * rows with a background slider, video or gradient, Kadence's old row
  * markup, and rows Kadence Blocks' own optimizer lazy-loads.
  *
+ * Rows with a background slider: their first slide shows at its full width
+ * before the slider's script runs (GH#1339). Kadence Blocks takes the
+ * margin and padding off the slider's list only under .kb-splide, which
+ * its script adds when the slider starts; until then the list kept the
+ * browser's or theme's padding, so the first slide showed about 40 pixels
+ * narrower, and widened once the script ran. Chrome counted that wider
+ * paint as the page's largest, so on a page opening with such a slider its
+ * LCP waited for the slider's scripts (on three Kadence home pages, an
+ * extra 0.4 to 0.5 seconds as observed, more on PageSpeed's slow phone).
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -57,6 +67,9 @@ class SEOProStack_Kadence_Rows {
     /** @var bool Whether the script that turns the wait on is on the page. */
     private static $script = false;
 
+    /** @var bool Whether the background sliders' style is on the page. */
+    private static $slider = false;
+
     /**
      * Register hooks.
      */
@@ -67,7 +80,8 @@ class SEOProStack_Kadence_Rows {
     /**
      * Around a row with a background picture on a front-end page: the style
      * that keeps its pictures waiting before it, and the script that has it
-     * watched after it.
+     * watched after it. Before the page's first row with a background
+     * slider, the style for its first slide (slider_style()).
      *
      * @param mixed $html  Block HTML.
      * @param array $block Parsed block.
@@ -78,6 +92,7 @@ class SEOProStack_Kadence_Rows {
             return $html;
         }
         $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        $html  = self::slider_style($html, $attrs, $block);
         $id    = $attrs['uniqueID'] ?? '';
         if (!is_string($id) || !preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id) || !self::waits($attrs) || self::first_row() === $id
             || false === strpos($html, 'kb-row-layout-id' . $id) || false !== strpos($html, 'data-kadence-lazy-')) {
@@ -101,6 +116,40 @@ class SEOProStack_Kadence_Rows {
         }
         // The ID is letters, digits, - and _.
         return $before . $html . wp_get_inline_script_tag("window.seoprostackRows&&seoprostackRows(document.currentScript,'" . $id . "')", SEOProStack_Kadence_Hero::SCRIPT_ATTRS);
+    }
+
+    /**
+     * Before the page's first row with a background slider: a style that
+     * takes the margin and padding off background sliders' lists, as
+     * Kadence Blocks does once a slider starts (.kb-splide .splide__list,
+     * with !important), so the first slide shows at its full width from the
+     * first paint. Once a page.
+     *
+     * It is printed in the post's content, so it has no "<" or "&"
+     * (script()).
+     *
+     * @param string $html  Row HTML.
+     * @param array  $attrs Row attributes.
+     * @param array  $block Parsed row block.
+     * @return string
+     */
+    private static function slider_style($html, array $attrs, array $block) {
+        if (self::$slider || 'slider' !== ($attrs['backgroundSettingTab'] ?? '') || false === strpos($html, 'kb-blocks-bg-slider')) {
+            return $html;
+        }
+        /**
+         * Whether a Kadence Blocks row background slider's first slide shows
+         * at its full width before the slider's script runs. Off: it shows
+         * narrower until then, as Kadence Blocks has it.
+         *
+         * @param bool  $on    Default true.
+         * @param array $block Parsed row block.
+         */
+        if (!apply_filters('seoprostack_kadence_bg_slider_width', true, $block)) {
+            return $html;
+        }
+        self::$slider = true;
+        return '<style class="seoprostack-bg-slider" data-no-optimize="1">.kb-blocks-bg-slider .splide__list{margin:0!important;padding:0!important}</style>' . $html;
     }
 
     /**
