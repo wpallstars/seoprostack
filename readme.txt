@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Image loading's new copies of Kadence row and slide pictures get their WebP and AVIF copies at once, not at the next batch (#1409).
+
 = 1.3.183 =
 * Faster: Image loading makes the missing 1536 and 2048 pixel copies of Kadence row and slide pictures in the background, so phones get a copy at the size they need, not the full upload (#1406).
 

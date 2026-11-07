@@ -1177,6 +1177,31 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Convert one picture now, under its claim, as a batch does: for Image
+     * loading's new sizes (SEOProStack_Picture_Sizes, GH#1409), so they are
+     * not sent as JPEG or PNG, nor cached in pages without their copies,
+     * while they wait for the next batch. Nothing when switched off or
+     * while another batch converts it.
+     *
+     * @param int $attachment_id Attachment ID.
+     */
+    public static function convert_now($attachment_id) {
+        $id = (int) $attachment_id;
+        if ($id < 1 || !self::enabled()) {
+            return;
+        }
+        $claim = SEOProStack_Media_Storage::lease(self::CLAIM . $id);
+        if ('' === $claim) {
+            return;
+        }
+        try {
+            self::convert_claimed($id);
+        } finally {
+            SEOProStack_Media_Storage::release($claim, self::CLAIM . $id);
+        }
+    }
+
+    /**
      * Convert one claimed picture, unless another batch did meanwhile.
      *
      * @param int $id Attachment ID.
