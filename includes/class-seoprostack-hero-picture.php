@@ -17,6 +17,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once __DIR__ . '/class-seoprostack-picture-sizes.php';
+
 class SEOProStack_Hero_Picture {
 
     /**
@@ -50,6 +52,8 @@ class SEOProStack_Hero_Picture {
         if (!$meta || $width < 1 || $height < 1) {
             return null;
         }
+        // Its missing 1536 and 2048 copies, made in the background (GH#1406).
+        SEOProStack_Picture_Sizes::want($id, $meta);
         $sizes    = (array) ($meta['sizes'] ?? array());
         $copies   = self::copies($id, $sizes, $width, $height);
         $copies[] = self::file($width, self::served_url($url, $id));

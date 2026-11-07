@@ -180,6 +180,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 20, 2);
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
+        // Missing copies of row and slide pictures, made in the background (GH#1406).
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-picture-sizes.php';
+        SEOProStack_Picture_Sizes::boot();
         if (defined('KADENCE_BLOCKS_VERSION')) {
             // First in the head, before other plugins' inline styles and
             // scripts (on a test page about 40 KB of them at 1 and earlier).
