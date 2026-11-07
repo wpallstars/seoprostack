@@ -74,6 +74,10 @@ Owner's decisions for single presets:
   purges that updates cause. The sitemap is worked out on each site
   (`SEOProStack_Litespeed::crawler_sitemap()`); Server IP stays out, as it
   is the site's own.
+- LiteSpeed Cache turns CSS Combine, Generate UCSS and Load CSS
+  Asynchronously off where Load the CSS each page uses first is on (#1379):
+  Used CSS steps aside on the whole site while any is on, and LiteSpeed's
+  versions wait on QUIC.cloud.
 - Readabler and AI Engine keep their floating buttons in opposite corners
   (#577): Readabler bottom left, AI Engine's chatbot bubble bottom right,
   as the owner set them on a live site. Colours, chatbot names, instructions
