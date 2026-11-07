@@ -99,28 +99,22 @@ class SEOProStack_Kadence_Slider {
      * When a post or page opens with the slider
      * (SEOProStack_Image_Loading::kadence_preload()): whether its first
      * slide's picture comes at the size the screen needs, so the script
-     * after the slider preloads the copy it takes. Then prints, for
-     * browsers without JavaScript, the preload of the slide's own picture.
+     * after the slider preloads the copy it takes, and the head's preload
+     * of the slide's own picture is only for browsers without JavaScript.
      *
-     * @param array $block Parsed slider block.
+     * @param array  $block Parsed slider block.
+     * @param string $tag   That preload, printed before the slider if it is not sized after all.
      * @return bool
      */
-    public static function opens(array $block) {
+    public static function opens(array $block, $tag) {
         $slider  = self::slider_id($block);
         $first   = $block['innerBlocks'][0] ?? null;
         $picture = '' !== $slider && is_array($first) && self::sizing($block) ? self::picture($first) : null;
         if (!$picture) {
             return false;
         }
-        $own         = $picture['c'][count($picture['c']) - 1];
-        self::$opens = $slider;
-        // Its AVIF or WebP copy, as the slide's CSS names it, when pages name copies.
-        self::$opens_tag = sprintf(
-            '<link rel="preload" as="image" href="%s"%s fetchpriority="high">',
-            esc_url('' !== $own[3] ? $own[3] : $own[1]),
-            '' !== $own[4] ? ' type="' . esc_attr($own[4]) . '"' : ''
-        );
-        echo '<noscript>' . self::$opens_tag . '</noscript>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+        self::$opens     = $slider;
+        self::$opens_tag = (string) $tag;
         return true;
     }
 
@@ -402,11 +396,15 @@ class SEOProStack_Kadence_Slider {
             });
             st.textContent = css;
         }
+        // How the slide's picture is sized, cover or contain; '' for other ways, left alone.
+        function mode(q) {
+            var x = root.querySelector('.kb-slide-' + q.n + '>.kb-advanced-slide>.kb-advanced-slide-inner-wrap'), z = x ? w.getComputedStyle(x).backgroundSize : '';
+            return 'cover' === z || 'contain' === z ? z : '';
+        }
         b = box();
         p.forEach(function (q) {
-            var x = root.querySelector('.kb-slide-' + q.n + '>.kb-advanced-slide>.kb-advanced-slide-inner-wrap');
-            q.z = x ? w.getComputedStyle(x).backgroundSize : '';
-            if ('cover' === q.z || 'contain' === q.z) { q.i = pick(q, b); } else { q.z = ''; }
+            q.z = mode(q);
+            if (q.z) { q.i = pick(q, b); }
         });
         // The first slide's file, at high priority, as the head would have.
         if (preload && p[0]) {
@@ -426,7 +424,12 @@ class SEOProStack_Kadence_Slider {
         function grow() {
             var r = box(), more = 0;
             p.forEach(function (q) {
-                var j = q.z ? pick(q, r) : 0;
+                var z, j;
+                if (!q.z) { return; }
+                // The theme's CSS may switch contain to cover at another width.
+                z = mode(q);
+                if (z) { q.z = z; }
+                j = pick(q, r);
                 if (j > q.i) { q.i = j; more = 1; }
             });
             if (more) { rules(); }

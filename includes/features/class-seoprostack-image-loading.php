@@ -213,10 +213,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 return;
             }
             // The size each screen needs, when the picture has smaller
-            // copies: the script after the slider preloads it (GH#1333).
-            if (!class_exists('SEOProStack_Kadence_Slider') || !SEOProStack_Kadence_Slider::opens($blocks[0])) {
-                self::preload($url);
-            }
+            // copies: the script after the slider preloads it, so this one
+            // is only for browsers without JavaScript, or goes before the
+            // slider if it is not sized after all (GH#1333).
+            $tag   = self::preload_html($url);
+            $sized = class_exists('SEOProStack_Kadence_Slider') && SEOProStack_Kadence_Slider::opens($blocks[0], $tag);
+            echo ($sized ? '<noscript>' . $tag . '</noscript>' : $tag) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in preload_tag().
         } else {
             $url = isset($blocks[0]) ? self::kadence_background($blocks[0]) : '';
             if ('' === $url) {
@@ -251,16 +253,27 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * @param string $url Picture address.
      */
     private static function preload($url) {
+        echo self::preload_html($url) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in preload_tag().
+    }
+
+    /**
+     * The tag preload() prints, for a caller that prints it itself; every
+     * copy of it in the page follows LiteSpeed Cache's WebP copy too.
+     *
+     * @param string $url Picture address.
+     * @return string
+     */
+    private static function preload_html($url) {
         $type = '';
         if (class_exists('SEOProStack_Nextgen_Images')) {
             list($url, $type) = SEOProStack_Nextgen_Images::first_copy($url);
         }
         $tag = self::preload_tag($url, $type);
-        echo $tag . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in preload_tag().
         if ('' === $type && defined('LSCWP_V')) {
             self::$preloaded = array($url, $tag);
             add_filter('litespeed_buffer_after', array(__CLASS__, 'litespeed_next_gen'), 5);
         }
+        return $tag;
     }
 
     /**
@@ -285,8 +298,10 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * then fetched the picture twice, and the copy the block's CSS names,
      * the one it shows, only after the CSS (GH#1326). When the page names
      * the preloaded picture's copy, as LiteSpeed rewrote it on this request,
-     * the preload names it too. Pages it left alone (logged in, not cached,
-     * a browser without WebP) keep the picture's own address.
+     * the preload names it too: in the head, in its <noscript> and before
+     * an Advanced Slider that was not sized after all (GH#1333). Pages it
+     * left alone (logged in, not cached, a browser without WebP) keep the
+     * picture's own address.
      *
      * @param mixed $buffer The page, after LiteSpeed Cache's changes.
      * @return mixed
@@ -302,8 +317,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             // As LiteSpeed Cache's Media::replace_webp() names the copy.
             $copy = substr($url, 0, $end) . '.' . $format . substr($url, $end);
             if (false !== strpos($buffer, $copy)) {
-                $at = strpos($buffer, $tag);
-                return false === $at ? $buffer : substr_replace($buffer, self::preload_tag($copy, ''), $at, strlen($tag));
+                return str_replace($tag, self::preload_tag($copy, ''), $buffer);
             }
         }
         return $buffer;
