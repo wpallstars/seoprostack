@@ -21,7 +21,11 @@
 # site, as the host's cron job would hit it from the command line. A home
 # that gives 5xx or no answer is fetched once more after
 # DEPLOY_HOME_RETRY_DELAY seconds (default 5); a pass then is WARN home
-# retried (CODE), a second failure fails the site. apply exits 1 on a failed
+# retried (CODE), a second failure fails the site. With DEPLOY_CDN_PURGE=1
+# each install prints @cdn lines (its site addresses) and cdn=@CDN@ for
+# deploy-sites.sh to fill after purging Cloudflare; with 0 each site's plain
+# home address is fetched once and WARN Cloudflare keeps pages from before
+# the deploy means a cf-cache-status HIT older than the install. apply exits 1 on a failed
 # site, a version not reached or new log lines.
 #
 # apply holds a per-plugin lock on the host, ~/.SLUG-deploy/.lock (mkdir,
@@ -52,6 +56,16 @@ ALLOW_DOWNGRADE=0
 RUN_STAMP=""
 LOCK_DIR=""
 FETCHES=0
+# 1 when the person running the deploy gave deploy-sites.sh a Cloudflare
+# token: it purges Cloudflare from their computer (the token never comes
+# here), and this part only names each site (@cdn lines) and leaves cdn=@CDN@
+# on the install line for it to fill. 0: check the plain home address instead.
+CDN_PURGE="${DEPLOY_CDN_PURGE:-0}"
+[[ "$CDN_PURGE" == 1 ]] || CDN_PURGE=0
+CDN_URLS=""
+CF_STALE=""
+MAIN_CF=""
+INSTALL_START=0
 # Seconds before a home page that gave 5xx or no answer is fetched again.
 HOME_RETRY_DELAY="${DEPLOY_HOME_RETRY_DELAY:-5}"
 [[ "$HOME_RETRY_DELAY" =~ ^[0-9]+$ ]] || HOME_RETRY_DELAY=5
@@ -493,6 +507,10 @@ list_one() {
 	printf '%s\t%s\t%s\t%s' "$name" "${version:-?}" "${kind:-unknown}" "$root"
 	[[ -z "$note" ]] || printf '\t%s' "$note"
 	printf '\n'
+	if [[ "$CDN_PURGE" -eq 1 ]]; then
+		# deploy-sites.sh lists the zones these sites would purge.
+		site_urls "$root" "$kind" 2>/dev/null | cdn_lines || true
+	fi
 	return 0
 }
 
@@ -734,6 +752,97 @@ home_check() {
 	return 0
 }
 
+# The plain home address (no query string, through DNS and so through any
+# CDN) once, after the install. Sets CF_STALE to the page's age in seconds
+# when Cloudflare answers HIT with a page older than the install began: it
+# still serves the pages from before the deploy. Sets it to "" otherwise.
+cf_stale_check() {
+	local url="$1"
+	local headers rc=0 found cache age now
+	CF_STALE=""
+	headers="$(mktemp)" || return 0
+	curl -s -o /dev/null -D "$headers" --max-time 30 "${url%/}/" || rc=$?
+	if [[ "$rc" -eq 0 ]]; then
+		found="$(awk '
+			/^HTTP\// { cache = "-"; age = "-" }
+			{
+				line = tolower($0)
+				sub(/\r$/, "", line)
+				if (line ~ /^cf-cache-status:/) { sub(/^[^:]*:[ \t]*/, "", line); cache = line }
+				if (line ~ /^age:/) { sub(/^[^:]*:[ \t]*/, "", line); age = line }
+			}
+			END { print cache, age }
+		' "$headers")"
+		cache="${found%% *}"
+		age="${found#* }"
+		now="$(date +%s)"
+		if [[ "$cache" == hit && "$age" =~ ^[0-9]+$ && "$INSTALL_START" -gt 0 && "$age" -gt $((now - INSTALL_START)) ]]; then
+			CF_STALE="$age"
+		fi
+	fi
+	rm -f "$headers"
+	return 0
+}
+
+cf_warning() {
+	local age="$1"
+	printf 'Cloudflare keeps pages from before the deploy (age=%s s); purge the zone or pass --cloudflare-token-env' "$age"
+	return 0
+}
+
+# One "@cdn<TAB>URL" line per address on stdin: names the sites for
+# deploy-sites.sh, which works out their Cloudflare zones from the host names.
+cdn_lines() {
+	local url
+	while IFS= read -r url; do
+		[[ -z "$url" ]] || printf '@cdn\t%s\n' "$url"
+	done
+	return 0
+}
+
+# The plugin's own scheduled events, once, on one site after a good load. A
+# cron callback must not change the activation lists either. Sets the CRON_*
+# results and adds to the CRON_SUM_* totals.
+cron_step() {
+	local root="$1"
+	shift
+	local cron_before
+	if cron_before="$(active_snapshot "$root")"; then
+		run_site_cron "$root" "$@"
+		active_check "$root" "$cron_before" "" "" || CRON_FAILURE+="activation lists changed during cron; "
+	else
+		CRON_RUN=0 CRON_TOTAL=0 CRON_WARN=""
+		CRON_FAILURE="cron skipped: activation snapshot failed; "
+	fi
+	CRON_SUM_RUN=$((CRON_SUM_RUN + CRON_RUN))
+	CRON_SUM_TOTAL=$((CRON_SUM_TOTAL + CRON_TOTAL))
+	return 0
+}
+
+# Notes one site's address for the Cloudflare purge; without a token, checks
+# the plain home address. Sets CDN_WARN to the warning (with its separator)
+# or "", and MAIN_CF for the first site.
+cdn_step() {
+	local url="$1"
+	CDN_URLS+="$url"$'\n'
+	CDN_WARN=""
+	[[ "$CDN_PURGE" -eq 0 ]] || return 0
+	cf_stale_check "$url"
+	[[ -n "$CF_STALE" ]] || return 0
+	CDN_WARN="$(cf_warning "$CF_STALE"), "
+	[[ "$SITES_TOTAL" -ne 1 ]] || MAIN_CF="$CF_STALE"
+	return 0
+}
+
+# Prints the @cdn lines of the install and sets CDN_FIELD, the cdn= value.
+cdn_announce() {
+	CDN_FIELD="-"
+	[[ "$CDN_PURGE" -eq 1 ]] || return 0
+	CDN_FIELD="@CDN@"
+	printf '%s' "$CDN_URLS" | cdn_lines
+	return 0
+}
+
 # Called directly: counters, the main row and network lines are results.
 check_sites() {
 	local root="$1"
@@ -741,6 +850,7 @@ check_sites() {
 	local load_errors load_status summary first_code cron_note cron_before
 	local check_error="home check failed; "
 	local url_args=() origin
+	CDN_URLS="" MAIN_CF=""
 	SITES_TOTAL=0 SITES_FAILED=0 SITES_PURGED=0 PURGE_FAILED=0 SITE_LINES=""
 	CRON_SUM_RUN=0 CRON_SUM_TOTAL=0 CRON_WARNED="" CRON_HOOKS_RUN=""
 	MAIN_STATUS="?" MAIN_CODE="000" MAIN_CACHE="none" MAIN_REASON="" MAIN_RETRIED=""
@@ -768,15 +878,7 @@ check_sites() {
 			esac
 			# The plugin's own scheduled events, once, after a good load.
 			# A cron callback must not change the activation lists either.
-			if cron_before="$(active_snapshot "$root")"; then
-				run_site_cron "$root" ${url_args[@]+"${url_args[@]}"}
-				active_check "$root" "$cron_before" "" "" || CRON_FAILURE+="activation lists changed during cron; "
-			else
-				CRON_RUN=0 CRON_TOTAL=0 CRON_WARN=""
-				CRON_FAILURE="cron skipped: activation snapshot failed; "
-			fi
-			CRON_SUM_RUN=$((CRON_SUM_RUN + CRON_RUN))
-			CRON_SUM_TOTAL=$((CRON_SUM_TOTAL + CRON_TOTAL))
+			cron_step "$root" ${url_args[@]+"${url_args[@]}"}
 			cron_note="cron=${CRON_RUN}/${CRON_TOTAL}"
 			[[ -z "$CRON_FAILURE" ]] || reason+="$CRON_FAILURE"
 			[[ -z "$CRON_WARN" ]] || {
@@ -815,6 +917,8 @@ check_sites() {
 			warn+="home retried ($first_code), "
 		fi
 		[[ "$HOME_CACHE" != *hit* || "$HOME_CACHE" == redirected:* ]] || warn+="cached, "
+		cdn_step "$url"
+		warn+="$CDN_WARN"
 		if [[ -n "$reason" ]]; then
 			result="FAIL: ${reason%; }"
 			SITES_FAILED=$((SITES_FAILED + 1))
@@ -947,6 +1051,7 @@ apply_one() {
 		return 0
 	fi
 
+	INSTALL_START="$(date +%s)"
 	if ! install_build "$root" "$name" "$zip" "$plugins" "$backup"; then
 		FAILED=1
 		return 0
@@ -976,6 +1081,8 @@ apply_one() {
 	[[ -z "$CRON_WARNED" || -n "$SITE_LINES" ]] || warn+="cron timed out, "
 	[[ "$MAIN_CACHE" != *hit* || "$MAIN_CACHE" == redirected:* ]] || warn+="cached, "
 	[[ -z "$MAIN_RETRIED" ]] || warn+="home retried ($MAIN_RETRIED), "
+	# A network's site rows carry this warning; a single site has no row.
+	[[ -z "$MAIN_CF" || -n "$SITE_LINES" ]] || warn+="$(cf_warning "$MAIN_CF"), "
 	if [[ "$after" != "$want" || "$new_lines" -gt 0 || "$SITES_FAILED" -gt 0 ]]; then
 		result="FAIL"
 		if [[ -z "$SITE_LINES" && -n "$MAIN_REASON" ]]; then
@@ -985,8 +1092,9 @@ apply_one() {
 	elif [[ -n "$warn" ]]; then
 		result="WARN ${warn%, }"
 	fi
-	printf '%s\t%s -> %s\tstatus=%s\tpurged=%s/%s\tcron=%s/%s\thome=%s\tcache=%s\tnew_log_lines=%s' \
-		"$name" "${before:-?}" "${after:-?}" "$MAIN_STATUS" "$SITES_PURGED" "$SITES_TOTAL" "$CRON_SUM_RUN" "$CRON_SUM_TOTAL" "$MAIN_CODE" "$MAIN_CACHE" "$new_lines"
+	cdn_announce
+	printf '%s\t%s -> %s\tstatus=%s\tpurged=%s/%s\tcron=%s/%s\thome=%s\tcache=%s\tcdn=%s\tnew_log_lines=%s' \
+		"$name" "${before:-?}" "${after:-?}" "$MAIN_STATUS" "$SITES_PURGED" "$SITES_TOTAL" "$CRON_SUM_RUN" "$CRON_SUM_TOTAL" "$MAIN_CODE" "$MAIN_CACHE" "$CDN_FIELD" "$new_lines"
 	if [[ -n "$SITE_LINES" ]]; then
 		printf '\tsites=%s/%s' "$((SITES_TOTAL - SITES_FAILED))" "$SITES_TOTAL"
 	fi
