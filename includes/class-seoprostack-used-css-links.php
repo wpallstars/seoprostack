@@ -31,29 +31,34 @@ final class SEOProStack_Used_Css_Links {
      * Stack recommends that put stylesheets on the front end
      * (admin/data/free-plugins.php and pro-plugins.php), their Pro add-ons,
      * Kadence's own plugins, and the plugins SEO Pro Stack works with
-     * (Readabler, IndieWeb, WP Grid Builder). Owner's decision, GitHub issue
-     * #1260, replacing the shorter list of issue #1194. Not for other themes
-     * and plugins: support would have no end (filter
+     * (Readabler, IndieWeb, WP Grid Builder, the owner's SEO Pro Cookie
+     * Consent and SEO Pro Directory). Owner's decisions, GitHub issues #1260
+     * and #1377, replacing the shorter list of issue #1194. Not for other
+     * themes and plugins: support would have no end (filter
      * seoprostack_used_css_sources, unsupported).
      */
     const PLUGINS = array(
         // Kadence.
         'kadence-blocks', 'kadence-blocks-pro', 'kadence-pro', 'kadence-conversions', 'kadence-woo-extras',
         'kadence-shop-kit', 'kadence-galleries', 'kadence-reading-time', 'kadence-related-content', 'kadence-creative-kit',
+        'kadence-recaptcha', 'kadence-cloud',
         // Fluent and WPManageNinja.
-        'fluentform', 'fluentformpro', 'fluentform-signature', 'fluentforms-pdf', 'fluent-booking', 'fluent-booking-pro',
+        'fluentform', 'fluentformpro', 'fluentform-signature', 'fluentforms-pdf', 'fluentform-block', 'fluent-comments',
+        'fluent-booking', 'fluent-booking-pro',
         'fluent-cart', 'fluent-cart-pro', 'fluent-community', 'fluent-community-pro', 'fluent-support', 'fluent-support-pro',
         'fluent-crm', 'fluentcampaign-pro', 'fluent-boards', 'fluent-boards-pro', 'fluent-affiliate', 'fluent-player',
         'wp-payment-form', 'ninja-tables', 'ninja-tables-pro', 'ninja-charts', 'ninja-job-board',
         'wp-social-reviews', 'wp-social-ninja-pro',
         // Courses, AI, consent, languages, shops.
-        'tutor', 'tutor-pro', 'ai-engine', 'ai-engine-pro', 'complianz-gdpr', 'complianz-gdpr-premium',
-        'complianz-terms-conditions', 'translatepress-multilingual', 'translatepress-business', 'woocommerce',
-        'woo-stripe-payment', 'pymntpl-paypal-woocommerce', 'slicewp',
-        // Content, events, reviews and the IndieWeb.
+        'tutor', 'tutor-pro', 'tutor-lms-certificate-builder', 'ai-engine', 'ai-engine-pro', 'complianz-gdpr',
+        'complianz-gdpr-premium', 'complianz-terms-conditions', 'seoprocookieconsent', 'translatepress-multilingual',
+        'translatepress-business', 'woocommerce', 'woo-stripe-payment', 'pymntpl-paypal-woocommerce', 'slicewp',
+        // Content, events, reviews, statistics and the IndieWeb.
         'seo-by-rank-math', 'seo-by-rank-math-pro', 'code-block-pro', 'ics-calendar', 'eventon-lite',
         'easy-video-reviews', 'custom-feed-for-tiktok', 'simple-cloudflare-turnstile', 'syndication-links', 'webmention',
-        'indieweb', 'readabler', 'wp-grid-builder',
+        'indieweb', 'readabler', 'wp-grid-builder', 'burst-statistics', 'seoprodirectory',
+        // Site building: front-end forms and visual styling.
+        'secure-custom-fields', 'yellow-pencil-visual-theme-customizer', 'waspthemes-yellow-pencil',
     );
 
     /** Folders whose stylesheets are handled, or null before they are worked out. */
