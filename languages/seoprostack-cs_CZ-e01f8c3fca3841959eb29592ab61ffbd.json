@@ -1,0 +1,129 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/screenshot\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "Address": [
+                ""
+            ],
+            "Screenshot of %s": [
+                ""
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                ""
+            ],
+            "Link": [
+                ""
+            ],
+            "Open in a new tab": [
+                ""
+            ],
+            "Page address": [
+                ""
+            ],
+            "Change address": [
+                ""
+            ],
+            "Square": [
+                ""
+            ],
+            "Only http and https addresses can be captured.": [
+                ""
+            ],
+            "Browser window (%1$d \u00d7 %2$d)": [
+                ""
+            ],
+            "The screenshot could not be taken.": [
+                ""
+            ],
+            "Screenshot": [
+                ""
+            ],
+            "Enter the address of the page to capture. The screenshot is saved to the Media Library.": [
+                ""
+            ],
+            "Take screenshot": [
+                ""
+            ],
+            "Getting the screenshot of %s. A new one can take up to a minute.": [
+                ""
+            ],
+            "The captured page": [
+                ""
+            ],
+            "This post": [
+                ""
+            ],
+            "Another address": [
+                ""
+            ],
+            "No link": [
+                ""
+            ],
+            "Take a new screenshot": [
+                ""
+            ],
+            "Alternative text": [
+                ""
+            ],
+            "Describe the page for people who cannot see it. Leave empty to use \u201cScreenshot of\u201d and the site name.": [
+                ""
+            ],
+            "Shape": [
+                ""
+            ],
+            "The browser window\u2019s width is set in Settings \u2192 SEO Pro Stack; the shape sets its height. A new shape takes a new screenshot.": [
+                ""
+            ],
+            "Width on the page (px)": [
+                ""
+            ],
+            "Leave empty to fill the space available.": [
+                ""
+            ],
+            "Taken on %s.": [
+                ""
+            ],
+            "Link to": [
+                ""
+            ],
+            "Add nofollow": [
+                ""
+            ],
+            "Asks search engines not to follow the link.": [
+                ""
+            ],
+            "Sponsored": [
+                ""
+            ],
+            "Marks a paid, affiliate or sponsored link.": [
+                ""
+            ],
+            "User-generated": [
+                ""
+            ],
+            "Marks a link added by a visitor, such as in a comment or forum post.": [
+                ""
+            ],
+            "Add caption": [
+                ""
+            ],
+            "A screenshot of %s. It still shows on the site. Convert it to a Screenshot block to change it.": [
+                ""
+            ],
+            "An empty Browser Shots block. Convert it to a Screenshot block to add an address.": [
+                ""
+            ],
+            "Convert to Screenshot block": [
+                ""
+            ]
+        }
+    }
+}

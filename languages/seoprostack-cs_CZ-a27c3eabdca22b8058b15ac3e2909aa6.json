@@ -1,0 +1,162 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/iframe\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "Size": [
+                ""
+            ],
+            "Embedded content": [
+                ""
+            ],
+            "Page": [
+                ""
+            ],
+            "Enter a full web address starting with https:\/\/": [
+                ""
+            ],
+            "Title": [
+                ""
+            ],
+            "Payments": [
+                ""
+            ],
+            "Run scripts": [
+                ""
+            ],
+            "Treat as its own site (cookies, storage)": [
+                ""
+            ],
+            "Submit forms": [
+                ""
+            ],
+            "Open pop-ups": [
+                ""
+            ],
+            "Pop-ups without restrictions": [
+                ""
+            ],
+            "Presentation mode": [
+                ""
+            ],
+            "Alerts and dialogs": [
+                ""
+            ],
+            "Downloads": [
+                ""
+            ],
+            "Navigate this page when clicked": [
+                ""
+            ],
+            "Autoplay": [
+                ""
+            ],
+            "Camera": [
+                ""
+            ],
+            "Microphone": [
+                ""
+            ],
+            "Location": [
+                ""
+            ],
+            "Copy to clipboard": [
+                ""
+            ],
+            "Protected media": [
+                ""
+            ],
+            "Picture-in-picture": [
+                ""
+            ],
+            "Fixed size": [
+                ""
+            ],
+            "Only http and https addresses can be embedded.": [
+                ""
+            ],
+            "This domain is not on the allowed list in Settings \u2192 SEO Pro Stack, so it will not be shown.": [
+                ""
+            ],
+            "iFrame": [
+                ""
+            ],
+            "Paste the address of the page to embed.": [
+                ""
+            ],
+            "Page address": [
+                ""
+            ],
+            "Embed": [
+                ""
+            ],
+            "Change address": [
+                ""
+            ],
+            "Describes the embed for screen readers.": [
+                ""
+            ],
+            "Pass page URL parameters": [
+                ""
+            ],
+            "Adds this page\u2019s query string (for example UTM tags) to the embedded address.": [
+                ""
+            ],
+            "Aspect ratio": [
+                ""
+            ],
+            "Width": [
+                ""
+            ],
+            "Pixels (e.g. 600) or a percentage (e.g. 100%).": [
+                ""
+            ],
+            "Height (px)": [
+                ""
+            ],
+            "Show border": [
+                ""
+            ],
+            "Loading and permissions": [
+                ""
+            ],
+            "Lazy load": [
+                ""
+            ],
+            "Load the page only when it scrolls into view.": [
+                ""
+            ],
+            "Allow full screen": [
+                ""
+            ],
+            "Allow the embedded page to use": [
+                ""
+            ],
+            "Referrer policy": [
+                ""
+            ],
+            "How much of this page\u2019s address is sent to the embedded site.": [
+                ""
+            ],
+            "Sandbox": [
+                ""
+            ],
+            "Sandbox the embedded page": [
+                ""
+            ],
+            "Recommended. The page can only do what is ticked below.": [
+                ""
+            ],
+            "The embedded page is not restricted. Only turn this off for sites you trust.": [
+                ""
+            ]
+        }
+    }
+}
