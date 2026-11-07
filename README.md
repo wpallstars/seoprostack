@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.170-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.171-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.170
+Version: 1.3.171
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2435,7 +2435,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.171
 
 - Faster: **Image loading** with Kadence Blocks: when a page opens with a full-width row or Advanced Slider that sets its height, the copy of its first picture the screen needs is asked for from the head, before the stylesheets, instead of once the browser has read as far as the block (0.3 to 0.45 seconds sooner on a slowed phone connection), on Kadence pages without a sidebar, still never less sharp and fetched once. Filter `seoprostack_kadence_head_preload` (#1337).
 - Faster: **Image loading** with Kadence Blocks: every row and column background picture now comes at the size the screen needs, not only the row a page opens with. Kadence Blocks names the full upload, so phones fetched it even for a small box (on one home page, a 293 KiB picture as the page's largest element, painting a column 126 pixels wide). Column pictures also wait until the visitor scrolls near them, as rows' do. Filters `seoprostack_kadence_bg_sizes` and `seoprostack_kadence_column_wait` (#1341).

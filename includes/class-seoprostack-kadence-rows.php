@@ -28,33 +28,21 @@
  * rows with a background slider, video or gradient, Kadence's old row
  * markup, and rows Kadence Blocks' own optimizer lazy-loads.
  *
- * At the size the screen needs (GH#1341): Kadence Blocks writes the
- * picture a row or column names, usually the full upload, into the CSS, so
- * phones got the whole file where it paints a small box (on one home page
- * a 293 KiB picture for a column 126 pixels wide). When the picture has
- * smaller copies of the same proportions (SEOProStack_Hero_Picture), the
- * script after the row has them, and as the row comes near it measures
- * the row and sets the narrowest copy at least as wide as the pixels it
- * paints, with 10% to spare, as for the row a page opens with (#1221); a
- * larger one when the row grows or the screen's pixels get denser, never
- * a smaller one. Kadence Blocks columns with a background picture wait
- * and are sized the same way, from a style before the column and a script
- * inside it, after its inner column: Kadence places a row's columns with
- * :nth-child(… of *:not(style)), which a style beside them does not
- * change and a script would. Left as before: background sizes other than
- * cover and contain, fixed and parallax pictures, rows with a tablet or
- * phone background of their own or a dynamic one, columns with a hover
- * picture, overlays, and pictures without smaller copies.
+ * At the size the screen needs (GH#1341): Kadence Blocks names the full
+ * upload, so phones fetched the whole file for a small box. When the
+ * picture has smaller copies (SEOProStack_Hero_Picture), the script sets
+ * the narrowest copy at least the painted pixels × DPR × 1.1 as the row
+ * comes near, and a larger one if it grows, never a smaller one. Columns
+ * with a background picture wait and are sized the same way; their script
+ * sits inside the column, as Kadence places columns with
+ * :nth-child(… of *:not(style)). Left as before: sizes other than cover
+ * and contain, fixed and parallax pictures, rows with tablet, phone or
+ * dynamic backgrounds, columns with a hover change, and overlays.
  *
- * Rows with a background slider: their first slide shows at its full width
- * before the slider's script runs (GH#1339). Kadence Blocks takes the
- * margin and padding off the slider's list only under .kb-splide, which
- * its script adds when the slider starts; until then the list kept the
- * browser's or theme's padding, so the first slide showed about 40 pixels
- * narrower, and widened once the script ran. Chrome counted that wider
- * paint as the page's largest, so on a page opening with such a slider its
- * LCP waited for the slider's scripts (on three Kadence home pages, an
- * extra 0.4 to 0.5 seconds as observed, more on PageSpeed's slow phone).
+ * Rows with a background slider (GH#1339): the slider's list loses its
+ * margin and padding from the start, not only once Kadence's script adds
+ * .kb-splide, so the first slide does not paint 40 pixels narrower and
+ * widen later, which Chrome counted as a later, larger LCP.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
