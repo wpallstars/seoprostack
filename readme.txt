@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: Load plugins only where needed keeps what it learned when plugins refresh update caches (#1367).
+
 = 1.3.175 =
 * Faster: Keep pages cached opens every header, footer and home page link first, networks too (#1363).
 

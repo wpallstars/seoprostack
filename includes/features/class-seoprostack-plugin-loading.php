@@ -256,8 +256,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * integrations, and Really Simple Security's notice cache and menu badge
      * count; plain wp-admin views now keep records by rule (GitHub issue
      * #515), so new ones need no entry, but these are also saved through
-     * AJAX or the REST API by a signed-in admin. Names ending in "." or "_"
-     * are prefixes (also LiteSpeed Cache's async tasks and crawler, and its
+     * AJAX or the REST API by a signed-in admin. Names ending in ".", "_" or
+     * "-" are prefixes (also LiteSpeed Cache's async tasks and crawler, and its
      * purge queues `litespeed.purge.queue` and `queue2`, saved by every
      * purge, including `wp litespeed-purge`, and the time Purge All last
      * emptied its CSS, `litespeed.optimize.timestamp_purge_css`; its
@@ -271,7 +271,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * checked its alerts and the alerts, MainWP Child's request IDs, AI
      * Engine's settings backups, Admin Columns Pro's update check, Tutor
      * LMS's last call time, and Rank Math's IndexNow log, sitemap file
-     * list and notices.
+     * list and notices. Seen the same way from wp-admin, AJAX and WP-CLI
+     * (GitHub issue #1367): the update state Plugin Update Checker keeps
+     * for each plugin using it (`external_updates-{slug}`), AI Engine's
+     * list of settings backups and MainWP Child's request ID clean-up.
      */
     const RECORD_OPTIONS = array('_fcrm_last_', '_fc_last_', 'rsssl_csp_header_test_status',
         'rsssl_csp_header_test_status_', 'rsssl_admin_notices', 'rsssl_plusone_count',
@@ -280,7 +283,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.',
         'litespeed.purge.', 'litespeed.optimize.timestamp_purge_css', '_wp_suggested_policy_text_has_changed', 'edd_sl_', 'edd_api_request_', 'fs_api_cache',
         'seoproanalytics_alerts', 'seoproanalytics_alerts_checked', 'mainwp_child_request_id_', 'mwai_settings_backup_',
-        'acp_periodic_update_', 'tutor_cd_last_call_time', 'rank_math_indexnow_log', 'rank_math_sitemap_cache_files', 'rank_math_notifications');
+        'acp_periodic_update_', 'tutor_cd_last_call_time', 'rank_math_indexnow_log', 'rank_math_sitemap_cache_files', 'rank_math_notifications',
+        'external_updates-', 'mwai_settings_backups', 'mainwp_child_request_ids_');
 
     /**
      * Post fields WordPress keeps about editing, not content: the lock
@@ -455,8 +459,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action(SEOProStack_Plugin_Loader::VERIFY_HOOK, array(__CLASS__, 'stop_verify'), 10, 0);
         }
         // Capture before the write: deleted_option no longer has the old value.
-        add_action('update_option', array(__CLASS__, 'front_option_changed'), 10, 1);
-        add_action('add_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        // The second argument is the stored value (update_option) or the
+        // new one (add_option), so update caches are known by their shape.
+        add_action('update_option', array(__CLASS__, 'front_option_changed'), 10, 2);
+        add_action('add_option', array(__CLASS__, 'front_option_changed'), 10, 2);
         add_action('delete_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('seoprostack_settings_changed', array(__CLASS__, 'network_changed'), 10, 0);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
@@ -2006,12 +2012,17 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return $changed;
     }
 
-    /** Check page ownership after settings used before plugins load are written. */
-    public static function front_option_changed($name) {
+    /**
+     * Check page ownership after settings used before plugins load are written.
+     *
+     * @param string $name  Option name.
+     * @param mixed  $value Its stored or new value, or null to read the row.
+     */
+    public static function front_option_changed($name, $value = null) {
         if ('seoprostack_options' !== $name && (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY))) {
             return;
         }
-        if ('seoprostack_options' !== $name && self::record_write((string) $name)) {
+        if ('seoprostack_options' !== $name && self::record_write((string) $name, $value)) {
             return;
         }
         // Settings of any content plugin can change what an old route needs.
@@ -2196,10 +2207,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * every request (licence timestamps, counters) otherwise restarted the
      * learning on each one (GitHub issue #279).
      *
-     * @param string $name Option name.
+     * @param string $name  Option name.
+     * @param mixed  $value Its stored or new value, or null to read the row.
      * @return bool
      */
-    private static function record_write($name) {
+    private static function record_write($name, $value = null) {
         // SEO Pro Stack's own records; its settings are seoprostack_options.
         if (0 === strpos($name, 'seoprostack_')) {
             return true;
@@ -2210,9 +2222,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return true;
         }
         foreach (self::RECORD_OPTIONS as $record) {
-            if (in_array(substr($record, -1), array('.', '_'), true) ? 0 === strpos($name, $record) : $name === $record) {
+            if (in_array(substr($record, -1), array('.', '_', '-'), true) ? 0 === strpos($name, $record) : $name === $record) {
                 return true;
             }
+        }
+        if (self::update_cache($name, $value)) {
+            return true;
         }
         // Work queued by the WP Background Processing library, which
         // WooCommerce (privacy cleanup, emails, updates) and many plugins use:
@@ -2236,6 +2251,34 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // command line, or when a form is sent; cron and page views only
         // keep records.
         return self::record_request();
+    }
+
+    /**
+     * Whether an option is the update details a plugin with EDD Software
+     * Licensing's updater caches under an MD5 of its slug, with no prefix
+     * (older copies of the updater's plugins_api cache, as in Link Whisper
+     * and FluentRoadmap): array('timeout' => …, 'value' => …). It expires
+     * after a few hours and is deleted and saved again by wp-admin's update
+     * checks and by any WP-CLI command, and each time the site's pages
+     * learned again (GitHub issue #1367). The prefixed form is edd_sl_.
+     *
+     * @param string $name  Option name.
+     * @param mixed  $value Its stored or new value, or null to read the row.
+     * @return bool
+     */
+    private static function update_cache($name, $value) {
+        if (!preg_match('/^[0-9a-f]{32}$/', $name)) {
+            return false;
+        }
+        if (null === $value) {
+            global $wpdb;
+            // The row being deleted, read as option_hash() reads it and
+            // matched as stored, without unserializing it.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- only for names that are an MD5.
+            $row = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name));
+            return 1 === preg_match('/^a:2:\{s:7:"timeout";i:\d+;s:5:"value";/', $row);
+        }
+        return is_array($value) && 2 === count($value) && array_key_exists('timeout', $value) && array_key_exists('value', $value);
     }
 
     /**
