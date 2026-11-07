@@ -561,14 +561,21 @@ delete_site_transient('seoprostack_comment_goblin_failed');
 // block itself is removed on deactivation).
 delete_site_option('seoprostack_noabort_rules');
 // Turn off unused remote access: the log and backup files and PHP in
-// uploads blocks, which deactivation removes unless a file could not be
-// written then.
+// uploads blocks, and Redirect to the main address's block, which
+// deactivation removes unless a file could not be written then.
 $seoprostack_blocks = array(
     'seoprostack_hardening_files'   => 'SEO Pro Stack log and backup files',
     'seoprostack_hardening_uploads' => 'SEO Pro Stack PHP in uploads',
+    'seoprostack_host_redirect'     => 'SEO Pro Stack main address',
 );
 foreach ($seoprostack_blocks as $seoprostack_state => $seoprostack_marker) {
-    $seoprostack_files  = (array) get_site_option($seoprostack_state, array());
+    $seoprostack_files = (array) get_site_option($seoprostack_state, array());
+    if ('seoprostack_host_redirect' === $seoprostack_state) {
+        // Its block is in the root .htaccess, noted from a web request.
+        $seoprostack_note  = (array) get_site_option('seoprostack_host_redirect_server', array());
+        $seoprostack_files = array('targets' => isset($seoprostack_note['root']) && is_string($seoprostack_note['root']) ? array($seoprostack_note['root'] . '.htaccess') : array());
+        delete_site_option('seoprostack_host_redirect_server');
+    }
     $seoprostack_quoted = preg_quote($seoprostack_marker, '/');
     foreach (isset($seoprostack_files['targets']) && is_array($seoprostack_files['targets']) ? $seoprostack_files['targets'] : array() as $seoprostack_htaccess) {
         if (!is_string($seoprostack_htaccess) || '.htaccess' !== basename($seoprostack_htaccess) || !is_file($seoprostack_htaccess) || !wp_is_writable($seoprostack_htaccess)) {

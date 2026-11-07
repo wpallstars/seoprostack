@@ -73,7 +73,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **External link icons**: script-free. **Modal links** open drawers and modals.
 * **Links skip redirects**: link straight to Rank Math's permanent on-site redirect targets.
 * **Internal linking tools** (off): suggestions and undo.
-* **Speed settings**, **Preload pages**, **Keep pages cached** after purges, **Delay scripts**, **Delayed Google Analytics**, lighter WooCommerce and Tutor LMS pages, faster Kadence Blocks editing, no Rank Math stats bar and AI Engine's chatbot loaded on first use.
+* **Speed settings**, **Preload pages**, **Keep pages cached** after purges, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**, lighter WooCommerce and Tutor LMS pages, faster Kadence Blocks editing, no Rank Math stats bar and AI Engine's chatbot loaded on first use.
 * **Load the CSS each page uses first** (off): pages with Kadence and the recommended plugins show sooner, worked out on your server.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. Read Me: the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New (on): www or bare-domain redirects skip WordPress (#1383).
 
 = 1.3.177 =
 * New (on): Keep text still while web fonts load (#1372).

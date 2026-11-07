@@ -473,14 +473,15 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
     /**
      * Write the block at the top of an .htaccess file (where the issue's
      * fix went, ahead of other plugins' blocks), or remove it. A file left
-     * empty by the removal is deleted: it was made for the block.
+     * empty by the removal is deleted: it was made for the block. Also
+     * used by Redirect to the main address (SEOProStack_Host_Redirect).
      *
      * @param string   $file   .htaccess path.
      * @param string[] $rules  Rules; empty removes the block.
      * @param string   $marker Block marker.
      * @return bool Whether the file is as asked now.
      */
-    private static function files_write($file, array $rules, $marker = self::FILES_MARKER) {
+    public static function files_write($file, array $rules, $marker = self::FILES_MARKER) {
         $exists = is_file($file);
         if (!$rules && !$exists) {
             return true;
