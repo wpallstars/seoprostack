@@ -187,6 +187,15 @@ The smoke test measures queries on a fresh site. To measure a live site:
   whenever PHP takes 1.2–2.1 s, which visitors never see (#285).
 - Compare with the feature on and off on the same page, a few times each,
   and with Query Monitor for the queries and HTTP requests it adds.
+- PageSpeed's phone LCP is an estimate. It counts every request that started
+  before the largest paint in its own fast load, so pictures fetched then
+  count against it even at Low priority. Before naming what fetches a
+  picture, look for every use of its file in the page: a slide's or row's
+  background and a lazy `<img>` can name the same file. In a browser, check
+  each slide's computed `background-image` when the page is read. Lazy
+  pictures within the browser's own lazy-load distance (Chrome: about
+  1250–2500 px from the screen) load straight away, so a Posts grid just
+  below a slider is fetched during the first paint (#1392).
 
 ## Dark mode audit
 
