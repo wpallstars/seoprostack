@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Image loading preloads the Kadence hero row's picture, at the size the screen needs, when a short row of text alone comes before it (#1402).
+
 = 1.3.181 =
 * Faster: Keep pages cached fills the whole site again after a post is saved, where LiteSpeed Cache's purge rule Pages empties every page (#1399).
 
