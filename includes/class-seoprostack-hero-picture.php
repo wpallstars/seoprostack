@@ -26,14 +26,15 @@ class SEOProStack_Hero_Picture {
      * copies (or ''), the address to preload when not the same, and that
      * one's MIME type. Addresses are the ones pages get, through Media in
      * cloud storage's mapping when it serves the picture. Null when the
-     * address is not one of the attachment's files.
+     * address is not one of the attachment's files. Without an ID, the
+     * attachment is looked up from the address (url_id()).
      *
      * @param mixed $id  Attachment ID.
      * @param mixed $url Address the row names.
      * @return array{w:int,h:int,c:array<int,array>}|null
      */
     public static function get($id, $url) {
-        $id   = is_numeric($id) ? (int) $id : 0;
+        $id   = is_numeric($id) && (int) $id > 0 ? (int) $id : self::url_id($url);
         $meta = self::meta($id, $url);
         if (!$meta) {
             return null;
@@ -79,6 +80,32 @@ class SEOProStack_Hero_Picture {
             'h' => $picture['h'],
             'c' => $files,
         );
+    }
+
+    /**
+     * The attachment an address names, for a block that saved no ID
+     * (GH#1347): Kadence rows from imported templates, or with a picture
+     * given by address, have bgImg but no bgImgID. attachment_url_to_postid()
+     * matches this site's uploads address of an attachment's own file (or
+     * its -scaled one), so other addresses, a CDN's or a size copy's, stay
+     * 0 and the picture stays as the block names it. Kept per address for a
+     * day in the object cache, 0 too, so each picture is looked up once
+     * while the cache holds it.
+     *
+     * @param mixed $url Address the block names.
+     * @return int
+     */
+    private static function url_id($url) {
+        if (!self::css_url($url)) {
+            return 0;
+        }
+        $key = 'hero_url_id_' . md5($url);
+        $id  = wp_cache_get($key, 'seoprostack');
+        if (false === $id) {
+            $id = (int) attachment_url_to_postid($url);
+            wp_cache_set($key, $id, 'seoprostack', DAY_IN_SECONDS);
+        }
+        return (int) $id;
     }
 
     /**
