@@ -138,13 +138,35 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
      */
     private static function note_now() {
         $reads = self::server_now();
-        if ('' === $reads) {
-            return array();
-        }
+        $root  = '' === $reads ? '' : self::root_now();
+        return '' === $root ? array() : array('reads' => $reads, 'root' => $root);
+    }
+
+    /**
+     * The root folder from this web request: WordPress's folder or one
+     * above it, with the site's index.php. '' when get_home_path() cannot
+     * tell: it gives / when the home and WordPress addresses have
+     * different hosts.
+     *
+     * @return string Folder with a trailing slash, or ''.
+     */
+    private static function root_now() {
         if (!function_exists('get_home_path')) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
         }
-        return array('reads' => $reads, 'root' => trailingslashit(wp_normalize_path(get_home_path())));
+        $root = trailingslashit(wp_normalize_path(get_home_path()));
+        return self::valid_root($root) ? $root : '';
+    }
+
+    /**
+     * Whether a folder can be the site's root: WordPress's folder or one
+     * above it (not /), with an index.php.
+     *
+     * @param string $root Folder with a trailing slash.
+     * @return bool
+     */
+    private static function valid_root($root) {
+        return '/' !== $root && '' !== $root && 0 === strpos(trailingslashit(wp_normalize_path(ABSPATH)), $root) && is_file($root . 'index.php');
     }
 
     /**
@@ -175,7 +197,8 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         $note = self::note_now();
         if (!$note) {
             $saved = get_site_option(self::SERVER, array());
-            if (is_array($saved) && isset($saved['reads'], $saved['root']) && in_array($saved['reads'], array('yes', 'no'), true) && '' !== $saved['root']) {
+            if (is_array($saved) && isset($saved['reads'], $saved['root']) && in_array($saved['reads'], array('yes', 'no'), true)
+                && is_string($saved['root']) && self::valid_root($saved['root'])) {
                 $note = array('reads' => (string) $saved['reads'], 'root' => (string) $saved['root']);
             }
         }
@@ -472,16 +495,17 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
      */
     private static function save(array $hosts) {
         $reads  = self::reads_htaccess();
+        $file   = self::file();
         $status = 'written';
-        if (null === $reads) {
+        if (null === $reads || '' === $file) {
             // Not known yet from a web request (only WP-CLI so far): write
             // nothing; the first admin screen notes it and checks again.
             $status = 'waiting';
         } elseif (!$reads) {
             // This server reads no .htaccess files: write nothing.
             $status = 'other';
-            SEOProStack_Hardening::files_write(self::file(), array(), self::MARKER);
-        } elseif (!SEOProStack_Hardening::files_write(self::file(), self::rules($hosts), self::MARKER)) {
+            SEOProStack_Hardening::files_write($file, array(), self::MARKER);
+        } elseif (!SEOProStack_Hardening::files_write($file, self::rules($hosts), self::MARKER)) {
             $status = 'unwritable';
         }
         update_site_option(self::STATE, array(
@@ -507,7 +531,9 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
      * Take the block away and forget the hosts once it is gone.
      */
     public static function remove() {
-        if (SEOProStack_Hardening::files_write(self::file(), array(), self::MARKER)) {
+        $file = self::file();
+        // No root known: no block was ever written, as writing needs one.
+        if ('' === $file || SEOProStack_Hardening::files_write($file, array(), self::MARKER)) {
             delete_site_option(self::STATE);
         }
     }
@@ -517,17 +543,12 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
      * note, as WP-CLI cannot work out the root when WordPress has its own
      * folder.
      *
-     * @return string
+     * @return string Path, or '' when the root is not known.
      */
     private static function file() {
         $note = self::note();
-        if (isset($note['root'])) {
-            return $note['root'] . '.htaccess';
-        }
-        if (!function_exists('get_home_path')) {
-            require_once ABSPATH . 'wp-admin/includes/file.php';
-        }
-        return get_home_path() . '.htaccess';
+        $root = isset($note['root']) ? $note['root'] : self::root_now();
+        return '' === $root ? '' : $root . '.htaccess';
     }
 
     /**
