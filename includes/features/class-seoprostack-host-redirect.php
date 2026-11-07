@@ -50,6 +50,13 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     /** Site option: checked hosts (other host => target), status and time. */
     const STATE = 'seoprostack_host_redirect';
 
+    /**
+     * Site option: whether the server reads .htaccess files (yes or no)
+     * and the root folder, noted from the main site's web requests, since
+     * WP-CLI (and a host's cron through it) can tell neither.
+     */
+    const SERVER = 'seoprostack_host_redirect_server';
+
     /** Daily check, and the one soon after an address changes. */
     const HOOK = 'seoprostack_host_redirect_check';
 
@@ -100,9 +107,89 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         if (is_admin()) {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
         }
+        if (is_admin() || wp_doing_cron()) {
+            self::remember();
+        }
         if (is_admin() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
             self::maybe_schedule();
         }
+    }
+
+    /**
+     * Whether this request's server reads .htaccess files (WordPress's
+     * $is_apache: Apache or LiteSpeed): yes, no, or '' when it cannot tell
+     * (WP-CLI and other command-line runs).
+     *
+     * @return string
+     */
+    private static function server_now() {
+        global $is_apache;
+        if ((defined('WP_CLI') && WP_CLI) || empty($_SERVER['SERVER_SOFTWARE'])) {
+            return '';
+        }
+        return !empty($is_apache) ? 'yes' : 'no';
+    }
+
+    /**
+     * This web request's note: whether the server reads .htaccess files
+     * and the root folder; empty when it cannot tell.
+     *
+     * @return array{reads?:string,root?:string}
+     */
+    private static function note_now() {
+        $reads = self::server_now();
+        if ('' === $reads) {
+            return array();
+        }
+        if (!function_exists('get_home_path')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        return array('reads' => $reads, 'root' => trailingslashit(wp_normalize_path(get_home_path())));
+    }
+
+    /**
+     * Note the server and root folder from the main site's web requests,
+     * only when they change, and then check the addresses again soon
+     * (first noted, or the site moved).
+     */
+    public static function remember() {
+        if (is_multisite() && !is_main_site()) {
+            return;
+        }
+        $note = self::note_now();
+        if (!$note || get_site_option(self::SERVER, array()) === $note) {
+            return;
+        }
+        update_site_option(self::SERVER, $note);
+        if (self::enabled() && !wp_next_scheduled(self::HOOK, array('soon'))) {
+            wp_schedule_single_event(time() + MINUTE_IN_SECONDS, self::HOOK, array('soon'));
+        }
+    }
+
+    /**
+     * The note from this request, else from an earlier web request.
+     *
+     * @return array{reads?:string,root?:string}
+     */
+    private static function note() {
+        $note = self::note_now();
+        if (!$note) {
+            $saved = get_site_option(self::SERVER, array());
+            if (is_array($saved) && isset($saved['reads'], $saved['root']) && in_array($saved['reads'], array('yes', 'no'), true) && '' !== $saved['root']) {
+                $note = array('reads' => (string) $saved['reads'], 'root' => (string) $saved['root']);
+            }
+        }
+        return $note;
+    }
+
+    /**
+     * Whether the server reads .htaccess files.
+     *
+     * @return bool|null Null when no web request has told yet.
+     */
+    private static function reads_htaccess() {
+        $note = self::note();
+        return isset($note['reads']) ? 'yes' === $note['reads'] : null;
     }
 
     /**
@@ -121,8 +208,8 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
             }
             return;
         }
-        if ($next) {
-            wp_clear_scheduled_hook(self::HOOK);
+        if ($next || wp_next_scheduled(self::HOOK, array('soon'))) {
+            wp_unschedule_hook(self::HOOK);
         }
         if (false !== get_site_option(self::STATE, false)) {
             self::remove();
@@ -141,7 +228,7 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         if ($before === $after || (is_multisite() && !is_main_site())) {
             return;
         }
-        wp_clear_scheduled_hook(self::HOOK);
+        wp_unschedule_hook(self::HOOK);
         if (!$after) {
             self::remove();
         }
@@ -166,8 +253,8 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         if ($switched) {
             switch_to_blog(get_main_site_id());
         }
-        if (self::enabled()) {
-            wp_schedule_single_event(time() + MINUTE_IN_SECONDS, self::HOOK);
+        if (self::enabled() && !wp_next_scheduled(self::HOOK, array('soon'))) {
+            wp_schedule_single_event(time() + MINUTE_IN_SECONDS, self::HOOK, array('soon'));
         }
         if ($switched) {
             restore_current_blog();
@@ -177,14 +264,22 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     /**
      * Check each site's other address, then write the rules for those that
      * redirect to it. Hosts not reached within the time keep their rule
-     * while it is still valid.
+     * while it is still valid. Nothing is opened on a server that reads
+     * no .htaccess files.
+     *
+     * @param string $when soon for the check after a change, '' daily.
      */
-    public static function check() {
+    public static function check($when = '') {
+        unset($when); // Only keeps the soon event apart from the daily one.
         if (is_multisite() && !is_main_site()) {
             return;
         }
         if (!self::enabled()) {
             self::remove();
+            return;
+        }
+        if (false === self::reads_htaccess()) {
+            self::save(array());
             return;
         }
         $mains = self::main_hosts();
@@ -365,9 +460,13 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
      * @param array<string,string> $hosts Other host => target.
      */
     private static function save(array $hosts) {
-        global $is_apache;
+        $reads  = self::reads_htaccess();
         $status = 'written';
-        if (empty($is_apache)) {
+        if (null === $reads) {
+            // Not known yet from a web request (only WP-CLI so far): write
+            // nothing; the first admin screen notes it and checks again.
+            $status = 'waiting';
+        } elseif (!$reads) {
             // This server reads no .htaccess files: write nothing.
             $status = 'other';
             SEOProStack_Hardening::files_write(self::file(), array(), self::MARKER);
@@ -391,11 +490,17 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
     }
 
     /**
-     * The site's root .htaccess (the network's on multisite).
+     * The site's root .htaccess (the network's on multisite), from the
+     * note, as WP-CLI cannot work out the root when WordPress has its own
+     * folder.
      *
      * @return string
      */
     private static function file() {
+        $note = self::note();
+        if (isset($note['root'])) {
+            return $note['root'] . '.htaccess';
+        }
         if (!function_exists('get_home_path')) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
         }
@@ -420,7 +525,7 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         $state  = get_site_option(self::STATE, array());
         $hosts  = is_array($state) && isset($state['hosts']) && is_array($state['hosts']) ? $state['hosts'] : array();
         $status = is_array($state) && isset($state['status']) ? (string) $state['status'] : '';
-        if ('' === $status) {
+        if ('' === $status || 'waiting' === $status) {
             echo '<p>' . esc_html__('The addresses are checked within a few minutes.', 'seoprostack') . '</p>';
         } elseif ('other' === $status) {
             echo '<p>' . esc_html__('This server does not read .htaccess files, so WordPress keeps sending visitors to the main address.', 'seoprostack') . '</p>';
@@ -457,7 +562,7 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         if (is_multisite() && !$network_wide && !is_main_site()) {
             return;
         }
-        wp_clear_scheduled_hook(self::HOOK);
+        wp_unschedule_hook(self::HOOK);
         self::remove();
     }
 }
