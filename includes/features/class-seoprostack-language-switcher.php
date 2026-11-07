@@ -215,14 +215,14 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
         }
         if ('en' === $language) {
             $site = strtoupper((string) get_option(self::ENGLISH_FLAG_OPTION, ''));
-            if (preg_match('/^[A-Z]{2}$/', $site)) {
+            if (preg_match('/^[A-Z]{2}(-[A-Z]{3})?$/', $site)) {
                 $country = $site;
             }
         }
         /**
          * Filter a language's flag country.
          *
-         * @param string $country Two capital letters, the name of a file in assets/flags/.
+         * @param string $country Two capital letters, or a subdivision such as GB-ENG, the name of a file in assets/flags/.
          * @param string $locale  TranslatePress language code.
          */
         return (string) apply_filters('seoprostack_language_flag', $country, $locale);
@@ -238,7 +238,7 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
      */
     public static function flag_url($locale, $fallback = '') {
         $country = self::country($locale);
-        if (preg_match('/^[A-Z]{2}$/', $country) && is_readable(SEOPROSTACK_DIR . self::FLAG_DIR . $country . '.svg')) {
+        if (preg_match('/^[A-Z]{2}(-[A-Z]{3})?$/', $country) && is_readable(SEOPROSTACK_DIR . self::FLAG_DIR . $country . '.svg')) {
             return SEOPROSTACK_URL . self::FLAG_DIR . $country . '.svg';
         }
         if ('' !== $fallback) {
