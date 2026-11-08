@@ -88,8 +88,29 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
     /** In a block's JSON: a media file, a picture attribute with a value, or dynamic content. */
     const BAND_MEDIA = '/\.(?:jpe?g|png|gif|webp|avif|svg|bmp|ico|mp4|m4v|webm|ogv|mov)\b|"(?:bgImg|overlayBgImg|img|src)":"[^"]|"kadenceDynamic":/i';
 
+    /** Temporary attribute on pictures in the opening block; content_image() removes it (GH#1412). */
+    const OPENING = 'data-seoprostack-opening';
+
     /** @var array<int,array|null> The block each post's pictures open with (opening_block()). */
     private static $opening = array();
+
+    /** @var array<int,array> The first two blocks of each post (leading()). */
+    private static $leading = array();
+
+    /** @var array<int,array<int,bool>> The leading blocks already rendered this request, by post and position. */
+    private static $matched = array();
+
+    /** @var bool Whether the main post's blocks were marked this request, so position decides which pictures are eager (GH#1412). */
+    private static $marking = false;
+
+    /** @var bool Whether a picture of the opening block, or the first after it, was met (GH#1412). */
+    private static $opened = false;
+
+    /** @var bool Whether the opening block's background picture is preloaded: it is the LCP (GH#1412). */
+    private static $hero = false;
+
+    /** @var bool Whether core gave the picture it just processed high fetch priority itself (GH#1412). */
+    private static $core_high = false;
 
     /** @var int Pictures encountered in the main loop's output this request. */
     private static $pictures = 0;
@@ -178,6 +199,11 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         // before content_image() measures it.
         add_filter('wp_content_img_tag', array(__CLASS__, 'own_sizes'), 5, 3);
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 20, 2);
+        // Pictures in the block the page opens with, so only they load
+        // straight away (GH#1412).
+        add_filter('render_block', array(__CLASS__, 'mark_opening'), 20, 2);
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's hook.
+        add_filter('wp_get_loading_optimization_attributes', array(__CLASS__, 'core_priority'), 20, 4);
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
         // Missing copies of row and slide pictures, made in the background (GH#1406).
@@ -290,6 +316,8 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         // One picture at high priority: core would otherwise give it to the
         // first large picture it meets, often the header's logo.
         self::$high_priority = true;
+        // Its picture is the LCP: pictures outside the opening block stay lazy (GH#1412).
+        self::$hero = true;
         // The row is the top of the page: its picture is the first of those
         // that load straight away, as a featured image is, so one fewer
         // picture below it competes with it.
@@ -315,6 +343,25 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (array_key_exists($post->ID, self::$opening)) {
             return self::$opening[$post->ID];
         }
+        $blocks = self::leading($post);
+        $first  = $blocks[0] ?? null;
+        if (isset($blocks[1]) && 'kadence/rowlayout' === ($blocks[1]['blockName'] ?? '') && is_array($first) && self::band($first)) {
+            $first = $blocks[1];
+        }
+        self::$opening[$post->ID] = $first;
+        return $first;
+    }
+
+    /**
+     * A post's first two blocks, without the white space between blocks.
+     *
+     * @param WP_Post $post Post.
+     * @return array[] Parsed blocks.
+     */
+    private static function leading(WP_Post $post) {
+        if (isset(self::$leading[$post->ID])) {
+            return self::$leading[$post->ID];
+        }
         $blocks = array();
         foreach (parse_blocks(ltrim($post->post_content)) as $block) {
             // Leave out the white space between blocks.
@@ -325,12 +372,75 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 }
             }
         }
-        $first = $blocks[0] ?? null;
-        if (isset($blocks[1]) && 'kadence/rowlayout' === ($blocks[1]['blockName'] ?? '') && is_array($first) && self::band($first)) {
-            $first = $blocks[1];
+        self::$leading[$post->ID] = $blocks;
+        return $blocks;
+    }
+
+    /**
+     * Mark the pictures of the block the page opens with, and of the block
+     * after it when the first has no picture (GH#1412). The eager budget
+     * went to the first pictures in content order, which on a Kadence page
+     * that opens with a background hero are often in a posts grid, portfolio
+     * or gallery hundreds of pixels below the first screen. content_image()
+     * reads and removes the mark: pictures without it stay lazy.
+     *
+     * @param string $content Rendered block.
+     * @param array  $block   Parsed block.
+     * @return string
+     */
+    public static function mark_opening($content, $block) {
+        global $wp_current_filter;
+
+        if (!is_string($content) || !is_array($block) || !is_singular() || !is_main_query() || !in_the_loop() || is_feed()
+            || count(array_keys((array) $wp_current_filter, 'the_content', true)) !== 1) {
+            return $content;
         }
-        self::$opening[$post->ID] = $first;
-        return $first;
+        $post = get_post();
+        if (!$post instanceof WP_Post || get_queried_object_id() !== (int) $post->ID) {
+            return $content;
+        }
+        self::$marking = true;
+        if (false === stripos($content, '<img')) {
+            return $content;
+        }
+        $kind = '';
+        foreach (self::leading($post) as $position => $lead) {
+            if (!empty(self::$matched[$post->ID][$position]) || ($block['blockName'] ?? null) !== ($lead['blockName'] ?? null)
+                || ($block['innerContent'] ?? null) !== ($lead['innerContent'] ?? null)
+                || count((array) ($block['innerBlocks'] ?? array())) !== count((array) ($lead['innerBlocks'] ?? array()))) {
+                continue;
+            }
+            self::$matched[$post->ID][$position] = true;
+            $kind = self::opening_block($post) === $lead ? 'opening' : 'near';
+            break;
+        }
+        if ('' === $kind) {
+            return $content;
+        }
+        $tags = new WP_HTML_Tag_Processor($content);
+        while ($tags->next_tag(array('tag_name' => 'IMG'))) {
+            $tags->set_attribute(self::OPENING, $kind);
+        }
+        return $tags->get_updated_html();
+    }
+
+    /**
+     * Note when core, not the author, gave a content picture high fetch
+     * priority, so content_image() can take it off one that is not near the
+     * top (GH#1412).
+     *
+     * @param array  $loading_attrs Attributes core chose.
+     * @param string $tag_name      Tag name.
+     * @param array  $attr          The tag's own attributes.
+     * @param string $context       Context.
+     * @return array
+     */
+    public static function core_priority($loading_attrs, $tag_name = '', $attr = array(), $context = '') {
+        if ('img' === $tag_name && 'the_content' === $context && is_array($loading_attrs)) {
+            self::$core_high = isset($loading_attrs['fetchpriority']) && 'high' === $loading_attrs['fetchpriority']
+                && empty($attr['fetchpriority']);
+        }
+        return $loading_attrs;
     }
 
     /**
@@ -796,16 +906,51 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (!$tag->next_tag(array('tag_name' => 'IMG'))) {
             return $image;
         }
+        $mark = $tag->get_attribute(self::OPENING);
+        if (null !== $mark) {
+            $tag->remove_attribute(self::OPENING);
+            $image = $tag->get_updated_html();
+        }
+        $core_high       = self::$core_high;
+        self::$core_high = false;
+        $eager           = false;
+        $deep            = false;
+        if ('the_content' === $context && is_main_query() && in_the_loop() && !is_feed()) {
+            if (!self::$marking) {
+                ++self::$pictures;
+                $eager = self::$pictures <= self::threshold();
+            } elseif ('opening' === $mark) {
+                // The block the page opens with: the budget is for these (GH#1412).
+                self::$opened = true;
+                ++self::$pictures;
+                $eager = self::$pictures <= self::threshold();
+            } elseif ('near' === $mark && !self::$opened) {
+                // Nothing in the opening block: without a preloaded hero, the
+                // first picture in the next block may be the LCP.
+                self::$opened = true;
+                if (self::$hero) {
+                    $deep = true;
+                } else {
+                    ++self::$pictures;
+                    $eager = self::$pictures <= self::threshold();
+                }
+            } else {
+                $deep = true;
+            }
+        }
+        $excluded = self::excluded($image);
+        // Core, not the author, gave a picture below the opening block high priority.
+        if ($deep && !$excluded && $core_high) {
+            $tag->remove_attribute('fetchpriority');
+        }
         $priority = $tag->get_attribute('fetchpriority');
         if ('high' === $priority) {
             self::$high_priority = true;
         }
-        $eager = false;
-        if ('the_content' === $context && is_main_query() && in_the_loop() && !is_feed()) {
-            ++self::$pictures;
-            $eager = self::$pictures <= self::threshold();
+        if ($deep && !$excluded && 'high' !== $priority && null === $tag->get_attribute('loading')) {
+            // Core leaves its first pictures without loading="lazy" whatever their position.
+            $tag->set_attribute('loading', 'lazy');
         }
-        $excluded = self::excluded($image);
         if (($eager || $excluded) && 'lazy' === $tag->get_attribute('loading')) {
             $tag->remove_attribute('loading');
         }

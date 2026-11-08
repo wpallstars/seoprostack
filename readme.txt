@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: Image loading lets only the pictures of the block a post or page opens with load straight away, not the first three in content order, so pictures in a posts grid, gallery or footer below the first screen stay lazy and the hero gets the early bandwidth (#1412).
+
 = 1.3.184 =
 * Faster: Image loading's new copies of Kadence row and slide pictures get their WebP and AVIF copies at once, not at the next batch (#1409).
 
