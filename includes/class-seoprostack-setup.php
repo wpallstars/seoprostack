@@ -125,6 +125,7 @@ final class SEOProStack_Setup {
         // After Delay scripts: its page buffer starts later, so it checks WordPress's own tags first.
         'SEOProStack_Jquery_Footer',
         'SEOProStack_Fluentforms_Turnstile',
+        'SEOProStack_Fluentforms_Later',
         'SEOProStack_Turnstile_Later',
         'SEOProStack_Ai_Engine_Later',
         'SEOProStack_Delayed_Analytics',
