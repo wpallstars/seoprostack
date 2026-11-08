@@ -56,6 +56,10 @@ ALLOW_DOWNGRADE=0
 RUN_STAMP=""
 LOCK_DIR=""
 FETCHES=0
+# WordPress's database failures in WP-CLI output: a load or cron run that
+# prints one failed, whatever its exit code.
+readonly DB_QUERY_ERROR="WordPress database error"
+readonly DB_CONNECT_ERROR="Error establishing a database connection"
 # 1 when the person running the deploy gave deploy-sites.sh a Cloudflare
 # token: it purges Cloudflare from their computer (the token never comes
 # here), and this part only names each site (@cdn lines) and leaves cdn=@CDN@
@@ -72,6 +76,8 @@ HOME_RETRY_DELAY="${DEPLOY_HOME_RETRY_DELAY:-5}"
 SKIPS=()
 LOG_FILES=()
 LOG_BEFORE=()
+LOG_FIRST=()
+LOG_INODE=()
 
 say() {
 	local message="$1"
@@ -145,7 +151,7 @@ wp_checked() {
 	output="$("$WP_CLI" --path="$root" "$@" 2>"$err_file")" || status=$?
 	errors="$(cat "$err_file")"
 	rm -f "$err_file"
-	if [[ "$status" -ne 0 || "$output$errors" == *"Error establishing a database connection"* || "$output$errors" == *"WordPress database error"* ]]; then
+	if [[ "$status" -ne 0 || "$output$errors" == *"$DB_CONNECT_ERROR"* || "$output$errors" == *"$DB_QUERY_ERROR"* ]]; then
 		[[ -z "$output" ]] || printf '%s\n' "$output" >&2
 		[[ -z "$errors" ]] || printf '%s\n' "$errors" >&2
 		[[ "$status" -ne 0 ]] || status=1
@@ -352,9 +358,11 @@ log_files() {
 	LOG_FILES=(${unique[@]+"${unique[@]}"})
 	LOG_BEFORE=()
 	LOG_FIRST=()
+	LOG_INODE=()
 	for path in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
 		LOG_BEFORE+=("$(file_lines "$path")")
 		LOG_FIRST+=("$(first_line "$path")")
+		LOG_INODE+=("$(file_inode "$path")")
 	done
 	return 0
 }
@@ -368,11 +376,23 @@ first_line() {
 	return 0
 }
 
+# File identity (inode), to tell a replaced log from a grown one even when the
+# replacement has the same first line and at least as many lines.
+file_inode() {
+	local file="$1"
+	if [[ -f "$file" ]]; then
+		# find -ls prints the inode first on GNU and BSD, without stat flags.
+		find "$file" -maxdepth 0 -ls 2>/dev/null | awk '{print $1}' || true
+	fi
+	return 0
+}
+
 # Line to read a log from: after the baseline, or from the top when the log
-# shrank or its first line changed (rotated, however far it has regrown).
+# shrank, was replaced (new inode) or its first line changed (rotated, however
+# far it has regrown).
 log_start() {
-	local file="$1" before="$2" first="$3"
-	if [[ "$(file_lines "$file")" -lt "$before" ]] || { [[ "$before" -gt 0 ]] && [[ "$(first_line "$file")" != "$first" ]]; }; then
+	local file="$1" before="$2" first="$3" inode="$4"
+	if [[ "$(file_lines "$file")" -lt "$before" ]] || [[ "$(file_inode "$file")" != "$inode" ]] || { [[ "$before" -gt 0 ]] && [[ "$(first_line "$file")" != "$first" ]]; }; then
 		printf '1'
 	else
 		printf '%s' "$((before + 1))"
@@ -380,26 +400,14 @@ log_start() {
 	return 0
 }
 
-new_log_text() {
-	local index=0
-	local file start
-	for file in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
-		if [[ -f "$file" ]]; then
-			start="$(log_start "$file" "${LOG_BEFORE[index]}" "${LOG_FIRST[index]}")"
-			tail -n +"$start" "$file" | head -n 10
-		fi
-		index=$((index + 1))
-	done
-	return 0
-}
-
-# Every line the web logs gained since the install began, uncut.
+# Every line the web logs gained since log_files; a truncated or rotated log
+# contributes all of its current lines.
 new_log_all() {
 	local index=0
 	local file start
 	for file in ${LOG_FILES[@]+"${LOG_FILES[@]}"}; do
 		if [[ -f "$file" ]]; then
-			start="$(log_start "$file" "${LOG_BEFORE[index]}" "${LOG_FIRST[index]}")"
+			start="$(log_start "$file" "${LOG_BEFORE[index]}" "${LOG_FIRST[index]}" "${LOG_INODE[index]}")"
 			tail -n +"$start" "$file"
 		fi
 		index=$((index + 1))
@@ -411,7 +419,7 @@ new_log_all() {
 # executed. Prints "race HOOK" once per hook for WordPress's could_not_set
 # reschedule/unschedule error on one of them (our forced run and the site's
 # own cron runner handled the same event at once), and "line" for every other
-# line, which still fails the install. wp-cron.php (WordPress 6.1 and later)
+# line, which still counts as new. wp-cron.php (WordPress 6.1 and later)
 # goes on after the code with ", Error message: ..., Data: {...}" (the
 # event as JSON); until #1349 only the bare form matched, so no real race
 # line was ever let through and network deploys failed on them.
@@ -421,7 +429,7 @@ classify_log() {
 		{
 			if (match($0, /Cron (reschedule|unschedule) event error for hook: [^,]+, Error code: could_not_set/) \
 				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*(PHP [A-Za-z ]+:[[:space:]]*)?$/ \
-				&& substr($0, RSTART + RLENGTH) ~ /^(, Error message: .*, Data: .*)?[[:space:]]*$/) {
+				&& substr($0, RSTART + RLENGTH) ~ /^([[:space:]]*,[[:space:]]*Error message:.*)?[[:space:]]*$/) {
 				text = substr($0, RSTART, RLENGTH)
 				sub(/^Cron (reschedule|unschedule) event error for hook: /, "", text)
 				sub(/, Error code: could_not_set$/, "", text)
@@ -433,9 +441,52 @@ classify_log() {
 					next
 				}
 			}
-			print "line"
+			if ($0 ~ /hook: [^[:space:]:]+: could_not_set, /) {
+				print "contention"
+			} else {
+				print "line"
+			}
 		}
 	'
+	return 0
+}
+
+# The first lines of the new log text, for the report.
+new_log_text() {
+	new_log_all | head -n 10
+	return 0
+}
+
+# Classifies the new log lines from one snapshot, so a line arriving mid-check
+# cannot hide an error. Cron race lines for hooks this run executed are
+# warnings, not new lines. Sets LOG_NEW_LINES (lines that count), LOG_WARN
+# (warning text) and LOG_FAIL (1 when the new lines fail the install).
+classify_new_log() {
+	local snapshot classified entry contention=0
+	LOG_NEW_LINES=0 LOG_WARN="" LOG_FAIL=1
+	snapshot="$(new_log_all)"
+	if [[ -n "$snapshot" ]]; then
+		classified="$(printf '%s\n' "$snapshot" | classify_log "$CRON_HOOKS_RUN")"
+		while IFS= read -r entry; do
+			case "$entry" in
+			line) LOG_NEW_LINES=$((LOG_NEW_LINES + 1)) ;;
+			contention)
+				# Matches the untranslated error code (hook: NAME: could_not_set, ).
+				LOG_NEW_LINES=$((LOG_NEW_LINES + 1))
+				contention=$((contention + 1))
+				;;
+			"race "*) LOG_WARN+="cron race ${entry#race }, " ;;
+			*) ;;
+			esac
+		done <<<"$classified"
+	fi
+	if [[ "$LOG_NEW_LINES" -gt 0 ]]; then
+		if [[ "$contention" -eq "$LOG_NEW_LINES" ]]; then
+			# Two cron runners saved the cron option at once: not a failure.
+			LOG_WARN+="cron save contention ($contention lines), "
+			LOG_FAIL=0
+		fi
+	fi
 	return 0
 }
 
@@ -663,9 +714,9 @@ run_site_cron() {
 		if [[ "$status" -eq 124 && "${#cmd[@]}" -gt 0 ]]; then
 			CRON_WARN+="cron $hook timed out (${limit}s), "
 			CRON_RUN=$((CRON_RUN + 1))
-		elif [[ "$status" -ne 0 && "$out" == *"Invalid cron event '$hook'"* && "$out" != *"Fatal error"* && "$out" != *"WordPress database error"* && "$out" != *"Error establishing a database connection"* ]]; then
+		elif [[ "$status" -ne 0 && "$out" == *"Invalid cron event '$hook'"* && "$out" != *"Fatal error"* && "$out" != *"$DB_QUERY_ERROR"* && "$out" != *"$DB_CONNECT_ERROR"* ]]; then
 			CRON_WARN+="cron $hook ran meanwhile, "
-		elif [[ "$status" -ne 0 || "$out" == *"PHP Fatal error"* || "$out" == *"Fatal error:"* || "$out" == *"WordPress database error"* || "$out" == *"Error establishing a database connection"* ]]; then
+		elif [[ "$status" -ne 0 || "$out" == *"PHP Fatal error"* || "$out" == *"Fatal error:"* || "$out" == *"$DB_QUERY_ERROR"* || "$out" == *"$DB_CONNECT_ERROR"* ]]; then
 			detail="$(printf '%s\n' "$out" | tail -n 3 | LC_ALL=C tr '\t\r\n' '   ' | LC_ALL=C tr -cd '[:print:]')"
 			CRON_FAILURE+="cron $hook failed (exit $status: ${detail:0:300}); "
 		else
@@ -678,9 +729,10 @@ run_site_cron() {
 }
 
 # Prints the origin server's IPv4 address for the site: LiteSpeed Cache's
-# Server IP, or else the address SEO Pro Stack learned from a web request
-# (the two sources Keep pages cached pins to). Prints nothing when neither
-# is set or valid. A host behind a CDN can refuse its own uncached fetch
+# Server IP, or else an address the plugin learned from a web request and
+# stored as array('ip' => ...) in its seoprostack_origin_ip option (a plugin
+# without such a feature has none). Prints nothing when neither is set or
+# valid. A host behind a CDN can refuse its own uncached fetch
 # that loops back through the CDN, so the home fetch goes to the origin.
 origin_ip() {
 	local root="$1"
@@ -946,6 +998,14 @@ check_sites() {
 	return 0
 }
 
+# Put back the INT/TERM/HUP handlers saved with trap -p (empty: defaults).
+swap_restore_traps() {
+	local saved="$1"
+	trap - INT TERM HUP
+	[[ -z "$saved" ]] || eval "$saved"
+	return 0
+}
+
 # Replace $plugins/$SLUG with the folder in the zip using two rename() calls
 # inside the plugins folder (same filesystem, so each is atomic). Returns 1
 # with the live folder untouched if anything fails before the first rename;
@@ -960,38 +1020,42 @@ check_sites() {
 swap_plugin_folder() {
 	local plugins="$1"
 	local zip="$2"
-	local stamp staging old
+	local stamp staging old prev_traps
 	stamp="$(date +%s)-$$"
 	staging="$plugins/.$SLUG-new-$stamp"
 	old="$plugins/.$SLUG-old-$stamp"
 
 	command -v unzip >/dev/null 2>&1 || return 1
 	mkdir "$staging" || return 1
-	if ! unzip -q "$zip" -d "$staging" || [[ ! -f "$staging/$SLUG/$SLUG.php" ]] \
+	# umask 022: the web server's account must be able to read what unzip makes.
+	if ! (umask 022 && unzip -q "$zip" -d "$staging") || [[ ! -f "$staging/$SLUG/$SLUG.php" ]] \
 		|| ! find "$staging/$SLUG" -exec touch -c {} +; then
 		rm -rf "$staging"
 		return 1
 	fi
 	# A signal between the two renames would leave the plugin only in $old:
 	# put it back before exiting.
-	# shellcheck disable=SC2064
-	trap "[[ -d '$plugins/$SLUG' ]] || mv '$old' '$plugins/$SLUG'; rm -rf '$staging'; exit 143" INT TERM HUP
+	# Single quotes: paths expand when the trap runs, so any character is safe.
+	prev_traps="$(trap -p INT TERM HUP)"
+	trap '[[ -d "$plugins/$SLUG" ]] || mv "$old" "$plugins/$SLUG"; rm -rf "$staging"; exit 143' INT TERM HUP
 	if ! mv "$plugins/$SLUG" "$old"; then
-		trap - INT TERM HUP
+		swap_restore_traps "$prev_traps"
 		rm -rf "$staging"
 		return 1
 	fi
-	if ! mv "$staging/$SLUG" "$plugins/$SLUG"; then
-		if ! mv "$old" "$plugins/$SLUG"; then
-			trap - INT TERM HUP
+	# Refuse to move into a destination another writer recreated (mv would nest
+	# the release inside it): roll back and keep the old copy.
+	if [[ -e "$plugins/$SLUG" ]] || ! mv "$staging/$SLUG" "$plugins/$SLUG"; then
+		if [[ -e "$plugins/$SLUG" ]] || ! mv "$old" "$plugins/$SLUG"; then
+			swap_restore_traps "$prev_traps"
 			printf '%s\tFAIL: folder swap and rollback failed; old copy kept at %s\n' "$SLUG" "$old" >&2
 			return 2
 		fi
-		trap - INT TERM HUP
+		swap_restore_traps "$prev_traps"
 		rm -rf "$staging"
 		return 1
 	fi
-	trap - INT TERM HUP
+	swap_restore_traps "$prev_traps"
 	rm -rf "$staging"
 	if ! rm -rf "$old"; then
 		printf '%s\tWARN: could not remove old folder %s\n' "$SLUG" "$old" >&2
@@ -1033,7 +1097,8 @@ apply_one() {
 	local backups="$5"
 	local plugins="$root/wp-content/plugins"
 	local main="$plugins/$SLUG/$SLUG.php"
-	local before after backup new_lines result="ok" warn="" file classified
+	local before after backup new_lines result="ok" warn=""
+	local log_fail=1
 	local comparison=0
 
 	before="$(plugin_version "$main")"
@@ -1079,17 +1144,10 @@ apply_one() {
 	fi
 
 	after="$(plugin_version "$main")"
-	# A truncated or rotated log contributes all of its current lines.
-	# Cron race lines for hooks this run executed are warnings, not new lines.
-	new_lines=0
-	classified="$(new_log_all | classify_log "$CRON_HOOKS_RUN")"
-	while IFS= read -r file; do
-		case "$file" in
-		line) new_lines=$((new_lines + 1)) ;;
-		"race "*) warn+="cron race ${file#race }, " ;;
-		*) ;;
-		esac
-	done <<<"$classified"
+	classify_new_log
+	new_lines="$LOG_NEW_LINES"
+	warn+="$LOG_WARN"
+	log_fail="$LOG_FAIL"
 
 	# Single sites have no site row on which to show these warnings.
 	[[ "$PURGE_FAILED" -eq 0 ]] || warn+="purge failed, "
@@ -1098,7 +1156,7 @@ apply_one() {
 	[[ -z "$MAIN_RETRIED" ]] || warn+="home retried ($MAIN_RETRIED), "
 	# A network's site rows carry this warning; a single site has no row.
 	[[ -z "$MAIN_CF" || -n "$SITE_LINES" ]] || warn+="$(cf_warning "$MAIN_CF"), "
-	if [[ "$after" != "$want" || "$new_lines" -gt 0 || "$SITES_FAILED" -gt 0 ]]; then
+	if [[ "$after" != "$want" || ("$new_lines" -gt 0 && "$log_fail" -eq 1) || "$SITES_FAILED" -gt 0 ]]; then
 		result="FAIL"
 		if [[ -z "$SITE_LINES" && -n "$MAIN_REASON" ]]; then
 			result+=": $MAIN_REASON"

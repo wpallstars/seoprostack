@@ -41,7 +41,11 @@
 # (~/.{slug}-deploy/<tag>-<time>, mode 700, files 600) and checked again.
 # Then, for each install that already has wp-content/plugins/{slug}/{slug}.php
 # (the plugin is never added anywhere): a tar backup of the plugin folder, wp
-# plugin install --force (activation and network activation are kept), then
+# a folder swap by two renames (activation and network activation are kept;
+# files get the current time; wp plugin install --force if it cannot, except
+# when the rollback of a failed second rename also fails: that install stops
+# and its old folder, kept beside the plugin, needs a manual restore; with
+# OPcache timestamp validation off, reset OPcache or restart PHP), then
 # per site a full load for its settings upgrade, a LiteSpeed Cache purge (when
 # its WP-CLI command is there) so pages stop pointing at the old CSS and JS,
 # and a home fetch. After each load the plugin's own WP-Cron events run once
@@ -406,29 +410,34 @@ dry_run() {
 # deploy holds the lock.
 # shellcheck disable=SC2016 # The host expands these, not this shell.
 readonly PRUNE_REMOTE='
-base="$1"; keep="$2"; current="$3"
-cd "$HOME/$base" 2>/dev/null || exit 0
-if [ -d .lock ]; then echo "skipped: another deploy holds the lock"; exit 0; fi
-runs=""
-for d in v*-*Z; do
-	[ -d "$d" ] && [ ! -L "$d" ] || continue
-	printf "%s\n" "$d" | grep -Eq "^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{8}T[0-9]{6}Z$" || continue
-	runs="$runs$d
+prune() {
+	local base="$1"
+	local keep="$2"
+	local current="$3"
+	local runs="" tags d size count=0 kb=0
+	cd "$HOME/$base" 2>/dev/null || return 0
+	if [ -d .lock ]; then echo "skipped: another deploy holds the lock"; return 0; fi
+	for d in v*-*Z; do
+		[ -d "$d" ] && [ ! -L "$d" ] || continue
+		printf "%s\n" "$d" | grep -Eq "^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{8}T[0-9]{6}Z$" || continue
+		runs="$runs$d
 "
-done
-[ -n "$runs" ] || exit 0
-tags="$(printf "%s" "$runs" | sed "s/-[0-9]*T[0-9]*Z$//" | sort -u | sort -t. -k1.2,1nr -k2,2nr -k3,3nr | head -n "$keep")"
-count=0; kb=0
-for d in $(printf "%s" "$runs"); do
-	[ "$d" != "$current" ] || continue
-	printf "%s\n" "$tags" | grep -qxF "${d%-*}" && continue
-	size="$(du -sk "$d" 2>/dev/null | cut -f1)"
-	if rm -rf "$d"; then
-		count=$((count + 1)); kb=$((kb + ${size:-0}))
-		echo "removed $d"
-	fi
-done
-echo "pruned $count run folder(s), freed $((kb / 1024)) MB"
+	done
+	[ -n "$runs" ] || return 0
+	tags="$(printf "%s" "$runs" | sed "s/-[0-9]*T[0-9]*Z$//" | sort -u | sort -t. -k1.2,1nr -k2,2nr -k3,3nr | head -n "$keep")"
+	for d in $(printf "%s" "$runs"); do
+		[ "$d" != "$current" ] || continue
+		printf "%s\n" "$tags" | grep -qxF "${d%-*}" && continue
+		size="$(du -sk "$d" 2>/dev/null | cut -f1)"
+		if rm -rf "$d"; then
+			count=$((count + 1)); kb=$((kb + ${size:-0}))
+			echo "removed $d"
+		fi
+	done
+	echo "pruned $count run folder(s), freed $((kb / 1024)) MB"
+	return 0
+}
+prune "$@"
 '
 
 # After a successful install: keep the current run and the newest KEEP_RELEASES
