@@ -25,6 +25,9 @@
  *   page output, email, logins, the admin bar), shown next to each plugin
  *   in "Plugins to skip on the site", and which plugins must always load.
  *
+ * - on the site's pages, prints Bookly's booking form files at the end of
+ *   the page instead of in the head (SEOProStack_Bookly_Assets).
+ *
  * What was learned is forgotten when plugins are activated, deactivated or
  * updated, so screens load every plugin once more while it is relearned.
  *
@@ -44,6 +47,7 @@ if (!defined('ABSPATH')) {
 if (!class_exists('SEOProStack_Plugin_Loader', false)) {
     require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-plugin-loader.php';
 }
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-bookly-assets.php';
 
 class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
@@ -474,6 +478,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action('admin_init', array(__CLASS__, 'maybe_sync'));
         } elseif (self::enabled()) {
             self::boot_front();
+            SEOProStack_Bookly_Assets::boot();
         }
 
         if (!self::enabled() || !is_admin()) {
