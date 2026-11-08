@@ -105,6 +105,14 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   from Free Plugins or Pro Plugins, update that list too. Do not widen it to
   other themes or plugins; the `seoprostack_used_css_sources` filter is for
   site owners, unsupported.
+- Speed work that needs knowledge of one theme or plugin (Used CSS, Load
+  plugins only where needed, Image loading's opening block, moving a
+  plugin's files to the end of the page) covers only Kadence and its
+  plugins, the plugins SEO Pro Stack recommends and their Pro add-ons, and
+  plugins the owner names on a site of theirs (Bookly, #1414). Owner's
+  rule: do better than a specialist plugin only where that does not mean
+  supporting any number of themes and plugins we do not recommend. Others
+  get a filter for site owners, unsupported, or nothing.
 - Link Whisper retirement does not need historic click data or replacement
   analytics (owner's choice): leave the toolkit's click counting off for the
   rollout; separate analytics plugins and apps can cover those needs.
