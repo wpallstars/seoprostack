@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.184-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.185-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.184
+Version: 1.3.185
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2461,7 +2461,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.185
 
 - Faster: **Image loading** lets only the pictures of the block a post or page opens with load straight away, not the first three in content order. On Kadence home pages that open with a background hero, a heading band or a text row, pictures of a posts grid, portfolio, gallery or footer 900 to 17,000 px down were eager and added 23 to 220 KB; on one page the largest started before the hero (the LCP). Now the pictures of the opening block (or the row after a heading band) use the **Load straight away** budget; when the opening block's background picture is preloaded, no other picture loads straight away; when the opening block has no picture, the first picture of the next block may. Others stay lazy, and core's high priority is taken off them. Posts without blocks, archives, **Never lazy-load pictures containing**, an explicit `fetchpriority="high"` and featured images work as before (#1412).
 - Faster: with **Load plugins only where needed**, Bookly's booking form files load at the end of the page instead of holding up the first paint (#1414). On one Kadence site's home page, with a booking form in a modal, about twenty Bookly files sat in the head and first paint came at 3.1 s on PageSpeed mobile.
