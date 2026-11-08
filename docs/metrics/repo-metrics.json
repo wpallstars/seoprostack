@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-07T01:09:22Z",
+  "generated_at": "2026-11-08T02:31:15Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,39 +11,39 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 895,
-    "code": 146016,
-    "comments": 47627,
-    "blanks": 12966,
-    "languages": 9,
+    "source_files": 925,
+    "code": 149704,
+    "comments": 48966,
+    "blanks": 13212,
+    "languages": 10,
     "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 290,
-      "code": 79097,
-      "comments": 42718,
-      "blanks": 7570,
-      "percentage": 54.17,
+      "files": 294,
+      "code": 80597,
+      "comments": 43875,
+      "blanks": 7722,
+      "percentage": 53.84,
       "color": "#4F5D95"
     },
     {
       "name": "JSON",
-      "files": 447,
-      "code": 29523,
+      "files": 467,
+      "code": 30907,
       "comments": 0,
       "blanks": 0,
-      "percentage": 20.22,
+      "percentage": 20.65,
       "color": "#292929"
     },
     {
       "name": "JavaScript",
-      "files": 51,
-      "code": 11854,
-      "comments": 1877,
-      "blanks": 811,
-      "percentage": 8.12,
+      "files": 52,
+      "code": 12116,
+      "comments": 1933,
+      "blanks": 824,
+      "percentage": 8.09,
       "color": "#f1e05a"
     },
     {
@@ -52,44 +52,53 @@
       "code": 10563,
       "comments": 1452,
       "blanks": 2556,
-      "percentage": 7.23,
+      "percentage": 7.06,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
-      "files": 23,
-      "code": 6994,
-      "comments": 1413,
-      "blanks": 548,
-      "percentage": 4.79,
+      "files": 24,
+      "code": 7337,
+      "comments": 1519,
+      "blanks": 572,
+      "percentage": 4.9,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
       "files": 19,
-      "code": 5674,
+      "code": 5781,
       "comments": 0,
-      "blanks": 1394,
-      "percentage": 3.89,
+      "blanks": 1434,
+      "percentage": 3.86,
       "color": "#083fa1"
     },
     {
       "name": "SVG",
-      "files": 31,
-      "code": 1643,
+      "files": 33,
+      "code": 1645,
       "comments": 48,
       "blanks": 12,
-      "percentage": 1.13,
+      "percentage": 1.1,
       "color": "#6e7781"
     },
     {
       "name": "YAML",
-      "files": 13,
-      "code": 660,
-      "comments": 116,
-      "blanks": 73,
+      "files": 14,
+      "code": 674,
+      "comments": 129,
+      "blanks": 77,
       "percentage": 0.45,
       "color": "#cb171e"
+    },
+    {
+      "name": "Python",
+      "files": 1,
+      "code": 76,
+      "comments": 7,
+      "blanks": 13,
+      "percentage": 0.05,
+      "color": "#3572A5"
     },
     {
       "name": "TOML",
