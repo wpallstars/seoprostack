@@ -33,7 +33,8 @@
  * date), find no library then and return; once the scripts have run, each
  * form gets Fluent Forms' reInitExtras event, which starts them. A page with
  * a color picker or range slider, whose inline scripts do not check for
- * their library, is left as it is (UNGUARDED).
+ * their library, is left as it is. Which scripts wait is decided in
+ * SEOProStack_Fluentforms_Scripts.
  *
  * The loader does not wait for Used CSS's full stylesheets
  * (window.seoprostackCss(), which Delay scripts waits for): Used CSS reads
@@ -72,19 +73,6 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
     /** First Fluent Forms version whose form-submission.js starts forms when it loads late. */
     const MIN_VERSION = '6.2.17';
 
-    /** Fluent Forms' form script, run last. */
-    const SUBMISSION = 'fluent-form-submission';
-
-    /** Plugin folders whose scripts wait. */
-    const FOLDERS = array('fluentform', 'fluentformpro');
-
-    /**
-     * Libraries whose fields Fluent Forms Pro starts from an inline script
-     * at the end of the page without checking that the library is there
-     * (color picker, range slider): they would throw before it arrives.
-     */
-    const UNGUARDED = array('pickr', 'rangeslider');
-
     /** How near the screen a form is, in pixels, when its scripts load. */
     const DISTANCE = 600;
 
@@ -118,6 +106,7 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
         if (!self::enabled() || is_admin() || !defined('FLUENTFORM_VERSION') || version_compare(FLUENTFORM_VERSION, self::MIN_VERSION, '<')) {
             return;
         }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentforms-scripts.php';
         add_filter('script_loader_tag', array(__CLASS__, 'tag'), 10, 3);
         // After WordPress prints the footer scripts (20).
         add_action('wp_footer', array(__CLASS__, 'loader'), 99);
@@ -132,188 +121,74 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
      * @return string
      */
     public static function tag($tag, $handle, $src) {
-        if (!is_string($tag) || '' === (string) $src || !self::own((string) $src)) {
+        if (!is_string($tag) || '' === (string) $src || !SEOProStack_Fluentforms_Scripts::own((string) $src)) {
             return $tag;
         }
         $held = self::held();
         if (!isset($held[$handle])) {
             return $tag;
         }
+        $waiting = self::rewrite($tag, $handle, 'late' === $held[$handle]);
+        if (null === $waiting) {
+            return $tag;
+        }
+        self::$printed = true;
+        return $waiting;
+    }
+
+    /**
+     * The tags with the script's file, and an inline script after it,
+     * waiting; data and inline scripts before it run as they were.
+     *
+     * @param string $tag    Script tags.
+     * @param string $handle Script handle.
+     * @param bool   $late   Whether it runs after the others.
+     * @return string|null Null when its file was not found.
+     */
+    private static function rewrite($tag, $handle, $late) {
         $tags = new WP_HTML_Tag_Processor($tag);
-        $done = false;
+        $file = null;
         while ($tags->next_tag(array('tag_name' => 'SCRIPT'))) {
             $id = $tags->get_attribute('id');
             if ($handle . '-js' === $id) {
                 $file = $tags->get_attribute('src');
                 if (!is_string($file) || '' === $file) {
-                    return $tag;
+                    return null;
                 }
                 $tags->remove_attribute('src');
                 $tags->set_attribute('data-seoprostack-src', $file);
             } elseif ($handle . '-js-after' !== $id) {
-                continue; // Data and inline scripts before it run as they were.
+                continue;
             }
             $tags->set_attribute('type', self::TYPE);
-            if ('late' === $held[$handle]) {
+            if ($late) {
                 $tags->set_attribute('data-seoprostack-late', '1');
             }
-            $done = true;
         }
-        if (!$done) {
-            return $tag;
-        }
-        self::$printed = true;
-        return $tags->get_updated_html();
+        return null === $file ? null : $tags->get_updated_html();
     }
 
     /**
-     * Whether an address is a file in Fluent Forms' or Fluent Forms Pro's
-     * folder on this site.
-     *
-     * @param string $src Script address, absolute or from the site's root.
-     * @return bool
-     */
-    private static function own($src) {
-        static $bases = null;
-        if (null === $bases) {
-            $bases = array();
-            $root  = (string) wp_parse_url(plugins_url(), PHP_URL_PATH);
-            foreach (self::FOLDERS as $folder) {
-                $bases[] = untrailingslashit($root) . '/' . $folder . '/';
-            }
-        }
-        $path = (string) wp_parse_url($src, PHP_URL_PATH);
-        $host = wp_parse_url($src, PHP_URL_HOST);
-        if (is_string($host) && strtolower($host) !== strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST))) {
-            return false;
-        }
-        foreach ($bases as $base) {
-            if (0 === strpos($path, $base)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * The handles held on this page, decided once, at the first of Fluent
-     * Forms' scripts printed: each of its own scripts not yet printed,
-     * 'late' for form-submission.js and those that need it. None when it
-     * would not be safe.
+     * The handles held on this page (SEOProStack_Fluentforms_Scripts::plan()),
+     * decided once, at the first of Fluent Forms' scripts printed.
      *
      * @return array<string,string>
      */
     private static function held() {
-        if (null !== self::$held) {
-            return self::$held;
-        }
-        self::$held = array();
-        if (!self::page_view()) {
-            return self::$held;
-        }
-        $scripts = wp_scripts();
-        $handles = array_values(array_unique(array_merge((array) $scripts->queue, (array) $scripts->to_do, (array) $scripts->done)));
-        $own     = array();
-        foreach ($handles as $handle) {
-            $item = $scripts->query($handle);
-            if ($item instanceof _WP_Dependency && is_string($item->src) && '' !== $item->src && self::own($item->src)) {
-                if (false !== stripos($handle . ' ' . $item->src, 'conversational')) {
-                    return self::$held; // A conversational form page.
-                }
-                $own[$handle] = $item;
-            }
-        }
-        $done = array_flip((array) $scripts->done);
-        $hold = array_diff_key($own, $done);
-        if (!$hold || array_intersect(self::UNGUARDED, array_keys($hold))) {
-            return self::$held;
-        }
-        foreach ($handles as $handle) {
-            $item = $scripts->query($handle);
-            if (isset($own[$handle]) || !$item instanceof _WP_Dependency) {
-                continue;
-            }
-            // Another plugin's script that needs one of these would run first.
-            if (array_intersect((array) $item->deps, array_keys($hold))) {
-                return self::$held;
-            }
-        }
-        // What Delay scripts would hold: these scripts, or one they need.
-        foreach (array_keys($hold) as $handle) {
-            foreach (self::needs($handle) as $need) {
-                if (self::delayed($need)) {
-                    return self::$held;
-                }
-            }
-        }
-        foreach (array_keys($hold) as $handle) {
-            self::$held[$handle] = self::SUBMISSION === $handle || in_array(self::SUBMISSION, self::needs($handle), true) ? 'late' : '';
+        if (null === self::$held) {
+            self::$held = self::page_view() ? SEOProStack_Fluentforms_Scripts::plan() : array();
         }
         return self::$held;
     }
 
     /**
-     * A script and everything it needs, through other plugins' scripts too.
-     *
-     * @param string $handle Handle.
-     * @return string[]
-     */
-    private static function needs($handle) {
-        $scripts = wp_scripts();
-        $found   = array();
-        $next    = array($handle);
-        while ($next) {
-            $current = array_shift($next);
-            if (isset($found[$current])) {
-                continue;
-            }
-            $found[$current] = true;
-            $item            = $scripts->query($current);
-            if ($item instanceof _WP_Dependency) {
-                foreach ((array) $item->deps as $dep) {
-                    $next[] = (string) $dep;
-                }
-            }
-        }
-        return array_keys($found);
-    }
-
-    /**
-     * Whether Delay scripts' keywords would hold a script: in its id, its
-     * address or its inline code.
-     *
-     * @param string $handle Handle.
-     * @return bool
-     */
-    private static function delayed($handle) {
-        if (!class_exists('SEOProStack_Delay_Scripts') || !SEOProStack_Delay_Scripts::enabled()) {
-            return false;
-        }
-        $item = wp_scripts()->query($handle);
-        $text = $handle . '-js';
-        if ($item instanceof _WP_Dependency) {
-            $text .= ' ' . (is_string($item->src) ? $item->src : '');
-            foreach (array('data', 'before', 'after') as $key) {
-                $value = $item->extra[$key] ?? '';
-                $text .= ' ' . (is_array($value) ? implode("\n", array_map('strval', array_filter($value, 'is_string'))) : (string) $value);
-            }
-        }
-        foreach (SEOProStack_Delay_Scripts::keywords() as $keyword) {
-            if ('' !== trim($keyword) && false !== stripos($text, trim($keyword))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Whether this request is a page view where the scripts can wait.
+     * Whether this request is a page view where the scripts can wait. boot()
+     * has already left out the admin, and with it AJAX.
      *
      * @return bool
      */
     private static function page_view() {
-        if (is_admin() || is_feed() || is_embed() || is_customize_preview() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)
-            || (isset($GLOBALS['pagenow']) && 'wp-login.php' === $GLOBALS['pagenow'])) {
+        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login()) {
             return false;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
