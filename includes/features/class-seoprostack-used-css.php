@@ -30,6 +30,8 @@
  * (wp-content/fonts/, handle kadence-fonts-*) is handled too, and Kadence
  * Pro's dark mode script (kadence-dark-mode, up to 8 KB) is printed in the
  * page instead of as a request, still synchronous (GitHub issue #1218).
+ * WP Grid Builder's Google Fonts come from this site, copied by the Kadence
+ * theme's own loader, so they are handled the same way (GitHub issue #1434).
  *
  * Steps aside where LiteSpeed Cache combines CSS or makes its own unused or
  * critical CSS, and where a content security policy blocks its inline
@@ -68,6 +70,12 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
     const KEEP_KEY    = 'used_css_keep';
     const LATER_KEY   = 'used_css_later';
 
+    /** Google Fonts stylesheet addresses: the css and css2 APIs. */
+    const GOOGLE_FONTS = '#^https?://fonts\.googleapis\.com/css2?\?#i';
+
+    /** The Kadence theme's and Kadence Blocks' Google Fonts loaders (WPTT's). */
+    const FONT_LOADERS = array('Kadence\get_webfont_url', 'KadenceWP\KadenceBlocks\get_webfont_url');
+
     /**
      * Settings.
      *
@@ -80,7 +88,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'speed',
                 'label'       => __('Load the CSS each page uses first', 'seoprostack'),
-                'description' => __('For the Kadence theme, the plugins SEO Pro Stack recommends (Kadence Blocks, Fluent Forms, Tutor LMS and others) and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. The Kadence theme’s local Google Fonts stylesheet loads without blocking, and Kadence Pro’s dark mode script goes into the page. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
+                'description' => __('For the Kadence theme, the plugins SEO Pro Stack recommends (Kadence Blocks, Fluent Forms, Tutor LMS and others) and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. The Kadence theme’s local Google Fonts stylesheet loads without blocking, WP Grid Builder’s Google Fonts come from this site (copied by the Kadence theme), and Kadence Pro’s dark mode script goes into the page. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
             ),
             self::LATER_KEY   => array(
                 'type'        => 'bool',
@@ -118,6 +126,54 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
             return;
         }
         add_action('template_redirect', array(__CLASS__, 'start'), PHP_INT_MAX);
+        // After WP Grid Builder's own entries (priority 0 and 10).
+        add_filter('wp_grid_builder/frontend/register_styles', array(__CLASS__, 'wpgb_fonts'), 20);
+    }
+
+    /**
+     * WP Grid Builder's Google Fonts stylesheet (its cards' and facets'
+     * fonts), copied to this site by the Kadence theme's own loader, as the
+     * theme copies its own Google Fonts: a request to Google on the first
+     * paint's path, which also sends each visitor's address there, becomes
+     * a stylesheet in wp-content/fonts/ that SEOProStack_Used_Css_Links
+     * handles (GitHub issue #1434). Google's address stays when no Kadence
+     * loader is there or the copy fails.
+     *
+     * @param mixed $styles Stylesheets WP Grid Builder registers: handle, source and version each.
+     * @return mixed
+     */
+    public static function wpgb_fonts($styles) {
+        if (!is_array($styles)) {
+            return $styles;
+        }
+        foreach ($styles as $i => $style) {
+            if (!is_array($style) || !isset($style['handle'], $style['source']) || 'wpgb-fonts' !== $style['handle']
+                || !is_string($style['source']) || !preg_match(self::GOOGLE_FONTS, $style['source'])) {
+                continue;
+            }
+            $local = self::local_fonts($style['source']);
+            if ('' !== $local) {
+                $styles[$i]['source'] = $local;
+            }
+        }
+        return $styles;
+    }
+
+    /**
+     * The local copy of a Google Fonts stylesheet, from the first Kadence
+     * loader there (it downloads the stylesheet and its font files once).
+     *
+     * @param string $url Google Fonts stylesheet address.
+     * @return string Its address on this site, or empty.
+     */
+    private static function local_fonts($url) {
+        foreach (self::FONT_LOADERS as $loader) {
+            if (function_exists($loader)) {
+                $local = call_user_func($loader, $url);
+                return is_string($local) && $local !== $url && SEOProStack_Used_Css_Links::on_site($local) ? $local : '';
+            }
+        }
+        return '';
     }
 
     /**
