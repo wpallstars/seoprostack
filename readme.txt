@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.183
+Stable tag: 1.3.184
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,10 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.184 =
 * Faster: Image loading's new copies of Kadence row and slide pictures get their WebP and AVIF copies at once, not at the next batch (#1409).
-
-= 1.3.183 =
-* Faster: Image loading makes the missing 1536 and 2048 pixel copies of Kadence row and slide pictures in the background, so phones get a copy at the size they need, not the full upload (#1406).
 
 Older: `changelog.txt`.
