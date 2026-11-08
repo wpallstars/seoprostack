@@ -93,6 +93,13 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     );
 
     /**
+     * Content filters that render blocks, then run core's
+     * wp_filter_content_tags, then pictures() (GH#1436): post content, block
+     * widgets and Kadence Pro's Elements.
+     */
+    const CONTENT_FILTERS = array('the_content', 'widget_block_content', 'ktp_the_content');
+
+    /**
      * Settings.
      *
      * @return array
@@ -294,9 +301,13 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             add_filter('widget_block_content', array(__CLASS__, 'pictures'), 30);
             // Featured images, logos and other attachment images in templates.
             add_filter('wp_get_attachment_image', array(__CLASS__, 'pictures'), 30);
-            // Also blocks outside the_content: template parts and Kadence Elements.
+            // Kadence Pro's Elements: after their wp_filter_content_tags (GH#1436).
+            if (defined('KTP_VERSION')) {
+                add_filter('ktp_the_content', array(__CLASS__, 'pictures'), 30);
+            }
+            // Also blocks outside those: template parts and other rendered blocks.
             // pictures() skips HTML without images and leaves existing pictures alone.
-            add_filter('render_block', array(__CLASS__, 'pictures'), 30);
+            add_filter('render_block', array(__CLASS__, 'rendered_block'), 30);
             // Kadence Blocks' background pictures (GH#1204): rows, columns
             // and slider slides, in the CSS Kadence prints and its styles;
             // Kadence Blocks Pro's Advanced Slider slides in its head CSS.
@@ -1275,6 +1286,41 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      */
     private static function picture_mode() {
         return (bool) SEOProStack_Settings::get('nextgen_picture');
+    }
+
+    /**
+     * A rendered block's pictures (GH#792), except while a content filter
+     * whose own later pictures() pass is still to come is running (GH#1436):
+     * that pass wraps them. Blocks render early in post content (do_blocks at
+     * 9), block widgets and Kadence Pro's Elements, before core's
+     * wp_filter_content_tags adds width, height, srcset and sizes, so a
+     * <picture> made here listed only the address saved in the block, and
+     * browsers fetched that file (on one Kadence page a cover block's
+     * 2,048 px AVIF copy, 241 KB, where its 768 px copy is 21 KB). The later
+     * pass sees the finished <img>.
+     *
+     * @param mixed $html Rendered block.
+     * @return mixed
+     */
+    public static function rendered_block($html) {
+        global $wp_filter;
+
+        foreach (self::CONTENT_FILTERS as $filter) {
+            if (!doing_filter($filter)) {
+                continue;
+            }
+            $ours = has_filter($filter, array(__CLASS__, 'pictures'));
+            if (false === $ours) {
+                continue;
+            }
+            $hook = $wp_filter[$filter] ?? null;
+            $at   = $hook instanceof WP_Hook ? $hook->current_priority() : false;
+            // Running before our pass (or unknown): it comes later.
+            if (false === $at || $at < $ours) {
+                return $html;
+            }
+        }
+        return self::pictures($html);
     }
 
     /**
