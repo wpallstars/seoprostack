@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.187-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.188-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.187
+Version: 1.3.188
 
 <!-- github-only:start -->
 ## Screenshots
@@ -895,13 +895,14 @@ With **Also in the admin** on, clicking a link to another admin screen also answ
 **Off by default.** A page shows nothing until every stylesheet in its head has arrived. The Kadence theme, Kadence Blocks, Fluent Forms and the other recommended plugins each load several, so a page can wait for 10 to 30 of them. With this on, for visitors who are not logged in:
 
 - Each of their stylesheets is replaced, in its place, by the rules this page can use, in the page, so the page shows as soon as it arrives. The full stylesheet still loads, without holding up the page, so every rule applies again soon after, as before; browsers without JavaScript get it the usual way.
+- The full stylesheets wait until the page has loaded, or the visitor first moves, taps, scrolls or types, whichever comes first (#1426), so on a slow phone they no longer share the connection with the pictures and fonts the first screen needs: on four Kadence home pages, Lighthouse's mobile score rose by 4 to 8 points and its LCP fell by 0.5 to 1.2 s. Scripts that **Delay scripts until interaction** holds run only once they have loaded, as their classes may have no rules in the page. On pages with scripts that another plugin holds until interaction (LiteSpeed Cache's, WP Rocket's, Perfmatters' or WP Meteor's Delay JS), or whose content security policy blocks inline scripts, the full stylesheets load straight away, as before.
 - A rule is kept when the page has every class, ID and element it names. Classes, IDs and elements the page's scripts may add later count as present: every word in the page's scripts that could be a class name or ID (#1355: panels a script builds, such as Readabler's voice navigation, stay hidden), and every prefix a script builds class names from (`"kt-active-tab-" + n`), read once per version of each script from this site; and the classes Kadence's, Kadence Blocks' and Fluent Forms' scripts add (open menus and drawers, the sticky header, sliders, animations, tabs, accordions, dark mode, form errors, the phone field, dropdowns and date pickers). So those parts look right before the full stylesheets arrive (#1260).
 - Only stylesheets of the Kadence theme (and a child theme of it), the plugins SEO Pro Stack recommends that put stylesheets on pages (Kadence's, Fluent's and WPManageNinja's plugins, Tutor LMS and its Certificate Builder, AI Engine, Complianz, TranslatePress, WooCommerce and its recommended payment plugins, SliceWP, Rank Math, Code Block Pro, ICS Calendar, EventON Lite, Easy Video Reviews, Custom Feed for TikTok, Simple Cloudflare Turnstile, Syndication Links, Webmention, Burst Statistics, Secure Custom Fields and YellowPencil), their Pro add-ons, the plugins SEO Pro Stack works with (Readabler, IndieWeb, WP Grid Builder, SEO Pro Cookie Consent, SEO Pro Directory), SEO Pro Stack's own (such as its Iframe block's, when a block in the footer adds it too late for WordPress to put it in the page) and WordPress's block styles: the ones SEO Pro Stack recommends and tests. Other themes' and plugins' stylesheets are left as they are.
 - Two more render-blocking requests of the Kadence theme and Kadence Pro go too (#1218): the theme's local Google Fonts stylesheet (**Load Google Fonts locally**, `wp-content/fonts/…css`, handle `kadence-fonts-*`) loads without blocking like the others, and Kadence Pro's dark mode script (`kadence-dark-mode`, `dark-mode.min.js`) is printed in the page, in its place, still synchronous so the colour scheme is set before the first paint. The script is only inlined when it is a small file in Kadence Pro's folder, and, like the styles, not where a content security policy blocks inline scripts.
 - Everything is worked out on this server, with no cloud service or licence. Each stylesheet and script is read once per version into `uploads/seoprostack-used-css/`; then each page takes a few milliseconds more to build, once, before the page cache keeps it.
 - Turning it on or off, or changing its lists, empties LiteSpeed Cache's or WP-Optimize's page cache, and **Keep pages cached** fills it again; empty any other page cache yourself. It steps aside where LiteSpeed Cache combines CSS or makes its own unused or critical CSS, and on pages whose content security policy blocks inline styles or `onload` attributes (one sent by WordPress, a plugin or a `<meta>` tag; a policy the web server adds itself cannot be seen, so allow `'unsafe-inline'` there or leave this off).
-- **Troubleshooting**: **Leave these pages as they are** (part of an address, such as `/checkout`), and **Load these stylesheets as they are**, for a part that looks wrong for a moment while the page loads (a handle such as `kadence-header`, or part of an address such as `header.min.css`).
-- The page source ends with how many stylesheets were changed and how much CSS is in the page, for example `<!-- SEO Pro Stack Used CSS: 11 stylesheets, 41.0 KB of 187.7 KB in the page -->`.
+- **Troubleshooting**: **Leave these pages as they are** (part of an address, such as `/checkout`), **Load these stylesheets as they are**, for a part that looks wrong for a moment while the page loads (a handle such as `kadence-header`, or part of an address such as `header.min.css`), and **Load the full stylesheets once the page has loaded** (on by default), to switch off if a part looks wrong after the first move, tap or scroll.
+- The page source ends with how many stylesheets were changed and how much CSS is in the page, for example `<!-- SEO Pro Stack Used CSS: 11 stylesheets, 41.0 KB of 187.7 KB in the page, the full stylesheets once it has loaded -->`.
 - Developers: `seoprostack_used_css_classes` adds classes that scripts add later (`name`, or `prefix*`); `seoprostack_used_css_sources` adds folders, which are not tested or supported.
 
 On a test page with Kadence's header, Kadence Blocks rows, tabs and an accordion, and a Fluent Forms form, it took the stylesheets holding up the page from 11 to none (41 KB of their 188 KB in the page), and first paint under mobile throttling from 1.05 s to 0.82 s; screenshots with menus, the mobile drawer, tabs, the accordion and form errors open were identical to the page without it, even with the full stylesheets blocked.
@@ -2460,6 +2461,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.188
+
+- Faster: **Load the CSS each page uses first** loads the full stylesheets once the page has loaded, or when the visitor first moves, taps, scrolls or types, so on a slow phone the first screen's pictures and fonts arrive sooner. On four Kadence home pages, Lighthouse's mobile score rose by 4 to 8 points. Scripts held by **Delay scripts until interaction** wait for the full stylesheets. New troubleshooting switch **Load the full stylesheets once the page has loaded** (on) turns it off (#1426).
 
 ### 1.3.187
 
