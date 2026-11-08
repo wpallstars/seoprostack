@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.188-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.189-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.188
+Version: 1.3.189
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2471,6 +2471,12 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.189
+
+- Faster: with **WebP and AVIF images → Copies at their own addresses** on, pictures in blocks in posts and pages, block widgets and Kadence Elements offer the browser every size again, not only the one saved in the block. On one page that opens with a cover block, phones fetched its 2,048 px picture (241 KB) instead of the 768 px copy (21 KB) (#1436).
+- Faster: **Load the CSS each page uses first** also handles WP Grid Builder: its grid stylesheet waits like the others, and its Google Fonts are served from the site, as the Kadence theme serves its own, so neither holds up the first paint and visitors' addresses no longer go to Google. On a listings page with a grid, two of three Lighthouse mobile runs rose from 93 to 99 and 100 (#1434).
+- Fixed: **Image loading** no longer moves Kadence Blocks columns out of place when a column's background picture is the first on the page to wait to load. On one site, half its pages had a picture column 100 px below its text on desktop, and above it instead of below on phones (#1422).
 
 ### 1.3.188
 
