@@ -106,7 +106,7 @@ class SEOProStack_Maps_Later extends SEOProStack_Feature {
             return $pre;
         }
         ++self::$depth;
-        if (1 === self::$depth && is_array($block)) {
+        if (1 === self::$depth) {
             self::$opening = false;
             // Leave out the white space between blocks.
             if ((!empty($block['blockName']) || '' !== trim((string) ($block['innerHTML'] ?? ''))) && self::main_content()) {
@@ -152,10 +152,11 @@ class SEOProStack_Maps_Later extends SEOProStack_Feature {
         if (!$tags->next_tag(array('tag_name' => 'IFRAME'))) {
             return $iframe;
         }
-        $src     = $tags->get_attribute('src');
-        $loading = $tags->get_attribute('loading');
-        if (!is_string($src) || !self::is_map($src) || null !== $tags->get_attribute(self::SRC)
-            || (is_string($loading) && 'eager' === strtolower($loading)) || self::excluded($iframe)) {
+        $src = $tags->get_attribute('src');
+        // A map held by an inner block has no src when an outer block's
+        // render sees it, and it and its <noscript> copy have data-no-lazy.
+        if (!is_string($src) || !self::is_map($src) || 'eager' === strtolower((string) $tags->get_attribute('loading'))
+            || self::excluded($iframe)) {
             return $iframe;
         }
         $tags->set_attribute(self::SRC, $src);
@@ -184,7 +185,8 @@ class SEOProStack_Maps_Later extends SEOProStack_Feature {
      */
     public static function is_map($src) {
         $parts = wp_parse_url(trim($src));
-        if (!is_array($parts) || empty($parts['host']) || (isset($parts['scheme']) && !in_array(strtolower($parts['scheme']), array('http', 'https'), true))) {
+        // No scheme: a protocol-relative address.
+        if (!is_array($parts) || empty($parts['host']) || !in_array(strtolower($parts['scheme'] ?? 'https'), array('http', 'https'), true)) {
             return false;
         }
         if (!preg_match('/^(?:www\.|maps\.)?google\.(?:[a-z]{2,3}|com?\.[a-z]{2})$/', strtolower($parts['host']))) {
@@ -198,22 +200,16 @@ class SEOProStack_Maps_Later extends SEOProStack_Feature {
     }
 
     /**
-     * Whether the iframe has text that keeps it from lazy loading.
+     * Whether the iframe's tag has text that keeps it from lazy loading:
+     * Image loading's list (skip-lazy, no-lazy, data-skip-lazy,
+     * data-no-lazy, custom-logo and the site's own lines), whether or not
+     * Image loading is on.
      *
      * @param string $iframe The iframe.
      * @return bool
      */
     private static function excluded($iframe) {
-        $tag = (string) strstr($iframe, '>', true);
-        if (class_exists('SEOProStack_Image_Loading') && SEOProStack_Image_Loading::enabled()) {
-            return SEOProStack_Image_Loading::excluded($tag);
-        }
-        foreach (array('skip-lazy', 'no-lazy', 'data-skip-lazy', 'data-no-lazy') as $keyword) {
-            if (false !== strpos($tag, $keyword)) {
-                return true;
-            }
-        }
-        return false;
+        return SEOProStack_Image_Loading::excluded((string) strstr($iframe, '>', true));
     }
 
     /**
@@ -229,8 +225,8 @@ class SEOProStack_Maps_Later extends SEOProStack_Feature {
             || count(array_keys((array) $wp_current_filter, 'the_content', true)) !== 1) {
             return false;
         }
-        $post = get_post();
-        return $post instanceof WP_Post && get_queried_object_id() === (int) $post->ID;
+        // get_the_ID() is false without a post, and a singular page's ID is not 0.
+        return get_queried_object_id() === (int) get_the_ID();
     }
 
     /**
@@ -243,8 +239,8 @@ class SEOProStack_Maps_Later extends SEOProStack_Feature {
         if (null !== $view) {
             return $view;
         }
-        if (is_admin() || is_feed() || is_embed() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)
-            || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+        // boot() has already left out the admin.
+        if (is_feed() || is_embed() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || wp_is_json_request()) {
             // Not stored: the request type does not change, but these are cheap.
             return false;
         }
