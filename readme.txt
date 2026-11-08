@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: with Kadence, Bookly's booking form stylesheets stay at the end of the page (#1417).
+
 = 1.3.185 =
 * Faster: only the pictures of the block a page opens with load straight away; pictures further down stay lazy (#1412).
 * Faster: Bookly's booking form files load at the end of the page, not in the head (#1414).

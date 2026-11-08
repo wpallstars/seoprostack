@@ -2461,6 +2461,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fixed: with a classic theme such as Kadence, Bookly's booking form stylesheets went back to the head after 1.3.185, because WordPress 6.9 and later moves styles added late in the page to the head. They are now printed at the end of the page, after the footer scripts, and still load before Bookly fills the form (#1417).
+
 ### 1.3.185
 
 - Faster: **Image loading** lets only the pictures of the block a post or page opens with load straight away, not the first three in content order. On Kadence home pages that open with a background hero, a heading band or a text row, pictures of a posts grid, portfolio, gallery or footer 900 to 17,000 px down were eager and added 23 to 220 KB; on one page the largest started before the hero (the LCP). Now the pictures of the opening block (or the row after a heading band) use the **Load straight away** budget; when the opening block's background picture is preloaded, no other picture loads straight away; when the opening block has no picture, the first picture of the next block may. Others stay lazy, and core's high priority is taken off them. Posts without blocks, archives, **Never lazy-load pictures containing**, an explicit `fetchpriority="high"` and featured images work as before (#1412).

@@ -10,9 +10,14 @@
  * once document.readyState is "complete" (its start-up script, in
  * frontend/modules/booking/templates/short_code.php), so nothing needs
  * those files before the first paint. Here its scripts go to the footer and
- * its styles are enqueued again in the footer, where WordPress prints them
- * (print_late_styles()) before the footer scripts, so the form's CSS is in
- * place before its script fills it.
+ * its styles are printed straight after the footer scripts. The page's load
+ * event, and so readyState "complete", waits for those stylesheets too, so
+ * the form's CSS is in place before its script fills it.
+ *
+ * They are printed, not enqueued again: with a classic theme such as
+ * Kadence, WordPress 6.9 and later (wp_hoist_late_printed_styles()) moves
+ * styles enqueued late back to the end of the head, where they would hold
+ * up the first paint again (GitHub issue #1417).
  *
  * Only where every Bookly shortcode in the page's posts is a booking form
  * and the content has no Bookly blocks: Bookly's other shortcodes, such as
@@ -64,6 +69,20 @@ class SEOProStack_Bookly_Assets {
                 $scripts->add_data($handle, 'group', 1);
             }
         }
+        self::hold();
+        $footer = has_action('wp_footer', 'wp_print_footer_scripts');
+        $footer = false === $footer ? 20 : (int) $footer;
+        // Bookly may enqueue its styles again while the form renders: take
+        // them off once more before the footer scripts, where late styles are
+        // printed (or, with a classic theme, captured for the head).
+        add_action('wp_footer', array(__CLASS__, 'hold'), $footer - 1);
+        add_action('wp_footer', array(__CLASS__, 'styles'), $footer + 1);
+    }
+
+    /**
+     * Take Bookly's styles off the queue, to print in the footer.
+     */
+    public static function hold() {
         $styles = wp_styles();
         foreach ($styles->queue as $handle) {
             $style = isset($styles->registered[$handle]) ? $styles->registered[$handle] : null;
@@ -72,18 +91,15 @@ class SEOProStack_Bookly_Assets {
                 wp_dequeue_style($handle);
             }
         }
-        if (self::$styles) {
-            // Before wp_print_footer_scripts (priority 20) prints late styles.
-            add_action('wp_footer', array(__CLASS__, 'styles'), 1);
-        }
+        self::$styles = array_values(array_unique(self::$styles));
     }
 
     /**
-     * Enqueue the styles again, for print_late_styles().
+     * Print the styles, after the footer scripts.
      */
     public static function styles() {
-        foreach (self::$styles as $handle) {
-            wp_enqueue_style($handle);
+        if (self::$styles) {
+            wp_styles()->do_items(self::$styles);
         }
     }
 
