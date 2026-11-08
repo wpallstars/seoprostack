@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.186
+Stable tag: 1.3.187
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,10 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.187 =
 * Faster: a Kadence row further down no longer counts as the block a page opens with, so its pictures stay lazy (#1420).
-
-= 1.3.186 =
-* Fixed: with Kadence, Bookly's booking form stylesheets stay at the end of the page (#1417).
 
 Older: `changelog.txt`.
