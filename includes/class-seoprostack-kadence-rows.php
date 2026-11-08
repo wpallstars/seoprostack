@@ -34,9 +34,11 @@
  * picture has smaller copies (SEOProStack_Hero_Picture), the script sets
  * the narrowest copy at least the painted pixels × DPR × 1.1 as the row
  * comes near, and a larger one if it grows, never a smaller one. Columns
- * with a background picture wait and are sized the same way; their script
- * sits inside the column, as Kadence places columns with
- * :nth-child(… of *:not(style)). Left as before: sizes other than cover
+ * with a background picture wait and are sized the same way; their script,
+ * and the loader when a column's comes first on the page, sit inside the
+ * column, as Kadence places columns with :nth-child(… of *:not(style)) and
+ * a script among them moved each column to the next one's place (GH#1422).
+ * Left as before: sizes other than cover
  * and contain, fixed and parallax pictures, rows with tablet, phone or
  * dynamic backgrounds, columns with a hover change, and overlays.
  *
@@ -130,7 +132,8 @@ class SEOProStack_Kadence_Rows {
      * Around a Kadence Blocks column with a background picture on a
      * front-end page (GH#1341): a style before it that keeps the picture
      * waiting, and inside it, after its inner column, the script that has it
-     * watched and sized.
+     * watched and sized. When it is the page's first, the loader (script())
+     * goes first inside it, never before it (GH#1422).
      *
      * @param mixed $html  Block HTML.
      * @param array $block Parsed block.
@@ -161,14 +164,25 @@ class SEOProStack_Kadence_Rows {
         if (!apply_filters('seoprostack_kadence_column_wait', true, $block)) {
             return $html;
         }
-        $before = self::style($id, true);
+        // Where the column's own tag ends: anything printed before it would
+        // sit in the row's column grid, where Kadence places columns with
+        // :nth-child(… of *:not(style)) and counts every other element
+        // (GH#1422).
+        if (!preg_match('/<div\b[^>]*["\s]kadence-column' . $id . '(?=["\s])[^>]*>/', $html, $tag, PREG_OFFSET_CAPTURE) || $tag[0][1] + strlen($tag[0][0]) > $end) {
+            return $html;
+        }
+        $open   = $tag[0][1] + strlen($tag[0][0]);
+        $loader = '';
         if (!self::$script) {
+            // The loader goes first in the column, before its inner column,
+            // so it runs before the inner column's picture is styled.
             self::$script = true;
-            $before      .= self::script();
+            $loader       = self::script();
         }
         $picture = self::column_sizable($attrs, $image) ? self::picture($image['bgImgID'] ?? 0, $image['bgImg'] ?? '', $block) : null;
-        // The script goes last in the column (its last </div> closes it).
-        return $before . substr($html, 0, $end) . self::call($id, $picture, true) . substr($html, $end);
+        // The call goes last in the column (its last </div> closes it).
+        return self::style($id, true) . substr($html, 0, $open) . $loader . substr($html, $open, $end - $open)
+            . self::call($id, $picture, true) . substr($html, $end);
     }
 
     /**
