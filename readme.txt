@@ -154,6 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Faster: a Kadence row further down no longer counts as the block a page opens with, so its pictures stay lazy (#1420).
+
 = 1.3.186 =
 * Fixed: with Kadence, Bookly's booking form stylesheets stay at the end of the page (#1417).
 

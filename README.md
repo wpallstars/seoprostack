@@ -2461,6 +2461,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Faster: **Image loading** no longer lets a Kadence row further down a page count as the block the page opens with. When a page opened with a background-picture hero and a heading row, a later row of the same shape could take the hero's place, so on one home page two gallery pictures 1,800 px down loaded straight away (73 KB). Now each of the first blocks takes its own place, and Kadence blocks must have the same ID (#1420).
+
 ### 1.3.186
 
 - Fixed: with a classic theme such as Kadence, Bookly's booking form stylesheets went back to the head after 1.3.185, because WordPress 6.9 and later moves styles added late in the page to the head. They are now printed at the end of the page, after the footer scripts, and still load before Bookly fills the form (#1417).
