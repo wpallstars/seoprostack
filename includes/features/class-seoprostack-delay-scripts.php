@@ -187,7 +187,10 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
     }
 
     /**
-     * Loader: run held scripts in order after interaction or the time limit.
+     * Loader: run held scripts in order after interaction or the time limit,
+     * once Used CSS's full stylesheets have loaded where they wait for the
+     * page (window.seoprostackCss, SEOProStack_Used_Css_Page): held scripts
+     * may add classes whose rules only those have.
      *
      * @return string
      */
@@ -196,7 +199,8 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
         return sprintf(
             '(function(){var done=false,events=["mousemove","mousedown","keydown","touchstart","wheel","scroll"];'
             . 'function run(){if(done)return;done=true;events.forEach(function(e){removeEventListener(e,run,{passive:true});});'
-            . 'var list=[].slice.call(document.querySelectorAll(\'script[type="%1$s"]\'));'
+            . 'var css=window.seoprostackCss;if(css)css().then(start);else start();}'
+            . 'function start(){var list=[].slice.call(document.querySelectorAll(\'script[type="%1$s"]\'));'
             . '(function next(){var old=list.shift();if(!old)return;var s=document.createElement("script");'
             . '[].forEach.call(old.attributes,function(a){if(a.name!=="type"&&a.name!=="data-seoprostack-src"&&a.name!=="data-seoprostack-type")s.setAttribute(a.name,a.value);});'
             . 'var t=old.getAttribute("data-seoprostack-type");if(t)s.type=t;var src=old.getAttribute("data-seoprostack-src");'

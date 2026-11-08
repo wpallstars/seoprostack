@@ -18,7 +18,9 @@
  *   the cascade is as before (SEOProStack_Used_Css_Sheet reads each
  *   stylesheet once per version);
  * - the link itself, loaded without blocking (media="print", switched back
- *   once loaded), so every rule applies again soon after, as before;
+ *   once loaded), so every rule applies again soon after, as before; with
+ *   LATER_KEY (on by default) only once the page has loaded or the visitor
+ *   first interacts (SEOProStack_Used_Css_Page);
  * - a `<noscript>` copy for browsers without JavaScript.
  * A rule is used when the page has every class, ID and element one of its
  * selectors names; classes and elements the page's scripts may add after
@@ -64,6 +66,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
     const KEY         = 'used_css';
     const EXCLUDE_KEY = 'used_css_exclude';
     const KEEP_KEY    = 'used_css_keep';
+    const LATER_KEY   = 'used_css_later';
 
     /**
      * Settings.
@@ -78,6 +81,14 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
                 'tab'         => 'speed',
                 'label'       => __('Load the CSS each page uses first', 'seoprostack'),
                 'description' => __('For the Kadence theme, the plugins SEO Pro Stack recommends (Kadence Blocks, Fluent Forms, Tutor LMS and others) and WordPress’s block styles: each page gets the CSS rules it uses, in the page, and their full stylesheets load without holding up its first paint, so pages show sooner and speed scores rise. Worked out on this server, once for each version of a stylesheet, with no cloud service. Turning it on or off empties LiteSpeed Cache’s or WP-Optimize’s page cache; empty any other page cache yourself. The Kadence theme’s local Google Fonts stylesheet loads without blocking, and Kadence Pro’s dark mode script goes into the page. Check pages with menus, tabs and forms after turning it on.', 'seoprostack'),
+            ),
+            self::LATER_KEY   => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
+                'label'       => __('Load the full stylesheets once the page has loaded', 'seoprostack'),
+                'description' => __('If part of a page looks wrong after the visitor first moves, taps or scrolls, switch this off: the full stylesheets then load straight away, as the page does. While on, they wait until the page has loaded or the visitor first moves, taps, scrolls or types, so on a slow phone the pictures and fonts the first screen needs arrive sooner. Scripts that Delay scripts holds wait for them.', 'seoprostack'),
             ),
             self::EXCLUDE_KEY => array(
                 'type'        => 'lines',
@@ -129,7 +140,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
      */
     public static function settings_changed($old, $new) {
         $changed = false;
-        foreach (array(self::KEY, self::EXCLUDE_KEY, self::KEEP_KEY) as $key) {
+        foreach (array(self::KEY, self::EXCLUDE_KEY, self::KEEP_KEY, self::LATER_KEY) as $key) {
             $before  = isset($old[$key]) ? $old[$key] : null;
             $after   = isset($new[$key]) ? $new[$key] : null;
             $changed = $changed || $before != $after; // phpcs:ignore Universal.Operators.StrictComparisons -- stored as text or true/false.
