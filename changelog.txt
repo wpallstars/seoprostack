@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.186 =
 * Fixed: with a classic theme such as Kadence, Bookly's booking form stylesheets went back to the head after 1.3.185 (GitHub issue #1417). SEOProStack_Bookly_Assets (#1414) dequeued them and enqueued them again on wp_footer (priority 1), for print_late_styles(); but WordPress 6.9 and later, with a classic theme, hooks wp_hoist_late_printed_styles() (wp-includes/script-loader.php, from wp_load_classic_theme_block_styles_on_demand()), which captures late styles at wp_print_footer_scripts and inserts them before </head> through the template enhancement output buffer. On one Kadence site's home page (8 November 2026, 1.3.185, Bookly 28.7) the scripts were in the footer but the 7 stylesheets (tailwind.css, ladda.min.css, frontend-reset.css, modern-booking-form-calendar.css, bootstrap-icons.min.css, intlTelInput.css, bookly-main.css) printed last in the head; the #1414 test site used a block theme, where core does not hoist, and with Kadence active it showed the same 7. SEOProStack_Bookly_Assets::move() now calls new hold(), which takes queued Bookly styles off the queue, and hooks it again on wp_footer just before wp_print_footer_scripts (its priority, 20 by default, minus one) in case Bookly enqueues them again while the form renders; styles() runs just after it (plus one) and prints them with wp_styles()->do_items(), so core's capture never sees them. The page's load event waits for those stylesheets and Bookly's start-up script waits for document.readyState "complete", so the form's CSS is still in place before its script fills it.
 
 = 1.3.185 =
