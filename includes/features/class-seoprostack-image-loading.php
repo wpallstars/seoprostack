@@ -400,21 +400,21 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             return $content;
         }
         self::$marking = true;
-        if (false === stripos($content, '<img')) {
-            return $content;
-        }
+        // Each leading block takes its place when it renders, with or without
+        // a picture: a hero row whose picture is a CSS background, and a
+        // heading row after it, have no <img>, and a later row of the same
+        // shape (Kadence rows save no HTML of their own) would otherwise take
+        // their place and its pictures load straight away (GH#1420).
         $kind = '';
         foreach (self::leading($post) as $position => $lead) {
-            if (!empty(self::$matched[$post->ID][$position]) || ($block['blockName'] ?? null) !== ($lead['blockName'] ?? null)
-                || ($block['innerContent'] ?? null) !== ($lead['innerContent'] ?? null)
-                || count((array) ($block['innerBlocks'] ?? array())) !== count((array) ($lead['innerBlocks'] ?? array()))) {
+            if (!empty(self::$matched[$post->ID][$position]) || !self::same_block($block, $lead)) {
                 continue;
             }
             self::$matched[$post->ID][$position] = true;
             $kind = self::opening_block($post) === $lead ? 'opening' : 'near';
             break;
         }
-        if ('' === $kind) {
+        if ('' === $kind || false === stripos($content, '<img')) {
             return $content;
         }
         $tags = new WP_HTML_Tag_Processor($content);
@@ -422,6 +422,26 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             $tags->set_attribute(self::OPENING, $kind);
         }
         return $tags->get_updated_html();
+    }
+
+    /**
+     * Whether a block being rendered is a given leading block: the same name,
+     * saved HTML and number of inner blocks, and the same uniqueID when both
+     * have one (Kadence Blocks gives each block its own).
+     *
+     * @param array $block Block being rendered.
+     * @param array $lead  Leading block (leading()).
+     * @return bool
+     */
+    private static function same_block(array $block, array $lead) {
+        if (($block['blockName'] ?? null) !== ($lead['blockName'] ?? null)
+            || ($block['innerContent'] ?? null) !== ($lead['innerContent'] ?? null)
+            || count((array) ($block['innerBlocks'] ?? array())) !== count((array) ($lead['innerBlocks'] ?? array()))) {
+            return false;
+        }
+        $id   = $block['attrs']['uniqueID'] ?? null;
+        $lead = $lead['attrs']['uniqueID'] ?? null;
+        return !is_string($id) || !is_string($lead) || $id === $lead;
     }
 
     /**
