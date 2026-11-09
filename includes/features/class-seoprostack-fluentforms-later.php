@@ -83,6 +83,15 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
     /** @var array<string,string>|null Handles held this request => 'late' or '' (decided at the first one). */
     private static $held = null;
 
+    /** @var int Output buffer level of the wp_head capture; -1 when none is open. */
+    private static $head_level = -1;
+
+    /** @var string The <meta> tags in wp_head that mention a content security policy. */
+    private static $head_metas = '';
+
+    /** @var bool Whether the head could not be read (another buffer was open in it). */
+    private static $head_unread = false;
+
     /** @var bool Whether a script was held. */
     private static $printed = false;
 
@@ -113,8 +122,67 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentforms-scripts.php';
         add_filter('script_loader_tag', array(__CLASS__, 'tag'), 10, 2);
+        // Read the head's <meta> policies, which headers_list() does not show.
+        // get_header runs before header.php, so <meta> tags printed before wp_head() are read too.
+        add_action('get_header', array(__CLASS__, 'head_start'), 0);
+        add_action('wp_head', array(__CLASS__, 'head_start'), 0);
+        add_action('wp_head', array(__CLASS__, 'head_end'), PHP_INT_MAX);
         // After WordPress prints the footer scripts (20).
         add_action('wp_footer', array(__CLASS__, 'loader'), 99);
+    }
+
+    /**
+     * Start collecting what wp_head prints, to find a <meta> content
+     * security policy in it.
+     */
+    public static function head_start() {
+        if (self::$head_level < 0 && ob_start()) {
+            self::$head_level = ob_get_level();
+        }
+    }
+
+    /**
+     * Print what wp_head printed, keeping its <meta> tags for page_view().
+     */
+    public static function head_end() {
+        if (self::$head_level < 1) {
+            return;
+        }
+        if (ob_get_level() !== self::$head_level) {
+            // Another callback's buffer is open above ours (it may transform
+            // the body): leave every buffer as it is, and hold nothing, as
+            // the head's policy cannot be read.
+            self::$head_unread = true;
+            self::$head_level  = -1;
+            return;
+        }
+        $head             = (string) ob_get_clean();
+        self::$head_metas = self::policy_metas($head);
+        self::$head_level = -1;
+        echo $head; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- what the head printed, unchanged.
+    }
+
+    /**
+     * The content security policy <meta> tags among real elements of the
+     * HTML (not comments or script text), as plain tags.
+     *
+     * @param string $html Head HTML.
+     * @return string
+     */
+    private static function policy_metas($html) {
+        if (false === stripos($html, 'content-security-policy')) {
+            return '';
+        }
+        $out  = '';
+        $tags = new WP_HTML_Tag_Processor($html);
+        while ($tags->next_tag(array('tag_name' => 'META'))) {
+            $equiv = $tags->get_attribute('http-equiv');
+            if (is_string($equiv) && 'content-security-policy' === strtolower(trim($equiv))) {
+                $content = $tags->get_attribute('content');
+                $out    .= '<meta http-equiv="Content-Security-Policy" content="' . esc_attr(is_string($content) ? $content : '') . '">';
+            }
+        }
+        return $out;
     }
 
     /**
@@ -222,12 +290,12 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
      * @return bool
      */
     private static function page_view() {
-        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login() || self::opening_form()) {
+        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login() || self::$head_unread || self::opening_form()) {
             return false;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
-        // A policy that blocks the loader would leave the forms without their scripts.
-        if (!SEOProStack_Used_Css_Policy::allows('', true)) {
+        // A policy (header or head <meta>) that blocks the loader would leave the forms without their scripts.
+        if (!SEOProStack_Used_Css_Policy::allows(self::$head_metas . '</head>', true)) {
             return false;
         }
         /**
