@@ -8338,7 +8338,6 @@ msgstr "Zurück zur Anmeldeseite"
 msgid "[%s] Your login link"
 msgstr "[%s] Ihr Anmeldelink"
 
-# machine translation
 #. translators: 1: site name, 2: login link, 3: minutes until expiry
 #: includes/features/class-seoprostack-magic-login.php:408
 #, php-format
@@ -8352,14 +8351,14 @@ msgid ""
 "\n"
 "If this wasn't you, ignore this email. Your account is safe and your password has not changed."
 msgstr ""
-"Jemand hat Sie gebeten \n"
-" sich mit dieser E %2$s Mail \n"
-" Adresse bei %1$s anzumelden. \n"
-" sich anzumelden, öffnen Sie diesen Link und klicken Sie auf „Anmelden“: Der Link ist \n"
-" einmal gültig und läuft in %3$d Minuten ab. Falls Sie dies nicht waren \n"
-" ignorieren Sie diese E-Mail. Ihr Konto \n"
+"Jemand hat darum gebeten, sich mit dieser E-Mail-Adresse bei %1$s anzumelden.\n"
 "\n"
-" und Ihr Passwort wurde nicht geändert."
+"Um sich anzumelden, öffnen Sie diesen Link und klicken Sie auf „Anmelden“:\n"
+"%2$s\n"
+"\n"
+"Der Link ist einmal gültig und läuft in %3$d Minuten ab.\n"
+"\n"
+"Falls Sie das nicht waren, ignorieren Sie diese E-Mail. Ihr Konto ist sicher und Ihr Passwort wurde nicht geändert."
 
 # machine translation
 #. translators: %s: site name
