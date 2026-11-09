@@ -89,6 +89,9 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
     /** @var string The <meta> tags in wp_head that mention a content security policy. */
     private static $head_metas = '';
 
+    /** @var bool Whether the head could not be read (another buffer was open in it). */
+    private static $head_unread = false;
+
     /** @var bool Whether a script was held. */
     private static $printed = false;
 
@@ -120,6 +123,8 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentforms-scripts.php';
         add_filter('script_loader_tag', array(__CLASS__, 'tag'), 10, 2);
         // Read the head's <meta> policies, which headers_list() does not show.
+        // get_header runs before header.php, so <meta> tags printed before wp_head() are read too.
+        add_action('get_header', array(__CLASS__, 'head_start'), 0);
         add_action('wp_head', array(__CLASS__, 'head_start'), 0);
         add_action('wp_head', array(__CLASS__, 'head_end'), PHP_INT_MAX);
         // After WordPress prints the footer scripts (20).
@@ -143,18 +148,41 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
         if (self::$head_level < 1) {
             return;
         }
-        // Close buffers another callback left open inside ours, keeping what they hold.
-        while (ob_get_level() > self::$head_level) {
-            ob_end_flush();
+        if (ob_get_level() !== self::$head_level) {
+            // Another callback's buffer is open above ours (it may transform
+            // the body): leave every buffer as it is, and hold nothing, as
+            // the head's policy cannot be read.
+            self::$head_unread = true;
+            self::$head_level  = -1;
+            return;
         }
-        if (ob_get_level() === self::$head_level) {
-            $head = (string) ob_get_clean();
-            if (false !== stripos($head, 'content-security-policy') && preg_match_all('/<meta\b[^>]*>/i', $head, $metas)) {
-                self::$head_metas = implode('', $metas[0]);
-            }
-            echo $head; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- what wp_head printed, unchanged.
-        }
+        $head             = (string) ob_get_clean();
+        self::$head_metas = self::policy_metas($head);
         self::$head_level = -1;
+        echo $head; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- what the head printed, unchanged.
+    }
+
+    /**
+     * The content security policy <meta> tags among real elements of the
+     * HTML (not comments or script text), as plain tags.
+     *
+     * @param string $html Head HTML.
+     * @return string
+     */
+    private static function policy_metas($html) {
+        if (false === stripos($html, 'content-security-policy')) {
+            return '';
+        }
+        $out  = '';
+        $tags = new WP_HTML_Tag_Processor($html);
+        while ($tags->next_tag(array('tag_name' => 'META'))) {
+            $equiv = $tags->get_attribute('http-equiv');
+            if (is_string($equiv) && 'content-security-policy' === strtolower(trim($equiv))) {
+                $content = $tags->get_attribute('content');
+                $out    .= '<meta http-equiv="Content-Security-Policy" content="' . esc_attr(is_string($content) ? $content : '') . '">';
+            }
+        }
+        return $out;
     }
 
     /**
@@ -262,7 +290,7 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
      * @return bool
      */
     private static function page_view() {
-        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login() || self::opening_form()) {
+        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login() || self::$head_unread || self::opening_form()) {
             return false;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
