@@ -701,6 +701,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Create the claim index table.
+     *
+     * @return bool Whether the table exists.
+     */
+    private static function create_claims_table() {
+        global $wpdb;
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        $table = $wpdb->prefix . self::CLAIMS;
+        dbDelta("CREATE TABLE {$table} (
+            claim binary(16) NOT NULL,
+            post_id bigint(20) unsigned NOT NULL,
+            PRIMARY KEY  (claim,post_id),
+            KEY post_id (post_id)
+        ) {$wpdb->get_charset_collate()};");
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
+        return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+    }
+
+    /**
      * Create the claim index and fill it from every stored inventory, in
      * bounded steps. Changes during the build are indexed as they are saved,
      * so a build another version started goes on from its cursor.
@@ -709,23 +728,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $budget Seconds for this step.
      */
     private static function build_claims($start, $budget) {
-        global $wpdb;
         $state = get_option(self::CLAIMS_STATE, array());
         $state = is_array($state) ? $state : array();
         if ((int) ($state['retry'] ?? 0) > time()) {
             return;
         }
         if (self::CLAIMS_SCHEMA !== ($state['schema'] ?? '')) {
-            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-            $table = $wpdb->prefix . self::CLAIMS;
-            dbDelta("CREATE TABLE {$table} (
-                claim binary(16) NOT NULL,
-                post_id bigint(20) unsigned NOT NULL,
-                PRIMARY KEY  (claim,post_id),
-                KEY post_id (post_id)
-            ) {$wpdb->get_charset_collate()};");
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+            if (!self::create_claims_table()) {
                 self::claims_failed();
                 return;
             }
