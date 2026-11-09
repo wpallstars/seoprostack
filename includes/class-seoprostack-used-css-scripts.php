@@ -17,7 +17,9 @@
  * may have arrived: each `<script>` on the page with no type, a JavaScript
  * type (Cloudflare Rocket Loader's `…-text/javascript` too) or `module`,
  * by its file on this site (`src`, read once per version into a cache file
- * next to the stylesheets', SEOProStack_Used_Css_Sheet) or its inline code.
+ * next to the stylesheets', SEOProStack_Used_Css_Sheet) or its inline code;
+ * and Fluent Forms' scripts that wait until a form comes near
+ * (`seoprostack/near`, GH#1428), which can still run before them.
  * Scripts that wait for a click, a key or consent (`seoprostack/delayed`,
  * `litespeed/javascript`, `text/plain`) run after the full stylesheets, so
  * their words would only make the page heavier: on one test page, the
@@ -72,6 +74,9 @@ final class SEOProStack_Used_Css_Scripts {
     /** Script types that run as the page loads; no type does too. */
     const RUNS = '#^(?:module|(?:.*-)?(?:text|application)/(?:x-)?(?:java|ecma)script)$#i';
 
+    /** Scripts that run when the part of the page they serve comes near (SEOProStack_Fluentforms_Later): their address is in data-seoprostack-src. */
+    const NEAR = 'seoprostack/near';
+
     /**
      * Script files read on this request: file => names and prefixes.
      *
@@ -114,10 +119,16 @@ final class SEOProStack_Used_Css_Scripts {
         $files  = array();
         foreach ($scripts as $m) {
             $attrs = SEOProStack_Used_Css_Links::attributes('<script' . $m[1] . '>');
-            if (isset($attrs['type']) && '' !== trim($attrs['type']) && !preg_match(self::RUNS, trim($attrs['type']))) {
+            $type  = isset($attrs['type']) ? trim($attrs['type']) : '';
+            // Fluent Forms' scripts held until a form comes near can run
+            // before the full stylesheets, as a form near the first screen
+            // loads them at once (SEOProStack_Fluentforms_Later, GH#1428).
+            $near = self::NEAR === $type;
+            if ('' !== $type && !$near && !preg_match(self::RUNS, $type)) {
                 continue; // Waits for the visitor, or is data.
             }
-            $file = isset($attrs['src']) ? SEOProStack_Used_Css_Links::script_file($attrs['src']) : '';
+            $src  = $near ? ($attrs['data-seoprostack-src'] ?? null) : ($attrs['src'] ?? null);
+            $file = null !== $src ? SEOProStack_Used_Css_Links::script_file($src) : '';
             if ('' !== $file) {
                 $files[$file] = true;
             } elseif (strlen($inline) < self::MAX_INLINE) {
