@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.189
+Stable tag: 1.3.190
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,8 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.189 =
-* Faster: Copies at their own addresses offers every size of block pictures; Load the CSS each page uses first covers WP Grid Builder (#1436, #1434).
-* Fixed: Image loading keeps Kadence columns in place (#1422).
+= 1.3.190 =
+* New: Google Maps and Fluent Forms load when near (#1297, #1428).
+* Faster: cloud uploads after updates; WooCommerce Coming soon fonts (#1445, #1447).
+* Fixed: integrity checks skip harmless .php files (#1441).
 
 Older: `changelog.txt`.
