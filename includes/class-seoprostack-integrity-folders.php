@@ -244,31 +244,25 @@ class SEOProStack_Integrity_Folders {
      * @return bool
      */
     private static function halts($head) {
-        $next = array('(', ')', ';');
-        $step = -1; // -1 before __halt_compiler, then the index into $next.
+        // From __halt_compiler on, the first four tokens that are not
+        // whitespace or comments (token ids for arrays).
+        $seen = array();
         foreach (token_get_all($head) as $token) {
-            if (is_array($token) && in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
+            $id = is_array($token) ? $token[0] : $token;
+            if (in_array($id, array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
                 continue;
             }
-            if (-1 === $step) {
-                if (is_array($token) && T_HALT_COMPILER === $token[0]) {
-                    $step = 0;
-                } elseif (!self::quiet($token)) {
-                    return false;
-                }
+            if (!$seen && T_HALT_COMPILER !== $id && self::quiet($token)) {
                 continue;
             }
-            if (2 === $step && is_array($token) && T_CLOSE_TAG === $token[0]) {
-                return true; // A close tag ends the statement, as `;` does.
-            }
-            if ($next[$step] !== $token) {
-                return false;
-            }
-            if (2 === $step++) {
-                return true;
+            $seen[] = $id;
+            if (4 === count($seen)) {
+                break;
             }
         }
-        return false;
+        // A close tag ends the statement, as `;` does.
+        return 4 === count($seen) && array(T_HALT_COMPILER, '(', ')') === array_slice($seen, 0, 3)
+            && in_array($seen[3], array(';', T_CLOSE_TAG), true);
     }
 
     /**
