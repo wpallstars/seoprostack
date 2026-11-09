@@ -158,7 +158,10 @@ class SEOProStack_Integrity_Folders {
      * Whether an uploaded PHP file cannot run code: a small file holding only
      * comments, whitespace and exit, or a "403 Forbidden" stub; or a file of
      * any size up to MAX_GUARDED_FILE that exits on its first line and has no
-     * other PHP open tag (the logs Code Profiler Pro and MC4WP write).
+     * other PHP open tag (the logs Code Profiler Pro and MC4WP write), that
+     * has no PHP open tag at all (PHP prints it as text: WP Mailster's
+     * wpmst.log.php), or whose first statement is __halt_compiler() (PHP
+     * stops parsing there: All In One Security's firewall settings).
      *
      * @param string $file Path.
      * @return bool
@@ -174,6 +177,10 @@ class SEOProStack_Integrity_Folders {
             return false; // Unreadable here (such as another user's 0600 file) but perhaps not to the web server: report it.
         }
         if (strlen($head) <= self::SMALL_FILE && (self::only_quiet($head) || self::forbidden_stub($head))) {
+            return true;
+        }
+        // No `<?` in the start, then none in the rest (read in parts): plain text.
+        if (self::halts($head) || (false === strpos($head, '<?') && !self::open_tag_after($file, 0))) {
             return true;
         }
         $end = self::guard_end($head);
@@ -225,6 +232,37 @@ class SEOProStack_Integrity_Folders {
             }
         }
         return null;
+    }
+
+    /**
+     * Whether a file's first statement is __halt_compiler(): quiet tokens,
+     * then __halt_compiler, `(`, `)` and `;` or a close tag, with only
+     * whitespace or comments between them. PHP parses nothing after it, so
+     * whatever follows (JSON settings, even another open tag) is data.
+     *
+     * @param string $head The file's start.
+     * @return bool
+     */
+    private static function halts($head) {
+        // From __halt_compiler on, the first four tokens that are not
+        // whitespace or comments (token ids for arrays).
+        $seen = array();
+        foreach (token_get_all($head) as $token) {
+            $id = is_array($token) ? $token[0] : $token;
+            if (in_array($id, array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
+                continue;
+            }
+            if (!$seen && T_HALT_COMPILER !== $id && self::quiet($token)) {
+                continue;
+            }
+            $seen[] = $id;
+            if (4 === count($seen)) {
+                break;
+            }
+        }
+        // A close tag ends the statement, as `;` does.
+        return 4 === count($seen) && array(T_HALT_COMPILER, '(', ')') === array_slice($seen, 0, 3)
+            && in_array($seen[3], array(';', T_CLOSE_TAG), true);
     }
 
     /**
