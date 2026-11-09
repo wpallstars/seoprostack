@@ -171,11 +171,26 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      */
     public static function html_view() {
         $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-        if ('GET' !== $method || is_preview() || is_customize_preview() || is_feed() || is_embed() || is_robots() || is_trackback()) {
-            return false;
-        }
-        return !(wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST)
-            || (function_exists('amp_is_request') && amp_is_request()));
+        return 'GET' === $method && !self::special_view() && !self::special_request();
+    }
+
+    /**
+     * Whether this is a preview, feed, embed, robots.txt or trackback.
+     *
+     * @return bool
+     */
+    private static function special_view() {
+        return is_preview() || is_customize_preview() || is_feed() || is_embed() || is_robots() || is_trackback();
+    }
+
+    /**
+     * Whether this is an AJAX, REST, JSON or AMP request.
+     *
+     * @return bool
+     */
+    private static function special_request() {
+        return wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST)
+            || (function_exists('amp_is_request') && amp_is_request());
     }
 
     /**
@@ -393,27 +408,39 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         if (preg_match_all('#<link\b[^>]*>#i', $html, $links)) {
             $files = array();
             foreach ($links[0] as $tag) {
-                $attrs = SEOProStack_Used_Css_Links::attributes($tag);
-                $href  = isset($attrs['href']) ? trim($attrs['href']) : '';
-                if ('' === $href) {
-                    continue;
-                }
-                $google = self::google_fonts($href);
-                if ($google) {
-                    $names = array_merge($names, $google);
-                    continue;
-                }
-                $file = self::font_file($href);
-                if ('' !== $file && !isset($files[$file]) && count($files) < self::MAX_FILES) {
-                    $files[$file] = true;
-                    $size         = (int) filesize($file);
-                    if ($size > 0 && $size <= self::MAX_BYTES) {
-                        $names = array_merge($names, self::font_faces((string) file_get_contents($file))); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local stylesheet.
-                    }
-                }
+                $names = array_merge($names, self::link_families($tag, $files));
             }
         }
         return $names;
+    }
+
+    /**
+     * The families a <link> declares: a Google Fonts stylesheet's, or the
+     * @font-face rules of a font stylesheet on this site.
+     *
+     * @param string $tag   The <link> tag.
+     * @param array  $files Font stylesheets read so far (path => true).
+     * @return string[]
+     */
+    private static function link_families($tag, array &$files) {
+        $attrs = SEOProStack_Used_Css_Links::attributes($tag);
+        $href  = isset($attrs['href']) ? trim($attrs['href']) : '';
+        if ('' === $href) {
+            return array();
+        }
+        $google = self::google_fonts($href);
+        if ($google) {
+            return $google;
+        }
+        $file = self::font_file($href);
+        if ('' === $file || isset($files[$file]) || count($files) >= self::MAX_FILES) {
+            return array();
+        }
+        $files[$file] = true;
+        $size         = (int) filesize($file);
+        return $size > 0 && $size <= self::MAX_BYTES
+            ? self::font_faces((string) file_get_contents($file)) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local stylesheet.
+            : array();
     }
 
     /**
