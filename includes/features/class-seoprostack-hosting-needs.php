@@ -1614,7 +1614,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 : __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; Cloudflare’s free plan is set up at Cloudflare, with its Cloudflare plugin here to clear its cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack'));
         }
         if (self::cloudflare_keeps_pages($needs['facts'])) {
-            $advice[] = array('recommended', __('Cloudflare keeps copies of this site’s pages, and nothing here clears them when LiteSpeed Cache purges, so after a plugin update or a purge visitors keep getting the old pages until Cloudflare’s edge cache expires (2 hours by default). In Cloudflare, create an API token limited to Zone → Cache Purge for this zone, enter it in LiteSpeed Cache → CDN → Cloudflare API, then turn on Clear Cloudflare cache. Edits to single posts still wait for that expiry; Cloudflare’s own plugin with APO purges single pages.', 'seoprostack'));
+            $advice[] = array('recommended', __('Cloudflare keeps copies of this site’s pages, and nothing here clears them when LiteSpeed Cache purges, so after a plugin update or a purge visitors keep getting the old pages until Cloudflare’s edge cache expires (2 hours by default). In Cloudflare, create an API token limited to Zone → Cache Purge and Zone → Zone → Read for this zone, enter it in LiteSpeed Cache → CDN → Cloudflare API, then turn on Clear Cloudflare cache. Edits to single posts still wait for that expiry; Cloudflare’s own plugin with APO purges single pages.', 'seoprostack'));
         }
         $cache  = $needs['facts']['object_cache'];
         if ('unreachable' === $cache['state']) {
