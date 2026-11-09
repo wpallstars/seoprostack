@@ -83,6 +83,12 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
     /** @var array<string,string>|null Handles held this request => 'late' or '' (decided at the first one). */
     private static $held = null;
 
+    /** @var int Output buffer level of the wp_head capture; -1 when none is open. */
+    private static $head_level = -1;
+
+    /** @var string The <meta> tags in wp_head that mention a content security policy. */
+    private static $head_metas = '';
+
     /** @var bool Whether a script was held. */
     private static $printed = false;
 
@@ -113,8 +119,42 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentforms-scripts.php';
         add_filter('script_loader_tag', array(__CLASS__, 'tag'), 10, 2);
+        // Read the head's <meta> policies, which headers_list() does not show.
+        add_action('wp_head', array(__CLASS__, 'head_start'), 0);
+        add_action('wp_head', array(__CLASS__, 'head_end'), PHP_INT_MAX);
         // After WordPress prints the footer scripts (20).
         add_action('wp_footer', array(__CLASS__, 'loader'), 99);
+    }
+
+    /**
+     * Start collecting what wp_head prints, to find a <meta> content
+     * security policy in it.
+     */
+    public static function head_start() {
+        if (self::$head_level < 0 && ob_start()) {
+            self::$head_level = ob_get_level();
+        }
+    }
+
+    /**
+     * Print what wp_head printed, keeping its <meta> tags for page_view().
+     */
+    public static function head_end() {
+        if (self::$head_level < 1) {
+            return;
+        }
+        // Close buffers another callback left open inside ours, keeping what they hold.
+        while (ob_get_level() > self::$head_level) {
+            ob_end_flush();
+        }
+        if (ob_get_level() === self::$head_level) {
+            $head = (string) ob_get_clean();
+            if (false !== stripos($head, 'content-security-policy') && preg_match_all('/<meta\b[^>]*>/i', $head, $metas)) {
+                self::$head_metas = implode('', $metas[0]);
+            }
+            echo $head; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- what wp_head printed, unchanged.
+        }
+        self::$head_level = -1;
     }
 
     /**
@@ -226,8 +266,8 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
             return false;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
-        // A policy that blocks the loader would leave the forms without their scripts.
-        if (!SEOProStack_Used_Css_Policy::allows('', true)) {
+        // A policy (header or head <meta>) that blocks the loader would leave the forms without their scripts.
+        if (!SEOProStack_Used_Css_Policy::allows(self::$head_metas . '</head>', true)) {
             return false;
         }
         /**
