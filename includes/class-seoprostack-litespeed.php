@@ -126,7 +126,7 @@ final class SEOProStack_Litespeed {
      * @return array
      */
     public static function delivery_args($args, $url) {
-        if (!self::is_delivery($url)) {
+        if (!self::running() || !self::is_delivery($url)) {
             return $args;
         }
         $queued = self::queued();
@@ -199,6 +199,23 @@ final class SEOProStack_Litespeed {
     }
 
     /**
+     * Whether LiteSpeed Cache runs on the current site, so its
+     * admin-ajax.php can take a waiting purge (#1450): active on it or for
+     * the network, as stored, so a site switched to (switch_to_blog()) is
+     * read for itself, and a plugin Load plugins only where needed skips on
+     * this request still counts (the delivery request loads it).
+     *
+     * @return bool
+     */
+    private static function running() {
+        if (defined('LSCWP_V') && !(is_multisite() && ms_is_switched())) {
+            return true;
+        }
+        return in_array(self::SLUG . '/litespeed-cache.php', SEOProStack_Feature::stored_active_plugins(), true)
+            || self::network_active();
+    }
+
+    /**
      * At the end of a command-line run: deliver a purge LiteSpeed Cache's
      * own delivery could not.
      *
@@ -226,12 +243,20 @@ final class SEOProStack_Litespeed {
      * this request answers but carried only a newer purge, the lost one is
      * stored again and delivered once more straight away.
      *
+     * Only where LiteSpeed Cache runs on this site (#1450): on a network
+     * where it is active on some sites only, a site without it can still
+     * hold a queue (a purge stored for it from another site), but its
+     * admin-ajax.php has nothing to take it, answers 400 and leaves the
+     * queue as it is, so every command-line run on that site opened it
+     * again.
+     *
      * @since 1.3.146
      * @return bool Whether no purge is waiting now (a web request delivers
-     *              its own, as it ends).
+     *              its own, as it ends; true where LiteSpeed Cache does
+     *              not run, as nothing here can deliver one).
      */
     public static function deliver_purge() {
-        if ('cli' !== PHP_SAPI || !self::is_server()) {
+        if ('cli' !== PHP_SAPI || !self::running() || !self::is_server()) {
             return true;
         }
         $blog = get_current_blog_id();
