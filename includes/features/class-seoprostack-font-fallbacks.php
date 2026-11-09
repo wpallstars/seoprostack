@@ -158,15 +158,24 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      * Buffer the page on normal front-end views.
      */
     public static function start() {
+        if (self::html_view()) {
+            ob_start(array(__CLASS__, 'rewrite'));
+        }
+    }
+
+    /**
+     * Whether this request is a normal front-end view of an HTML page (also
+     * used by Lighter WooCommerce pages).
+     *
+     * @return bool
+     */
+    public static function html_view() {
         $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
         if ('GET' !== $method || is_preview() || is_customize_preview() || is_feed() || is_embed() || is_robots() || is_trackback()) {
-            return;
+            return false;
         }
-        if (wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST)
-            || (function_exists('amp_is_request') && amp_is_request())) {
-            return;
-        }
-        ob_start(array(__CLASS__, 'rewrite'));
+        return !(wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST)
+            || (function_exists('amp_is_request') && amp_is_request()));
     }
 
     /**
@@ -345,6 +354,41 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      * @return array Lower-case name => [name, metrics].
      */
     private static function web_fonts($html) {
+        $names   = self::declared_families($html);
+        $metrics = self::metrics();
+        if (empty($metrics['fonts'])) {
+            return array();
+        }
+        $skip = self::skipped();
+        $out  = array();
+        foreach ($names as $name) {
+            $name = trim($name);
+            $key  = strtolower($name);
+            if (isset($out[$key]) || !isset($metrics['fonts'][$key]) || in_array($key, $skip, true) || !preg_match('/^[a-z0-9][a-z0-9 _-]*$/i', $name)) {
+                continue;
+            }
+            $font = $metrics['fonts'][$key];
+            if (is_array($font) && count($font) >= 8) {
+                $out[$key] = array($name, $font);
+            }
+        }
+        /**
+         * The web fonts that get fallbacks on this page.
+         *
+         * @param array $out Lower-case name => [name, metrics].
+         */
+        return (array) apply_filters('seoprostack_font_fallbacks', $out);
+    }
+
+    /**
+     * The font families a page declares: its @font-face rules, its Google
+     * Fonts stylesheets and the @font-face rules of its font stylesheets on
+     * this site (also used by Lighter WooCommerce pages).
+     *
+     * @param string $html Page.
+     * @return string[] Family names, as written.
+     */
+    public static function declared_families($html) {
         $names = self::font_faces($html);
         if (preg_match_all('#<link\b[^>]*>#i', $html, $links)) {
             $files = array();
@@ -369,29 +413,7 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
                 }
             }
         }
-        $metrics = self::metrics();
-        if (empty($metrics['fonts'])) {
-            return array();
-        }
-        $skip = self::skipped();
-        $out  = array();
-        foreach ($names as $name) {
-            $name = trim($name);
-            $key  = strtolower($name);
-            if (isset($out[$key]) || !isset($metrics['fonts'][$key]) || in_array($key, $skip, true) || !preg_match('/^[a-z0-9][a-z0-9 _-]*$/i', $name)) {
-                continue;
-            }
-            $font = $metrics['fonts'][$key];
-            if (is_array($font) && count($font) >= 8) {
-                $out[$key] = array($name, $font);
-            }
-        }
-        /**
-         * The web fonts that get fallbacks on this page.
-         *
-         * @param array $out Lower-case name => [name, metrics].
-         */
-        return (array) apply_filters('seoprostack_font_fallbacks', $out);
+        return $names;
     }
 
     /**
