@@ -158,15 +158,39 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      * Buffer the page on normal front-end views.
      */
     public static function start() {
+        if (self::html_view()) {
+            ob_start(array(__CLASS__, 'rewrite'));
+        }
+    }
+
+    /**
+     * Whether this request is a normal front-end view of an HTML page (also
+     * used by Lighter WooCommerce pages).
+     *
+     * @return bool
+     */
+    public static function html_view() {
         $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-        if ('GET' !== $method || is_preview() || is_customize_preview() || is_feed() || is_embed() || is_robots() || is_trackback()) {
-            return;
-        }
-        if (wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST)
-            || (function_exists('amp_is_request') && amp_is_request())) {
-            return;
-        }
-        ob_start(array(__CLASS__, 'rewrite'));
+        return 'GET' === $method && !self::special_view() && !self::special_request();
+    }
+
+    /**
+     * Whether this is a preview, feed, embed, robots.txt or trackback.
+     *
+     * @return bool
+     */
+    private static function special_view() {
+        return is_preview() || is_customize_preview() || is_feed() || is_embed() || is_robots() || is_trackback();
+    }
+
+    /**
+     * Whether this is an AJAX, REST, JSON or AMP request.
+     *
+     * @return bool
+     */
+    private static function special_request() {
+        return wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST)
+            || (function_exists('amp_is_request') && amp_is_request());
     }
 
     /**
@@ -345,30 +369,7 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      * @return array Lower-case name => [name, metrics].
      */
     private static function web_fonts($html) {
-        $names = self::font_faces($html);
-        if (preg_match_all('#<link\b[^>]*>#i', $html, $links)) {
-            $files = array();
-            foreach ($links[0] as $tag) {
-                $attrs = SEOProStack_Used_Css_Links::attributes($tag);
-                $href  = isset($attrs['href']) ? trim($attrs['href']) : '';
-                if ('' === $href) {
-                    continue;
-                }
-                $google = self::google_fonts($href);
-                if ($google) {
-                    $names = array_merge($names, $google);
-                    continue;
-                }
-                $file = self::font_file($href);
-                if ('' !== $file && !isset($files[$file]) && count($files) < self::MAX_FILES) {
-                    $files[$file] = true;
-                    $size         = (int) filesize($file);
-                    if ($size > 0 && $size <= self::MAX_BYTES) {
-                        $names = array_merge($names, self::font_faces((string) file_get_contents($file))); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local stylesheet.
-                    }
-                }
-            }
-        }
+        $names   = self::declared_families($html);
         $metrics = self::metrics();
         if (empty($metrics['fonts'])) {
             return array();
@@ -392,6 +393,54 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
          * @param array $out Lower-case name => [name, metrics].
          */
         return (array) apply_filters('seoprostack_font_fallbacks', $out);
+    }
+
+    /**
+     * The font families a page declares: its @font-face rules, its Google
+     * Fonts stylesheets and the @font-face rules of its font stylesheets on
+     * this site (also used by Lighter WooCommerce pages).
+     *
+     * @param string $html Page.
+     * @return string[] Family names, as written.
+     */
+    public static function declared_families($html) {
+        $names = self::font_faces($html);
+        if (preg_match_all('#<link\b[^>]*>#i', $html, $links)) {
+            $files = array();
+            foreach ($links[0] as $tag) {
+                $names = array_merge($names, self::link_families($tag, $files));
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * The families a <link> declares: a Google Fonts stylesheet's, or the
+     * @font-face rules of a font stylesheet on this site.
+     *
+     * @param string $tag   The <link> tag.
+     * @param array  $files Font stylesheets read so far (path => true).
+     * @return string[]
+     */
+    private static function link_families($tag, array &$files) {
+        $attrs = SEOProStack_Used_Css_Links::attributes($tag);
+        $href  = isset($attrs['href']) ? trim($attrs['href']) : '';
+        if ('' === $href) {
+            return array();
+        }
+        $google = self::google_fonts($href);
+        if ($google) {
+            return $google;
+        }
+        $file = self::font_file($href);
+        if ('' === $file || isset($files[$file]) || count($files) >= self::MAX_FILES) {
+            return array();
+        }
+        $files[$file] = true;
+        $size         = (int) filesize($file);
+        return $size > 0 && $size <= self::MAX_BYTES
+            ? self::font_faces((string) file_get_contents($file)) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local stylesheet.
+            : array();
     }
 
     /**

@@ -1073,6 +1073,7 @@ WooCommerce loads its scripts and styles on every page, so that add-to-cart butt
 - **Leave out**: WooCommerce scripts and styles outside shop pages (ticked by default; add-to-cart buttons there reload the page or open the product, and the store notice keeps its script), cart fragments outside shop pages (they ask the server for the cart on every page; a header cart there may show an old count on cached pages), and Stripe’s Apple Pay and Google Pay buttons on product pages (`wc_stripe_hide_payment_request_on_product_page`; they stay in the cart and checkout).
 - Only dequeued: a script or style that another one needs still loads. WooCommerce’s order attribution script is left alone, since it records where orders come from from the first page a visitor sees.
 - Products shown by a theme’s template parts are not seen; return true from `seoprostack_woo_light_shop_page` for those pages.
+- While WooCommerce is in **Coming soon** mode (even for store pages only), it adds its coming-soon page's fonts, Inter and Cardo, to every page. Where the page also loads Inter another way, such as the Kadence theme's Inter, browsers download WooCommerce's 327 KB Inter for every weight instead of the theme's smaller files. With this on, a font WooCommerce adds is left out of pages that already load that font, so text keeps the same font; a font only WooCommerce gives stays, and the coming-soon screen keeps its fonts (#1447).
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 
 ### Lighter Tutor LMS pages (Speed)

@@ -124,6 +124,111 @@ class SEOProStack_Woo_Light extends SEOProStack_Feature {
         if (isset($items['stripe'])) {
             add_filter('wc_stripe_hide_payment_request_on_product_page', '__return_true', 99);
         }
+        if ('yes' === get_option('woocommerce_coming_soon')) {
+            // In Coming soon mode WooCommerce adds its coming-soon page's fonts
+            // to every page (#1447).
+            add_action('template_redirect', array(__CLASS__, 'start_fonts'), PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Buffer the page, in Coming soon mode.
+     */
+    public static function start_fonts() {
+        if (SEOProStack_Font_Fallbacks::html_view()) {
+            ob_start(array(__CLASS__, 'drop_fonts'));
+        }
+    }
+
+    /**
+     * Leave out the @font-face rules WooCommerce adds in Coming soon mode
+     * (ComingSoonRequestHandler::experimental_filter_theme_json_theme(), on
+     * every request, printed in <style class="wp-fonts-local">) for a family
+     * the page also declares another way, such as the Kadence theme's own
+     * Inter: the browser takes WooCommerce's face for every weight and
+     * downloads its 327 KB variable Inter, every character, before the first
+     * paint. A family only WooCommerce gives (Cardo, or Inter where the page
+     * has no other) keeps its rule, so no text changes font, and the
+     * coming-soon screen keeps them all: it has the
+     * wp-block-woocommerce-coming-soon block, or the woo-coming-soon-page
+     * meta tag, which classic themes do not print since WooCommerce adds it
+     * after their get_header().
+     *
+     * @param string $html Page.
+     * @return string
+     */
+    public static function drop_fonts($html) {
+        $folder = self::fonts_path();
+        if (false === stripos($html, 'wp-fonts-local') || false === strpos($html, $folder) || false === stripos($html, '</head>')
+            || preg_match('/\bclass=["\'][^"\']*\bwp-block-woocommerce-coming-soon\b|<meta\b[^>]*\bname=["\']woo-coming-soon-page["\']/i', $html)) {
+            return $html;
+        }
+        $woo = self::woo_faces($html, $folder);
+        if (!$woo) {
+            return $html;
+        }
+        // The families the page declares without WooCommerce's rules.
+        $families = array_flip(array_map(function ($name) {
+            return strtolower(trim($name));
+        }, SEOProStack_Font_Fallbacks::declared_families(str_replace($woo, '', $html))));
+        $drop = array_values(array_filter($woo, function ($rule) use ($families) {
+            return isset($families[self::face_family($rule)]);
+        }));
+        if (!$drop) {
+            return $html;
+        }
+        $out = preg_replace_callback(self::FONTS_STYLE, function ($m) use ($drop) {
+            return $m[1] . str_replace($drop, '', $m[2]) . $m[3];
+        }, $html);
+        return null === $out ? $html : $out;
+    }
+
+    /** WordPress's <style> with the theme.json fonts' @font-face rules. */
+    const FONTS_STYLE = '#(<style\b[^>]*\bwp-fonts-local\b[^>]*>)(.*?)(</style>)#is';
+
+    /**
+     * The address path of WooCommerce's fonts folder.
+     *
+     * @return string
+     */
+    private static function fonts_path() {
+        $path = function_exists('WC') ? (string) wp_parse_url(WC()->plugin_url(), PHP_URL_PATH) : '';
+        return ('' === $path ? '/woocommerce' : untrailingslashit($path)) . '/assets/fonts/';
+    }
+
+    /**
+     * The @font-face rules in the page's wp-fonts-local styles whose files
+     * are in WooCommerce's fonts folder.
+     *
+     * @param string $html   Page.
+     * @param string $folder Fonts folder path.
+     * @return string[]
+     */
+    private static function woo_faces($html, $folder) {
+        if (!preg_match_all(self::FONTS_STYLE, $html, $styles)) {
+            return array();
+        }
+        $woo = array();
+        foreach ($styles[2] as $css) {
+            if (preg_match_all('/@font-face\s*\{[^}]*\}/i', $css, $faces)) {
+                foreach ($faces[0] as $rule) {
+                    if (false !== strpos($rule, $folder)) {
+                        $woo[] = $rule;
+                    }
+                }
+            }
+        }
+        return $woo;
+    }
+
+    /**
+     * The family of a @font-face rule, lower case.
+     *
+     * @param string $rule Rule.
+     * @return string
+     */
+    private static function face_family($rule) {
+        return preg_match('/font-family\s*:\s*["\']?([^"\';}]+)/i', $rule, $m) ? strtolower(trim($m[1])) : '';
     }
 
     /**
