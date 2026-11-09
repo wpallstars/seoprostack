@@ -16,9 +16,11 @@
  *
  * write() applies what the request changed (the tasks it added, changed or
  * removed since it read the list) to the list as stored now, so changes made
- * by other requests meanwhile are kept. dedupe() runs once at the start of
- * each cron run and removes extra copies of recurring tasks: the same task
- * (hook and arguments) on the same schedule at more than one time.
+ * by other requests meanwhile are kept. unschedule() counts removing a task
+ * another request already removed as done, rather than a failure that
+ * wp-cron.php logs. dedupe() runs once at the start of each cron run and
+ * removes extra copies of recurring tasks: the same task (hook and
+ * arguments) on the same schedule at more than one time.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -36,12 +38,14 @@ if (!defined('ABSPATH')) {
 class SEOProStack_Cron_List {
 
     /**
-     * Register the hooks. write() runs on every write of the list; dedupe()
-     * only in WordPress cron runs (wp-cron.php), before they read which tasks
-     * are due, and in WP-CLI, which runs tasks too (wp cron event run).
+     * Register the hooks. write() runs on every write of the list and
+     * unschedule() on every removal of a task; dedupe() only in WordPress
+     * cron runs (wp-cron.php), before they read which tasks are due, and in
+     * WP-CLI, which runs tasks too (wp cron event run).
      */
     public static function init() {
         add_filter('pre_update_option_cron', array(__CLASS__, 'write'), PHP_INT_MAX, 2);
+        add_filter('pre_unschedule_event', array(__CLASS__, 'unschedule'), PHP_INT_MAX, 4);
         if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
             add_action('wp_loaded', array(__CLASS__, 'dedupe'), 0);
         }
@@ -74,13 +78,54 @@ class SEOProStack_Cron_List {
         if ($merged === $stored) {
             // Another request already applied this change: the update will
             // affect no rows and core will not refresh this request's cached
-            // copy, which would leave it stale. Drop the caches so the next
-            // read (a retry included) sees the stored list.
-            wp_cache_delete('alloptions', 'options');
-            wp_cache_delete('cron', 'options');
-            wp_cache_delete('notoptions', 'options');
+            // copy, which would leave it stale.
+            self::forget();
         }
         return $merged;
+    }
+
+    /**
+     * Removing a task another request has already removed is done, not a
+     * failure. A cron run calls each due task it read at its start; when
+     * another request has meanwhile removed or moved one (Keep pages cached
+     * moves its batch back after a purge), core's removal changes nothing
+     * stored, update_option() reports that as a failure, and wp-cron.php
+     * logs "Cron unschedule event error ... could_not_set" (#1472). Only a
+     * task this request's copy has and the stored list no longer has counts;
+     * any other removal is left to core.
+     *
+     * @param mixed      $pre       Null, or another filter's result.
+     * @param int|string $timestamp When the task is due.
+     * @param string     $hook      The hook.
+     * @param mixed      $args      Its arguments.
+     * @return mixed True when it was already removed, else $pre.
+     */
+    public static function unschedule($pre, $timestamp, $hook, $args) {
+        if (null !== $pre || !is_numeric($timestamp) || !is_string($hook)) {
+            return $pre;
+        }
+        $key  = md5(serialize($args)); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- core's key for a task's arguments (wp_unschedule_event()).
+        $copy = _get_cron_array();
+        if (!isset($copy[$timestamp][$hook][$key])) {
+            return $pre;
+        }
+        $stored = self::stored();
+        if (null === $stored || isset($stored[$timestamp][$hook][$key])) {
+            return $pre;
+        }
+        // The rest of the request reads the stored list, without the task.
+        self::forget();
+        return true;
+    }
+
+    /**
+     * Drop this request's cached copy of the list, so the next read (a retry
+     * included) gets the stored one.
+     */
+    private static function forget() {
+        wp_cache_delete('alloptions', 'options');
+        wp_cache_delete('cron', 'options');
+        wp_cache_delete('notoptions', 'options');
     }
 
     /**
