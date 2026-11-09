@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-08T02:31:15Z",
+  "generated_at": "2026-11-09T02:52:28Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,21 +11,21 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 925,
-    "code": 149704,
-    "comments": 48966,
-    "blanks": 13212,
+    "source_files": 929,
+    "code": 150576,
+    "comments": 49641,
+    "blanks": 13322,
     "languages": 10,
     "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 294,
-      "code": 80597,
-      "comments": 43875,
-      "blanks": 7722,
-      "percentage": 53.84,
+      "files": 298,
+      "code": 81242,
+      "comments": 44467,
+      "blanks": 7804,
+      "percentage": 53.95,
       "color": "#4F5D95"
     },
     {
@@ -34,7 +34,7 @@
       "code": 30907,
       "comments": 0,
       "blanks": 0,
-      "percentage": 20.65,
+      "percentage": 20.53,
       "color": "#292929"
     },
     {
@@ -43,7 +43,7 @@
       "code": 12116,
       "comments": 1933,
       "blanks": 824,
-      "percentage": 8.09,
+      "percentage": 8.05,
       "color": "#f1e05a"
     },
     {
@@ -52,25 +52,25 @@
       "code": 10563,
       "comments": 1452,
       "blanks": 2556,
-      "percentage": 7.06,
+      "percentage": 7.02,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
       "files": 24,
-      "code": 7337,
-      "comments": 1519,
-      "blanks": 572,
-      "percentage": 4.9,
+      "code": 7507,
+      "comments": 1602,
+      "blanks": 585,
+      "percentage": 4.99,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
       "files": 19,
-      "code": 5781,
+      "code": 5838,
       "comments": 0,
-      "blanks": 1434,
-      "percentage": 3.86,
+      "blanks": 1449,
+      "percentage": 3.88,
       "color": "#083fa1"
     },
     {
@@ -79,7 +79,7 @@
       "code": 1645,
       "comments": 48,
       "blanks": 12,
-      "percentage": 1.1,
+      "percentage": 1.09,
       "color": "#6e7781"
     },
     {
