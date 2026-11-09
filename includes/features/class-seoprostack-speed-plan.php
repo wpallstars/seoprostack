@@ -157,6 +157,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'kadence_icon_picker'       => array(isset($active['kadence-blocks']), __('For Kadence Blocks, which is not active.', 'seoprostack')),
             'rank_math_no_stats_bar'    => array(isset($active['seo-by-rank-math']), __('For Rank Math, which is not active.', 'seoprostack')),
             'fluentforms_turnstile_later' => array(isset($active['fluentform']), __('For Fluent Forms, which is not active.', 'seoprostack')),
+            'fluentforms_later'         => self::fluentforms_later($active),
             'turnstile_later'           => array(isset($active['simple-cloudflare-turnstile']), __('For Simple Cloudflare Turnstile, which is not active.', 'seoprostack')),
             'ai_engine_later'           => array(isset($active['ai-engine']) || isset($active['ai-engine-pro']), __('For AI Engine, which is not active.', 'seoprostack')),
             'maps_later'                => array(true, ''),
@@ -307,6 +308,26 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
         $log[$index]['undone'] = time();
         update_option(self::OPTION, $log, false);
         return true;
+    }
+
+    /**
+     * Whether Load Fluent Forms' scripts when a form comes near applies, and
+     * why not: Fluent Forms active, and, when it is loaded on this request,
+     * at least SEOProStack_Fluentforms_Later::MIN_VERSION.
+     *
+     * @param array<string,string> $active Active plugins: folder => plugin file.
+     * @return array{0:bool,1:string}
+     */
+    private static function fluentforms_later(array $active) {
+        if (!isset($active['fluentform'])) {
+            return array(false, __('For Fluent Forms, which is not active.', 'seoprostack'));
+        }
+        $min = SEOProStack_Fluentforms_Later::MIN_VERSION;
+        if (defined('FLUENTFORM_VERSION') && version_compare((string) FLUENTFORM_VERSION, $min, '<')) {
+            /* translators: %s: Fluent Forms version, such as 6.2.17. */
+            return array(false, sprintf(__('For Fluent Forms %s or later: update Fluent Forms first.', 'seoprostack'), $min));
+        }
+        return array(true, '');
     }
 
     /**
