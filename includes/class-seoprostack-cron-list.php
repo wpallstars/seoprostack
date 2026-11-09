@@ -107,7 +107,8 @@ class SEOProStack_Cron_List {
         if (null !== $pre || !is_numeric($timestamp) || !is_string($hook)) {
             return $pre;
         }
-        $key    = md5(serialize($args)); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- core's key for a task's arguments (wp_unschedule_event()).
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- core's key for a task's arguments, made as wp_unschedule_event() makes it.
+        $key    = md5(serialize($args)); // nosemgrep -- NOSONAR: WordPress's own key for a cron task's arguments, not security.
         $stored = self::stored();
         if (null === $stored || isset($stored[$timestamp][$hook][$key])) {
             return $pre;
