@@ -2488,8 +2488,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Faster: **Load the CSS each page uses first** also handles Lasso Lite's stylesheet, Code Snippets' highlighted code and Tutor LMS Certificate Builder in the folder it now installs to (#1430).
 - Fixed: **File and account integrity checks** no longer report two kinds of uploaded `.php` file that cannot run code: plain text logs (WP Mailster) and data after `__halt_compiler()` (All In One Security's firewall rules). Files that run code when loaded are still reported (#1441).
 - Faster: **Media in cloud storage** keeps its name index through updates. Before, each update rebuilt it, and until that finished every upload read every stored picture's record to pick a file name: about a minute a picture on one site with about 100,000 pictures (#1445).
+- Faster: **Lighter WooCommerce pages** leaves out the Inter font WooCommerce adds to every page in Coming soon mode where the page already loads Inter, as Kadence sites often do: the browser downloaded WooCommerce's 327 KB copy before the first paint instead of the theme's 48 KB one. Text keeps the same font, and the coming-soon screen keeps WooCommerce's fonts (#1447).
 - Fixed: the login-link email in German reads as one message again, with the link on its own line, and in 14 other languages its lines no longer start with a space (#1440).
-- Developers: the starter core files match WP Plugin Starter again, with this plugin's deploy fixes (Cloudflare purge per install, origin-pinned home page check, `--keep-releases`, the cron checks) moved into the starter first (#1290).
+- Developers: the starter core files match WP Plugin Starter again, with this plugin's deploy fixes (Cloudflare purge per install, origin-pinned home page check, `--keep-releases`, the cron checks) moved into the starter first (#1290). Then synced with WP Plugin Starter v1.0.53: the deploy's cron-race check reads WordPress's cron notice in any site language, a release download is tried again while GitHub briefly answers "release not found", and `--web-error-log` takes `{name_}` for one PHP log per site.
 
 ### 1.3.189
 
