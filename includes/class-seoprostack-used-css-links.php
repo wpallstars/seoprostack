@@ -49,12 +49,14 @@ final class SEOProStack_Used_Css_Links {
         'fluent-crm', 'fluentcampaign-pro', 'fluent-boards', 'fluent-boards-pro', 'fluent-affiliate', 'fluent-player',
         'wp-payment-form', 'ninja-tables', 'ninja-tables-pro', 'ninja-charts', 'ninja-job-board',
         'wp-social-reviews', 'wp-social-ninja-pro',
-        // Courses, AI, consent, languages, shops.
-        'tutor', 'tutor-pro', 'tutor-lms-certificate-builder', 'ai-engine', 'ai-engine-pro', 'complianz-gdpr',
-        'complianz-gdpr-premium', 'complianz-terms-conditions', 'seoprocookieconsent', 'translatepress-multilingual',
-        'translatepress-business', 'woocommerce', 'woo-stripe-payment', 'pymntpl-paypal-woocommerce', 'slicewp',
-        // Content, events, reviews, statistics and the IndieWeb.
-        'seo-by-rank-math', 'seo-by-rank-math-pro', 'code-block-pro', 'ics-calendar', 'eventon-lite',
+        // Courses, AI, consent, languages, shops, affiliate links. The
+        // certificate builder installs to edupro-lms-certificate-builder now (GH#1430).
+        'tutor', 'tutor-pro', 'tutor-lms-certificate-builder', 'edupro-lms-certificate-builder', 'ai-engine', 'ai-engine-pro',
+        'complianz-gdpr', 'complianz-gdpr-premium', 'complianz-terms-conditions', 'seoprocookieconsent',
+        'translatepress-multilingual', 'translatepress-business', 'woocommerce', 'woo-stripe-payment',
+        'pymntpl-paypal-woocommerce', 'slicewp', 'simple-urls',
+        // Content, code, events, reviews, statistics and the IndieWeb.
+        'seo-by-rank-math', 'seo-by-rank-math-pro', 'code-block-pro', 'code-snippets', 'code-snippets-pro', 'ics-calendar', 'eventon-lite',
         'easy-video-reviews', 'custom-feed-for-tiktok', 'simple-cloudflare-turnstile', 'syndication-links', 'webmention',
         'indieweb', 'readabler', 'wp-grid-builder', 'burst-statistics', 'seoprodirectory',
         // Site building: front-end forms and visual styling.
