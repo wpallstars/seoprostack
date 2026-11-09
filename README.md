@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.189-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.190-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.189
+Version: 1.3.190
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2480,6 +2480,14 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.190
+
+- New, on by default: **Load Google Maps embeds when they come near** (Speed). Browsers start loading a lazy map well before it reaches the screen, so a map lower on a page loaded with it: on one Kadence home page, 16 requests, about 490 KB and 360 ms of main-thread time in PageSpeed's desktop run. Maps now load when they come within 600 px of the screen, or when a tab, accordion or modal holding one opens; a map at the top of a page loads as before (#1297).
+- New, on by default: **Load Fluent Forms' scripts when a form comes near** (Speed). Fluent Forms' scripts, and Fluent Forms Pro's phone, upload, cropper and lightbox libraries, wait until a form comes near the screen, a field gets focus, or a link opens a modal with a form. On one Kadence home page with a form below the first screen, Lighthouse's mobile LCP fell from 3.3–3.6 s to 3.0–3.2 s. A form sent before the scripts have run is held, keeping what was typed; pages that open with a form load them as before (#1428).
+- Faster: **Load the CSS each page uses first** also handles Lasso Lite's stylesheet, Code Snippets' highlighted code and Tutor LMS Certificate Builder in the folder it now installs to (#1430).
+- Fixed: **File and account integrity checks** no longer report two kinds of uploaded `.php` file that cannot run code: plain text logs (WP Mailster) and data after `__halt_compiler()` (All In One Security's firewall rules). Files that run code when loaded are still reported (#1441).
+- Developers: the starter core files match WP Plugin Starter again, with this plugin's deploy fixes (Cloudflare purge per install, origin-pinned home page check, `--keep-releases`, the cron checks) moved into the starter first (#1290).
 
 ### 1.3.189
 
