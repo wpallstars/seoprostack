@@ -157,5 +157,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = 1.3.190 =
 * New: Google Maps and Fluent Forms' scripts load when they come near (#1297, #1428).
 * Fixed: integrity checks skip .php uploads that cannot run code (#1441).
+* Faster cloud storage uploads after updates (#1445).
 
 Older: `changelog.txt`.
