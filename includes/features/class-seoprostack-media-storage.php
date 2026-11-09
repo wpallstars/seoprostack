@@ -57,6 +57,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const CLAIMS = 'seoprostack_media_claims';
     /** Claim index state: schema, the version that built it, and the build cursor. */
     const CLAIMS_STATE = 'seoprostack_storage_job_claims';
+    /** Change it when the claim hashes, the table or the files indexed change: every site builds the index again. */
     const CLAIMS_SCHEMA = '1';
     /** URL index: the SHA-256 of signature and key => attachment ID, one row per stored file (GH#1251). */
     const URLS = 'seoprostack_media_urls';
@@ -604,9 +605,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * The claim index table, once created. Lookups need it complete too: built
-     * by this version, as an earlier version may have changed inventories
-     * without indexing them.
+     * The claim index table, once created. Lookups need it complete too: a
+     * build finished, by any version with this schema (GH#1445). Every
+     * version since 1.3.90 indexes each inventory it saves, also while a
+     * build runs, so an update keeps a finished index. Those up to 1.3.189
+     * start a new build, clearing "built", whenever they find one by another
+     * version, so after a downgrade and update the index is built again.
+     * Versions before 1.3.90, which kept no index, are not detected.
      *
      * @param bool $complete Whether lookups may trust it.
      * @return string Table name, or empty.
@@ -614,10 +619,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function claims_table($complete = false) {
         global $wpdb;
         $state = get_option(self::CLAIMS_STATE, array());
-        if (!is_array($state) || self::CLAIMS_SCHEMA !== ($state['schema'] ?? '') || ($complete && SEOPROSTACK_VERSION !== ($state['built'] ?? ''))) {
+        if (!is_array($state) || self::CLAIMS_SCHEMA !== ($state['schema'] ?? '') || ($complete && !self::claims_built($state))) {
             return '';
         }
         return $wpdb->prefix . self::CLAIMS;
+    }
+
+    /**
+     * Whether a claim index build has finished, by any version.
+     *
+     * @param array $state Claim index state.
+     * @return bool
+     */
+    private static function claims_built($state) {
+        return '' !== (string) ($state['built'] ?? '');
     }
 
     /**
@@ -667,8 +682,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * When the claim index next needs a build step; null once it is complete
-     * for this version, or while uploads are off.
+     * When the claim index next needs a build step; null once it is complete,
+     * or while uploads are off.
      *
      * @phpstan-impure Reads the index state, which batches change.
      * @return int|null
@@ -679,48 +694,84 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $state = get_option(self::CLAIMS_STATE, array());
         $state = is_array($state) ? $state : array();
-        if (self::CLAIMS_SCHEMA === ($state['schema'] ?? '') && SEOPROSTACK_VERSION === ($state['built'] ?? '')) {
+        if (self::CLAIMS_SCHEMA === ($state['schema'] ?? '') && self::claims_built($state)) {
             return null;
         }
         return max(time(), (int) ($state['retry'] ?? 0));
     }
 
     /**
+     * Create the claim index table.
+     *
+     * @return bool Whether the table exists.
+     */
+    private static function create_claims_table() {
+        global $wpdb;
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        $table = $wpdb->prefix . self::CLAIMS;
+        dbDelta("CREATE TABLE {$table} (
+            claim binary(16) NOT NULL,
+            post_id bigint(20) unsigned NOT NULL,
+            PRIMARY KEY  (claim,post_id),
+            KEY post_id (post_id)
+        ) {$wpdb->get_charset_collate()};");
+        return self::table_exists($table);
+    }
+
+    /**
+     * Whether a table exists.
+     *
+     * @param string $table Table name.
+     * @return bool
+     */
+    private static function table_exists($table) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
+        return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+    }
+
+    /**
+     * The claim index state a build step goes on from: the table created
+     * when the schema is new, and a build started when none runs; null when
+     * there is nothing to do now (built, waiting to retry, or failed).
+     *
+     * @return array|null
+     */
+    private static function claims_build_state() {
+        $state = get_option(self::CLAIMS_STATE, array());
+        $state = is_array($state) ? $state : array();
+        if ((int) ($state['retry'] ?? 0) > time()) {
+            return null;
+        }
+        if (self::CLAIMS_SCHEMA !== ($state['schema'] ?? '')) {
+            if (!self::create_claims_table()) {
+                self::claims_failed();
+                return null;
+            }
+            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => '');
+            update_option(self::CLAIMS_STATE, $state, false);
+        }
+        if (self::claims_built($state)) {
+            return null;
+        }
+        if ('' === (string) ($state['building'] ?? '') || !isset($state['cursor'])) {
+            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => SEOPROSTACK_VERSION, 'cursor' => PHP_INT_MAX);
+        }
+        return $state;
+    }
+
+    /**
      * Create the claim index and fill it from every stored inventory, in
-     * bounded steps. Changes during the build are indexed as they are saved.
+     * bounded steps. Changes during the build are indexed as they are saved,
+     * so a build another version started goes on from its cursor.
      *
      * @param float $start Batch start.
      * @param int $budget Seconds for this step.
      */
     private static function build_claims($start, $budget) {
-        global $wpdb;
-        $state = get_option(self::CLAIMS_STATE, array());
-        $state = is_array($state) ? $state : array();
-        if ((int) ($state['retry'] ?? 0) > time()) {
+        $state = self::claims_build_state();
+        if (null === $state) {
             return;
-        }
-        if (self::CLAIMS_SCHEMA !== ($state['schema'] ?? '')) {
-            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-            $table = $wpdb->prefix . self::CLAIMS;
-            dbDelta("CREATE TABLE {$table} (
-                claim binary(16) NOT NULL,
-                post_id bigint(20) unsigned NOT NULL,
-                PRIMARY KEY  (claim,post_id),
-                KEY post_id (post_id)
-            ) {$wpdb->get_charset_collate()};");
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
-                self::claims_failed();
-                return;
-            }
-            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => '');
-            update_option(self::CLAIMS_STATE, $state, false);
-        }
-        if (SEOPROSTACK_VERSION === ($state['built'] ?? '')) {
-            return;
-        }
-        if (SEOPROSTACK_VERSION !== ($state['building'] ?? '')) {
-            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => SEOPROSTACK_VERSION, 'cursor' => PHP_INT_MAX);
         }
         $cursor = (int) ($state['cursor'] ?? PHP_INT_MAX);
         while (self::more_time($start, $budget)) {
@@ -935,8 +986,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 PRIMARY KEY  (url),
                 KEY post_id (post_id)
             ) {$wpdb->get_charset_collate()};");
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+            if (!self::table_exists($table)) {
                 self::urls_failed();
                 return false;
             }
@@ -1276,8 +1326,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 job longtext NOT NULL,
                 PRIMARY KEY  (name)
             ) {$wpdb->get_charset_collate()};");
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+            if (!self::table_exists($table)) {
                 self::originals_failed();
                 return false;
             }
@@ -1288,8 +1337,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (SEOPROSTACK_VERSION === ($state['moved'] ?? '')) {
             // A dropped table is rebuilt, not reported complete.
             $suppress = $wpdb->suppress_errors(true);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            $exists = $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+            $exists = self::table_exists($table);
             $wpdb->suppress_errors($suppress);
             if (!$exists) {
                 self::originals_failed();
