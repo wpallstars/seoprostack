@@ -715,8 +715,49 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             PRIMARY KEY  (claim,post_id),
             KEY post_id (post_id)
         ) {$wpdb->get_charset_collate()};");
+        return self::table_exists($table);
+    }
+
+    /**
+     * Whether a table exists.
+     *
+     * @param string $table Table name.
+     * @return bool
+     */
+    private static function table_exists($table) {
+        global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
         return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+    }
+
+    /**
+     * The claim index state a build step goes on from: the table created
+     * when the schema is new, and a build started when none runs; null when
+     * there is nothing to do now (built, waiting to retry, or failed).
+     *
+     * @return array|null
+     */
+    private static function claims_build_state() {
+        $state = get_option(self::CLAIMS_STATE, array());
+        $state = is_array($state) ? $state : array();
+        if ((int) ($state['retry'] ?? 0) > time()) {
+            return null;
+        }
+        if (self::CLAIMS_SCHEMA !== ($state['schema'] ?? '')) {
+            if (!self::create_claims_table()) {
+                self::claims_failed();
+                return null;
+            }
+            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => '');
+            update_option(self::CLAIMS_STATE, $state, false);
+        }
+        if (self::claims_built($state)) {
+            return null;
+        }
+        if ('' === (string) ($state['building'] ?? '') || !isset($state['cursor'])) {
+            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => SEOPROSTACK_VERSION, 'cursor' => PHP_INT_MAX);
+        }
+        return $state;
     }
 
     /**
@@ -728,24 +769,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $budget Seconds for this step.
      */
     private static function build_claims($start, $budget) {
-        $state = get_option(self::CLAIMS_STATE, array());
-        $state = is_array($state) ? $state : array();
-        if ((int) ($state['retry'] ?? 0) > time()) {
+        $state = self::claims_build_state();
+        if (null === $state) {
             return;
-        }
-        if (self::CLAIMS_SCHEMA !== ($state['schema'] ?? '')) {
-            if (!self::create_claims_table()) {
-                self::claims_failed();
-                return;
-            }
-            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => '');
-            update_option(self::CLAIMS_STATE, $state, false);
-        }
-        if (self::claims_built($state)) {
-            return;
-        }
-        if ('' === (string) ($state['building'] ?? '') || !isset($state['cursor'])) {
-            $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => SEOPROSTACK_VERSION, 'cursor' => PHP_INT_MAX);
         }
         $cursor = (int) ($state['cursor'] ?? PHP_INT_MAX);
         while (self::more_time($start, $budget)) {
@@ -960,8 +986,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 PRIMARY KEY  (url),
                 KEY post_id (post_id)
             ) {$wpdb->get_charset_collate()};");
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+            if (!self::table_exists($table)) {
                 self::urls_failed();
                 return false;
             }
@@ -1301,8 +1326,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 job longtext NOT NULL,
                 PRIMARY KEY  (name)
             ) {$wpdb->get_charset_collate()};");
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            if ($table !== $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)))) {
+            if (!self::table_exists($table)) {
                 self::originals_failed();
                 return false;
             }
@@ -1313,8 +1337,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (SEOPROSTACK_VERSION === ($state['moved'] ?? '')) {
             // A dropped table is rebuilt, not reported complete.
             $suppress = $wpdb->suppress_errors(true);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema detection, not content data.
-            $exists = $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+            $exists = self::table_exists($table);
             $wpdb->suppress_errors($suppress);
             if (!$exists) {
                 self::originals_failed();
