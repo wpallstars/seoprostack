@@ -114,7 +114,8 @@ final class SEOProStack_Fluentforms_Scripts {
     }
 
     /**
-     * Whether another plugin's script needs one of the held scripts.
+     * Whether another plugin's script needs one of the held scripts, itself
+     * or through a script it needs.
      *
      * @param WP_Scripts          $scripts Scripts.
      * @param string[]            $handles Every handle on the page.
@@ -124,8 +125,7 @@ final class SEOProStack_Fluentforms_Scripts {
      */
     private static function needed_elsewhere(WP_Scripts $scripts, array $handles, array $own, array $hold) {
         foreach (array_diff($handles, array_keys($own)) as $handle) {
-            $item = $scripts->query($handle);
-            if ($item instanceof _WP_Dependency && array_intersect((array) $item->deps, $hold)) {
+            if ($scripts->query($handle) instanceof _WP_Dependency && array_intersect(self::needs($handle), $hold)) {
                 return true;
             }
         }

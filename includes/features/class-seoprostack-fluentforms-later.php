@@ -13,8 +13,8 @@
  *
  * Each of Fluent Forms' and Fluent Forms Pro's own scripts (a file in either
  * plugin's folder) is printed as type="seoprostack/near", its address in
- * data-seoprostack-src; its data (fluentFormVars and the rest) and any inline
- * script before it print as they were. A small script at the end of the page
+ * data-seoprostack-src, with its inline scripts before and after it; its
+ * data (fluentFormVars and the rest) prints as it was. A small script at the end of the page
  * runs them, in order, once a form comes within DISTANCE pixels of the
  * screen (IntersectionObserver, which also fires when a modal, drawer or tab
  * holding one is shown), a field of a form gets focus, or the visitor
@@ -28,7 +28,8 @@
  * document.readyState), and fluentform-advanced.js and the Pro libraries
  * must be in by then, as they listen for its fluentform_init event. Scripts
  * that need jQuery wait for it, in case another plugin holds jQuery until
- * the visitor interacts. Fields that Fluent Forms and Fluent Forms Pro start
+ * the visitor interacts, and a form sent before they have run is held (it
+ * would post to the page and lose what was typed) so it can be sent again. Fields that Fluent Forms and Fluent Forms Pro start
  * from an inline script at the end of the page, on jQuery's ready (phone,
  * date), find no library then and return; once the scripts have run, each
  * form gets Fluent Forms' reInitExtras event, which starts them. A page with
@@ -44,11 +45,14 @@
  * screen starts straight away.
  *
  * Nothing changes, and the scripts print as before, with Fluent Forms older
- * than MIN_VERSION; on conversational form pages; when a script of another
- * plugin needs one of these; when Delay scripts would hold one of them, or a
- * script they need, with its keywords; or where the content security policy
- * PHP sends blocks inline scripts. Not in the admin, feeds, embeds, the
- * Customizer, AJAX or REST.
+ * than MIN_VERSION; on conversational form pages; on pages that open with a
+ * form (SEOProStack_Image_Loading::opening_block()); when one of the scripts
+ * prints before the footer; when a script of another plugin needs one of
+ * these; when Delay scripts would hold one of them, or a script they need,
+ * with its keywords; or where the content security policy PHP sends blocks
+ * inline scripts. A script another filter gave a type (a consent manager's
+ * text/plain) keeps it. Not in the admin, feeds, embeds, the Customizer,
+ * AJAX or REST. Changing the setting empties the page cache.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -103,25 +107,42 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_changed'), 10, 2);
         if (!self::enabled() || is_admin() || !defined('FLUENTFORM_VERSION') || version_compare(FLUENTFORM_VERSION, self::MIN_VERSION, '<')) {
             return;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentforms-scripts.php';
-        add_filter('script_loader_tag', array(__CLASS__, 'tag'), 10, 3);
+        add_filter('script_loader_tag', array(__CLASS__, 'tag'), 10, 2);
         // After WordPress prints the footer scripts (20).
         add_action('wp_footer', array(__CLASS__, 'loader'), 99);
     }
 
     /**
-     * A held script's tags: its file, and an inline script after it, wait.
+     * Settings changed: when this feature's did, cached pages were made the
+     * other way, so empty the page cache.
+     *
+     * @param array $old Settings before.
+     * @param array $new Settings after.
+     */
+    public static function settings_changed($old, $new) {
+        if (!empty($old[self::KEY]) !== !empty($new[self::KEY])) {
+            SEOProStack_Page_Cache::purge_all();
+        }
+    }
+
+    /**
+     * A held script's tags: its file, and inline scripts before and after
+     * it, wait.
      *
      * @param string $tag    Script tags, inline scripts included.
      * @param string $handle Script handle.
-     * @param string $src    Script address.
      * @return string
      */
-    public static function tag($tag, $handle, $src) {
-        if (!is_string($tag) || '' === (string) $src || !SEOProStack_Fluentforms_Scripts::own((string) $src)) {
+    public static function tag($tag, $handle) {
+        // The address it was registered with, as plan() reads it: a filter
+        // may have moved the printed one (a CDN), and the scripts wait together.
+        $item = wp_scripts()->query($handle);
+        if (!is_string($tag) || !$item instanceof _WP_Dependency || !is_string($item->src) || !SEOProStack_Fluentforms_Scripts::own($item->src)) {
             return $tag;
         }
         $held = self::held();
@@ -137,13 +158,14 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
     }
 
     /**
-     * The tags with the script's file, and an inline script after it,
-     * waiting; data and inline scripts before it run as they were.
+     * The tags with the script's file, and inline scripts before and after
+     * it, waiting, so they run in their order; its data prints as it was.
      *
      * @param string $tag    Script tags.
      * @param string $handle Script handle.
      * @param bool   $late   Whether it runs after the others.
-     * @return string|null Null when its file was not found.
+     * @return string|null Null when its file was not found, or another
+     *                     filter gave it a type (a consent manager's text/plain).
      */
     private static function rewrite($tag, $handle, $late) {
         $tags = new WP_HTML_Tag_Processor($tag);
@@ -152,12 +174,12 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
             $id = $tags->get_attribute('id');
             if ($handle . '-js' === $id) {
                 $file = $tags->get_attribute('src');
-                if (!is_string($file) || '' === $file) {
+                if (!is_string($file) || '' === $file || !self::classic($tags->get_attribute('type'))) {
                     return null;
                 }
                 $tags->remove_attribute('src');
                 $tags->set_attribute('data-seoprostack-src', $file);
-            } elseif ($handle . '-js-after' !== $id) {
+            } elseif ($handle . '-js-before' !== $id && $handle . '-js-after' !== $id) {
                 continue;
             }
             $tags->set_attribute('type', self::TYPE);
@@ -169,14 +191,26 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
     }
 
     /**
+     * Whether a script tag's type attribute runs it as a classic script.
+     *
+     * @param string|true|null $type The type attribute.
+     * @return bool
+     */
+    private static function classic($type) {
+        return !is_string($type) || in_array(strtolower(trim($type)), array('', 'text/javascript', 'application/javascript'), true);
+    }
+
+    /**
      * The handles held on this page (SEOProStack_Fluentforms_Scripts::plan()),
-     * decided once, at the first of Fluent Forms' scripts printed.
+     * decided once, at the first of Fluent Forms' scripts printed. None when
+     * that is before the footer: the page's forms may still add scripts that
+     * need it, which would run before it.
      *
      * @return array<string,string>
      */
     private static function held() {
         if (null === self::$held) {
-            self::$held = self::page_view() ? SEOProStack_Fluentforms_Scripts::plan() : array();
+            self::$held = did_action('wp_footer') && self::page_view() ? SEOProStack_Fluentforms_Scripts::plan() : array();
         }
         return self::$held;
     }
@@ -188,7 +222,7 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
      * @return bool
      */
     private static function page_view() {
-        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login()) {
+        if (is_feed() || is_embed() || is_customize_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_login() || self::opening_form()) {
             return false;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-used-css-policy.php';
@@ -203,6 +237,27 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
          * @param bool $later True to load them when a form comes near.
          */
         return (bool) apply_filters('seoprostack_fluentforms_later', true);
+    }
+
+    /**
+     * Whether the main post opens with a form, in the block
+     * SEOProStack_Image_Loading::opening_block() finds: it is on the first
+     * screen, so its scripts load with the page, as before.
+     *
+     * @return bool
+     */
+    private static function opening_form() {
+        $post = get_queried_object();
+        if (!is_singular() || !$post instanceof WP_Post) {
+            return false;
+        }
+        $block = SEOProStack_Image_Loading::opening_block($post);
+        if (!is_array($block)) {
+            return false;
+        }
+        // The [fluentform] shortcode, a form's markup, or the Fluent Forms block (fluentfom/guten-block).
+        $text = serialize_block($block);
+        return false !== stripos($text, 'fluentform') || false !== stripos($text, 'fluentfom/');
     }
 
     /**
@@ -224,19 +279,21 @@ class SEOProStack_Fluentforms_Later extends SEOProStack_Feature {
             . 'for(i=0;i<files.length;i++){var l=document.createElement("link");l.rel="preload";l.as="script";l.href=files[i].getAttribute("data-seoprostack-src");'
             . 'var c=files[i].getAttribute("crossorigin");if(c!==null)l.crossOrigin=c;l.onload=l.onerror=fetched;document.head.appendChild(l);}'
             . 'timer=setTimeout(function(){n=files.length-1;fetched();},5000);'
-            // jQuery, which form-submission.js needs, may be held by another plugin until the visitor interacts; 20 s at most.
-            . 'function wait(){clearTimeout(timer);if(!window.jQuery&&++tries<400){setTimeout(wait,50);return;}next();}'
+            // jQuery, which form-submission.js needs, may be held by another plugin until the visitor interacts: wait for it, every 50 ms for 20 s, then every 500 ms.
+            . 'function wait(){clearTimeout(timer);if(!window.jQuery){setTimeout(wait,++tries<400?50:500);return;}next();}'
             // Fields Fluent Forms starts from an inline script at the end of the page (phone, date) skipped their libraries then; they start again on reInitExtras.
-            . 'function next(){var old=list.shift();if(!old){if(window.jQuery)window.jQuery("form.frm-fluent-form").trigger("reInitExtras");return;}var s=document.createElement("script");'
+            . 'function next(){var old=list.shift();if(!old){document.removeEventListener("submit",hold,true);if(window.jQuery)window.jQuery("form.frm-fluent-form").trigger("reInitExtras");return;}var s=document.createElement("script");'
             . '[].forEach.call(old.attributes,function(a){if(a.name!=="type"&&a.name!=="data-seoprostack-src"&&a.name!=="data-seoprostack-late")s.setAttribute(a.name,a.value);});'
             . 'var src=old.getAttribute("data-seoprostack-src");'
             . 'if(src){s.src=src;s.async=false;s.onload=s.onerror=next;old.parentNode.replaceChild(s,old);}'
             . 'else{s.text=old.text;old.parentNode.replaceChild(s,old);next();}}}'
+            // Until Fluent Forms' scripts have run, a form sent would post to this page and lose what was typed: hold it, so the visitor can send it again.
+            . 'function hold(e){var f=e.target;if(f&&f.matches&&f.matches("form.frm-fluent-form")){e.preventDefault();load();}}'
             . 'function focus(e){var f=e.target&&e.target.closest?e.target.closest(F):null;if(f)load();}'
             . 'function tap(e){var a=e.target&&e.target.closest?e.target.closest("a[href*=\'#\'],[aria-controls],[data-toggle-target]"):null;if(!a)return;'
             . 'var id=a.getAttribute("aria-controls")||a.getAttribute("data-toggle-target")||a.getAttribute("href")||"";id=id.slice(id.indexOf("#")+1);'
             . 'var t=id?document.getElementById(id):null;if(t&&q(F,t).length)load();}'
-            . 'function start(){var w=q(F),i;if(!w.length||!("IntersectionObserver" in window)){load();return;}'
+            . 'function start(){var w=q(F),i;document.addEventListener("submit",hold,true);if(!w.length||!("IntersectionObserver" in window)){load();return;}'
             . 'io=new IntersectionObserver(function(es){for(var j=0;j<es.length;j++){if(es[j].isIntersecting){load();return;}}},{rootMargin:"%2$dpx 0px"});'
             . 'for(i=0;i<w.length;i++)io.observe(w[i]);document.addEventListener("focusin",focus,true);document.addEventListener("pointerdown",tap,true);}'
             . 'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();})();',
