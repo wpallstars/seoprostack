@@ -199,13 +199,20 @@ final class SEOProStack_Litespeed {
     }
 
     /**
-     * Whether LiteSpeed Cache is loaded on this site, so its admin-ajax.php
-     * can take a waiting purge (#1450).
+     * Whether LiteSpeed Cache runs on the current site, so its
+     * admin-ajax.php can take a waiting purge (#1450): active on it or for
+     * the network, as stored, so a site switched to (switch_to_blog()) is
+     * read for itself, and a plugin Load plugins only where needed skips on
+     * this request still counts (the delivery request loads it).
      *
      * @return bool
      */
     private static function running() {
-        return defined('LSCWP_V');
+        if (defined('LSCWP_V') && !(is_multisite() && ms_is_switched())) {
+            return true;
+        }
+        return in_array(self::SLUG . '/litespeed-cache.php', SEOProStack_Feature::stored_active_plugins(), true)
+            || self::network_active();
     }
 
     /**
