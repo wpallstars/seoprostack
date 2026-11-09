@@ -57,6 +57,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const CLAIMS = 'seoprostack_media_claims';
     /** Claim index state: schema, the version that built it, and the build cursor. */
     const CLAIMS_STATE = 'seoprostack_storage_job_claims';
+    /** Change it when the claim hashes, the table or the files indexed change: every site builds the index again. */
     const CLAIMS_SCHEMA = '1';
     /** URL index: the SHA-256 of signature and key => attachment ID, one row per stored file (GH#1251). */
     const URLS = 'seoprostack_media_urls';
@@ -604,9 +605,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * The claim index table, once created. Lookups need it complete too: built
-     * by this version, as an earlier version may have changed inventories
-     * without indexing them.
+     * The claim index table, once created. Lookups need it complete too: a
+     * build finished, by any version with this schema (GH#1445). Every
+     * version since 1.3.90 indexes each inventory it saves, also while a
+     * build runs, so an update keeps a finished index. Those up to 1.3.189
+     * start a new build, clearing "built", whenever they find one by another
+     * version, so after a downgrade and update the index is built again.
+     * Versions before 1.3.90, which kept no index, are not detected.
      *
      * @param bool $complete Whether lookups may trust it.
      * @return string Table name, or empty.
@@ -614,10 +619,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function claims_table($complete = false) {
         global $wpdb;
         $state = get_option(self::CLAIMS_STATE, array());
-        if (!is_array($state) || self::CLAIMS_SCHEMA !== ($state['schema'] ?? '') || ($complete && SEOPROSTACK_VERSION !== ($state['built'] ?? ''))) {
+        if (!is_array($state) || self::CLAIMS_SCHEMA !== ($state['schema'] ?? '') || ($complete && !self::claims_built($state))) {
             return '';
         }
         return $wpdb->prefix . self::CLAIMS;
+    }
+
+    /**
+     * Whether a claim index build has finished, by any version.
+     *
+     * @param array $state Claim index state.
+     * @return bool
+     */
+    private static function claims_built($state) {
+        return '' !== (string) ($state['built'] ?? '');
     }
 
     /**
@@ -667,8 +682,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * When the claim index next needs a build step; null once it is complete
-     * for this version, or while uploads are off.
+     * When the claim index next needs a build step; null once it is complete,
+     * or while uploads are off.
      *
      * @phpstan-impure Reads the index state, which batches change.
      * @return int|null
@@ -679,7 +694,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $state = get_option(self::CLAIMS_STATE, array());
         $state = is_array($state) ? $state : array();
-        if (self::CLAIMS_SCHEMA === ($state['schema'] ?? '') && SEOPROSTACK_VERSION === ($state['built'] ?? '')) {
+        if (self::CLAIMS_SCHEMA === ($state['schema'] ?? '') && self::claims_built($state)) {
             return null;
         }
         return max(time(), (int) ($state['retry'] ?? 0));
@@ -687,7 +702,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
 
     /**
      * Create the claim index and fill it from every stored inventory, in
-     * bounded steps. Changes during the build are indexed as they are saved.
+     * bounded steps. Changes during the build are indexed as they are saved,
+     * so a build another version started goes on from its cursor.
      *
      * @param float $start Batch start.
      * @param int $budget Seconds for this step.
@@ -716,10 +732,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => '');
             update_option(self::CLAIMS_STATE, $state, false);
         }
-        if (SEOPROSTACK_VERSION === ($state['built'] ?? '')) {
+        if (self::claims_built($state)) {
             return;
         }
-        if (SEOPROSTACK_VERSION !== ($state['building'] ?? '')) {
+        if ('' === (string) ($state['building'] ?? '') || !isset($state['cursor'])) {
             $state = array('schema' => self::CLAIMS_SCHEMA, 'built' => '', 'building' => SEOPROSTACK_VERSION, 'cursor' => PHP_INT_MAX);
         }
         $cursor = (int) ($state['cursor'] ?? PHP_INT_MAX);
