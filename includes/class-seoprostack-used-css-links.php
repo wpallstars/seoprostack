@@ -221,9 +221,11 @@ final class SEOProStack_Used_Css_Links {
     }
 
     /**
-     * Whether a file is the Kadence theme's local Google Fonts stylesheet: a
-     * `kadence-fonts-*` handle, a .css file straight in wp-content/fonts/,
-     * while Kadence is the parent theme. Other loaders share that folder, so
+     * Whether a file is a Google Fonts stylesheet a Kadence loader copied
+     * here: a .css file straight in wp-content/fonts/, with a
+     * `kadence-fonts-*` handle while Kadence is the parent theme, or WP Grid
+     * Builder's `wpgb-fonts` handle, which SEOProStack_Used_Css::wpgb_fonts()
+     * points there (GitHub issue #1434). Other loaders share that folder, so
      * the folder alone is not a source.
      *
      * @param array  $attrs Attributes.
@@ -231,8 +233,9 @@ final class SEOProStack_Used_Css_Links {
      * @return bool
      */
     private static function kadence_fonts(array $attrs, $file) {
-        $id = isset($attrs['id']) ? $attrs['id'] : '';
-        if (!SEOProStack_Used_Css::kadence_theme() || 0 !== strpos($id, 'kadence-fonts-') || '-css' !== substr($id, -4)) {
+        $id      = isset($attrs['id']) ? $attrs['id'] : '';
+        $kadence = SEOProStack_Used_Css::kadence_theme() && 0 === strpos($id, 'kadence-fonts-') && '-css' === substr($id, -4);
+        if (!$kadence && 'wpgb-fonts-css' !== $id) {
             return false;
         }
         $dir = trailingslashit(wp_normalize_path(WP_CONTENT_DIR)) . 'fonts/';
@@ -371,6 +374,12 @@ final class SEOProStack_Used_Css_Links {
             // after priority 1, after WordPress's last wp_maybe_inline_styles()
             // pass, keeps its style as a link (hoisted into the head).
             $sources[] = trailingslashit(wp_normalize_path(SEOPROSTACK_DIR));
+            // WP Grid Builder's grid and card stylesheets, which it writes to
+            // the uploads folder (GitHub issue #1434).
+            $uploads = wp_get_upload_dir();
+            if (!empty($uploads['basedir'])) {
+                $sources[] = trailingslashit(wp_normalize_path($uploads['basedir'])) . 'wpgb/';
+            }
             if (SEOProStack_Used_Css::kadence_theme()) {
                 // The Kadence theme, and a child theme of it.
                 $sources[] = trailingslashit(wp_normalize_path(get_template_directory()));
