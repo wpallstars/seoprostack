@@ -26,8 +26,8 @@
                 "Il documento non contiene testo da aggiungere."
             ],
             "%d picture in the document could not be added.": [
-                "Impossibile aggiungere l'immagine %d al documento.",
-                "Impossibile aggiungere le immagini %d al documento."
+                "%d immagine non \u00e8 stata aggiunta al documento.",
+                "%d immagini non sono state aggiunte al documento."
             ],
             "The document could not be converted.": [
                 "Impossibile convertire il documento."

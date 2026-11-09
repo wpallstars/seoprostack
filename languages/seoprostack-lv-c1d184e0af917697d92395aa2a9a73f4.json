@@ -26,9 +26,9 @@
                 "Dokument\u0101 nav pievienojama teksta."
             ],
             "%d picture in the document could not be added.": [
-                "Dokument\u0101 nevar\u0113ja pievienot att\u0113lu %d.",
-                "Dokument\u0101 nevar\u0113ja pievienot %d att\u0113lus.",
-                "Dokument\u0101 nevar\u0113ja pievienot %d att\u0113lus."
+                "%d att\u0113ls netika pievienots dokumentam.",
+                "%d att\u0113li netika pievienoti dokumentam.",
+                "%d att\u0113li netika pievienoti dokumentam."
             ],
             "The document could not be converted.": [
                 "Dokumentu nevar\u0113ja konvert\u0113t."

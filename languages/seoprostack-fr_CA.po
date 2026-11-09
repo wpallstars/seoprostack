@@ -2125,8 +2125,8 @@ msgstr[1] "Activer plutôt %d extensions sur chaque site"
 #, php-format
 msgid "%d plugin was moved from the network to each site by SEO Pro Stack."
 msgid_plural "%d plugins were moved from the network to each site by SEO Pro Stack."
-msgstr[0] "SEO Pro Stack a transféré l’activation de %d extension du réseau vers chaque site."
-msgstr[1] "SEO Pro Stack a transféré l’activation de %d extensions du réseau vers chaque site."
+msgstr[0] "%d plugin a été transféré du réseau vers chaque site par SEO Pro Stack."
+msgstr[1] "%d plugins ont été transférés du réseau vers chaque site par SEO Pro Stack."
 
 #: includes/class-seoprostack-network-plugins.php:526
 msgid "Undo: network-activate them again"
@@ -5438,14 +5438,13 @@ msgstr "Impossible de vérifier les fichiers journaux et de sauvegarde"
 msgid "This site could not reach its own files, so whether they can be downloaded is unknown."
 msgstr "Ce site n'a pas pu accéder à ses propres fichiers ; on ne sait donc pas s'ils peuvent être téléchargés."
 
-# machine translation
 #. translators: %d: number of files
 #: includes/features/class-seoprostack-hardening.php:849
 #, php-format
 msgid "%d smaller file was not checked today."
 msgid_plural "%d smaller files were not checked today."
-msgstr[0] "Le fichier %d plus petit n'a pas été vérifié aujourd'hui."
-msgstr[1] "Les fichiers %d de petite taille n'ont pas été vérifiés aujourd'hui."
+msgstr[0] "%d fichier plus petit n’a pas été vérifié aujourd’hui."
+msgstr[1] "%d fichiers plus petits n’ont pas été vérifiés aujourd’hui."
 
 # machine translation
 #: includes/features/class-seoprostack-hardening.php:950
@@ -6191,14 +6190,13 @@ msgstr "OPcache dispose d'espace : %1$s de %2$s utilisé, et le site possède %3
 msgid "OPcache is on with %1$s for the site’s %2$s of PHP code, and up to %4$s files for its %3$s. This server does not say how full it is."
 msgstr "OPcache est activé avec %1$s pour le code PHP du site %2$s) et jusqu'à %4$s fichiers pour son %3$s. Ce serveur n'indique pas son taux de remplissage."
 
-# machine translation
 #. translators: %s: number of plugins.
 #: includes/features/class-seoprostack-hosting-needs.php:1830
 #, php-format
 msgid "%s active plugin is not measured yet."
 msgid_plural "%s active plugins are not measured yet."
-msgstr[0] "Le plugiciel actif %s n'a pas encore été mesuré."
-msgstr[1] "Les plugiciels actifs %s n'ont pas encore été mesurés."
+msgstr[0] "%s plugiciel actif n'a pas encore été mesuré."
+msgstr[1] "%s plugiciels actifs n'ont pas encore été mesurés."
 
 # machine translation
 #: includes/features/class-seoprostack-hosting-needs.php:1953
@@ -6722,12 +6720,11 @@ msgstr "%1$s, environ %2$s lignes de données de publication, %3$s produits"
 msgid "Options loaded on every request"
 msgstr "Options chargées à chaque requête"
 
-# machine translation
 #. translators: 1: size, 2: number of options.
 #: includes/features/class-seoprostack-hosting-needs.php:3107
 #, php-format
 msgid "%1$s in %2$s options"
-msgstr "options %1$s dans %2$s"
+msgstr "%1$s dans %2$s options"
 
 # machine translation
 #: includes/features/class-seoprostack-hosting-needs.php:3111
@@ -7282,14 +7279,13 @@ msgstr "%s (actif)"
 msgid "Category pill text (white, set by Kadence)"
 msgstr "Texte de la pilule de catégorie (blanc, défini par Kadence)"
 
-# machine translation
 #. translators: %s: number of colours.
 #: includes/features/class-seoprostack-kadence-colour-check.php:971
 #, php-format
 msgid "%s Kadence colour now follows the palette. Restore in Site Health puts the old colour back."
 msgid_plural "%s Kadence colours now follow the palette. Restore in Site Health puts the old colours back."
-msgstr[0] "La couleur %s Kadence suit maintenant la palette. La fonction « Restaurer » dans l’onglet « Intégrité du site » rétablit l’ancienne couleur."
-msgstr[1] "Les couleurs %s Kadence suivent maintenant la palette. La fonction « Restaurer » de l’onglet « Intégrité du site » rétablit les anciennes couleurs."
+msgstr[0] "%s couleur Kadence suit maintenant la palette. La fonction « Restaurer » dans l’onglet « Intégrité du site » rétablit l’ancienne couleur."
+msgstr[1] "%s couleurs Kadence suivent maintenant la palette. La fonction « Restaurer » de l’onglet « Intégrité du site » rétablit les anciennes couleurs."
 
 # machine translation
 #: includes/features/class-seoprostack-kadence-colour-check.php:974
@@ -8869,14 +8865,13 @@ msgstr "Une conversion par lots est en cours. Essayez de nouveau dans quelques m
 msgid "Copies of some pictures could not be made, or their conversion stopped (attachments %s). Make their copies again (Media → Library, Make WebP and AVIF copies), then run the cleanup again."
 msgstr "Il a été impossible de créer des copies de certaines images, ou leur conversion a été interrompue (pièces jointes %s). Veuillez en créer de nouvelles copies (Média → Bibliothèque, Créer des copies WebP et AVIF), puis relancer le nettoyage."
 
-# machine translation
 #. translators: %d: number of pictures.
 #: includes/features/class-seoprostack-nextgen-images.php:1677
 #, php-format
 msgid "%d picture is waiting to be converted. Run wp seoprostack convert-images first."
 msgid_plural "%d pictures are waiting to be converted. Run wp seoprostack convert-images first."
-msgstr[0] "L'image %d est en attente de conversion. Veuillez d'abord exécuter la commande wp seoprostack convert-images."
-msgstr[1] "Les images %d sont en attente de conversion. Veuillez d'abord exécuter la commande wp seoprostack convert-images."
+msgstr[0] "%d image est en attente de conversion. Veuillez d'abord exécuter la commande wp seoprostack convert-images."
+msgstr[1] "%d images sont en attente de conversion. Veuillez d'abord exécuter la commande wp seoprostack convert-images."
 
 # machine translation
 #: includes/features/class-seoprostack-nextgen-images.php:1793
@@ -8930,14 +8925,13 @@ msgstr "Les images de chaque site se trouvent dans le dossier de téléchargemen
 msgid "No copies are made: turn on a format this server can make."
 msgstr "Aucune copie n'est effectuée : activez un format compatible avec ce serveur."
 
-# machine translation
 #. translators: 1: pictures with copies, 2: all pictures
 #: includes/features/class-seoprostack-nextgen-images.php:1911
 #, php-format
 msgid "%1$s of %2$s picture converted."
 msgid_plural "%1$s of %2$s pictures converted."
-msgstr[0] "Image %1$s de %2$s convertie."
-msgstr[1] "Images %1$s de %2$s converties."
+msgstr[0] "%1$s image sur %2$s convertie."
+msgstr[1] "%1$s images sur %2$s converties."
 
 # machine translation
 #: includes/features/class-seoprostack-nextgen-images.php:1916
@@ -9057,23 +9051,21 @@ msgstr "WebP et AVIF"
 msgid "Make WebP and AVIF copies"
 msgstr "Créez des copies WebP et AVIF"
 
-# machine translation
 #. translators: %d: number of pictures
 #: includes/features/class-seoprostack-nextgen-images.php:2092
 #, php-format
 msgid "%d picture converted."
 msgid_plural "%d pictures converted."
-msgstr[0] "Image %d convertie."
-msgstr[1] "Images %d converties."
+msgstr[0] "%d image convertie."
+msgstr[1] "%d images converties."
 
-# machine translation
 #. translators: %d: number of pictures
 #: includes/features/class-seoprostack-nextgen-images.php:2095
 #, php-format
 msgid "%d more will be converted in the background."
 msgid_plural "%d more will be converted in the background."
-msgstr[0] "D'autres conversions %d seront effectuées en arrière-plan."
-msgstr[1] "D'autres conversions %d seront effectuées en arrière-plan."
+msgstr[0] "%d autre sera converti en arrière-plan."
+msgstr[1] "%d autres seront convertis en arrière-plan."
 
 # machine translation
 #: includes/features/class-seoprostack-notification-emails.php:38
@@ -9165,23 +9157,21 @@ msgstr "WordPress conserve les anciennes adresses des articles renommés afin qu
 msgid "Old addresses"
 msgstr "Anciennes adresses"
 
-# machine translation
 #. translators: %s: number of old addresses
 #: includes/features/class-seoprostack-old-slugs.php:396
 #, php-format
 msgid "%s old address removed."
 msgid_plural "%s old addresses removed."
-msgstr[0] "Adresse %s supprimée."
-msgstr[1] "Les anciennes adresses %s ont été supprimées."
+msgstr[0] "%s ancienne adresse supprimée."
+msgstr[1] "%s anciennes adresses supprimées."
 
-# machine translation
 #. translators: %d: number of old addresses
 #: includes/features/class-seoprostack-old-slugs.php:402
 #, php-format
 msgid "%d old address that could no longer lead anywhere was cleared."
 msgid_plural "%d old addresses that could no longer lead anywhere were cleared."
-msgstr[0] "L'ancienne adresse %d, qui ne menait plus nulle part, a été supprimée."
-msgstr[1] "Les anciennes adresses %d qui ne menaient plus nulle part ont été supprimées."
+msgstr[0] "%d ancienne adresse, qui ne menait plus nulle part, a été supprimée."
+msgstr[1] "%d anciennes adresses qui ne menaient plus nulle part ont été supprimées."
 
 # machine translation
 #: includes/features/class-seoprostack-old-slugs.php:405
@@ -9403,14 +9393,13 @@ msgstr "Appels effectués via WordPress depuis %s, du plus lent au plus ancien. 
 msgid "No calls yet."
 msgstr "Aucun appel pour l'instant."
 
-# machine translation
 #. translators: %s: number of rows
 #: includes/features/class-seoprostack-outbound-calls.php:801
 #, php-format
 msgid "%s slow call has no choice yet. It is marked Slow below."
 msgid_plural "%s slow calls have no choice yet. They are marked Slow below."
-msgstr[0] "L'appel lent %s n'a pas encore d'autre choix. Il est indiqué comme lent ci-dessous."
-msgstr[1] "Les appels lents %s n'ont pas encore le choix. Ils sont marqués comme lents ci-dessous."
+msgstr[0] "%s appel lent n'a pas encore d'autre choix. Il est indiqué comme lent ci-dessous."
+msgstr[1] "%s appels lents n'ont pas encore le choix. Ils sont marqués comme lents ci-dessous."
 
 # machine translation
 #: includes/features/class-seoprostack-outbound-calls.php:808
@@ -9852,23 +9841,21 @@ msgstr "SEO Pro Stack n'a pas pu ajouter son chargeur au dossier wp-content/mu-p
 msgid "Screens are learned as you use them: the first time you open a screen it loads every plugin, then only the ones it needs."
 msgstr "Les écrans s'apprennent au fur et à mesure de leur utilisation : la première fois que vous ouvrez un écran, tous les plugiciels sont chargés, puis seulement ceux dont ils ont besoin sont chargés."
 
-# machine translation
 #. translators: %s: number of screens
 #: includes/features/class-seoprostack-plugin-loading.php:986
 #, php-format
 msgid "%s screen learned so far. Other screens load every plugin the first time you open them."
 msgid_plural "%s screens learned so far. Other screens load every plugin the first time you open them."
-msgstr[0] "L'écran %s a été appris jusqu'à présent. Les autres écrans chargent tous les plugiciels lors de leur première ouverture."
-msgstr[1] "Écrans %s appris jusqu'à présent. Les autres écrans chargent tous les plugiciels lors de leur première ouverture."
+msgstr[0] "%s écran a été appris jusqu'à présent. Les autres écrans chargent tous les plugiciels lors de leur première ouverture."
+msgstr[1] "%s écrans appris jusqu'à présent. Les autres écrans chargent tous les plugiciels lors de leur première ouverture."
 
-# machine translation
 #. translators: %s: number of screens
 #: includes/features/class-seoprostack-plugin-loading.php:993
 #, php-format
 msgid "%s screen loads every plugin because a plugin failed there with fewer plugins loaded."
 msgid_plural "%s screens load every plugin because a plugin failed there with fewer plugins loaded."
-msgstr[0] "L'écran %s charge tous les plugiciels parce qu'un plugiciel a échoué à cet endroit alors qu'un nombre insuffisant de plugiciels étaient chargés."
-msgstr[1] "Les écrans %s chargent tous les plugiciels parce qu'un plugiciel a échoué à cet endroit alors qu'un nombre réduit de plugiciels était chargé."
+msgstr[0] "%s écran charge tous les plugiciels parce qu'un plugiciel a échoué à cet endroit alors qu'un nombre insuffisant de plugiciels étaient chargés."
+msgstr[1] "%s écrans chargent tous les plugiciels parce qu'un plugiciel a échoué à cet endroit alors qu'un nombre réduit de plugiciels était chargé."
 
 # machine translation
 #: includes/features/class-seoprostack-plugin-loading.php:998
@@ -9945,14 +9932,13 @@ msgstr "Rechargez le plugiciel avec chaque extension et revérifiez cet écran."
 msgid "Reload with every plugin and check every screen again"
 msgstr "Rechargez le plugiciel avec chaque extension et revérifiez chaque écran."
 
-# machine translation
 #. translators: 1: plugins loaded, 2: active plugins
 #: includes/features/class-seoprostack-plugin-loading.php:3605
 #, php-format
 msgid "%1$d of %2$d plugin loaded on this page"
 msgid_plural "%1$d of %2$d plugins loaded on this page"
-msgstr[0] "Le plugiciel %1$d de %2$d a été chargé sur cette page."
-msgstr[1] "%1$d des plugiciels %2$d chargés sur cette page"
+msgstr[0] "%1$d plugin sur %2$d chargé sur cette page"
+msgstr[1] "%1$d plugins sur %2$d chargés sur cette page"
 
 # machine translation
 #. translators: 1: plugins loaded, 2: active plugins
@@ -9963,41 +9949,37 @@ msgid_plural "%1$d of %2$d plugins loaded on this screen"
 msgstr[0] "%1$d du plugiciel %2$d chargé sur cet écran"
 msgstr[1] "%1$d des plugiciels %2$d chargés sur cet écran"
 
-# machine translation
 #. translators: %d: active plugins
 #: includes/features/class-seoprostack-plugin-loading.php:3632
 #, php-format
 msgid "%d plugin loaded while SEO Pro Stack checks this screen"
 msgid_plural "All %d plugins loaded while SEO Pro Stack checks this screen"
-msgstr[0] "Le plugiciel %d a été chargé pendant que SEO Pro Stack vérifie cet écran."
-msgstr[1] "Tous les plugiciels %d sont chargés pendant que SEO Pro Stack vérifie cet écran."
+msgstr[0] "%d plugin chargé pendant que SEO Pro Stack vérifie cet écran"
+msgstr[1] "Tous les %d plugins chargés pendant que SEO Pro Stack vérifie cet écran"
 
-# machine translation
 #. translators: %d: active plugins
 #: includes/features/class-seoprostack-plugin-loading.php:3636
 #, php-format
 msgid "%d plugin loads here: a plugin failed when fewer were loaded"
 msgid_plural "All %d plugins load here: a plugin failed when fewer were loaded"
-msgstr[0] "Le plugiciel %d se charge ici : un plugiciel a échoué alors que moins de plugiciels étaient chargés"
-msgstr[1] "Tous les plugiciels %d se chargent ici : un plugiciel a échoué alors qu'un nombre insuffisant de plugiciels étaient chargés."
+msgstr[0] "%d plugin se charge ici : un plugin a échoué alors qu’il y en avait moins de chargés"
+msgstr[1] "Tous les %d plugins se chargent ici : un plugin a échoué alors qu’il y en avait moins de chargés"
 
-# machine translation
 #. translators: %d: active plugins
 #: includes/features/class-seoprostack-plugin-loading.php:3640
 #, php-format
 msgid "%d plugin loaded: this screen needs it"
 msgid_plural "All %d plugins loaded: this screen needs them all"
-msgstr[0] "Le plugiciel %d chargé : cet écran en a besoin"
-msgstr[1] "Tous les plugiciels %d sont chargés : cet écran les nécessite tous."
+msgstr[0] "%d plugin chargé : cet écran en a besoin"
+msgstr[1] "Tous les %d plugins chargés : cet écran en a besoin"
 
-# machine translation
 #. translators: %d: active plugins
 #: includes/features/class-seoprostack-plugin-loading.php:3644
 #, php-format
 msgid "%d plugin loaded while WordPress checks for updates"
 msgid_plural "All %d plugins loaded while WordPress checks for updates"
-msgstr[0] "Le plugiciel %d est chargé pendant que WordPress recherche des mises à jour."
-msgstr[1] "Tous les plugiciels %d sont chargés pendant que WordPress recherche des mises à jour."
+msgstr[0] "%d plugin chargé pendant que WordPress recherche des mises à jour"
+msgstr[1] "Tous les %d plugins chargés pendant que WordPress recherche des mises à jour"
 
 # machine translation
 #. translators: %d: active plugins
@@ -10008,12 +9990,11 @@ msgid_plural "This screen always loads all %d plugins"
 msgstr[0] "Cet écran charge toujours son plugiciel %d"
 msgstr[1] "Cet écran charge toujours tous les plugiciels %d"
 
-# machine translation
 #. translators: 1: plugins loaded, 2: active plugins
 #: includes/features/class-seoprostack-plugin-loading.php:3689
 #, php-format
 msgid "%1$d of %2$d plugins"
-msgstr "plugiciels %1$d de %2$d"
+msgstr "%1$d plugins sur %2$d"
 
 # machine translation
 #: includes/features/class-seoprostack-plugin-loading.php:3692
@@ -10125,14 +10106,13 @@ msgstr[1] "Préréglage : les paramètres %d diffèrent"
 msgid "%s preset"
 msgstr "préréglage %s"
 
-# machine translation
 #. translators: %d: number of settings
 #: includes/features/class-seoprostack-plugin-presets.php:279
 #, php-format
 msgid "%d setting differs from the preset. Untick any you want to keep as it is."
 msgid_plural "%d settings differ from the preset. Untick any you want to keep as they are."
-msgstr[0] "Le réglage %d diffère du préréglage. Décochez les options que vous voulez conserver."
-msgstr[1] "Les paramètres %d diffèrent des paramètres prédéfinis. Décochez ceux que vous voulez conserver."
+msgstr[0] "%d réglage diffère du préréglage. Décochez les options que vous voulez conserver."
+msgstr[1] "%d paramètres diffèrent des paramètres prédéfinis. Décochez ceux que vous voulez conserver."
 
 # machine translation
 #. translators: 1: value now, 2: value the preset sets
@@ -10462,41 +10442,37 @@ msgstr "La mémoire OPcache utilisée par le PHP compilé est actuellement compt
 msgid "OPcache %s"
 msgstr "OPcache %s"
 
-# machine translation
 #. translators: %s: number of plugins.
 #: includes/features/class-seoprostack-plugin-sizes.php:430
 #, php-format
 msgid "%s installed plugin"
 msgid_plural "%s installed plugins"
-msgstr[0] "plugin installé %s"
-msgstr[1] "plugiciels installés %s"
+msgstr[0] "%s plugin installé"
+msgstr[1] "%s plugiciels installés"
 
-# machine translation
 #. translators: %s: number of plugins.
 #: includes/features/class-seoprostack-plugin-sizes.php:433
 #, php-format
 msgid "%s network active plugin"
 msgid_plural "%s network active plugins"
-msgstr[0] "plugiciel actif réseau %s"
-msgstr[1] "plugiciels actifs du réseau %s"
+msgstr[0] "%s plugiciel actif réseau"
+msgstr[1] "%s plugiciels actifs du réseau"
 
-# machine translation
 #. translators: %s: number of plugins.
 #: includes/features/class-seoprostack-plugin-sizes.php:436
 #, php-format
 msgid "%s active plugin"
 msgid_plural "%s active plugins"
-msgstr[0] "plugin actif %s"
-msgstr[1] "plugins actifs %s"
+msgstr[0] "%s plugin actif"
+msgstr[1] "%s plugins actifs"
 
-# machine translation
 #. translators: %s: number of plugins.
 #: includes/features/class-seoprostack-plugin-sizes.php:444
 #, php-format
 msgid "%s plugin not measured"
 msgid_plural "%s plugins not measured"
-msgstr[0] "plugin %s non mesuré"
-msgstr[1] "plugiciels %s non mesurés"
+msgstr[0] "%s plugin non mesuré"
+msgstr[1] "%s plugiciels non mesurés"
 
 # machine translation
 #: includes/features/class-seoprostack-plugin-sizes.php:657 admin/js/seoprostack-tabs.js:300
@@ -11672,23 +11648,21 @@ msgstr "Supprimer la règle de contrôle du contenu"
 msgid "From Content Control, “Who sees this” is set on %1$s and %2$s."
 msgstr "Dans le contrôle du contenu, « Qui voit ceci » est défini sur %1$s et %2$s."
 
-# machine translation
 #. translators: %s: number of posts
 #: includes/features/class-seoprostack-restrict-content.php:1671
 #, php-format
 msgid "%s post or page"
 msgid_plural "%s posts or pages"
-msgstr[0] "publication ou page %s"
+msgstr[0] "%s publication ou page"
 msgstr[1] "%s messages ou pages"
 
-# machine translation
 #. translators: %s: number of terms
 #: includes/features/class-seoprostack-restrict-content.php:1673
 #, php-format
 msgid "%s category or tag"
 msgid_plural "%s categories or tags"
-msgstr[0] "catégorie ou étiquette %s"
-msgstr[1] "catégories ou étiquettes %s"
+msgstr[0] "%s catégorie ou étiquette"
+msgstr[1] "%s catégories ou étiquettes"
 
 # machine translation
 #. translators: %s: Content Control restriction names
@@ -11898,14 +11872,13 @@ msgstr "Entrez une adresse Web complète commençant par https://"
 msgid "The screenshot will be taken when the page is published or viewed."
 msgstr "La capture d'écran sera prise lors de la publication ou de la consultation de la page."
 
-# machine translation
 #. translators: %s: number of screenshots
 #: includes/features/class-seoprostack-screenshots.php:1310
 #, php-format
 msgid "%s screenshot is saved in the Media Library."
 msgid_plural "%s screenshots are saved in the Media Library."
-msgstr[0] "La capture d'écran %s est sauvegardée dans la bibliothèque multimédia."
-msgstr[1] "Les captures d'écran %s sont sauvegardées dans la bibliothèque multimédia."
+msgstr[0] "%s capture d'écran est sauvegardée dans la bibliothèque multimédia."
+msgstr[1] "%s captures d'écran sont sauvegardées dans la bibliothèque multimédia."
 
 # machine translation
 #: includes/features/class-seoprostack-screenshots.php:1317
@@ -12443,50 +12416,45 @@ msgstr "Nom (affiché uniquement dans l'interface d'administration)"
 msgid "Short link saved as a draft; it does not work until it is published."
 msgstr "Lien court enregistré comme brouillon ; il ne fonctionnera pas tant qu'il n'aura pas été publié."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1046
 #, php-format
 msgid "%s short link updated."
 msgid_plural "%s short links updated."
-msgstr[0] "Lien court %s mis à jour."
-msgstr[1] "Liens courts %s mis à jour."
+msgstr[0] "%s lien court mis à jour."
+msgstr[1] "%s liens courts mis à jour."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1048
 #, php-format
 msgid "%s short link not updated, somebody is editing it."
 msgid_plural "%s short links not updated, somebody is editing them."
-msgstr[0] "Le lien court %s n'est pas à jour, quelqu'un est en train de le modifier."
-msgstr[1] "Les liens courts %s ne sont pas à jour, quelqu'un est en train de les modifier."
+msgstr[0] "%s lien court n'est pas à jour, quelqu'un est en train de le modifier."
+msgstr[1] "%s liens courts ne sont pas à jour, quelqu'un est en train de les modifier."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1050
 #, php-format
 msgid "%s short link permanently deleted."
 msgid_plural "%s short links permanently deleted."
-msgstr[0] "Le lien court %s a été supprimé définitivement."
-msgstr[1] "Les liens raccourcis %s ont été supprimés définitivement."
+msgstr[0] "%s lien court a été supprimé définitivement."
+msgstr[1] "%s liens raccourcis ont été supprimés définitivement."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1052
 #, php-format
 msgid "%s short link moved to the bin."
 msgid_plural "%s short links moved to the bin."
-msgstr[0] "Le lien court %s a été déplacé vers la corbeille."
-msgstr[1] "Les liens courts %s ont été déplacés à la corbeille."
+msgstr[0] "%s lien court a été déplacé vers la corbeille."
+msgstr[1] "%s liens courts ont été déplacés à la corbeille."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1054
 #, php-format
 msgid "%s short link restored from the bin."
 msgid_plural "%s short links restored from the bin."
-msgstr[0] "Lien court %s restauré depuis la corbeille."
-msgstr[1] "Liens courts %s restaurés depuis la corbeille."
+msgstr[0] "%s lien court restauré depuis la corbeille."
+msgstr[1] "%s liens courts restaurés depuis la corbeille."
 
 # machine translation
 #: includes/features/class-seoprostack-short-links.php:1125
@@ -12518,32 +12486,29 @@ msgstr "Ajoutez l'adresse de destination de ce lien ; en attendant, il ne fait 
 msgid "A page or post has the same address. Visitors to it now go where this link goes."
 msgstr "Une page ou un article a la même adresse. Les visiteurs qui y accèdent sont maintenant redirigés vers la page où ce lien les mène."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1214
 #, php-format
 msgid "%s link imported."
 msgid_plural "%s links imported."
-msgstr[0] "Lien %s importé."
-msgstr[1] "Liens %s importés."
+msgstr[0] "%s lien importé."
+msgstr[1] "%s liens importés."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1220
 #, php-format
 msgid "%s was left out because a short link already has its address."
 msgid_plural "%s were left out because short links already have their addresses."
-msgstr[0] "%s a été omis parce qu'un lien court contient déjà son adresse."
-msgstr[1] "Les liens %s ont été omis parce que les liens courts ont déjà leurs adresses."
+msgstr[0] "%s a été omis, car un lien court possède déjà son adresse."
+msgstr[1] "%s ont été omis, car des liens courts possèdent déjà leurs adresses."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1227
 #, php-format
 msgid "%s is left; import again to continue."
 msgid_plural "%s are left; import again to continue."
-msgstr[0] "%s est restant ; importez de nouveau pour continuer."
-msgstr[1] "Il reste %s ; importez de nouveau pour continuer."
+msgstr[0] "%s restant ; importez à nouveau pour continuer."
+msgstr[1] "%s restants ; importez à nouveau pour continuer."
 
 # machine translation
 #: includes/features/class-seoprostack-short-links.php:1689
@@ -12559,14 +12524,13 @@ msgid_plural "%1$s has %2$s links. Switch this on to import them."
 msgstr[0] "%1$s possède un lien %2$s. Activez cette option pour l'importer."
 msgstr[1] "%1$s contient des liens %2$s. Activez cette option pour les importer."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1756
 #, php-format
 msgid "%s short link is live."
 msgid_plural "%s short links are live."
-msgstr[0] "Le lien court %s est actif."
-msgstr[1] "Les liens raccourcis %s sont actifs."
+msgstr[0] "%s lien court est actif."
+msgstr[1] "%s liens raccourcis sont actifs."
 
 # machine translation
 #: includes/features/class-seoprostack-short-links.php:1760
@@ -12656,14 +12620,13 @@ msgstr "Code Snippets ne contient aucun extrait de code qui ralentit les pages o
 msgid "SEO Pro Stack looks for snippets that add a request to every page, content snippets nothing uses, old inactive snippets and samples, code one of its settings replaces, and code that saves a post twice. Snippets are never changed."
 msgstr "SEO Pro Stack recherche les extraits de code qui ajoutent une requête à chaque page, les extraits de contenu inutilisés, les anciens extraits et exemples inactifs, le code remplacé par l'un de ses paramètres et le code qui enregistre un article deux fois. Les extraits de code ne sont jamais modifiés."
 
-# machine translation
 #. translators: %d: number of snippets
 #: includes/features/class-seoprostack-snippets-audit.php:306
 #, php-format
 msgid "%d code snippet slows pages or is not needed"
 msgid_plural "%d code snippets slow pages or are not needed"
-msgstr[0] "L'extrait de code %d ralentit les pages ou est inutile."
-msgstr[1] "Les extraits de code %d ralentissent les pages ou ne sont pas nécessaires."
+msgstr[0] "%d extrait de code ralentit les pages ou est inutile."
+msgstr[1] "%d extraits de code ralentissent les pages ou ne sont pas nécessaires."
 
 # machine translation
 #. translators: %d: snippet ID
@@ -12999,12 +12962,11 @@ msgstr "Chaque page de résultats exécute une deuxième requête de comptage, p
 msgid "Not needed yet: about %1$s entries in the posts table. Recommended from about %2$s."
 msgstr "Pas encore nécessaire : environ %1$s entrées dans le tableau des articles. Recommandé à partir d'environ %2$s."
 
-# machine translation
 #. translators: 1: number of products; 2: number of category and tag links
 #: includes/features/class-seoprostack-speed-plan.php:210
 #, php-format
 msgid "%1$s products and about %2$s category and tag links: every save, import and deletion recounts the categories and tags it touches."
-msgstr "Produits %1$s et liens vers les catégories et étiquettes %2$s : chaque enregistrement, importation et suppression comptabilise les catégories et étiquettes concernées."
+msgstr "%1$s produits et environ %2$s liens de catégories et d’étiquettes : chaque enregistrement, importation et suppression recompte les catégories et étiquettes concernées."
 
 # machine translation
 #: includes/features/class-seoprostack-speed-plan.php:211
@@ -13459,32 +13421,29 @@ msgstr "Nouveau parent"
 msgid "You cannot change these terms."
 msgstr "Vous ne pouvez pas changer ces conditions."
 
-# machine translation
 #. translators: %d: number of terms
 #: includes/features/class-seoprostack-term-tools.php:782
 #, php-format
 msgid "%d term merged."
 msgid_plural "%d terms merged."
-msgstr[0] "Terme %d fusionné."
-msgstr[1] "Termes %d fusionnés."
+msgstr[0] "%d terme fusionné."
+msgstr[1] "%d termes fusionnés."
 
-# machine translation
 #. translators: %d: number of terms
 #: includes/features/class-seoprostack-term-tools.php:786
 #, php-format
 msgid "%d term moved."
 msgid_plural "%d terms moved."
-msgstr[0] "Le terme %d a été déplacé."
-msgstr[1] "Les termes %d ont été déplacés."
+msgstr[0] "%d terme a été déplacé."
+msgstr[1] "%d termes ont été déplacés."
 
-# machine translation
 #. translators: %d: number of terms
 #: includes/features/class-seoprostack-term-tools.php:790
 #, php-format
 msgid "%d was left where it was: the other taxonomy already has a term with its slug. Merge them first."
 msgid_plural "%d were left where they were: the other taxonomy already has terms with their slugs. Merge them first."
-msgstr[0] "%d est resté à sa place : l’autre taxonomie possède déjà un terme avec son identifiant. Il faut d'abord les fusionner."
-msgstr[1] "Les termes %d sont restés en place : l’autre taxonomie possède déjà des termes avec leurs identifiants. Il faut d'abord les fusionner."
+msgstr[0] "%d terme est resté à sa place : l’autre taxonomie possède déjà un terme avec son identifiant. Il faut d’abord les fusionner."
+msgstr[1] "%d termes sont restés à leur place : l’autre taxonomie possède déjà des termes avec leurs identifiants. Il faut d’abord les fusionner."
 
 # machine translation
 #: includes/features/class-seoprostack-term-tools.php:794
@@ -13509,14 +13468,13 @@ msgid_plural "Slug pattern applied to %d terms."
 msgstr[0] "Modèle de slug appliqué au terme %d."
 msgstr[1] "Modèle de slug appliqué aux termes %d."
 
-# machine translation
 #. translators: %d: number of terms
 #: includes/features/class-seoprostack-term-tools.php:807
 #, php-format
 msgid "%d term could not be updated."
 msgid_plural "%d terms could not be updated."
-msgstr[0] "Le terme %d n'a pas pu être mis à jour."
-msgstr[1] "Les termes %d n'ont pas pu être mis à jour."
+msgstr[0] "%d terme n'a pas pu être mis à jour."
+msgstr[1] "%d termes n'ont pas pu être mis à jour."
 
 # machine translation
 #: includes/features/class-seoprostack-term-tools.php:812
@@ -13553,30 +13511,27 @@ msgstr "Nombre de mises à jour adéquats"
 msgid "Leave updates that are already installed out of the numbers next to Updates, Plugins and Appearance. WordPress counts its last update check as it was saved, so updates made by the host, a deploy or a file upload keep showing for up to 12 hours, while the Updates screen lists none."
 msgstr "Ne tenez pas compte des mises à jour déjà installées dans les sections « Mises à jour », « Extensions » et « Apparence ». WordPress comptabilise la dernière vérification de mise à jour au moment de son enregistrement ; ainsi, les mises à jour effectuées par l’hôte, un déploiement ou un chargement de fichier peuvent rester affichées pendant 12 heures maximum, même si l’écran « Mises à jour » n’en affiche aucune."
 
-# machine translation
 #. translators: %d: number of WordPress updates (1)
 #: includes/features/class-seoprostack-update-count.php:190
 #, php-format
 msgid "%d WordPress Update"
-msgstr "Mise à jour %d WordPress"
+msgstr "%d mise à jour WordPress"
 
-# machine translation
 #. translators: %d: number of plugin updates
 #: includes/features/class-seoprostack-update-count.php:193
 #, php-format
 msgid "%d Plugin Update"
 msgid_plural "%d Plugin Updates"
-msgstr[0] "Mise à jour du plugiciel %d"
-msgstr[1] "Mises à jour du plugiciel %d"
+msgstr[0] "%d mise à jour du plugiciel"
+msgstr[1] "%d mises à jour du plugiciel"
 
-# machine translation
 #. translators: %d: number of theme updates
 #: includes/features/class-seoprostack-update-count.php:196
 #, php-format
 msgid "%d Theme Update"
 msgid_plural "%d Theme Updates"
-msgstr[0] "Mise à jour du thème %d"
-msgstr[1] "Mises à jour du thème %d"
+msgstr[0] "%d mise à jour du thème"
+msgstr[1] "%d mises à jour du thème"
 
 # machine translation
 #: includes/features/class-seoprostack-update-delay.php:31
@@ -14161,14 +14116,13 @@ msgstr "Supprimer le filigrane de chaque image marquée et remettre les originau
 msgid "This server has no image library that can add watermarks (GD or Imagick)."
 msgstr "Ce serveur ne possède pas de bibliothèque d'images permettant d'ajouter des filigranes (GD ou Imagick)."
 
-# machine translation
 #. translators: %d: number of pictures
 #: includes/features/class-seoprostack-watermark-images.php:2448
 #, php-format
 msgid "%d picture has a watermark."
 msgid_plural "%d pictures have a watermark."
-msgstr[0] "L'image %d comporte un filigrane."
-msgstr[1] "Les images %d comportent un filigrane."
+msgstr[0] "%d image comporte un filigrane."
+msgstr[1] "%d images comportent un filigrane."
 
 # machine translation
 #. translators: %s: Media Library address
@@ -14800,12 +14754,11 @@ msgstr "Enregistré comme brouillon ; aucun envoi n'a été effectué. Veuillez
 msgid "Wait for the bulk action to finish, or stop it."
 msgstr "Attendez que l'opération en masse soit terminée, ou arrêtez-la."
 
-# machine translation
 #: admin/js/seoprostack-tabs.js:233
 msgid "%d plugin"
 msgid_plural "%d plugins"
-msgstr[0] "plugin %d"
-msgstr[1] "plugiciels %d"
+msgstr[0] "%d plugin"
+msgstr[1] "%d plugiciels"
 
 # machine translation
 #. translators: %s: plugin name
@@ -14930,13 +14883,12 @@ msgstr "Le document est plus volumineux que ce que votre site accepte."
 msgid "The document has no text to add."
 msgstr "Le document ne contient aucun texte à ajouter."
 
-# machine translation
 #. translators: %d: number of pictures
 #: admin/js/seoprostack-word-import.js:110
 msgid "%d picture in the document could not be added."
 msgid_plural "%d pictures in the document could not be added."
-msgstr[0] "L'image %d n'a pas pu être ajoutée au document."
-msgstr[1] "Impossible d'ajouter les images %d au document."
+msgstr[0] "%d image n’a pas pu être ajoutée au document."
+msgstr[1] "%d images n’ont pas pu être ajoutées au document."
 
 # machine translation
 #: admin/js/seoprostack-word-import.js:118
@@ -15920,13 +15872,12 @@ msgid_plural "Converted %d Spectra blocks. Check them, then save."
 msgstr[0] "Bloc Spectra %d converti. Vérifiez-le, puis enregistrez-le."
 msgstr[1] "Blocs Spectra %d convertis. Vérifiez-les, puis enregistrez-les."
 
-# machine translation
 #. translators: %d: number of blocks
 #: blocks/spectra/convert.js:347
 msgid "%d Spectra block could not be converted and is left as it is."
 msgid_plural "%d Spectra blocks could not be converted and are left as they are."
-msgstr[0] "Le bloc Spectra %d n'a pas pu être converti et reste inchangé."
-msgstr[1] "Les blocs Spectra %d n'ont pas pu être convertis et demeurent inchangés."
+msgstr[0] "%d bloc Spectra n'a pas pu être converti et reste inchangé."
+msgstr[1] "%d blocs Spectra n'ont pas pu être convertis et demeurent inchangés."
 
 # machine translation
 #: blocks/spectra/convert.js:357

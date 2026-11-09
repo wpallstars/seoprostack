@@ -26,7 +26,7 @@
                 "Het document bevat geen tekst om toe te voegen."
             ],
             "%d picture in the document could not be added.": [
-                "De afbeelding %d kon niet aan het document worden toegevoegd.",
+                "%d afbeelding kon niet aan het document worden toegevoegd.",
                 "%d afbeeldingen in het document konden niet worden toegevoegd."
             ],
             "The document could not be converted.": [

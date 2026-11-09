@@ -24,8 +24,8 @@
                 "Blocchi Spectra %d convertiti. Controllali, poi salvali."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "Il blocco %d Spectra non \u00e8 stato convertito e viene lasciato cos\u00ec com'\u00e8.",
-                "I blocchi %d Spectra non sono stati convertiti e sono stati lasciati cos\u00ec come sono."
+                "%d blocco Spectra non \u00e8 stato convertito e viene lasciato cos\u00ec com'\u00e8.",
+                "%d blocchi Spectra non sono stati convertiti e sono stati lasciati cos\u00ec come sono."
             ],
             "a Heading block": [
                 "un blocco di intestazione"

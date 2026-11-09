@@ -25,9 +25,9 @@
                 "Przekonwertowane bloki Spectra %d. Sprawd\u017a je i zapisz."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "Bloku Spectra %d nie mo\u017cna przekonwertowa\u0107 i pozostawiono go w obecnej postaci.",
-                "Blok\u00f3w %d Spectra nie mo\u017cna przekonwertowa\u0107 i pozostawiono je w obecnej postaci.",
-                "Blok\u00f3w %d Spectra nie mo\u017cna przekonwertowa\u0107 i pozostawiono je w obecnej postaci."
+                "%d blok Spectra nie m\u00f3g\u0142 zosta\u0107 przekonwertowany i pozostaje bez zmian.",
+                "%d bloki Spectra nie mog\u0142y zosta\u0107 przekonwertowane i pozostaj\u0105 bez zmian.",
+                "%d blok\u00f3w Spectra nie mog\u0142o zosta\u0107 przekonwertowanych i pozostaje bez zmian."
             ],
             "a Heading block": [
                 "blok nag\u0142\u00f3wka"
