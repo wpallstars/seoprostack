@@ -30,7 +30,8 @@
 #                      (default 3; 0 keeps everything). Skipped while another
 #                      deploy holds the lock. Other files there stay.
 #   --cloudflare-token-env NAME  The environment variable that holds a
-#                      Cloudflare API token limited to Zone > Cache Purge. With
+#                      Cloudflare API token limited to Zone > Zone Read and
+#                      Zone > Cache Purge (Read finds the zone). With
 #                      it, each updated site's zone is purged from this
 #                      computer (the token never reaches the host); the dry run
 #                      lists the zones and purges nothing.
@@ -41,7 +42,11 @@
 # (~/.{slug}-deploy/<tag>-<time>, mode 700, files 600) and checked again.
 # Then, for each install that already has wp-content/plugins/{slug}/{slug}.php
 # (the plugin is never added anywhere): a tar backup of the plugin folder, wp
-# plugin install --force (activation and network activation are kept), then
+# a folder swap by two renames (activation and network activation are kept;
+# files get the current time; wp plugin install --force if it cannot, except
+# when the rollback of a failed second rename also fails: that install stops
+# and its old folder, kept beside the plugin, needs a manual restore; with
+# OPcache timestamp validation off, reset OPcache or restart PHP), then
 # per site a full load for its settings upgrade, a LiteSpeed Cache purge (when
 # its WP-CLI command is there) so pages stop pointing at the old CSS and JS,
 # and a home fetch. After each load the plugin's own WP-Cron events run once
@@ -96,10 +101,14 @@ APPLY=0
 CF_TOKEN_ENV=""
 CF_TOKEN=""
 KEEP_RELEASES=3
-# Zones already handled in this run, one "ZONE_ID<TAB>RESULT" per line.
+# Zones already handled, one "ZONE_ID<TAB>RESULT" per line: for the whole dry
+# run, and for one install in an apply (an install's update comes after the
+# purges of earlier installs, so a shared zone is purged again).
 CF_DONE=""
 CF_PURGED=0
 CF_FAILED=0
+# Site addresses whose zone could not be found (no zone to count as failed).
+CF_LOOKUP_FAILED=0
 DOWNGRADE_ARGS=()
 SKIPS=()
 TMP_DIR=""
@@ -239,7 +248,8 @@ download_zip() {
 
 # Cloudflare, called from this computer so the token never reaches the host.
 # The token goes to curl in a config read from a pipe, not in an argument
-# list, and is never printed. Needs a token limited to Zone > Cache Purge.
+# list, and is never printed. Needs Zone > Zone Read (to find the zone) and
+# Zone > Cache Purge.
 cf_api() {
 	local method="$1"
 	local path="$2"
@@ -310,10 +320,12 @@ cdn_site() {
 	host="$(cdn_host "$url")"
 	if [[ ! "$host" =~ ^[a-z0-9.-]+$ ]]; then
 		CDN_STATUS="failed no host name in $url"
-		return 0
-	fi
-	if ! cdn_zone "$host"; then
+	elif ! cdn_zone "$host"; then
 		CDN_STATUS="failed $CF_ERR"
+	fi
+	if [[ -n "$CDN_STATUS" ]]; then
+		CF_LOOKUP_FAILED=$((CF_LOOKUP_FAILED + 1))
+		[[ "$APPLY" -eq 1 ]] || printf '  Cloudflare: %s: %s\n' "$url" "$CDN_STATUS" >&2
 		return 0
 	fi
 	known="$(awk -F '\t' -v z="$CF_ZONE_ID" '$1 == z { print $2; exit }' <<<"$CF_DONE")"
@@ -337,19 +349,21 @@ cdn_site() {
 }
 
 # The cdn= value for the addresses of one install (one per line): purged, or
-# the first failure.
+# the first failure. Every address is tried, even after a failure, and each
+# zone once per install.
 cdn_result() {
 	local urls="$1"
 	local url
 	CDN_RESULT="-"
+	[[ "$APPLY" -ne 1 ]] || CF_DONE=""
 	while IFS= read -r url; do
 		[[ -n "$url" ]] || continue
 		cdn_site "$url"
 		if [[ "$CDN_STATUS" == failed* ]]; then
-			CDN_RESULT="$CDN_STATUS"
-			return 0
+			[[ "$CDN_RESULT" == failed* ]] || CDN_RESULT="$CDN_STATUS"
+		elif [[ "$CDN_RESULT" != failed* ]]; then
+			CDN_RESULT="purged"
 		fi
-		CDN_RESULT="purged"
 	done <<<"$urls"
 	return 0
 }
@@ -382,7 +396,9 @@ stream_filter() {
 		esac
 	done
 	if [[ "$APPLY" -eq 1 ]]; then
-		printf '\nCloudflare: %s zone(s) purged, %s failed.\n' "$CF_PURGED" "$CF_FAILED"
+		printf '\nCloudflare: %s zone purge(s), %s failed; %s site(s) with no zone found.\n' "$CF_PURGED" "$CF_FAILED" "$CF_LOOKUP_FAILED"
+	elif [[ "$CF_LOOKUP_FAILED" -gt 0 ]]; then
+		printf '\nCloudflare: %s site(s) with no zone found (named above); --apply would not purge them.\n' "$CF_LOOKUP_FAILED" >&2
 	fi
 	return 0
 }
@@ -402,33 +418,41 @@ dry_run() {
 
 # Runs on the host (bash -s): removes old run folders of this plugin, keeping
 # the current run and every run of the newest KEEP tags. Only directories named
-# v<version>-<YYYYMMDDTHHMMSSZ> are touched, and nothing is removed while a
-# deploy holds the lock.
+# v<version>-<YYYYMMDDTHHMMSSZ> are touched, nothing is removed while a
+# deploy holds the lock, and a folder with anything changed in the last two
+# hours is kept: a run copies its zip before it takes the lock, and another
+# deploy may start after the lock check.
 # shellcheck disable=SC2016 # The host expands these, not this shell.
 readonly PRUNE_REMOTE='
-base="$1"; keep="$2"; current="$3"
-cd "$HOME/$base" 2>/dev/null || exit 0
-if [ -d .lock ]; then echo "skipped: another deploy holds the lock"; exit 0; fi
-runs=""
-for d in v*-*Z; do
-	[ -d "$d" ] && [ ! -L "$d" ] || continue
-	printf "%s\n" "$d" | grep -Eq "^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{8}T[0-9]{6}Z$" || continue
-	runs="$runs$d
+prune() {
+	local base="$1"
+	local keep="$2"
+	local current="$3"
+	local runs="" tags d size count=0 kb=0
+	cd "$HOME/$base" 2>/dev/null || return 0
+	if [ -d .lock ]; then echo "skipped: another deploy holds the lock"; return 0; fi
+	for d in v*-*Z; do
+		[ -d "$d" ] && [ ! -L "$d" ] || continue
+		printf "%s\n" "$d" | grep -Eq "^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{8}T[0-9]{6}Z$" || continue
+		runs="$runs$d
 "
-done
-[ -n "$runs" ] || exit 0
-tags="$(printf "%s" "$runs" | sed "s/-[0-9]*T[0-9]*Z$//" | sort -u | sort -t. -k1.2,1nr -k2,2nr -k3,3nr | head -n "$keep")"
-count=0; kb=0
-for d in $(printf "%s" "$runs"); do
-	[ "$d" != "$current" ] || continue
-	printf "%s\n" "$tags" | grep -qxF "${d%-*}" && continue
-	size="$(du -sk "$d" 2>/dev/null | cut -f1)"
-	if rm -rf "$d"; then
-		count=$((count + 1)); kb=$((kb + ${size:-0}))
-		echo "removed $d"
-	fi
-done
-echo "pruned $count run folder(s), freed $((kb / 1024)) MB"
+	done
+	[ -n "$runs" ] || return 0
+	tags="$(printf "%s" "$runs" | sed "s/-[0-9]*T[0-9]*Z$//" | sort -u | sort -t. -k1.2,1nr -k2,2nr -k3,3nr | head -n "$keep")"
+	for d in $(printf "%s" "$runs"); do
+		[ "$d" != "$current" ] || continue
+		printf "%s\n" "$tags" | grep -qxF "${d%-*}" && continue
+		[ -z "$(find "$d" -mmin -120 2>/dev/null | head -n 1)" ] || continue
+		size="$(du -sk "$d" 2>/dev/null | cut -f1)"
+		if rm -rf "$d"; then
+			count=$((count + 1)); kb=$((kb + ${size:-0}))
+			echo "removed $d"
+		fi
+	done
+	echo "pruned $count run folder(s), freed $((kb / 1024)) MB"
+	return 0
+}
+prune "$@"
 '
 
 # After a successful install: keep the current run and the newest KEEP_RELEASES
