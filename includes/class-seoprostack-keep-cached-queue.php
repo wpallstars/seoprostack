@@ -255,12 +255,15 @@ final class SEOProStack_Keep_Cached_Queue {
      */
     public static function take_slot() {
         $slots = (int) apply_filters('seoprostack_keep_cached_slots', self::SLOTS);
-        if ($slots < 1) {
+        if ($slots < 1 || null !== self::$slot) {
             return true;
         }
         $user = function_exists('posix_geteuid') ? posix_geteuid() : getmyuid();
         $dir  = untrailingslashit(sys_get_temp_dir());
-        $any  = false;
+        if (!self::may_use($dir)) {
+            return true;
+        }
+        $any = false;
         for ($i = 1; $i <= $slots; $i++) {
             $path = $dir . '/seoprostack-fill-' . $user . '-' . $i . '.lock';
             if (file_exists($path) ? !is_writable($path) : !is_writable($dir)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- a lock file, as fopen() below.
@@ -278,6 +281,28 @@ final class SEOProStack_Keep_Cached_Queue {
             fclose($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         }
         return !$any;
+    }
+
+    /**
+     * Whether PHP may open files in this folder: some hosts limit it to the
+     * site's own (open_basedir), where checking the folder at all would log
+     * a warning with every batch.
+     *
+     * @param string $dir Folder, without a trailing slash.
+     * @return bool
+     */
+    private static function may_use($dir) {
+        $allowed = (string) ini_get('open_basedir');
+        if ('' === $allowed) {
+            return true;
+        }
+        foreach (explode(PATH_SEPARATOR, $allowed) as $path) {
+            $path = untrailingslashit($path);
+            if ('' !== $path && 0 === strpos($dir . '/', $path . '/')) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
