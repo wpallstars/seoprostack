@@ -20,8 +20,9 @@
  * desktop, tablet and phone sizes): the slider's ratio or fixed height, or
  * the row's minimum height, in px, vh or vw. Its content can only make it
  * taller, so a `cover` picture paints at least that many pixels, and a
- * `contain` one too. It preloads the narrowest copy at least that wide (with
- * the 10% to spare the other scripts use) and records which.
+ * `contain` one too. It preloads the narrowest copy at least that wide (to
+ * the nearest whole device pixel, as the other scripts measure, GH#1476)
+ * and records which.
  *
  * The script after the row or slider then measures it, as before: if the
  * head's copy is at least the one it would choose, it uses that one, so the
@@ -210,8 +211,9 @@ class SEOProStack_Kadence_Early {
         return y;
     }
     t = 'r' === b[0] ? v * b[1] : ('vh' === b[0] ? vh() * b[1] / 100 : ('vw' === b[0] ? v * b[1] / 100 : b[1]));
-    // The fewest device pixels the picture paints across, with 10% to spare.
-    n = ('contain' === h.z ? Math.min(v, t * h.p.w / h.p.h) : Math.max(v, t * h.p.w / h.p.h)) * (w.devicePixelRatio || 1) * 1.1;
+    // The fewest device pixels the picture paints across, to the nearest
+    // whole one, as the scripts after the block measure (GH#1476).
+    n = Math.round(('contain' === h.z ? Math.min(v, t * h.p.w / h.p.h) : Math.max(v, t * h.p.w / h.p.h)) * (w.devicePixelRatio || 1));
     for (j = 0; j < h.p.c.length - 1 && h.p.c[j][0] < n; j++) {}
     f = h.p.c[j];
     l = d.createElement('link');
