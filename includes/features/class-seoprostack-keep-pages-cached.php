@@ -57,6 +57,11 @@
  * still holds has reached the cache; when the server refuses pages anyway,
  * batches wait longer, then leave the rest to the crawler.
  *
+ * Sites on one hosting account share it: at most two batches open pages at
+ * once across all its installs (a lock per slot in the temporary folder),
+ * a page that took over 8 seconds to build ends its batch, and a site hidden
+ * from search engines fills only its main pages (GitHub issue #1471).
+ *
  * The pages: SEOProStack_Keep_Cached_Pages. The queue and batches:
  * SEOProStack_Keep_Cached_Queue. The page cache and requests:
  * SEOProStack_Keep_Cached_Requests. WP-CLI: SEOProStack_Keep_Cached_CLI.
@@ -117,6 +122,14 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * never open, so only an emptied cache takes it away (#1233).
      */
     const CHECK_ARG = 'seoprostack-held';
+
+    /**
+     * Seconds a page may take to build before the batch ends after it
+     * (filter seoprostack_keep_cached_slow), so the next waits a minute: a
+     * slow build is the first sign of a busy hosting account, well before
+     * the server refuses pages (#1471).
+     */
+    const SLOW = 8;
 
     /**
      * Settings.
@@ -466,6 +479,11 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * the batch stops and tries again later. Run from the command line (the
      * host's cron job, WP-CLI) on a single site or a network's main site, a
      * batch has CLI_BUDGET seconds, else BUDGET.
+     *
+     * A batch opens pages only with one of the hosting account's slots
+     * (SEOProStack_Keep_Cached_Queue::SLOTS); with none free it opens
+     * nothing and tries again a minute later. A page that took longer than
+     * SLOW to build ends the batch after it (#1471).
      */
     public static function run() {
         if (!self::enabled()) {
@@ -477,6 +495,30 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         if (null !== $moved && $moved > time()) {
             return;
         }
+        if (!SEOProStack_Keep_Cached_Queue::take_slot()) {
+            SEOProStack_Keep_Cached_Queue::no_slot();
+            return;
+        }
+        try {
+            self::batch();
+        } finally {
+            SEOProStack_Keep_Cached_Queue::release_slot();
+        }
+    }
+
+    /**
+     * Seconds a page may take to build before the batch ends after it.
+     *
+     * @return float
+     */
+    private static function slow() {
+        return max(1.0, (float) apply_filters('seoprostack_keep_cached_slow', self::SLOW));
+    }
+
+    /**
+     * The batch itself, holding a slot (run()).
+     */
+    private static function batch() {
         $start  = microtime(true);
         $budget = 'cli' === PHP_SAPI && is_main_site() ? self::CLI_BUDGET : self::BUDGET;
         if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache() && !SEOProStack_Litespeed::deliver_purge()) {
@@ -488,18 +530,24 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             $queue = SEOProStack_Keep_Cached_Queue::plan($queue, $start, $budget);
         }
         $mobile  = SEOProStack_Keep_Cached_Requests::mobile_copy();
+        $slow    = self::slow();
         $opened  = array();
         $refused = '';
         foreach ($queue['urls'] as $url) {
             if ($opened && !self::more_time($start, $budget)) {
                 break;
             }
+            $began   = microtime(true);
             $answers = SEOProStack_Keep_Cached_Requests::open($url, $mobile, isset($queue['blogs'][$url]) ? $queue['blogs'][$url] : 0);
             if (SEOProStack_Keep_Cached_Requests::refused($answers)) {
                 $refused = $url;
                 break;
             }
             $opened[] = $url;
+            // Per request: a phone copy doubles the requests, not the build time.
+            if ((microtime(true) - $began) / max(1, count($answers)) > $slow) {
+                break;
+            }
         }
         SEOProStack_Keep_Cached_Queue::done($opened, (int) floor($start), '' !== $refused, $refused);
         $left = SEOProStack_Keep_Cached_Queue::get();
