@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.192
+Stable tag: 1.3.193
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -154,9 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.192 =
-* Fixed: no cron log line when a purge moves Keep pages cached (#1472).
-* Fixed: Fluent Forms later reads a head meta security policy (#1455).
-* Fixed: network deactivation clears Next-gen state on every site (#1466).
+= 1.3.193 =
+* Faster: Kadence background pictures at the size they paint, as srcset does (#1476).
 
 Older: `changelog.txt`.
