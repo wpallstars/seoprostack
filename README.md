@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.193
+Version: 1.3.194
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2482,6 +2482,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.194
+
+- Fixed: **Keep pages cached** no longer refills every site of a hosting account at once after an update across many sites, which could keep a shared account at its CPU limit until the host refused all its sites for a while. At most two fills open pages at a time across every install that runs as the same system user, a page that takes over 8 seconds to build ends its batch so the next waits a minute, and a site that asks search engines not to index it (a staging or review copy) fills only its main pages (#1471).
 
 ### 1.3.193
 

@@ -154,7 +154,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.193 =
-* Faster: Kadence background pictures at the size they paint, as srcset does (#1476).
+= 1.3.194 =
+* Fixed: Keep pages cached lets sites on one hosting account take turns filling, ends a batch after a slow page, and fills only main pages on sites hidden from search engines (#1471).
 
 Older: `changelog.txt`.
