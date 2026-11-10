@@ -1054,6 +1054,14 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * Pictures shown with wp_get_attachment_image(), such as featured
      * images and logos.
      *
+     * Featured images in an archive or search loop, past the pictures that
+     * load straight away, get loading="lazy" here when a cache plugin's own
+     * lazy load turned WordPress's off, as content pictures do in
+     * content_image() (GH#1504). LiteSpeed Cache's does, and its lazy loader
+     * then runs only on pages it caches, so on search results and on every
+     * page for people who are logged in, all of them loaded straight away.
+     * When WordPress's lazy loading is on, core decides, as before.
+     *
      * @param array $attr Attributes.
      * @return array
      */
@@ -1067,8 +1075,13 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         }
         // A featured image before the content shares its eager-image budget.
         // Block attachments are counted later, in their final content order.
+        // As in content_image(), one with fetchpriority="auto" takes no place.
+        $counted = false;
         if (is_main_query() && in_the_loop() && !doing_filter('the_content') && !doing_filter('get_the_excerpt') && !is_feed()) {
-            ++self::$pictures;
+            if (!isset($attr['fetchpriority']) || 'auto' !== $attr['fetchpriority']) {
+                ++self::$pictures;
+            }
+            $counted = true;
         }
         $text = '';
         foreach ($attr as $name => $value) {
@@ -1078,12 +1091,36 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if ($excluded && isset($attr['loading']) && 'lazy' === $attr['loading']) {
             unset($attr['loading']);
         }
+        if ($counted && !$excluded && self::$pictures > self::threshold()
+            && !isset($attr['loading']) && !isset($attr['fetchpriority']) && !self::core_lazy()) {
+            $attr['loading'] = 'lazy';
+            // As core does for the pictures it lazy-loads itself (GH#1485).
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's hook, read as core reads it.
+            $auto = (bool) apply_filters('wp_img_tag_add_auto_sizes', true);
+            if ($auto && isset($attr['sizes']) && is_string($attr['sizes']) && function_exists('wp_sizes_attribute_includes_valid_auto')
+                && !wp_sizes_attribute_includes_valid_auto($attr['sizes'])) {
+                $attr['sizes'] = 'auto, ' . $attr['sizes'];
+            }
+        }
         // Logos and pictures that load first: keep page-rewriting lazy
         // loaders (LiteSpeed Cache, WP Rocket) off them too.
         if ($excluded || $high) {
             $attr[self::NO_LAZY] = '1';
         }
         return $attr;
+    }
+
+    /**
+     * Whether WordPress's own lazy loading is on for the picture
+     * wp_get_attachment_image() is making, in the context core gives it
+     * ('the_post_thumbnail' for featured images).
+     *
+     * @return bool
+     */
+    private static function core_lazy() {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's hook, read as core reads it.
+        $context = apply_filters('wp_get_attachment_image_context', 'wp_get_attachment_image');
+        return (bool) wp_lazy_loading_enabled('img', is_string($context) ? $context : 'wp_get_attachment_image');
     }
 
     /**
