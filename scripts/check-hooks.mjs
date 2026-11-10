@@ -15,24 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const docPath = path.join(root, 'docs', 'HOOKS.md');
-
-// Walk the tree for PHP files (no external command, so no PATH lookup).
-const skipDirs = new Set(['.git', 'node_modules', 'vendor']);
-const files = [];
-const walk = (dir) => {
-	// Repository paths only; nothing comes from user input.
-	// eslint-disable-next-line security/detect-non-literal-fs-filename
-	for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
-		const rel = path.join(dir, entry.name);
-		if (entry.isDirectory()) {
-			if (!skipDirs.has(entry.name)) walk(rel);
-		} else if (entry.name.endsWith('.php')) {
-			files.push(rel);
-		}
-	}
-};
-walk('.');
+process.chdir(root);
 
 // Live hooks: apply_filters( 'name', do_action( 'name', and _ref_array variants.
 // Deprecated: the old name is the first argument of the _deprecated functions.
@@ -40,26 +23,37 @@ const liveRe = /\b(?:apply_filters|do_action)(?:_ref_array)?\(\s*'(seoprostack_[
 const deprecatedRe = /\b(?:apply_filters|do_action)_deprecated\(\s*'(seoprostack_[a-z0-9_]+)'/g;
 const live = new Set();
 const deprecated = new Set();
-for (const file of files) {
-	// eslint-disable-next-line security/detect-non-literal-fs-filename
-	const text = fs.readFileSync(path.join(root, file), 'utf8');
-	for (const m of text.matchAll(liveRe)) live.add(m[1]);
-	for (const m of text.matchAll(deprecatedRe)) deprecated.add(m[1]);
-	// Runtime-built names: SEOProStack_Link_Cards::render( $items, 'pro', ... )
-	// calls apply_filters("seoprostack_{$id}_items"), so the finite set of
-	// names is read from the render() call sites.
-	for (const m of text.matchAll(/SEOProStack_Link_Cards::render\(\s*[^,]+\(\)\s*,\s*'([a-z0-9_]+)'/g)) live.add(`seoprostack_${m[1]}_items`);
-}
 
-// eslint-disable-next-line security/detect-non-literal-fs-filename
-if (!fs.existsSync(docPath)) {
+// One git grep over the tracked PHP files: each match plus two lines of
+// context, so a call split over lines is still seen. No file paths are built.
+let text = '';
+try {
+	text = execFileSync(
+		'git',
+		['grep', '-h', '-A2', '-E', '(apply_filters|do_action)|Link_Cards::render', '--', '*.php'],
+		{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }
+	);
+} catch {
+	console.error('check-hooks: could not search the code with git grep.');
+	process.exit(1);
+}
+for (const m of text.matchAll(liveRe)) live.add(m[1]);
+for (const m of text.matchAll(deprecatedRe)) deprecated.add(m[1]);
+// Runtime-built names: SEOProStack_Link_Cards::render( $items, 'pro', ... )
+// calls apply_filters("seoprostack_{$id}_items"), so the finite set of
+// names is read from the render() call sites.
+for (const m of text.matchAll(/SEOProStack_Link_Cards::render\(\s*[^,]+\(\)\s*,\s*'([a-z0-9_]+)'/g)) live.add(`seoprostack_${m[1]}_items`);
+
+let docText = '';
+try {
+	docText = fs.readFileSync('docs/HOOKS.md', 'utf8');
+} catch {
 	console.error('check-hooks: docs/HOOKS.md is missing.');
 	process.exit(1);
 }
 const listed = new Map();
 const problems = [];
-// eslint-disable-next-line security/detect-non-literal-fs-filename
-for (const line of fs.readFileSync(docPath, 'utf8').split('\n')) {
+for (const line of docText.split('\n')) {
 	const cells = line.split(/(?<!\\)\|/).map((c) => c.trim());
 	const m = /^`(seoprostack_[a-z0-9_]+)`$/.exec(cells[1] || '');
 	if (!m) continue;
@@ -88,7 +82,7 @@ for (const [name, status] of listed) {
 // note, when git or the tags are unavailable (for example a shallow clone).
 const git = (...args) => {
 	try {
-		return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+		return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 	} catch {
 		return null;
 	}
