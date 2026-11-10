@@ -64,7 +64,36 @@ final class SEOProStack_Keep_Cached_Pages {
             $first = self::network(0, 0, 0, 0, 1)['urls'];
             return array_merge($first, self::network(0, 0, 0, count($first), 2)['urls']);
         }
-        return self::of_site(self::MAIN_MAX, SEOProStack_Keep_Cached_Requests::covered() ? self::COVERED_MAX : self::MAX, true);
+        return self::of_site(self::MAIN_MAX, self::site_max(), true);
+    }
+
+    /**
+     * Most pages in all for this site's fill; its main pages are always
+     * kept (up to MAIN_MAX). Where a crawler or preload covers the rest,
+     * COVERED_MAX, else MAX. A site that asks search engines not to index
+     * it (Settings, Reading; a staging or review copy) gets only its main
+     * pages: no crawler needs the rest, and people reviewing it start
+     * there, while up to 1,000 pages each on many such sites kept one
+     * hosting account at its CPU limit (#1471).
+     *
+     * @return int
+     */
+    private static function site_max() {
+        $max = SEOProStack_Keep_Cached_Requests::covered() ? self::COVERED_MAX : self::MAX;
+        if ('0' === (string) get_option('blog_public')) {
+            $max = 0;
+        }
+        /**
+         * Most pages one site's fill opens in all; its main pages (the home
+         * page, header, footer and home page links, up to 150) are always
+         * opened. 0 opens only those.
+         *
+         * @param int $max 1000; 50 where LiteSpeed Cache's crawler or
+         *                 WP-Optimize's preload covers the rest; 0 where
+         *                 search engines are asked not to index the site.
+         */
+        $max = (int) apply_filters('seoprostack_keep_cached_max', $max);
+        return max(0, min(self::MAX, $max));
     }
 
     /**
@@ -322,7 +351,9 @@ final class SEOProStack_Keep_Cached_Pages {
         self::rewrite_init();
         if (self::fills_here()) {
             $first = self::of_site(self::NETWORK_MAIN_MAX, self::NETWORK_MAIN_MAX, false);
-            $urls  = 1 === $round ? $first : array_values(array_diff(self::of_site(self::MAIN_MAX, self::NETWORK_MORE_MAX, true), $first));
+            // A site hidden from search engines: its main pages only, as site_max().
+            $more  = '0' === (string) get_option('blog_public') ? 0 : self::NETWORK_MORE_MAX;
+            $urls  = 1 === $round ? $first : array_values(array_diff(self::of_site(self::MAIN_MAX, $more, true), $first));
         }
         restore_current_blog();
         return $urls;

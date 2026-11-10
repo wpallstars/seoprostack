@@ -32,9 +32,10 @@
  * At the size the screen needs (GH#1341): Kadence Blocks names the full
  * upload, so phones fetched the whole file for a small box. When the
  * picture has smaller copies (SEOProStack_Hero_Picture), the script sets
- * the narrowest copy at least the painted pixels × DPR × 1.1 as the row
- * comes near, and a larger one if it grows, never a smaller one. Columns
- * with a background picture wait and are sized the same way; their script,
+ * the narrowest copy at least the painted pixels × DPR (GH#1476; until
+ * then × 1.1) as the row comes near, and a larger one if it grows, never
+ * a smaller one. Columns with a background picture wait and are sized the
+ * same way; their script,
  * and the loader when a column's comes first on the page, sit inside the
  * column, as Kadence places columns with :nth-child(… of *:not(style)) and
  * a script among them moved each column to the next one's place (GH#1422).
@@ -459,16 +460,16 @@ class SEOProStack_Kadence_Rows {
         while (c && !c.classList.contains('kt-inside-inner-col')) { c = c.nextElementSibling; }
         return c;
     }
-    // The narrowest file at least as wide as the pixels the picture paints,
-    // with 10% to spare, else the block's own (the last); set only when
-    // larger than the one set before.
+    // The narrowest file at least as wide as the device pixels the picture
+    // paints, to the nearest whole one (GH#1476), else the block's own (the
+    // last); set only when larger than the one set before.
     function size(el) {
         var p = el.spsPicture, b = el.spsBox, z = w.getComputedStyle(b).backgroundSize, q, a, n, j = 0, f;
         if ('cover' !== z && 'contain' !== z) { return; }
         q = b.getBoundingClientRect();
         if (!q.width || !q.height) { return; }
         a = p.w / p.h;
-        n = ('cover' === z ? Math.max(q.width, q.height * a) : Math.min(q.width, q.height * a)) * (w.devicePixelRatio || 1) * 1.1;
+        n = Math.round(('cover' === z ? Math.max(q.width, q.height * a) : Math.min(q.width, q.height * a)) * (w.devicePixelRatio || 1));
         while (p.c.length - 1 > j && n > p.c[j][0]) { j++; }
         if (el.spsIndex >= j) { return; }
         el.spsIndex = j;

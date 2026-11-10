@@ -2382,16 +2382,31 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Clear the current site's schedule, marks and cached check.
+     */
+    private static function clear_site_state() {
+        wp_clear_scheduled_hook(self::HOOK);
+        delete_option(self::SYNCED);
+        delete_option(self::RESTART);
+        delete_transient(self::CHECK);
+    }
+
+    /**
      * Plugin deactivated: remove the rules (for this site, or for every
      * site when deactivated network-wide) and stop background batches.
      *
      * @param bool $network_wide Deactivated for the whole network.
      */
     public static function deactivate($network_wide = false) {
-        wp_clear_scheduled_hook(self::HOOK);
-        delete_option(self::SYNCED);
-        delete_option(self::RESTART);
-        delete_transient(self::CHECK);
+        if ($network_wide && is_multisite() && function_exists('get_sites')) {
+            foreach ((array) get_sites(array('fields' => 'ids', 'number' => 0)) as $blog_id) {
+                switch_to_blog((int) $blog_id);
+                self::clear_site_state();
+                restore_current_blog();
+            }
+        } else {
+            self::clear_site_state();
+        }
         $state = (array) get_site_option(self::RULES, array());
         $sites = isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array();
         unset($sites[get_current_blog_id()]);

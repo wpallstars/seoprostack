@@ -47,6 +47,20 @@ final class SEOProStack_Keep_Cached_Queue {
     const STOPS = 5;
 
     /**
+     * Batches that may open pages at once on one hosting account (filter
+     * seoprostack_keep_cached_slots; below 1, no limit). Every install that
+     * runs as the same system user shares them. On one shared account (6
+     * cores) with 24 networks, a fleet-wide update purged each network in
+     * turn and all of them refilled at once, each page a full build in a
+     * web PHP worker, until the host's CPU protection refused every site
+     * of the account, unrelated ones too (#1471).
+     */
+    const SLOTS = 2;
+
+    /** The slot this batch holds: an open file it has locked, or null. */
+    private static $slot = null;
+
+    /**
      * Pages waiting, with defaults.
      *
      * @return array urls, blogs (address => site ID), added (address => when a
@@ -225,6 +239,104 @@ final class SEOProStack_Keep_Cached_Queue {
         if ($latest['preload'] && SEOProStack_Keep_Cached_Requests::wp_optimize_preloads() && !wp_next_scheduled(self::WPO_PRELOAD)) {
             // As WP-Optimize's Purge button schedules it.
             wp_schedule_single_event(time() + 10, self::WPO_PRELOAD);
+        }
+    }
+
+    /**
+     * Take one of the hosting account's slots for this batch, without
+     * waiting (SLOTS). A slot is a lock on a file in the system's temporary
+     * folder named with the system user's ID, so every install of that
+     * user takes from the same slots; under CloudLinux's CageFS that folder
+     * is the account's own. The system lets the lock go when the batch's
+     * process ends, even if PHP stops mid-batch. Only a slot another batch
+     * holds counts as taken: where no slot file can be opened or locked
+     * (a file system without locks), batches go on as before.
+     *
+     * @return bool Whether this batch may open pages.
+     */
+    public static function take_slot() {
+        $slots = (int) apply_filters('seoprostack_keep_cached_slots', self::SLOTS);
+        if ($slots < 1 || null !== self::$slot) {
+            return true;
+        }
+        $user = function_exists('posix_geteuid') ? posix_geteuid() : getmyuid();
+        $dir  = untrailingslashit(sys_get_temp_dir());
+        if (!self::may_use($dir)) {
+            return true;
+        }
+        $busy = false;
+        for ($i = 1; $i <= $slots; $i++) {
+            $file = self::open_slot($dir, $dir . '/seoprostack-fill-' . $user . '-' . $i . '.lock');
+            if (!$file) {
+                continue;
+            }
+            $held = 0;
+            if (flock($file, LOCK_EX | LOCK_NB, $held)) {
+                self::$slot = $file;
+                return true;
+            }
+            $busy = $busy || (bool) $held;
+            fclose($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+        }
+        return !$busy;
+    }
+
+    /**
+     * Open one slot's lock file, created if missing.
+     *
+     * @param string $dir  Its folder.
+     * @param string $path The file.
+     * @return resource|false
+     */
+    private static function open_slot($dir, $path) {
+        if (file_exists($path) ? !is_writable($path) : !is_writable($dir)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- a lock file, as fopen() below.
+            return false;
+        }
+        return fopen($path, 'c'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- a lock between the account's sites.
+    }
+
+    /**
+     * Whether PHP may open files in this folder: some hosts limit it to the
+     * site's own (open_basedir), where checking the folder at all would log
+     * a warning with every batch.
+     *
+     * @param string $dir Folder, without a trailing slash.
+     * @return bool
+     */
+    private static function may_use($dir) {
+        $allowed = (string) ini_get('open_basedir');
+        if ('' === $allowed) {
+            return true;
+        }
+        foreach (explode(PATH_SEPARATOR, $allowed) as $path) {
+            $path = untrailingslashit($path);
+            if ('' !== $path && 0 === strpos($dir . '/', $path . '/')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Let this batch's slot go.
+     */
+    public static function release_slot() {
+        if (null === self::$slot) {
+            return;
+        }
+        flock(self::$slot, LOCK_UN);
+        fclose(self::$slot); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+        self::$slot = null;
+    }
+
+    /**
+     * No slot was free: try again a GAP later, with the queue as it is now.
+     * It does not count as a stop, as the server refused nothing.
+     */
+    public static function no_slot() {
+        $latest = self::get();
+        if ($latest['urls'] || $latest['full']) {
+            self::save($latest, self::GAP, false);
         }
     }
 
