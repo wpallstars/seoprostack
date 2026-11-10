@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.194
+Stable tag: 1.3.195
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -155,10 +155,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.195 =
 * Added: Clear Cloudflare’s copies of this site’s pages (#1461).
-
-= 1.3.194 =
-* Fixed: Keep pages cached lets sites on one hosting account take turns filling, ends a batch after a slow page, and fills only main pages on sites hidden from search engines (#1471).
 
 Older: `changelog.txt`.
