@@ -449,6 +449,14 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * priority, so content_image() can take it off one that is not near the
      * top (GH#1412).
      *
+     * Core gives high priority to the first large picture once the header
+     * has started, and a logo whose file is large (an SVG that says
+     * 1000×781, a PNG uploaded at 680×250) took it, though it shows about
+     * 50 px high: the page's main picture then had none, and Lighthouse's
+     * LCP request discovery failed on it (GH#1485). The logo keeps loading
+     * straight away; core's high priority goes back for the first large
+     * picture after it.
+     *
      * @param array  $loading_attrs Attributes core chose.
      * @param string $tag_name      Tag name.
      * @param array  $attr          The tag's own attributes.
@@ -456,9 +464,19 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * @return array
      */
     public static function core_priority($loading_attrs, $tag_name = '', $attr = array(), $context = '') {
-        if ('img' === $tag_name && 'the_content' === $context && is_array($loading_attrs)) {
-            self::$core_high = isset($loading_attrs['fetchpriority']) && 'high' === $loading_attrs['fetchpriority']
-                && empty($attr['fetchpriority']);
+        if ('img' !== $tag_name || !is_array($loading_attrs)) {
+            return $loading_attrs;
+        }
+        $core_high = isset($loading_attrs['fetchpriority']) && 'high' === $loading_attrs['fetchpriority']
+            && (!is_array($attr) || empty($attr['fetchpriority']));
+        if ('the_content' === $context) {
+            self::$core_high = $core_high;
+        } elseif ($core_high && is_array($attr) && isset($attr['class']) && is_string($attr['class'])
+            && preg_match('/(?:^|\s)custom-logo(?:\s|$)/', $attr['class'])) {
+            unset($loading_attrs['fetchpriority']);
+            if (function_exists('wp_high_priority_element_flag')) {
+                wp_high_priority_element_flag(true);
+            }
         }
         return $loading_attrs;
     }
@@ -907,6 +925,15 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * Process pictures in content order, after secondary-query blocks render.
      * Core's main-query heuristics do not make those block pictures eager.
      *
+     * A picture that waits gets loading="lazy" here when core left it
+     * without: core's first pictures, whatever their position (GH#1412), and
+     * every picture when a cache plugin's own lazy load turns WordPress's off
+     * (LiteSpeed Cache's does). Its sizes then gets "auto", as core gives the
+     * pictures it lazy-loads itself, so the browser fetches the copy for the
+     * width the picture is shown at instead of the 100vw guess (GH#1485).
+     * LiteSpeed Cache's lazy loader copies sizes and keeps loading="lazy",
+     * so "auto" works through it.
+     *
      * @param string $image   HTML img tag.
      * @param string $context Content filter context.
      * @return string
@@ -935,7 +962,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         self::$core_high = false;
         $eager           = false;
         $deep            = false;
+        $counted         = false;
         if ('the_content' === $context && is_main_query() && in_the_loop() && !is_feed()) {
+            $counted = true;
             if (!self::$marking) {
                 ++self::$pictures;
                 $eager = self::$pictures <= self::threshold();
@@ -967,9 +996,13 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if ('high' === $priority) {
             self::$high_priority = true;
         }
-        if ($deep && !$excluded && 'high' !== $priority && null === $tag->get_attribute('loading')) {
-            // Core leaves its first pictures without loading="lazy" whatever their position.
+        $lazied = false;
+        if (($deep || ($counted && !$eager)) && !$excluded && 'high' !== $priority && null === $tag->get_attribute('loading')) {
+            // Core leaves its first pictures without loading="lazy" whatever
+            // their position, and every picture when a cache plugin turned
+            // WordPress's lazy loading off.
             $tag->set_attribute('loading', 'lazy');
+            $lazied = true;
         }
         if (($eager || $excluded) && 'lazy' === $tag->get_attribute('loading')) {
             $tag->remove_attribute('loading');
@@ -991,7 +1024,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if ($eager || $excluded || 'high' === $priority) {
             $tag->set_attribute(self::NO_LAZY, '1');
         }
-        return $tag->get_updated_html();
+        $image = $tag->get_updated_html();
+        // As core does for the pictures it lazy-loads itself (GH#1485).
+        if ($lazied && function_exists('wp_img_tag_add_auto_sizes')) {
+            $image = wp_img_tag_add_auto_sizes($image);
+        }
+        return $image;
     }
 
     /**
