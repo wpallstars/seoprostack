@@ -265,11 +265,7 @@ final class SEOProStack_Keep_Cached_Queue {
         }
         $any = false;
         for ($i = 1; $i <= $slots; $i++) {
-            $path = $dir . '/seoprostack-fill-' . $user . '-' . $i . '.lock';
-            if (file_exists($path) ? !is_writable($path) : !is_writable($dir)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- a lock file, as fopen() below.
-                continue;
-            }
-            $file = fopen($path, 'c'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- a lock between the account's sites.
+            $file = self::open_slot($dir, $dir . '/seoprostack-fill-' . $user . '-' . $i . '.lock');
             if (!$file) {
                 continue;
             }
@@ -281,6 +277,20 @@ final class SEOProStack_Keep_Cached_Queue {
             fclose($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         }
         return !$any;
+    }
+
+    /**
+     * Open one slot's lock file, created if missing.
+     *
+     * @param string $dir  Its folder.
+     * @param string $path The file.
+     * @return resource|false
+     */
+    private static function open_slot($dir, $path) {
+        if (file_exists($path) ? !is_writable($path) : !is_writable($dir)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- a lock file, as fopen() below.
+            return false;
+        }
+        return fopen($path, 'c'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- a lock between the account's sites.
     }
 
     /**
