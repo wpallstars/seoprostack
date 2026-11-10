@@ -1977,15 +1977,15 @@ Done when Cloudflare shows the domain as **Active** and the site loads over http
 
 LiteSpeed Cache keeps fast copies of pages on the server, and Cloudflare can keep its own. When LiteSpeed Cache empties its copies (Purge All, after updates), Cloudflare's stay until they expire, so visitors can see old pages. With a Cloudflare token, every Purge All empties Cloudflare too.
 
-1. In Cloudflare, open **My Profile → API Tokens → Create Token → Create Custom Token**. Name it after the site. Permissions: **Zone → Cache Purge → Purge** and **Zone → Zone → Read** (LiteSpeed Cache looks the zone up with it). Zone Resources: **Include → Specific zone →** this site's domain. Create it and copy the token: Cloudflare shows it only once.
-2. In WordPress, open **LiteSpeed Cache → CDN → Cloudflare**. Turn **Cloudflare API** on, paste the token as the API token, leave the email empty, enter the domain, turn **Clear Cloudflare cache** on and save.
+1. In Cloudflare, open **My Profile → API Tokens → Create Token → Create Custom Token** ([Cloudflare's guide to creating a token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)). Name it after the site. Permissions: **Zone → Cache Purge → Purge** and **Zone → Zone → Read** (LiteSpeed Cache looks the zone up with it). Zone Resources: **Include → Specific zone →** this site's domain. Create it and copy the token: Cloudflare shows it only once.
+2. In WordPress, open **LiteSpeed Cache → CDN → Cloudflare** ([LiteSpeed's CDN settings guide](https://docs.litespeedtech.com/lscache/lscwp/cdn/)). Turn **Cloudflare API** on, paste the token as the API token, leave the email empty, enter the domain, turn **Clear Cloudflare cache** on and save.
 3. Test with **Purge All** (LiteSpeed Cache in the admin bar or Toolbox): it says Cloudflare was notified.
 
 **Clear Cloudflare cache** empties the whole domain on Cloudflare. If other websites share this domain (on subdomains), leave it off and purge each address on its own. Never paste the token into a task or comment.
 
 **With aidevops over SSH:** it can create the token through Cloudflare's API with your Cloudflare access from its secret store, then save it with WP-CLI without showing it. Test with `wp litespeed-purge all`. On a multisite network, use `wp litespeed-purge blog <id> --url=<site address>` instead: `all` empties every site's cache on the network, and without `--url` the main site's Cloudflare settings are used.
 
-Done when Purge All reports Cloudflare notified and the home page's `cf-cache-status` header is `MISS` straight after.
+Done when Purge All reports that Cloudflare was notified. (Only if the site's pages are cached by Cloudflare, `cf-cache-status` on the home page shows `MISS` straight after a purge; a visitor's request can refill it first, and `DYNAMIC` is normal when Cloudflare does not cache HTML.)
 
 ##### 4. Setup aidevops (your AI assistant)
 
