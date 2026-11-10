@@ -248,8 +248,9 @@ final class SEOProStack_Keep_Cached_Queue {
      * folder named with the system user's ID, so every install of that
      * user takes from the same slots; under CloudLinux's CageFS that folder
      * is the account's own. The system lets the lock go when the batch's
-     * process ends, even if PHP stops mid-batch. Where no slot file can be
-     * opened, batches go on as before.
+     * process ends, even if PHP stops mid-batch. Only a slot another batch
+     * holds counts as taken: where no slot file can be opened or locked
+     * (a file system without locks), batches go on as before.
      *
      * @return bool Whether this batch may open pages.
      */
@@ -263,20 +264,21 @@ final class SEOProStack_Keep_Cached_Queue {
         if (!self::may_use($dir)) {
             return true;
         }
-        $any = false;
+        $busy = false;
         for ($i = 1; $i <= $slots; $i++) {
             $file = self::open_slot($dir, $dir . '/seoprostack-fill-' . $user . '-' . $i . '.lock');
             if (!$file) {
                 continue;
             }
-            $any = true;
-            if (flock($file, LOCK_EX | LOCK_NB)) {
+            $held = 0;
+            if (flock($file, LOCK_EX | LOCK_NB, $held)) {
                 self::$slot = $file;
                 return true;
             }
+            $busy = $busy || (bool) $held;
             fclose($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         }
-        return !$any;
+        return !$busy;
     }
 
     /**
