@@ -520,7 +520,7 @@ final class SEOProStack_Litespeed {
      * The site's sitemap index: Rank Math's, Yoast's, or WordPress's own,
      * whichever is on. Also used for robots.txt (SEOProStack_Robots_Txt).
      *
-     * @since 1.3.196
+     * @since 1.3.197
      * @return string URL, or '' when the site has none.
      */
     public static function sitemap_index() {

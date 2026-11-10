@@ -29,7 +29,7 @@
  * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
  *
  * @package SEOProStack
- * @since 1.3.196
+ * @since 1.3.197
  */
 
 if (!defined('ABSPATH')) {
