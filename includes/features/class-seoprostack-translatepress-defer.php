@@ -82,19 +82,7 @@ class SEOProStack_Translatepress_Defer extends SEOProStack_Feature {
      * have one or this page is left alone.
      */
     public static function defer() {
-        if (is_feed() || is_embed() || (function_exists('amp_is_request') && amp_is_request())) {
-            return;
-        }
-        // TranslatePress's translation editor and its preview: logged-in only, left as they are.
-        if (isset($_GET['trp-edit-translation'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only read to leave the page alone.
-            return;
-        }
-        /**
-         * Whether TranslatePress's head scripts load with defer on this page.
-         *
-         * @param bool $defer True to defer them.
-         */
-        if (!apply_filters('seoprostack_translatepress_defer', true)) {
+        if (!self::wanted()) {
             return;
         }
         $scripts = wp_scripts();
@@ -105,5 +93,28 @@ class SEOProStack_Translatepress_Defer extends SEOProStack_Feature {
             }
             $scripts->add_data($handle, 'strategy', 'defer');
         }
+    }
+
+    /**
+     * Whether this page's TranslatePress scripts are deferred: not feeds,
+     * embeds, AMP or TranslatePress's translation editor, and the filter
+     * agrees.
+     *
+     * @return bool
+     */
+    private static function wanted() {
+        if (is_feed() || is_embed() || (function_exists('amp_is_request') && amp_is_request())) {
+            return false;
+        }
+        // TranslatePress's translation editor and its preview: logged-in only, left as they are.
+        if (isset($_GET['trp-edit-translation'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only read to leave the page alone.
+            return false;
+        }
+        /**
+         * Whether TranslatePress's head scripts load with defer on this page.
+         *
+         * @param bool $defer True to defer them.
+         */
+        return (bool) apply_filters('seoprostack_translatepress_defer', true);
     }
 }
