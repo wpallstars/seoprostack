@@ -287,6 +287,32 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
             $path = $parts[1];
             $page = $parts[2];
         }
+        if (!$item && '' !== $path && false === strpos($path, '/')) {
+            // A renamed item's old short address: name the post type, so
+            // WordPress's wp_old_slug_redirect() finds _wp_old_slug and
+            // sends a 301 to the new address.
+            $old = get_posts(
+                array(
+                    'post_type'              => $types,
+                    'post_status'            => 'publish',
+                    'posts_per_page'         => 1,
+                    'fields'                 => 'ids',
+                    'no_found_rows'          => true,
+                    'update_post_term_cache' => false,
+                    'suppress_filters'       => true,
+                    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                    'meta_query'             => array(
+                        array(
+                            'key'   => '_wp_old_slug',
+                            'value' => $path,
+                        ),
+                    ),
+                )
+            );
+            if ($old) {
+                $item = get_post($old[0]);
+            }
+        }
         if (!$item) {
             return $query_vars;
         }
