@@ -162,14 +162,15 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
     public static function filter($output, $public = true) {
         $lines  = self::lines((string) $output);
         $public = (bool) $public;
+        $own    = trim((string) get_option(self::RULES, ''));
+        $own    = '' === $own ? array() : self::lines($own);
         if ($public) {
             $lines = self::add_rules($lines, self::wanted());
-            $lines = self::add_ai_group($lines);
+            $lines = self::add_ai_group($lines, $own);
         }
-        $own = (string) get_option(self::RULES, '');
-        if ('' !== trim($own)) {
+        if ($own) {
             $lines[] = '';
-            $lines   = array_merge($lines, self::lines($own));
+            $lines   = array_merge($lines, $own);
         }
         if ($public) {
             $lines = self::add_sitemap($lines);
@@ -368,17 +369,19 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
 
     /**
      * Add a group asking AI training crawlers to stay away, for those that
-     * no group names yet (a group of the owner's for one of them wins).
+     * no group names yet (a group of another plugin's or the owner's for one
+     * of them wins).
      *
      * @param string[] $lines robots.txt lines.
+     * @param string[] $own   The site's own rules, added after these lines.
      * @return string[]
      */
-    private static function add_ai_group(array $lines) {
+    private static function add_ai_group(array $lines, array $own = array()) {
         if (!SEOProStack_Settings::get('robots_txt_ai_training')) {
             return $lines;
         }
         $named = array();
-        foreach (self::groups($lines) as $group) {
+        foreach (array_merge(self::groups($lines), self::groups($own)) as $group) {
             $named = array_merge($named, $group['agents']);
         }
 
