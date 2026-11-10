@@ -9,7 +9,6 @@
 // SPDX-FileCopyrightText: 2026 Marcus Quinn
 // Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
 
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,9 +16,20 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const docPath = path.join(root, 'docs', 'HOOKS.md');
 
-const files = execFileSync('git', ['-C', root, 'ls-files', '*.php'], { encoding: 'utf8' })
-	.split('\n')
-	.filter(Boolean);
+// Walk the tree for PHP files (no external command, so no PATH lookup).
+const skipDirs = new Set(['.git', 'node_modules', 'vendor']);
+const files = [];
+const walk = (dir) => {
+	for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
+		const rel = path.join(dir, entry.name);
+		if (entry.isDirectory()) {
+			if (!skipDirs.has(entry.name)) walk(rel);
+		} else if (entry.name.endsWith('.php')) {
+			files.push(rel);
+		}
+	}
+};
+walk('.');
 
 // Live hooks: apply_filters( 'name', do_action( 'name', and _ref_array variants.
 // Deprecated: the old name is the first argument of the _deprecated functions.
@@ -50,7 +60,7 @@ for (const line of fs.readFileSync(docPath, 'utf8').split('\n')) {
 	listed.set(name, status);
 }
 
-for (const name of [...live].sort()) {
+for (const name of [...live].sort((x, y) => x.localeCompare(y))) {
 	if (!listed.has(name)) problems.push(`${name} is called in the code but not listed: add it to docs/HOOKS.md.`);
 }
 for (const [name, status] of listed) {
