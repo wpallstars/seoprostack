@@ -1248,8 +1248,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * The script asks with a POST for logged-in people, and with a GET for
      * pages served to visitors, whose answer holds only public totals: the
      * same for everyone shown the same posts in the same language (the
-     * script sends the page's language, as TranslatePress translates the
-     * answer). LiteSpeed Cache keeps that answer (its own API, as its AJAX
+     * tallies are words, "4 Likes", which a translation plugin may give in
+     * the page's language, so the script sends that language and each one
+     * is kept apart). LiteSpeed Cache keeps that answer (its own API, as its AJAX
      * Cache TTL setting does), tagged by post, until a post's totals change
      * (totals_changed()) or CACHE_TTL passes, so a page view no longer starts
      * WordPress a second time. Browsers ask the server each time, so they
