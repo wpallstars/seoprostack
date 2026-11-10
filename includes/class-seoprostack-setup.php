@@ -107,6 +107,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
+        'SEOProStack_Robots_Txt',
         'SEOProStack_Old_Slugs',
         'SEOProStack_Rank_Math_Defaults',
         'SEOProStack_External_Links',

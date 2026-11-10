@@ -505,6 +505,25 @@ final class SEOProStack_Litespeed {
         if (is_string($stored) && '' !== trim($stored)) {
             return trim($stored);
         }
+
+        /**
+         * Filter the sitemap SEO Pro Stack's LiteSpeed Cache preset gives
+         * LiteSpeed Cache's crawler, when none is set there yet.
+         *
+         * @param string $url Sitemap index URL, or '' when none is known (the preset then leaves the crawler alone).
+         */
+        $url = apply_filters('seoprostack_crawler_sitemap', self::sitemap_index());
+        return is_string($url) ? trim($url) : '';
+    }
+
+    /**
+     * The site's sitemap index: Rank Math's, Yoast's, or WordPress's own,
+     * whichever is on. Also used for robots.txt (SEOProStack_Robots_Txt).
+     *
+     * @since 1.3.197
+     * @return string URL, or '' when the site has none.
+     */
+    public static function sitemap_index() {
         $url = '';
         if (class_exists('\RankMath\Helper') && \RankMath\Helper::is_module_active('sitemap')) {
             // As Rank Math builds it (its index slug can be filtered).
@@ -521,14 +540,6 @@ final class SEOProStack_Litespeed {
         } elseif (function_exists('wp_sitemaps_get_server') && wp_sitemaps_get_server()->sitemaps_enabled()) {
             $url = get_sitemap_url('index');
         }
-
-        /**
-         * Filter the sitemap SEO Pro Stack's LiteSpeed Cache preset gives
-         * LiteSpeed Cache's crawler, when none is set there yet.
-         *
-         * @param string $url Sitemap index URL, or '' when none is known (the preset then leaves the crawler alone).
-         */
-        $url = apply_filters('seoprostack_crawler_sitemap', is_string($url) ? $url : '');
         return is_string($url) ? trim($url) : '';
     }
 
