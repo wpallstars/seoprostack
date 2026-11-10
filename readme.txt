@@ -101,7 +101,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 * **Your IMAP server** (opt-in): reads support email; saves whole sent ticket emails (up to 20 retried); SSL/STARTTLS, verified. Its policies apply.
 * **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
-* **Cloudflare API** (api.cloudflare.com, opt-in): sends your token and addresses to purge. Terms and privacy as above.
+* **Cloudflare API** (api.cloudflare.com, opt-in): sends your token (or email and key), zone ID and addresses to purge. Terms and privacy as above.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
