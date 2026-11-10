@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.196-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.197-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.196
+Version: 1.3.197
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2528,6 +2528,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.197
+
+- New, on by default: **Robots.txt rules** (Links) give `robots.txt` what every site needs, with or without Rank Math, Yoast SEO or another SEO plugin, and keep every rule they or you wrote: the admin, search results (`/?s=`, `/search/`), WooCommerce's lines and a `Sitemap:` line, where each is missing. Search results also say `noindex, follow`, so spam links to made-up searches cannot fill search engines with the site's search pages. While Settings → Reading discourages search engines, every page, feed and `robots.txt` also says `X-Robots-Tag: noindex, nofollow`, without blocking the site in `robots.txt`, which would hide that noindex. Optional (off): ask AI training crawlers to stay away, while search and answer crawlers still come. The panel holds your own rules, and when a `robots.txt` file answers instead of WordPress, it shows it and can take over its lines and rename it (#1506).
+- Improved: in **Media in cloud storage**, a paused `forget-previous` resumes at the attachment where it stopped, then confirms the earlier ones from their checkpoints. `--verify=size` checks only that each object is there with its recorded size, for example after comparing the buckets with `rclone check`, and the checkpoints are removed once the previous destination is forgotten (#1499).
 
 ### 1.3.196
 
