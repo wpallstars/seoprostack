@@ -502,7 +502,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * @return resource|null The locked handle, or null when not locked.
      */
     private static function files_lock($file) {
-        $path = trailingslashit(get_temp_dir()) . 'seoprostack-files-' . md5($file) . '.lock';
+        $path = trailingslashit(get_temp_dir()) . 'seoprostack-files-' . substr(hash('sha256', $file), 0, 32) . '.lock';
         $lock = @fopen($path, 'c'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.PHP.NoSilencedErrors.Discouraged -- own lock file; failure means no lock.
         if (!$lock) {
             return null;
