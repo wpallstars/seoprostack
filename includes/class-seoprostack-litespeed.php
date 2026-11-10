@@ -461,14 +461,23 @@ final class SEOProStack_Litespeed {
 
     /**
      * Whether LiteSpeed Cache's Cloudflare API is connected: on, with a key
-     * and a zone. Only read; the preset never sets either.
+     * and a zone. Only read; the preset never sets either. Not for a site
+     * on a subdomain of the zone's domain (as LiteSpeed Cache stores it):
+     * its Clear Cloudflare cache empties the whole zone, every other site
+     * on the domain too, so Clear Cloudflare's copies of pages empties
+     * such a site's own pages instead (#1461).
      *
      * @return bool
      */
     private static function cloudflare_connected() {
-        return (bool) self::conf('cdn-cloudflare', false)
-            && '' !== (string) self::conf('cdn-cloudflare_key', '')
-            && '' !== (string) self::conf('cdn-cloudflare_zone', '');
+        if (!self::conf('cdn-cloudflare', false)
+            || '' === (string) self::conf('cdn-cloudflare_key', '')
+            || '' === (string) self::conf('cdn-cloudflare_zone', '')) {
+            return false;
+        }
+        $domain = strtolower(trim((string) self::conf('cdn-cloudflare_name', '')));
+        $host   = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        return '' === $domain || $host === $domain || 'www.' . $domain === $host;
     }
 
     /**

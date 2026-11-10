@@ -457,10 +457,11 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     /**
      * Whether LiteSpeed Cache's Purge All emptied every site of the
      * network, as it decides it (\LiteSpeed\Purge::_is_subsite_purge()).
+     * Also read by Clear Cloudflare's copies of pages.
      *
      * @return bool
      */
-    private static function network_purge() {
+    public static function network_purge() {
         if (!is_multisite()) {
             return false;
         }
