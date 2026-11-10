@@ -963,16 +963,17 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         $eager           = false;
         $deep            = false;
         $counted         = false;
+        // As core does, a picture with fetchpriority="auto" (block visibility:
+        // it may be hidden at this screen size) takes no place in the budget.
+        $counts = 'auto' !== $tag->get_attribute('fetchpriority');
         if ('the_content' === $context && is_main_query() && in_the_loop() && !is_feed()) {
             $counted = true;
             if (!self::$marking) {
-                ++self::$pictures;
-                $eager = self::$pictures <= self::threshold();
+                $eager = self::in_budget($counts);
             } elseif ('opening' === $mark) {
                 // The block the page opens with: the budget is for these (GH#1412).
                 self::$opened = true;
-                ++self::$pictures;
-                $eager = self::$pictures <= self::threshold();
+                $eager        = self::in_budget($counts);
             } elseif ('near' === $mark && !self::$opened) {
                 // Nothing in the opening block: without a preloaded hero, the
                 // first picture in the next block may be the LCP.
@@ -980,8 +981,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 if (self::$hero) {
                     $deep = true;
                 } else {
-                    ++self::$pictures;
-                    $eager = self::$pictures <= self::threshold();
+                    $eager = self::in_budget($counts);
                 }
             } else {
                 $deep = true;
@@ -997,10 +997,13 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             self::$high_priority = true;
         }
         $lazied = false;
-        if (($deep || ($counted && !$eager)) && !$excluded && 'high' !== $priority && null === $tag->get_attribute('loading')) {
+        if (($deep || ($counted && !$eager)) && !$excluded && !in_array($priority, array('high', 'low'), true)
+            && null === $tag->get_attribute('loading')) {
             // Core leaves its first pictures without loading="lazy" whatever
             // their position, and every picture when a cache plugin turned
-            // WordPress's lazy loading off.
+            // WordPress's lazy loading off. Never fetchpriority="low", as in
+            // core: a later carousel slide or a menu overlay's picture, which
+            // the browser would not start loading before it is shown.
             $tag->set_attribute('loading', 'lazy');
             $lazied = true;
         }
@@ -1030,6 +1033,21 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             $image = wp_img_tag_add_auto_sizes($image);
         }
         return $image;
+    }
+
+    /**
+     * Whether the next content picture is within the eager budget; it takes
+     * a place in the budget when it counts.
+     *
+     * @param bool $counts False for pictures core leaves out of its count.
+     * @return bool
+     */
+    private static function in_budget($counts) {
+        $eager = self::$pictures < self::threshold();
+        if ($counts) {
+            ++self::$pictures;
+        }
+        return $eager;
     }
 
     /**
