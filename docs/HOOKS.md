@@ -11,8 +11,10 @@ before a release) fails when this list and the code disagree.
 - **supported**: for site code. Kept, or kept working through
   `apply_filters_deprecated()` / `do_action_deprecated()`, for at least two
   minor releases before it is removed (Deprecation rule below).
-- **internal**: for SEO Pro Stack's own use (other plugins in the stack,
-  tests, presets). May change or go without notice. Site code should not use it.
+- **internal**: no stability promise. For SEO Pro Stack's own use (other
+  plugins in the stack, tests, presets), or a filter for site owners that is
+  unsupported (such as `seoprostack_used_css_sources`). May change or go
+  without notice.
 
 ## Deprecation rule
 
@@ -55,16 +57,16 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_admin_bar_star` | filter | supported | 0.5.0 | admin bar | `true` |
 | `seoprostack_admin_dark_contrast_guard` | filter | supported | 1.3.35 | admin whole theme | `true`; `$screen` |
 | `seoprostack_admin_dark_fallback` | filter | supported | 1.3.45 | dark fallback | `true`; `$screen` |
-| `seoprostack_admin_dark_fallback_style` | filter | supported | 1.3.45 | dark fallback | `!preg_match(self::OWN_DARK, wp_normalize_path...`; `$handle`, `$href` |
+| `seoprostack_admin_dark_fallback_style` | filter | supported | 1.3.45 | dark fallback | `bool`, true unless the file matches `self::OWN_DARK` (`!preg_match(self::OWN_DARK, wp_normalize_path($file))`); `$handle`, `$href` |
 | `seoprostack_admin_dark_screen` | filter | supported | 1.3.33 | admin whole theme | `$applies`; `$screen` |
 | `seoprostack_admin_dark_script_styles` | filter | supported | 1.3.42 | admin whole theme | `$tutor \|\| $meow`; `$screen` |
 | `seoprostack_admin_dark_standalone_styles` | filter | internal | 1.3.36 | admin whole theme | `array('rank-math-wizard')` |
 | `seoprostack_admin_enqueue` | action | supported | 0.11.1 | admin manager | `$page_tab` |
 | `seoprostack_admin_menu_catalog` | filter | supported | 0.5.0 | admin menu | `$data` |
-| `seoprostack_admin_script_data` | filter | supported | 0.11.0 | admin manager | `array( 'ajaxUrl' => admin_url('admin-ajax.php...`; `$tab` |
+| `seoprostack_admin_script_data` | filter | supported | 0.11.0 | admin manager | `array{ajaxUrl: string, nonce: string, tab: string, tabs: array, titles: array, network: bool, i18n: array<string,string>}`; `$tab` |
 | `seoprostack_admin_script_deps` | filter | supported | 0.11.0 | admin manager | `$deps`; `$page_tab` |
 | `seoprostack_admin_tabs` | filter | supported | 0.3.0 | admin manager | `$tabs` |
-| `seoprostack_admin_theme_screens` | filter | internal | 1.3.43 | admin theme | `array( SEOProStack_Admin_Manager::hook(), SEO...` |
+| `seoprostack_admin_theme_screens` | filter | internal | 1.3.43 | admin theme | `array( SEOProStack_Admin_Manager::hook(), SEOProStack_Network_Manager::hook() )` (screen IDs) |
 | `seoprostack_agency_order_started` | action | supported | 0.9.0 | agency orders | `$entry_id`, `$order['task']`, `$order['ticket']`, `$order['user']` |
 | `seoprostack_agency_update_message` | filter | supported | 0.9.0 | agency orders | `$message`; `$task`, `$stage`, `$order` |
 | `seoprostack_ai_engine_later` | filter | supported | 1.3.161 | ai engine later | `true` |
@@ -78,7 +80,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_dashboard_layout` | filter | supported | 0.5.0 | dashboard layout | `is_array($data) ? $data : array()` |
 | `seoprostack_dashboard_redirect` | filter | internal | 0.3.0 | admin access | `$target ? $target : home_url('/')`; `wp_get_current_user()` |
 | `seoprostack_duplicate_post_data` | filter | supported | 0.3.0 | duplicate posts | `$data`; `$post` |
-| `seoprostack_duplicate_skip_meta` | filter | supported | 0.3.0 | duplicate posts | `array( '_edit_lock', '_edit_last', '_wp_old_s...` |
+| `seoprostack_duplicate_skip_meta` | filter | supported | 0.3.0 | duplicate posts | `string[]` meta keys, by default `_edit_lock`, `_edit_last`, `_wp_old_slug`, `_wp_old_date`, `_thumbnail_id`, `_wp_page_template`, `_wp_trash_meta_status`, `_wp_trash_meta_time`, `_encloseme` and more (see the call) |
 | `seoprostack_editor_dev_panels` | filter | supported | 1.3.41 | editor dev tab | `self::PANELS` |
 | `seoprostack_email_protection_skip` | filter | supported | 1.3.85 | email protection | `false`; `$html` |
 | `seoprostack_external_plugins` | filter | supported | 0.5.0 | plugin manager | `array()` |
@@ -89,12 +91,13 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_form_policy_paths` | filter | supported | 1.3.97 | form policy links | `$paths` |
 | `seoprostack_form_submitted` | action | supported | 1.3.97 | form keys | `$key`, `$data`, `$form`, `(int) $entry_id` |
 | `seoprostack_free_plugin_note` | filter | supported | 0.11.0 | plugin manager | `$note`; `$slug` |
-| `seoprostack_free_plugins` | filter | supported | 0.5.0 | free plugins | `array( 'minimal' => array( 'antispam-bee', 'f...` |
+| `seoprostack_free_plugins` | filter | supported | 0.5.0 | free plugins | `array<string,string[]>` category => plugin slugs (`minimal`, `admin`, ...) |
 | `seoprostack_github_plugins` | filter | supported | 0.7.0 | github updates | `(array) $plugins` |
 | `seoprostack_github_token` | filter | supported | 0.7.0 | github updates | `$token`; `$repo` |
 | `seoprostack_hand_ordered` | action | supported | 0.9.0 | hand order | `'post'`, `$type`, `array_keys($changed)` |
 | `seoprostack_helpdesk_imap_password` | filter | supported | 1.3.118 | helpdesk imap config | `$password` |
 | `seoprostack_host_plugins` | filter | supported | 0.12.1 | host plugins | `$plugins` |
+| `seoprostack_hosting_items` | filter | supported | 0.5.0 | link cards | `array` directory entries; built as `seoprostack_{$id}_items` |
 | `seoprostack_hosting_sample_rate` | filter | supported | 0.5.0 | hosting needs | `self::SAMPLE` |
 | `seoprostack_image_imported` | action | supported | 0.3.0 | auto upload | `$attachment_id`, `$url`, `$post_id` |
 | `seoprostack_image_loading_exclude` | filter | supported | 0.12.2 | image loading | `$keywords` |
@@ -127,7 +130,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_lists_register_url` | filter | supported | 1.3.63 | post reactions | `$register` |
 | `seoprostack_litespeed_crawler_duration` | filter | supported | 1.3.19 | plugin fixes | `self::LSC_CRAWLER_DURATION` |
 | `seoprostack_magic_login_allowed` | filter | supported | 0.3.0 | magic login | `$allowed`; `$user` |
-| `seoprostack_magic_login_email` | filter | supported | 0.3.0 | magic login | `array( 'to' => $user->user_email, 'subject' =...`; `$user`, `$link` |
+| `seoprostack_magic_login_email` | filter | supported | 0.3.0 | magic login | `array{to: string, subject: string, message: string, headers: array}` (all four keys are used by `wp_mail()`, keep them); `$user`, `$link` |
 | `seoprostack_magic_login_ip_limit` | filter | supported | 0.3.0 | magic login | `self::IP_LIMIT` |
 | `seoprostack_magic_login_link_sent` | action | supported | 0.3.0 | magic login | `$user`, `$sent` |
 | `seoprostack_maintenance_capability` | filter | supported | 0.8.0 | maintenance | `'manage_options'` |
@@ -160,6 +163,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_preset_condition` | filter | supported | 0.10.1 | presets | `$holds`; `$condition` |
 | `seoprostack_preset_store` | filter | supported | 0.12.8 | presets | `null`; `$slug`, `$name`, `$value` |
 | `seoprostack_preset_write_check` | filter | supported | 0.12.8 | presets | `null`; `$slug` |
+| `seoprostack_pro_items` | filter | supported | 0.5.0 | link cards | `array` directory entries; built as `seoprostack_{$id}_items` |
 | `seoprostack_redirect_links` | filter | supported | 1.3.106 | redirect links | `(array) $map['exact']` |
 | `seoprostack_redundant_plugins` | filter | supported | 1.3.133 | replaced plugins | `array()` |
 | `seoprostack_related_posts_args` | filter | internal | 0.12.0 | term displays | `$args`; `$post` |
@@ -188,13 +192,14 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_term_merged` | action | supported | 0.9.0 | term tools | `$target`, `$term` |
 | `seoprostack_terms_moved` | action | supported | 0.9.0 | term tools | `array_keys($moving)`, `$to`, `$from` |
 | `seoprostack_translatepress_defer` | filter | supported | 1.3.195 | translatepress defer | `true` |
+| `seoprostack_tools_items` | filter | supported | 0.5.0 | link cards | `array` directory entries; built as `seoprostack_{$id}_items` |
 | `seoprostack_troubleshooting_open` | filter | supported | 1.3.8 | settings manager | `false`; `$key` |
 | `seoprostack_turnstile_later` | filter | supported | 1.3.163 | turnstile later | `true` |
 | `seoprostack_tutor_light_page` | filter | supported | 1.3.161 | tutor light page | `$page` |
 | `seoprostack_used_css_classes` | filter | supported | 1.3.145 | used css match | `self::CLASSES` |
-| `seoprostack_used_css_sources` | filter | supported | 1.3.145 | used css links | `$sources` |
+| `seoprostack_used_css_sources` | filter | internal | 1.3.145 | used css links | `string[]` folders with a trailing slash |
 | `seoprostack_version_published` | action | supported | 0.3.0 | post versions | `$original->ID`, `$post_id` |
-| `seoprostack_vulnerability_feed_slugs` | filter | supported | 1.3.57 | vulnerability feed check | `array( 'plugin' => array('hello' => 'hello-do...` |
+| `seoprostack_vulnerability_feed_slugs` | filter | supported | 1.3.57 | vulnerability feed check | `array{plugin: array<string,string>, theme: array<string,string>}` folder => feed slug (default `plugin` => `hello` => `hello-dolly`, `theme` => empty) |
 | `seoprostack_watermark_attachment` | filter | supported | 0.4.0 | watermark images | `true`; `$attachment_id` |
 | `seoprostack_watermark_runners` | filter | supported | 1.3.149 | watermark images | `1` |
 | `seoprostack_woo_light_shop_page` | filter | supported | 0.8.0 | woo light | `$shop` |

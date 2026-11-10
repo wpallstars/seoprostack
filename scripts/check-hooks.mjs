@@ -9,6 +9,7 @@
 // SPDX-FileCopyrightText: 2026 Marcus Quinn
 // Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,6 +45,10 @@ for (const file of files) {
 	const text = fs.readFileSync(path.join(root, file), 'utf8');
 	for (const m of text.matchAll(liveRe)) live.add(m[1]);
 	for (const m of text.matchAll(deprecatedRe)) deprecated.add(m[1]);
+	// Runtime-built names: SEOProStack_Link_Cards::render( $items, 'pro', ... )
+	// calls apply_filters("seoprostack_{$id}_items"), so the finite set of
+	// names is read from the render() call sites.
+	for (const m of text.matchAll(/SEOProStack_Link_Cards::render\(\s*[^,]+\(\)\s*,\s*'([a-z0-9_]+)'/g)) live.add(`seoprostack_${m[1]}_items`);
 }
 
 // eslint-disable-next-line security/detect-non-literal-fs-filename
@@ -75,6 +80,33 @@ for (const [name, status] of listed) {
 	} else {
 		problems.push(`${name} is listed as internal but no longer in the code: remove its row from docs/HOOKS.md.`);
 	}
+}
+
+// Release baseline: a supported hook listed at the latest release tag may not
+// vanish unless the code two releases back already called it through a
+// _deprecated function (the two-release deprecation period). Skipped, with a
+// note, when git or the tags are unavailable (for example a shallow clone).
+const git = (...args) => {
+	try {
+		return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+	} catch {
+		return null;
+	}
+};
+const tags = (git('tag', '--list', '--sort=-v:refname') || '').split('\n').filter(Boolean);
+if (tags.length >= 3) {
+	const baselineDoc = git('show', `${tags[0]}:docs/HOOKS.md`);
+	const oldCode = git('grep', '-h', '-E', '_deprecated\\(', tags[2], '--', '*.php') || '';
+	const oldDeprecated = new Set([...oldCode.matchAll(deprecatedRe)].map((m) => m[1]));
+	for (const line of (baselineDoc || '').split('\n')) {
+		const cells = line.split(/(?<!\\)\|/).map((c) => c.trim());
+		const m = /^`(seoprostack_[a-z0-9_]+)`$/.exec(cells[1] || '');
+		if (!m || cells[3] !== 'supported') continue;
+		if (live.has(m[1]) || deprecated.has(m[1]) || oldDeprecated.has(m[1])) continue;
+		problems.push(`${m[1]} was a supported hook in ${tags[0]} and is gone without being deprecated in ${tags[2]} or earlier: restore it, or deprecate it for two releases first (docs/HOOKS.md → Deprecation rule).`);
+	}
+} else {
+	console.log('check-hooks: fewer than three release tags found; release baseline check skipped.');
 }
 
 if (problems.length) {
