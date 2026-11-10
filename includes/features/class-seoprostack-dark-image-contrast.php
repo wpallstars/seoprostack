@@ -117,7 +117,8 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
             return;
         }
         $js = 'assets/dark-image-contrast.js';
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), true);
+        // Deferred: it measures pictures as they load, so it need not compete with them (GH#1502).
+        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
         $config = array('watermarks' => (bool) SEOProStack_Settings::get(self::WATERMARKS));
         $kept   = get_option(self::KEPT, array());
         if (is_array($kept) && $kept) {
