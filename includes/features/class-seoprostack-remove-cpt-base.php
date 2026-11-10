@@ -299,7 +299,6 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
                     'fields'                 => 'ids',
                     'no_found_rows'          => true,
                     'update_post_term_cache' => false,
-                    'suppress_filters'       => true,
                     // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     'meta_query'             => array(
                         array(
