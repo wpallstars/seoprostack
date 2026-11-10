@@ -81,6 +81,12 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     /** admin-ajax.php action. */
     const AJAX = 'seoprostack_reactions';
 
+    /** LiteSpeed Cache tag of a post's cached state answers, before its ID (GH#1490). */
+    const CACHE_TAG = 'sps_reactions_';
+
+    /** How long LiteSpeed Cache keeps a visitors' state answer, in seconds; a totals change drops it first. */
+    const CACHE_TTL = DAY_IN_SECONDS;
+
     /** Script and style handle. */
     const HANDLE = 'seoprostack-post-reactions';
 
@@ -282,6 +288,12 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         add_filter('the_content', array(__CLASS__, 'after_content'), 20);
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax'));
         add_action('wp_ajax_nopriv_' . self::AJAX, array(__CLASS__, 'ajax'));
+        if (defined('LSCWP_V')) {
+            // LiteSpeed Cache keeps visitors' state answers; drop a post's when its totals change (GH#1490).
+            foreach (array('added_post_meta', 'updated_post_meta', 'deleted_post_meta') as $hook) {
+                add_action($hook, array(__CLASS__, 'totals_changed'), 10, 3);
+            }
+        }
         add_action('init', array(__CLASS__, 'seed_listed'), 30);
         // After the theme adds its sections.
         add_action('customize_register', array(__CLASS__, 'customize_register'), 20);
@@ -1209,6 +1221,83 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     }
 
     /**
+     * The state call's answer: like counts and tallies of the posts asked
+     * for (at most 100), and for a logged-in person their lists and a nonce.
+     *
+     * @param int[] $ids     Post IDs.
+     * @param int   $user_id Current user ID (0 for a visitor).
+     * @return array
+     */
+    private static function state_data(array $ids, $user_id) {
+        $counts = array();
+        foreach (array_slice($ids, 0, 100) as $id) {
+            if (self::can_react($id)) {
+                $counts[$id] = self::likes($id);
+            }
+        }
+        $data = array('counts' => (object) $counts, 'tallies' => self::tallies_for(array_keys($counts)), 'user' => false);
+        if ($user_id) {
+            $data = array_merge($data, self::lists_payload($user_id), array('user' => true, 'nonce' => wp_create_nonce(self::AJAX)));
+        }
+        return $data;
+    }
+
+    /**
+     * admin-ajax.php GET: the state call only (GH#1490).
+     *
+     * The script asks with a POST for logged-in people, and with a GET for
+     * pages served to visitors, whose answer holds only public totals: the
+     * same for everyone shown the same posts in the same language (the
+     * tallies are words, "4 Likes", which a translation plugin may give in
+     * the page's language, so the script sends that language and each one
+     * is kept apart). LiteSpeed Cache keeps that answer (its own API, as its AJAX
+     * Cache TTL setting does), tagged by post, until a post's totals change
+     * (totals_changed()) or CACHE_TTL passes, so a page view no longer starts
+     * WordPress a second time. Browsers ask the server each time, so they
+     * never show an older count than it has. A logged-in person's GET is
+     * answered as the POST is, never kept. Without LiteSpeed Cache nothing
+     * is kept.
+     */
+    private static function state_get() {
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- read only: public totals, or the person's own lists.
+        $do  = isset($_GET['do']) ? sanitize_key(wp_unslash($_GET['do'])) : '';
+        $ids = isset($_GET['posts']) ? self::posts_param(sanitize_text_field(wp_unslash($_GET['posts']))) : array();
+        // phpcs:enable
+        if ('state' !== $do) {
+            wp_send_json_error(null, 405);
+        }
+        $user = get_current_user_id();
+        $data = self::state_data($ids, $user);
+        if ($user) {
+            nocache_headers();
+            wp_send_json_success($data);
+        }
+        header('Cache-Control: no-cache');
+        // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's API.
+        do_action('litespeed_control_set_ttl', self::CACHE_TTL);
+        do_action('litespeed_control_force_cacheable', 'SEO Pro Stack reactions state');
+        foreach (array_keys((array) $data['counts']) as $id) {
+            do_action('litespeed_tag_add', self::CACHE_TAG . $id);
+        }
+        // phpcs:enable
+        wp_send_json_success($data);
+    }
+
+    /**
+     * A post's like or listed total changed: LiteSpeed Cache drops the state
+     * answers that hold it (GH#1490).
+     *
+     * @param int|int[] $meta_id   Meta ID (IDs when deleted).
+     * @param int       $object_id Post ID.
+     * @param string    $meta_key  Meta key.
+     */
+    public static function totals_changed($meta_id, $object_id, $meta_key) {
+        if (self::LIKES === $meta_key || self::LISTED === $meta_key) {
+            do_action('litespeed_purge', self::CACHE_TAG . absint($object_id)); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's API.
+        }
+    }
+
+    /**
      * admin-ajax.php: state, like, save, create, rename, delete, move,
      * remove, merge, list and clear (and shortlist, which saves to the
      * Shortlist list, from before named lists).
@@ -1218,8 +1307,15 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * nothing on the server but like and shortlist totals: their lists are
      * in their browser, and only state, like, listed and list are theirs to
      * use.
+     *
+     * A GET asks for state only (state_get()).
      */
     public static function ajax() {
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+        if ('GET' === $method) {
+            self::state_get();
+            return;
+        }
         // phpcs:disable WordPress.Security.NonceVerification.Missing -- checked below for logged-in changes; visitors' requests change only rate-limited totals.
         $do   = isset($_POST['do']) ? sanitize_key(wp_unslash($_POST['do'])) : '';
         $user = get_current_user_id();
@@ -1254,18 +1350,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
 
         switch ($do) {
             case 'state':
-                $counts = array();
-                foreach (array_slice($ids, 0, 100) as $id) {
-                    if (self::can_react($id)) {
-                        $counts[$id] = self::likes($id);
-                    }
-                }
-                $data = array('counts' => (object) $counts, 'tallies' => self::tallies_for(array_keys($counts)), 'user' => false);
-                if ($user) {
-                    $data = array_merge($data, self::lists_payload($user), array('user' => true, 'nonce' => wp_create_nonce(self::AJAX)));
-                }
                 nocache_headers();
-                wp_send_json_success($data);
+                wp_send_json_success(self::state_data($ids, $user));
                 break;
 
             case 'like':
