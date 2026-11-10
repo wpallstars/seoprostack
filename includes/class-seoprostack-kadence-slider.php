@@ -30,8 +30,9 @@
  * phones got it too. When a slide's picture has smaller copies of the same
  * proportions (SEOProStack_Hero_Picture, as for the row a page opens with,
  * GH#1221), a script right after the slider measures its slides and takes,
- * for each, the smallest copy at least as wide as the pixels it paints,
- * with 10% to spare, else the slide's own picture: never less sharp. The
+ * for each, the smallest copy at least as wide as the device pixels it
+ * paints, as browsers choose from srcset (GH#1476; until then with 10% to
+ * spare), else the slide's own picture: never less sharp. The
  * choice goes in a style rule per slide, by its kb-slide-<id> class, so
  * Splide's loop copies get it too; the rule has !important but is less
  * specific than the wait's, so slides still wait. If the slides grow or
@@ -391,11 +392,12 @@ class SEOProStack_Kadence_Slider {
             });
             return r;
         }
-        // Device pixels a picture paints across, with 10% to spare.
+        // Device pixels a picture paints across, to the nearest whole one
+        // (GH#1476); grow() takes a larger copy if the slides grow.
         function need(q, r) {
             var a = q.w / q.h;
             if (!r.w || !r.h) { return 0; }
-            return ('cover' === q.z ? Math.max(r.w, r.h * a) : Math.min(r.w, r.h * a)) * (w.devicePixelRatio || 1) * 1.1;
+            return Math.round(('cover' === q.z ? Math.max(r.w, r.h * a) : Math.min(r.w, r.h * a)) * (w.devicePixelRatio || 1));
         }
         // The narrowest file that is enough, else the slide's own (the last).
         function pick(q, r) {

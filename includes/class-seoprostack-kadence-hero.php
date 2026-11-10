@@ -8,14 +8,16 @@
  * How many pixels it paints depends on the row's box, which its content,
  * fonts and the screen set, so only the browser knows. When the picture
  * has smaller copies of the same proportions, a script after the row
- * measures it and takes the smallest copy at least as wide as the pixels
- * it paints, with 10% to spare for fonts and late styles, else the row's
- * own picture: never less sharp than before. The copy is preloaded at high
- * priority (its AVIF or WebP copy when pages name copies, or LiteSpeed
- * Cache's WebP copy where it names it in the row's CSS: the script has
- * each file as url(…), which LiteSpeed rewrites too, GH#1333) and set on
- * the row, or on each slide of a background slider with its own picture's
- * copy. If the row grows later (fonts, a turned phone, a wider window) or
+ * measures it and takes the smallest copy at least as wide as the device
+ * pixels it paints, as browsers choose from srcset (GH#1476; until then
+ * with 10% to spare, which took the next size up on common screens), else
+ * the row's own picture: never less sharp than before. The copy is
+ * preloaded at high priority (its AVIF or WebP copy when pages name
+ * copies, or LiteSpeed Cache's WebP copy where it names it in the row's
+ * CSS: the script has each file as url(…), which LiteSpeed rewrites too,
+ * GH#1333) and set on the row, or on each slide of a background slider
+ * with its own picture's copy. If the row grows later (fonts, a turned
+ * phone, a wider window) or
  * the screen's pixels get denser (another display, zoom), a larger copy
  * replaces it, never a smaller one. The copies come from the attachment
  * the row names, only when its address is in that attachment's folder.
@@ -229,11 +231,13 @@ class SEOProStack_Kadence_Hero {
         size = first && w.getComputedStyle(first).backgroundSize;
         if ('cover' !== size && 'contain' !== size) { return; }
         function els(p) { return h.s ? box.querySelectorAll('.kb-bg-slide-' + p.n) : [row]; }
-        // Device pixels the picture paints across, with 10% to spare.
+        // Device pixels the picture paints across, to the nearest whole one
+        // (GH#1476): a copy that wide is as sharp as the screen shows, and
+        // grow() takes a larger one if the row grows.
         function need(p) {
             var b = box.getBoundingClientRect(), a = p.w / p.h;
             if (!b.width || !b.height) { return 0; }
-            return ('cover' === size ? Math.max(b.width, b.height * a) : Math.min(b.width, b.height * a)) * (w.devicePixelRatio || 1) * 1.1;
+            return Math.round(('cover' === size ? Math.max(b.width, b.height * a) : Math.min(b.width, b.height * a)) * (w.devicePixelRatio || 1));
         }
         // The narrowest file that is enough, else the row's own (the last).
         function pick(p) {
