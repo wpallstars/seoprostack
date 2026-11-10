@@ -482,6 +482,47 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * @return bool Whether the file is as asked now.
      */
     public static function files_write($file, array $rules, $marker = self::FILES_MARKER) {
+        // One writer at a time over the whole read, change and write, so two
+        // blocks (this one and Redirect to the main address) cannot overwrite
+        // each other. No lock to be had: go on without, as before.
+        $lock = self::files_lock($file);
+        $done = self::files_write_locked($file, $rules, $marker);
+        if ($lock) {
+            flock($lock, LOCK_UN); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_flock -- releases the lock.
+            fclose($lock); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- own lock file.
+        }
+        return $done;
+    }
+
+    /**
+     * Take an exclusive lock for a file's writers, in the temporary folder
+     * (not beside the .htaccess file, which is in the web root).
+     *
+     * @param string $file .htaccess path.
+     * @return resource|null The locked handle, or null when not locked.
+     */
+    private static function files_lock($file) {
+        $path = trailingslashit(get_temp_dir()) . 'seoprostack-files-' . md5($file) . '.lock';
+        $lock = @fopen($path, 'c'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.PHP.NoSilencedErrors.Discouraged -- own lock file; failure means no lock.
+        if (!$lock) {
+            return null;
+        }
+        if (!flock($lock, LOCK_EX)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_flock -- blocks until the other writer is done.
+            fclose($lock); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- own lock file.
+            return null;
+        }
+        return $lock;
+    }
+
+    /**
+     * The read, change and write of files_write(), under its lock.
+     *
+     * @param string   $file   .htaccess path.
+     * @param string[] $rules  Rules; empty removes the block.
+     * @param string   $marker Block marker.
+     * @return bool Whether the file is as asked now.
+     */
+    private static function files_write_locked($file, array $rules, $marker) {
         $exists = is_file($file);
         if (!$rules && !$exists) {
             return true;
