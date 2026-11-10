@@ -369,15 +369,19 @@
 		Object.keys(data || {}).forEach(function (k) {
 			body.append(k, data[k]);
 		});
+		// The counts (state) are not needed for the page's first view: ask
+		// for them at low priority, behind its pictures and scripts, so they
+		// are no request chain the page seems to wait on (GH#1502). Changes
+		// keep the default priority. Browsers without it ignore the option.
 		var request;
 		if (publicState(what)) {
 			body.set('posts', String((data && data.posts) || '').split(',').filter(Boolean).map(Number).sort(function (a, b) {
 				return a - b;
 			}).join(','));
 			body.append('lang', document.documentElement.lang || '');
-			request = window.fetch(cfg.ajaxUrl + (cfg.ajaxUrl.indexOf('?') === -1 ? '?' : '&') + body.toString(), { credentials: 'same-origin' });
+			request = window.fetch(cfg.ajaxUrl + (cfg.ajaxUrl.indexOf('?') === -1 ? '?' : '&') + body.toString(), { priority: 'low', credentials: 'same-origin' });
 		} else {
-			request = window.fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body });
+			request = window.fetch(cfg.ajaxUrl, { method: 'POST', priority: what === 'state' ? 'low' : 'auto', credentials: 'same-origin', body: body });
 		}
 		return request.then(function (res) {
 			return res.json().catch(function () {

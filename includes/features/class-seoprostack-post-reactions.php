@@ -304,7 +304,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * Register the script, style and blocks.
      */
     public static function register() {
-        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.js', array(), SEOPROSTACK_VERSION, true);
+        // Deferred: browsers fetch it at low priority, after the page's first pictures (GH#1502).
+        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.js', array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
         wp_add_inline_script(self::HANDLE, 'window.seoprostackReactions = ' . wp_json_encode(self::script_config()) . ';', 'before');
         wp_register_style(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.css', array(), SEOPROSTACK_VERSION);
         // Core prints a small stylesheet with a path in the page, not as a render-blocking link, and keeps the inline colour rules.

@@ -83,7 +83,7 @@ final class SEOProStack_Link_Clicks {
             }
         }
         if ($changed) {
-            wp_enqueue_script('seoprostack-link-clicks', SEOPROSTACK_URL . 'public/js/seoprostack-link-clicks.js', array(), SEOPROSTACK_VERSION, true);
+            wp_enqueue_script('seoprostack-link-clicks', SEOPROSTACK_URL . 'public/js/seoprostack-link-clicks.js', array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
             wp_add_inline_script('seoprostack-link-clicks', 'window.seoprostackLinkClicks = ' . wp_json_encode(array('endpoint' => rest_url('seoprostack/v1/link-click'))) . ';', 'before');
         }
         return $changed ? $processor->get_updated_html() : $content;
