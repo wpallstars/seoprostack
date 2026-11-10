@@ -462,12 +462,15 @@ new_log_all() {
 # matched: message text with no colon after the timestamp, then ": HOOK, ",
 # a label, ": could_not_set" and a comma or the end of the line. Until
 # then only the English text matched, and translated lines failed installs.
+# The message text must also name cron, so another plugin's error that ends
+# in could_not_set (a payment task, say) stays a visible new line.
 classify_log() {
 	local hooks=" $1 "
 	awk -v hooks="$hooks" '
 		{
 			if (match($0, /:[[:space:]]*[^[:space:],:]+,[^:,]*:[[:space:]]*could_not_set([[:space:]]*,|[[:space:]]*$)/) \
-				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*(PHP [A-Za-z ]+:[[:space:]]*)?[^]:[]*$/) {
+				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*(PHP [A-Za-z ]+:[[:space:]]*)?[^]:[]*$/ \
+				&& tolower(substr($0, 1, RSTART - 1)) ~ /cron/) {
 				text = substr($0, RSTART, RLENGTH)
 				sub(/^:[[:space:]]*/, "", text)
 				sub(/,.*$/, "", text)
