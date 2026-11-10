@@ -157,8 +157,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.195 =
 * Added: Clear Cloudflare’s copies of this site’s pages (#1461).
-* New, on by default: Load TranslatePress’s scripts without holding up the page (#1486).
-* Faster: the logo no longer takes the main picture’s high priority, and lazy pictures fetch the size they are shown at (#1485).
-* Faster: visitors’ like counts come from LiteSpeed Cache instead of a second WordPress run per page view (#1490).
+* Faster: TranslatePress’s scripts no longer hold up pages (#1486); the main picture, not the logo, gets high priority, and lazy pictures load the size shown (#1485); LiteSpeed Cache keeps like counts (#1490).
 
 Older: `changelog.txt`.
