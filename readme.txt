@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.196
+Stable tag: 1.3.197
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -72,7 +72,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
 * **Links skip redirects** to Rank Math's on-site targets.
-* **Robots.txt rules**, with or without an SEO plugin: no search-result spam, sitemap listed, hidden staging sites; AI training crawlers optional.
+* **Robots.txt rules**, with any SEO plugin or none: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
 * **Load the CSS each page uses first** (off): pages with Kadence and the recommended plugins show sooner, worked out on your server.
@@ -156,9 +156,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.196 =
-* Faster: own scripts deferred (#1502).
-* Faster: lazy search thumbnails with a cache plugin (#1504).
-* Fixed: main address redirect on large networks (#1474).
+= 1.3.197 =
+* New: Robots.txt rules, on by default (#1506).
+* Improved: cloud storage handover resumes (#1499).
 
 Older: `changelog.txt`.
