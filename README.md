@@ -2515,6 +2515,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### 1.3.195
 
 - Added: **Clear Cloudflare’s copies of pages** (Speed, off by default). Where a Cloudflare Cache Rule keeps a site's pages, it empties Cloudflare's copies of this site's pages whenever LiteSpeed Cache or WP-Optimize empties its own: the site's own host name (or folder on a subdirectory network) after **Purge All** or an update, and a post's page, the home page and the posts page after an edit, which LiteSpeed Cache's Cloudflare API never clears. Never the whole zone, so other sites on the domain keep their copies. **Hosting needs** also warns when LiteSpeed Cache's **Clear Cloudflare cache** would empty a zone other sites share, when Cloudflare tells browsers to keep pages, when its cache rule skips every visitor with any cookie, and when LiteSpeed Cache's separate phone copies would be mixed up at Cloudflare (#1461).
+- Faster: **Load TranslatePress’s scripts without holding up the page** (Speed, on by default). TranslatePress’s language switcher scripts in the head of every page now load with `defer`, so the browser no longer stops drawing the page to fetch them: PageSpeed Insights listed them as render-blocking on every TranslatePress site checked, 120 to 130 ms on a computer and an estimated 430 ms on a phone. The switcher works as before (#1486).
 
 ### 1.3.194
 

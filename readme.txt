@@ -157,5 +157,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.195 =
 * Added: Clear Cloudflare’s copies of this site’s pages (#1461).
+* Faster: TranslatePress’s head scripts load with defer (#1486).
 
 Older: `changelog.txt`.
