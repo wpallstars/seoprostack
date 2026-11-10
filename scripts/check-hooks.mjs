@@ -20,6 +20,8 @@ const docPath = path.join(root, 'docs', 'HOOKS.md');
 const skipDirs = new Set(['.git', 'node_modules', 'vendor']);
 const files = [];
 const walk = (dir) => {
+	// Repository paths only; nothing comes from user input.
+	// eslint-disable-next-line security/detect-non-literal-fs-filename
 	for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
 		const rel = path.join(dir, entry.name);
 		if (entry.isDirectory()) {
@@ -38,17 +40,20 @@ const deprecatedRe = /\b(?:apply_filters|do_action)_deprecated\(\s*'(seoprostack
 const live = new Set();
 const deprecated = new Set();
 for (const file of files) {
+	// eslint-disable-next-line security/detect-non-literal-fs-filename
 	const text = fs.readFileSync(path.join(root, file), 'utf8');
 	for (const m of text.matchAll(liveRe)) live.add(m[1]);
 	for (const m of text.matchAll(deprecatedRe)) deprecated.add(m[1]);
 }
 
+// eslint-disable-next-line security/detect-non-literal-fs-filename
 if (!fs.existsSync(docPath)) {
 	console.error('check-hooks: docs/HOOKS.md is missing.');
 	process.exit(1);
 }
 const listed = new Map();
 const problems = [];
+// eslint-disable-next-line security/detect-non-literal-fs-filename
 for (const line of fs.readFileSync(docPath, 'utf8').split('\n')) {
 	const cells = line.split(/(?<!\\)\|/).map((c) => c.trim());
 	const m = /^`(seoprostack_[a-z0-9_]+)`$/.exec(cells[1] || '');
