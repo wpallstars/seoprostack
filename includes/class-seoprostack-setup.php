@@ -117,6 +117,8 @@ final class SEOProStack_Setup {
         'SEOProStack_Speed_Plan',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Keep_Pages_Cached',
+        // After Keep pages cached: reads its purge scope and page cache.
+        'SEOProStack_Cloudflare_Purge',
         'SEOProStack_Host_Redirect',
         'SEOProStack_Used_Css',
         // After Used CSS: its page buffer starts later, so it rewrites only the page's own styles.

@@ -215,6 +215,11 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_keep_pages_cached_held';
     wp_unschedule_hook('seoprostack_keep_pages_cached');
     wp_unschedule_hook('seoprostack_keep_pages_cached_check');
+    // Clear Cloudflare's copies of pages: purges waiting and the last
+    // answers (single sites; a network's are network options, below).
+    $options[] = 'seoprostack_cloudflare_purge_queue';
+    $options[] = 'seoprostack_cloudflare_purge_log';
+    wp_unschedule_hook('seoprostack_cloudflare_purge');
     // Content and imported media stay; only template ownership/history goes.
     $options[] = 'seoprostack_site_template';
     $options[] = 'seoprostack_site_template_seen';
@@ -522,6 +527,9 @@ if (is_multisite()) {
     // The network screen's settings (SEOProStack_Network_Settings).
     delete_site_option('seoprostack_network');
     delete_site_option('seoprostack_update_first_seen');
+    // Clear Cloudflare's copies of pages: one queue and log for the network.
+    delete_site_option('seoprostack_cloudflare_purge_queue');
+    delete_site_option('seoprostack_cloudflare_purge_log');
 } else {
     seoprostack_uninstall_site();
 }

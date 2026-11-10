@@ -79,6 +79,37 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      */
     private static $cf_cache = '';
 
+    /**
+     * Seconds Cloudflare keeps the home page, from the max-age in the
+     * Cloudflare-CDN-Cache-Control or CDN-Cache-Control header this server
+     * sends it (asked of the server itself: Cloudflare takes the first out
+     * of what it passes on); 0 when not sent or not known.
+     *
+     * @var int
+     */
+    private static $cf_edge = 0;
+
+    /**
+     * Seconds browsers keep the home page as Cloudflare passes it on: the
+     * max-age of its Cache-Control (the zone's Browser Cache TTL when this
+     * server sends none); 0 when absent or Cloudflare does not keep pages.
+     *
+     * @var int
+     */
+    private static $cf_browser = 0;
+
+    /**
+     * Whether Cloudflare stops keeping the home page for a visitor with any
+     * cookie (a cache rule matching an empty Cookie header): a made-up
+     * cookie got DYNAMIC or BYPASS twice where none got a cached answer.
+     *
+     * @var bool
+     */
+    private static $cf_cookie = false;
+
+    /** Edge time up to which pages refresh at Cloudflare soon enough without a purge (seconds). */
+    const CF_SHORT_EDGE = 600;
+
     /** Non-autoloaded daily object-cache facts and a cross-request probe. */
     const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
 
@@ -674,6 +705,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'cdn_probe'      => $audit ? array() : self::cdn_probe(),
         );
         $facts['cf_cache'] = $audit ? '' : self::$cf_cache;
+        $facts['cf_edge']    = $audit ? 0 : self::$cf_edge;
+        $facts['cf_browser'] = $audit ? 0 : self::$cf_browser;
+        $facts['cf_cookie']  = $audit ? false : self::$cf_cookie;
         if (!$audit) {
             set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
         }
@@ -1177,8 +1211,11 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /**
      * Whether Cloudflare keeps the home page (a Cache Rule that caches HTML)
      * while LiteSpeed Cache cannot purge it: LiteSpeed Cache is active
-     * without its Cloudflare connection and Clear Cloudflare cache both on.
-     * An unknown answer (no header, or the server's own 403) never warns.
+     * without its Cloudflare connection and Clear Cloudflare cache both on,
+     * and Clear Cloudflare's copies of pages is not ready either. Not when
+     * this server gives Cloudflare an edge time of CF_SHORT_EDGE or less:
+     * pages refresh there within minutes anyway. An unknown answer (no
+     * header, or the server's own 403) never warns.
      *
      * @param array $facts From facts().
      * @return bool
@@ -1191,8 +1228,151 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!in_array('litespeed-cache', self::active_slugs(), true)) {
             return false;
         }
+        $edge = isset($facts['cf_edge']) ? (int) $facts['cf_edge'] : 0;
+        if (($edge > 0 && $edge <= self::CF_SHORT_EDGE) || SEOProStack_Cloudflare_Purge::ready()) {
+            return false;
+        }
         return !(get_option(SEOProStack_Litespeed::PREFIX . 'cdn-cloudflare', false)
             && get_option(SEOProStack_Litespeed::PREFIX . 'cdn-cloudflare_clear', false));
+    }
+
+    /**
+     * Advice on the Cloudflare cache rule that keeps this site's pages, from
+     * cdn_probe(): browsers told to keep pages longer than CF_SHORT_EDGE
+     * (no purge reaches them), a rule that skips every visitor with any
+     * cookie, and one copy for phones and computers while LiteSpeed Cache
+     * keeps a copy for each. Nothing when Cloudflare does not keep pages.
+     *
+     * @param array $facts From facts().
+     * @return array<int, array{0: string, 1: string}>
+     */
+    private static function cloudflare_rule_advice(array $facts) {
+        $status = isset($facts['cf_cache']) ? (string) $facts['cf_cache'] : '';
+        if (!in_array($status, array('hit', 'miss', 'expired', 'revalidated', 'stale', 'updating'), true)) {
+            return array();
+        }
+        $advice  = array();
+        $browser = isset($facts['cf_browser']) ? (int) $facts['cf_browser'] : 0;
+        if ($browser > self::CF_SHORT_EDGE) {
+            $advice[] = array('recommended', sprintf(
+                /* translators: %s: a length of time, such as 4 hours. */
+                __('Cloudflare keeps this site’s pages and tells browsers to keep them for %s too, so after an edit visitors who opened a page before keep seeing the old copy, and no purge can clear their browsers. In the Cloudflare cache rule that caches pages, set Browser TTL to “Bypass cache” (or a few minutes), or set the zone’s Caching → Browser Cache TTL to “Respect Existing Headers”.', 'seoprostack'),
+                human_time_diff(0, $browser)
+            ));
+        }
+        if (!empty($facts['cf_cookie'])) {
+            $advice[] = array('recommended', __('Cloudflare keeps this site’s pages only for visitors with no cookies at all: with any cookie, such as a cookie consent or analytics cookie set on the first page, every later page goes past Cloudflare to this server, so quick browsing can still trip the host’s bot protection. In the Cloudflare cache rule, instead of an empty Cookie header, skip the cache only for cookies that change the page: wordpress_logged_in_, wp-postpass_, comment_author_, _lscache_vary, woocommerce_items_in_cart, woocommerce_cart_hash, wp_woocommerce_session_, seoprostack_maintenance_bypass, seoprostack_view_as and wp-health-check-disable-plugins (cookie matching works on Cloudflare’s free plan).', 'seoprostack'));
+        }
+        if (in_array('litespeed-cache', self::active_slugs(), true) && SEOProStack_Litespeed::conf('cache-mobile', false)) {
+            $advice[] = array('recommended', __('LiteSpeed Cache keeps a separate copy of pages for phones (Cache Mobile), but Cloudflare keeps one copy for each address, so phones and computers both get whichever copy Cloudflare fetched first. If the site’s pages are the same on phones, turn Cache Mobile off in LiteSpeed Cache → Cache; if they differ, keep phones’ pages out of the Cloudflare cache rule.', 'seoprostack'));
+        }
+        return $advice;
+    }
+
+    /**
+     * Whether LiteSpeed Cache's Clear Cloudflare cache, which empties the
+     * whole zone (purge_everything) on every Purge All, is on for a site
+     * that shares its zone: its host is a subdomain of the zone's domain
+     * (other than www.), or another site of its network is on that domain
+     * or a subdomain of it. Reads only LiteSpeed Cache's stored settings;
+     * the zone's domain is the one it stores (its domain field), and
+     * without one nothing is said.
+     *
+     * @return bool
+     */
+    private static function cloudflare_clears_zone() {
+        if (!in_array('litespeed-cache', self::active_slugs(), true)) {
+            return false;
+        }
+        if (!SEOProStack_Litespeed::conf('cdn-cloudflare', false) || !SEOProStack_Litespeed::conf('cdn-cloudflare_clear', false)) {
+            return false;
+        }
+        $domain = strtolower(trim((string) SEOProStack_Litespeed::conf('cdn-cloudflare_name', '')));
+        $host   = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        if ('' === $domain || '' === $host) {
+            return false;
+        }
+        if ($host !== $domain && 'www.' . $domain !== $host) {
+            return true;
+        }
+        if (!is_multisite()) {
+            return false;
+        }
+        // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- at most 100 sites, when Hosting needs builds its advice.
+        foreach (get_sites(array('number' => 100, 'site__not_in' => array(get_current_blog_id()))) as $site) {
+            $other = strtolower((string) preg_replace('/:\d+$/', '', (string) $site->domain));
+            if ($other === $domain || substr($other, -strlen('.' . $domain)) === '.' . $domain) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Seconds Cloudflare keeps the home page as this server tells it: the
+     * max-age of Cloudflare-CDN-Cache-Control, else CDN-Cache-Control, from
+     * a HEAD request straight to this server (LiteSpeed Cache's Server IP,
+     * or the address SEO Pro Stack learned), as Cloudflare takes the first
+     * out of what it passes on. 0 when not sent or the server cannot be
+     * asked directly.
+     *
+     * @return int
+     */
+    private static function cloudflare_edge_time() {
+        if (!class_exists('SEOProStack_Keep_Cached_Requests')) {
+            return 0;
+        }
+        $url     = home_url('/');
+        $resolve = SEOProStack_Keep_Cached_Requests::resolver($url);
+        if (!$resolve) {
+            return 0;
+        }
+        add_action('http_api_curl', $resolve);
+        $response = wp_remote_head($url, array(
+            'timeout'     => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- with cdn_probe(): at most hourly, only when Cloudflare keeps pages.
+            'redirection' => 0,
+            'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+        ));
+        remove_action('http_api_curl', $resolve);
+        if (is_wp_error($response)) {
+            return 0;
+        }
+        foreach (array('cloudflare-cdn-cache-control', 'cdn-cache-control') as $name) {
+            $value = wp_remote_retrieve_header($response, $name);
+            $value = strtolower(is_array($value) ? implode(', ', $value) : (string) $value);
+            if (preg_match('/(?:^|[\s,])(?:s-maxage|max-age)\s*=\s*(\d+)/', $value, $match)) {
+                return (int) $match[1];
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Whether Cloudflare stops keeping the home page for any cookie: asked
+     * twice with a made-up cookie (sps_probe=1, which nothing reads), so a
+     * first MISS that fills the copy does not count. Called only when a
+     * request without cookies got a cached answer.
+     *
+     * @return bool True when both answers were DYNAMIC or BYPASS.
+     */
+    private static function cloudflare_skips_cookies() {
+        for ($i = 0; $i < 2; $i++) {
+            $response = wp_remote_head(home_url('/'), array(
+                'timeout'     => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- with cdn_probe(): at most hourly, only when Cloudflare keeps pages.
+                'redirection' => 0,
+                'headers'     => array('Cookie' => 'sps_probe=1'),
+                'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+            ));
+            if (is_wp_error($response)) {
+                return false;
+            }
+            $status = wp_remote_retrieve_header($response, 'cf-cache-status');
+            $status = strtolower(trim(is_array($status) ? implode(', ', $status) : (string) $status));
+            if (!in_array($status, array('dynamic', 'bypass'), true)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1202,7 +1382,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @return string The CDN's name, an empty string for none, or unknown when the site did not answer.
      */
     private static function cdn_probe() {
-        self::$cf_cache = '';
+        self::$cf_cache   = '';
+        self::$cf_edge    = 0;
+        self::$cf_browser = 0;
+        self::$cf_cookie  = false;
         $response = wp_remote_head(home_url('/'), array(
             'timeout'     => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- at most hourly (facts()), mostly from Site Health's async test and the Plugins screen's background row; an uncached home page can take 2 s.
             'redirection' => 0,
@@ -1225,6 +1408,13 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $code = (int) wp_remote_retrieve_response_code($response);
         if ($code >= 200 && $code < 400) {
             self::$cf_cache = $get('cf-cache-status');
+            if (in_array(self::$cf_cache, array('hit', 'miss', 'expired', 'revalidated', 'stale', 'updating'), true)) {
+                self::$cf_edge = self::cloudflare_edge_time();
+                if (preg_match('/(?:^|[\s,])max-age\s*=\s*(\d+)/', $get('cache-control'), $match)) {
+                    self::$cf_browser = (int) $match[1];
+                }
+                self::$cf_cookie = self::cloudflare_skips_cookies();
+            }
         }
         if ($has('cf-ray') || 'cloudflare' === $server) {
             return 'Cloudflare';
@@ -1614,7 +1804,11 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 : __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; Cloudflare’s free plan is set up at Cloudflare, with its Cloudflare plugin here to clear its cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack'));
         }
         if (self::cloudflare_keeps_pages($needs['facts'])) {
-            $advice[] = array('recommended', __('Cloudflare keeps copies of this site’s pages, and nothing here clears them when LiteSpeed Cache purges, so after a plugin update or a purge visitors keep getting the old pages until Cloudflare’s edge cache expires (2 hours by default). In Cloudflare, create an API token limited to Zone → Cache Purge for this zone, enter it in LiteSpeed Cache → CDN → Cloudflare API, then turn on Clear Cloudflare cache. Edits to single posts still wait for that expiry; Cloudflare’s own plugin with APO purges single pages.', 'seoprostack'));
+            $advice[] = array('recommended', __('Cloudflare keeps copies of this site’s pages, and nothing here clears them when LiteSpeed Cache purges, so after an edit, a plugin update or a purge visitors keep getting the old pages until Cloudflare’s edge cache expires (2 hours by default). In Cloudflare, create an API token limited to Zone → Cache Purge for this zone, then turn on Speed → Clear Cloudflare’s copies of pages and enter it there: it empties this site’s pages, or a post’s own pages after an edit, whenever LiteSpeed Cache or WP-Optimize empties its own. Or have this server send Cloudflare a short edge time (a Cloudflare-CDN-Cache-Control header with max-age=300), so pages refresh within minutes without a purge.', 'seoprostack'));
+        }
+        $advice = array_merge($advice, self::cloudflare_rule_advice($needs['facts']));
+        if (self::cloudflare_clears_zone()) {
+            $advice[] = array('recommended', __('LiteSpeed Cache’s Clear Cloudflare cache is on, and it empties the whole Cloudflare zone on every Purge All, including the purge after each plugin update. This site shares its zone (it is on a network, or on a subdomain), so every other site on the domain loses its copies too, and they all fetch their pages from their servers again at once. Turn Clear Cloudflare cache off in LiteSpeed Cache → CDN → Cloudflare and turn on Speed → Clear Cloudflare’s copies of pages instead: it empties only this site’s address, and can use LiteSpeed Cache’s Cloudflare API key.', 'seoprostack'));
         }
         $cache  = $needs['facts']['object_cache'];
         if ('unreachable' === $cache['state']) {
