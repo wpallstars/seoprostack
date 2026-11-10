@@ -85,6 +85,10 @@ class SEOProStack_Translatepress_Defer extends SEOProStack_Feature {
         if (is_feed() || is_embed() || (function_exists('amp_is_request') && amp_is_request())) {
             return;
         }
+        // TranslatePress's translation editor and its preview: logged-in only, left as they are.
+        if (isset($_GET['trp-edit-translation'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only read to leave the page alone.
+            return;
+        }
         /**
          * Whether TranslatePress's head scripts load with defer on this page.
          *

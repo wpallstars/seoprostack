@@ -968,7 +968,7 @@ On by default (#1261). With a site-wide chatbot, AI Engine loads its chatbot scr
 On by default (#1486). TranslatePress puts its language switcher's script (16 KB) in the head of every page, and with WooCommerce active a second one (under 1 KB), without `defer`, so the browser stops reading the page to fetch and run them before anything is drawn: PageSpeed Insights listed both as render-blocking on every TranslatePress site checked, 120 to 130 ms on a computer and an estimated 430 ms on a phone. Both only start once the page has been read (`DOMContentLoaded`), so they now get WordPress's `defer` strategy: fetched alongside the page and run, in order, just before that point. The language switcher opens and switches language as before.
 
 - WordPress keeps either script as it was when a script without `defer` needs it or an inline script follows it; a strategy another plugin set is kept.
-- Not in the admin, feeds, embeds or AMP pages. Return false from `seoprostack_translatepress_defer` to load them as before on a page.
+- Not in the admin, TranslatePress's translation editor, feeds, embeds or AMP pages. Return false from `seoprostack_translatepress_defer` to load them as before on a page.
 
 ### Load Google Maps embeds when they come near (Speed)
 
