@@ -1075,9 +1075,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         }
         // A featured image before the content shares its eager-image budget.
         // Block attachments are counted later, in their final content order.
+        // As in content_image(), one with fetchpriority="auto" takes no place.
         $counted = false;
         if (is_main_query() && in_the_loop() && !doing_filter('the_content') && !doing_filter('get_the_excerpt') && !is_feed()) {
-            ++self::$pictures;
+            if (!isset($attr['fetchpriority']) || 'auto' !== $attr['fetchpriority']) {
+                ++self::$pictures;
+            }
             $counted = true;
         }
         $text = '';
