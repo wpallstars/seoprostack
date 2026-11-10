@@ -72,6 +72,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
 * **Links skip redirects** to Rank Math's on-site targets.
+* **Robots.txt rules**, with or without an SEO plugin: no search-result spam, sitemap listed, hidden staging sites; AI training crawlers optional.
 * **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
 * **Load the CSS each page uses first** (off): pages with Kadence and the recommended plugins show sooner, worked out on your server.
