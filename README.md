@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.195-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.196-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.195
+Version: 1.3.196
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2528,6 +2528,12 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.196
+
+- Faster: SEO Pro Stack's own scripts on the front end (**Like, save and share**, **Modal links**, **Dark mode image contrast**, **Wikipedia previews**, **Fluent Forms by key**'s modal and **Count link clicks**) now load with `defer`, so the browser no longer fetches them alongside the page's pictures, and **Like, save and share** asks for its counts at low priority. On a directory home page, PageSpeed Insights had listed each of them in the critical request chain, about 520 ms each, with the longest chain (2.6 seconds) ending at the like counts (#1502).
+- Faster: **Image loading** makes archive and search result thumbnails past the first pictures lazy when a cache plugin turned WordPress's own lazy loading off, as LiteSpeed Cache's **Lazy Load Images** does: its own lazy loader works only on pages it caches, so search results and every page for people who are logged in loaded all their thumbnails with the page (11 pictures 768 pixels wide on one directory site's search). They also get `sizes="auto"`, as WordPress's own lazy pictures do (#1504).
+- Fixed: **Redirect to the main address before WordPress loads** reads every site of a large network before choosing which host names to leave alone, refuses a home address with a query or fragment as its target, and writes the site's `.htaccess` one block at a time with the security blocks, so two changes at once cannot undo each other (#1474).
 
 ### 1.3.195
 
