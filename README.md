@@ -2541,7 +2541,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### 1.3.183
 
-- Faster: **Image loading** with Kadence Blocks makes the missing 1536 and 2048 pixel copies of row, column and slide pictures in the background, so the screen gets a copy at the size it needs rather than the full upload. On one home page phones fetched the 2,560 pixel upload where 1,460 pixels were enough: the picture had no copy between 1,024 and 2,560 pixels, as many uploads made before WordPress 5.3, or while a plugin removed those sizes, have not. Only the page the picture was seen on is purged and opened again. Never less sharp than before (#1406).
+- Faster: **Image loading** with Kadence Blocks makes the missing 1536 and 2048 pixel copies of row, column and slide pictures in the background, so the screen gets a copy at the size it needs rather than the full upload. On one home page phones fetched the 2,560 pixel upload where 1,460 pixels were enough: the picture had no copy between 1,024 and 2,560 pixels, as many uploads made before WordPress 5.3, or while a plugin removed those sizes, have not. Only the page the picture was seen on is purged, and it is opened again only when **Keep pages cached** is on with a supported page cache; otherwise it stays cold until the next visitor opens it. Never less sharp than before (#1406).
 
 ### 1.3.182
 
