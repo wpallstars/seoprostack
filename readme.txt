@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.194
+Stable tag: 1.3.195
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -101,7 +101,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 * **Your IMAP server** (opt-in): reads support email; saves whole sent ticket emails (up to 20 retried); SSL/STARTTLS, verified. Its policies apply.
 * **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
-* **Cloudflare API** (opt-in): sends your token and addresses to purge.
+* **Cloudflare API** (api.cloudflare.com, opt-in): sends your token (or email and key), zone ID and addresses to purge. Policies as above.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
@@ -155,10 +155,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.195 =
 * Added: Clear Cloudflare’s copies of this site’s pages (#1461).
-
-= 1.3.194 =
-* Fixed: Keep pages cached lets sites on one hosting account take turns filling, ends a batch after a slow page, and fills only main pages on sites hidden from search engines (#1471).
+* Faster: TranslatePress defer (#1486), LCP picture (#1485), cached likes (#1490).
+* Fixed: Remove CPT base old-address redirects (#1465).
 
 Older: `changelog.txt`.
