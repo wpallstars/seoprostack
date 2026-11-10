@@ -128,6 +128,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Fluentforms_Later',
         'SEOProStack_Turnstile_Later',
         'SEOProStack_Ai_Engine_Later',
+        'SEOProStack_Translatepress_Defer',
         'SEOProStack_Maps_Later',
         'SEOProStack_Delayed_Analytics',
         'SEOProStack_Image_Loading',
