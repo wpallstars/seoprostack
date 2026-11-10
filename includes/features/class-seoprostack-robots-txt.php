@@ -40,6 +40,9 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
 
     const KEY = 'robots_txt';
 
+    /** robots.txt's path from the root of the domain. */
+    const PATH = '/robots.txt';
+
     /** Option: the site's own rules, added at the end (not autoloaded). */
     const RULES = 'seoprostack_robots_txt_rules';
 
@@ -562,7 +565,7 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
      * Cloudflare's.
      */
     public static function purge_robots() {
-        $url = home_url('/robots.txt');
+        $url = home_url(self::PATH);
         do_action('litespeed_purge_url', $url); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's own action.
         if (class_exists('SEOProStack_Cloudflare_Purge', false) && SEOProStack_Cloudflare_Purge::enabled()) {
             SEOProStack_Cloudflare_Purge::urls(array($url));
@@ -588,6 +591,21 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
     }
 
     /**
+     * robots.txt at the root of the site's domain, the only one search
+     * engines read (for a site in a folder).
+     *
+     * @return string
+     */
+    private static function root_url() {
+        $parts = wp_parse_url(home_url('/'));
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+            return self::PATH;
+        }
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        return $parts['scheme'] . '://' . $parts['host'] . $port . self::PATH;
+    }
+
+    /**
      * The settings panel: a robots.txt file that answers instead, a site
      * in a folder, a link to robots.txt, and the site's own rules.
      *
@@ -600,7 +618,7 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which message to show after a redirect.
         $done = isset($_GET['sps-robots']) ? sanitize_key(wp_unslash($_GET['sps-robots'])) : '';
         $file = self::static_file();
-        $url  = home_url('/robots.txt');
+        $url  = home_url(self::PATH);
 
         echo '<div class="sps-panel-note">';
         if ('' !== $done) {
@@ -626,14 +644,10 @@ class SEOProStack_Robots_Txt extends SEOProStack_Feature {
             <?php
         }
         if ('/' !== self::base_path()) {
-            $parts = wp_parse_url(home_url('/'));
-            $root  = is_array($parts) && isset($parts['scheme'], $parts['host'])
-                ? $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') . '/robots.txt'
-                : '/robots.txt';
             echo '<p>' . esc_html(sprintf(
                 /* translators: %s: robots.txt address at the root of the domain */
                 __('This site is in a folder, and search engines read robots.txt only at the root of the domain (%s). Add these rules there.', 'seoprostack'),
-                $root
+                self::root_url()
             )) . '</p>';
         }
         printf(
