@@ -670,31 +670,116 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $target = $path . '.' . $format;
         clearstatcache();
         $source_bytes = (int) filesize($path);
-        $source_time  = (int) filemtime($path);
         // The size to beat: the original, or the other copy when smaller.
         $limit = $other > 0 ? min($source_bytes, (int) $other) : $source_bytes;
-        if (is_file($target)) {
-            if (self::is_attachment_file($target)) {
-                // A Media Library file of its own, not a copy.
-                return -1;
-            }
-            if (!$force && filemtime($target) >= $source_time) {
-                $have = (int) filesize($target);
-                if ($have > 0 && $have < $limit) {
-                    return $have;
-                }
-                // Up to date but no smaller than the other copy.
-                wp_delete_file($target);
-                return 0;
-            }
-        } elseif (!$force) {
-            $adopted = self::adopt_compressx_copy($path, $target, $limit, $source_time);
-            if ($adopted) {
-                return $adopted;
-            }
+        $kept  = self::kept_copy($path, $target, $force, $limit);
+        if (null !== $kept) {
+            return $kept;
         }
+        $temp = self::encode($path, $format);
+        if (null === $temp) {
+            return -1;
+        }
+        $bytes = (int) filesize($temp);
+        if ($bytes <= 0 || $bytes >= $limit) {
+            wp_delete_file($temp);
+            if (is_file($target)) {
+                wp_delete_file($target);
+            }
+            return 0;
+        }
+        // Same folder; the temporary name is unique, so a failure is the
+        // file system's and is left in the log.
+        if (!rename($temp, $target)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- same directory.
+            wp_delete_file($temp);
+            return -1;
+        }
+        return $bytes;
+    }
 
-        $mime    = self::FORMATS[$format];
+    /**
+     * A copy that is there already, or CompressX's, and stays.
+     *
+     * @param string $path   Original file.
+     * @param string $target Where the copy goes.
+     * @param bool   $force  Make it again even when up to date.
+     * @param int    $limit  Bytes the copy must be smaller than.
+     * @return int|null Bytes of the copy; 0 when an up-to-date copy is not
+     *                  smaller (it is removed); -1 when the target is a
+     *                  Media Library file of its own; null to make it.
+     */
+    private static function kept_copy($path, $target, $force, $limit) {
+        $source_time = (int) filemtime($path);
+        if (!is_file($target)) {
+            $adopted = $force ? 0 : self::adopt_compressx_copy($path, $target, $limit, $source_time);
+            return $adopted > 0 ? $adopted : null;
+        }
+        if (self::is_attachment_file($target)) {
+            return -1;
+        }
+        if ($force || filemtime($target) < $source_time) {
+            return null;
+        }
+        $have = (int) filesize($target);
+        if ($have > 0 && $have < $limit) {
+            return $have;
+        }
+        // Up to date but not smaller than the original or the other copy
+        // (GH#1536).
+        wp_delete_file($target);
+        return 0;
+    }
+
+    /**
+     * Write a picture's copy in a format to a new file beside it.
+     *
+     * @param string $path   Original file.
+     * @param string $format webp or avif.
+     * @return string|null The new file's path; null when it failed.
+     */
+    private static function encode($path, $format) {
+        $mime   = self::FORMATS[$format];
+        $editor = self::editor($path, $mime);
+        if (null === $editor) {
+            return null;
+        }
+        $size    = $editor->get_size();
+        $quality = self::quality($format, (int) ($size['width'] ?? 0), (int) ($size['height'] ?? 0));
+        // save() resets the quality to WordPress's default for the new
+        // format (86 for WebP, 82 for AVIF) through this filter when it
+        // converts, so set_quality() alone has no effect.
+        $set_quality = function ($value, $type) use ($quality, $mime) {
+            return $type === $mime ? $quality : $value;
+        };
+        add_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX, 2);
+        $editor->set_quality($quality);
+
+        // Unique, so a bulk action and a background batch on the same
+        // picture do not write over each other's file.
+        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
+        $saved = $editor->save($temp, $mime);
+        remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
+        if (is_wp_error($saved) || empty($saved['path']) || !is_file($saved['path'])) {
+            return null;
+        }
+        clearstatcache();
+        // Another plugin may change the output format.
+        if ($saved['mime-type'] !== $mime || $saved['path'] !== $temp) {
+            wp_delete_file($saved['path']);
+            return null;
+        }
+        return $temp;
+    }
+
+    /**
+     * WordPress's selected image editor for a picture, with AVIF-capable
+     * variants, the picture turned upright.
+     *
+     * @param string $path Original file.
+     * @param string $mime Type to write.
+     * @return WP_Image_Editor|null Null when it failed.
+     */
+    private static function editor($path, $mime) {
         $editors = function ($classes) {
             require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-imagick.php';
             require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-gd.php';
@@ -713,7 +798,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $editor = wp_get_image_editor($path, array('output_mime_type' => $mime));
         remove_filter('wp_image_editors', $editors, PHP_INT_MAX);
         if (is_wp_error($editor)) {
-            return -1;
+            return null;
         }
         // Copies have no orientation tag, so turn the picture upright.
         $editor->maybe_exif_rotate();
@@ -722,49 +807,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             // full-size crop copies the picture to full colour, keeping
             // transparency.
             $size = $editor->get_size();
-            $crop = $editor->crop(0, 0, $size['width'], $size['height']);
-            if (is_wp_error($crop)) {
-                return -1;
+            if (is_wp_error($editor->crop(0, 0, $size['width'], $size['height']))) {
+                return null;
             }
         }
-        $size    = $editor->get_size();
-        $quality = self::quality($format, isset($size['width']) ? $size['width'] : 0, isset($size['height']) ? $size['height'] : 0);
-        // save() resets the quality to WordPress's default for the new
-        // format (86 for WebP, 82 for AVIF) through this filter when it
-        // converts, so set_quality() alone has no effect.
-        $set_quality = function ($value, $type) use ($quality, $mime) {
-            return $type === $mime ? $quality : $value;
-        };
-        add_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX, 2);
-        $editor->set_quality($quality);
-
-        // Unique, so a bulk action and a background batch on the same
-        // picture do not write over each other's file.
-        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
-        $saved = $editor->save($temp, $mime);
-        remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
-        if (is_wp_error($saved) || empty($saved['path']) || !is_file($saved['path'])) {
-            return -1;
-        }
-        clearstatcache();
-        // Another plugin may change the output format.
-        if ($saved['mime-type'] !== $mime || $saved['path'] !== $temp) {
-            wp_delete_file($saved['path']);
-            return -1;
-        }
-        $bytes = (int) filesize($temp);
-        if ($bytes <= 0 || $bytes >= $limit) {
-            wp_delete_file($temp);
-            if (is_file($target)) {
-                wp_delete_file($target);
-            }
-            return 0;
-        }
-        if (!@rename($temp, $target)) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.rename_rename -- same directory.
-            wp_delete_file($temp);
-            return -1;
-        }
-        return $bytes;
+        return $editor;
     }
 
     /**
