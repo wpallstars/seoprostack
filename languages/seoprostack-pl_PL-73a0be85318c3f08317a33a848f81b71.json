@@ -14,9 +14,9 @@
                 "Aktywowa\u0107"
             ],
             "%d item": [
-                "przedmiot %d",
-                "przedmioty %d",
-                "przedmioty %d"
+                "%d element",
+                "%d elementy",
+                "%d element\u00f3w"
             ],
             "Could not measure": [
                 "Nie mo\u017cna zmierzy\u0107"
@@ -25,9 +25,9 @@
                 "Poczekaj na zako\u0144czenie akcji zbiorczej lub j\u0105 zatrzymaj."
             ],
             "%d plugin": [
-                "wtyczka %d",
-                "wtyczki %d",
-                "wtyczki %d"
+                "%d wtyczka",
+                "%d wtyczki",
+                "%d wtyczek"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "Odinstaluj %s? Spowoduje to usuni\u0119cie plik\u00f3w, a wtyczka mo\u017ce usun\u0105\u0107 swoje ustawienia i dane."

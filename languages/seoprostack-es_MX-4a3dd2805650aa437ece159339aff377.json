@@ -24,8 +24,8 @@
                 "Bloques Spectra %d convertidos. Compru\u00e9belos y luego gu\u00e1rdelos."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "El bloque de espectros %d no se pudo convertir y se deja como est\u00e1.",
-                "Los bloques de espectro %d no se pudieron convertir y se dejaron como estaban."
+                "%d bloque de Spectra no se pudo convertir y se deja como est\u00e1.",
+                "%d bloques de Spectra no se pudieron convertir y se dejan como est\u00e1n."
             ],
             "a Heading block": [
                 "un bloque de encabezado"

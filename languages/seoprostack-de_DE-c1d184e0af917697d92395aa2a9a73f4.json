@@ -26,8 +26,8 @@
                 "Das Dokument enth\u00e4lt keinen hinzuzuf\u00fcgenden Text."
             ],
             "%d picture in the document could not be added.": [
-                "Das Bild %d konnte im Dokument nicht hinzugef\u00fcgt werden.",
-                "Die Bilder %d im Dokument konnten nicht hinzugef\u00fcgt werden."
+                "%d Bild konnte nicht zum Dokument hinzugef\u00fcgt werden.",
+                "%d Bilder konnten nicht zum Dokument hinzugef\u00fcgt werden."
             ],
             "The document could not be converted.": [
                 "Das Dokument konnte nicht konvertiert werden."

@@ -24,8 +24,8 @@
                 "Blocs Spectra %d convertis. V\u00e9rifiez-les, puis enregistrez-les."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "Le bloc Spectra %d n'a pas pu \u00eatre converti et reste inchang\u00e9.",
-                "Les blocs Spectra %d n'ont pas pu \u00eatre convertis et restent inchang\u00e9s."
+                "%d bloc Spectra n'a pas pu \u00eatre converti et reste inchang\u00e9.",
+                "%d blocs Spectra n'ont pas pu \u00eatre convertis et restent inchang\u00e9s."
             ],
             "a Heading block": [
                 "bloc d'en-t\u00eate"

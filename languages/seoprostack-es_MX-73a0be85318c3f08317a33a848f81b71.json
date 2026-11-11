@@ -14,8 +14,8 @@
                 "Activar"
             ],
             "%d item": [
-                "Art\u00edculo %d",
-                "Elementos %d"
+                "%d elemento",
+                "%d elementos"
             ],
             "Could not measure": [
                 "No se pudo medir"
@@ -24,8 +24,8 @@
                 "Espere a que finalice la operaci\u00f3n masiva o det\u00e9ngala."
             ],
             "%d plugin": [
-                "complemento %d",
-                "complementos %d"
+                "%d complemento",
+                "%d complementos"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "Desinstalar %s: Esto elimina sus archivos y el complemento podr\u00eda borrar su configuraci\u00f3n y datos."

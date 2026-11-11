@@ -14,8 +14,8 @@
                 "Activer"
             ],
             "%d item": [
-                "article %d",
-                "articles %d"
+                "%d article",
+                "%d articles"
             ],
             "Could not measure": [
                 "Impossible de mesurer"
@@ -24,8 +24,8 @@
                 "Attendez que l'op\u00e9ration en masse soit termin\u00e9e, ou arr\u00eatez-la."
             ],
             "%d plugin": [
-                "plugin %d",
-                "plugins %d"
+                "%d plugin",
+                "%d plugins"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "D\u00e9sinstaller %s? Cela supprimera ses fichiers, et le plugin risque de supprimer ses param\u00e8tres et ses donn\u00e9es."
