@@ -535,10 +535,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 if ($mime === $type['type']) {
                     continue;
                 }
-                $webp = 'avif' === $format ? (int) ($record['files'][$name]['webp'] ?? 0) : 0;
+                $made = (int) ($record['files'][$name]['webp'] ?? 0);
+                $webp = 'avif' === $format && isset($formats['webp']) ? self::webp_bytes($path, $made) : 0;
                 // An AVIF copy left out for its WebP copy is tried again when
                 // that changes or is no longer made.
-                $retry = 'avif' === $format && (isset($formats['webp']) ? !empty($redo['webp']) : !empty($previous['files'][$name]['webp']));
+                $retry = 'avif' === $format && $made !== (int) ($previous['files'][$name]['webp'] ?? 0);
                 if ($same && !$redo[$format] && !$retry && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
                     $record['files'][$name][$format] = 0;
                     continue;
@@ -664,15 +665,22 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @param int    $other  Bytes of the file's other copy that the copy must
      *                       also be smaller than (its WebP copy, for AVIF,
      *                       GH#1536); 0 for none.
-     * @return int Bytes of the copy; 0 when not smaller; -1 when it failed.
+     * @return int Bytes of the copy; 0 when not smaller; -1 when it failed
+     *             (a copy that could not be removed too: it is still sent).
      */
     private static function convert_file($path, $format, $force, $other = 0) {
         $target = $path . '.' . $format;
         clearstatcache();
         $source_bytes = (int) filesize($path);
         // The size to beat: the original, or the other copy when smaller.
-        $limit = $other > 0 ? min($source_bytes, (int) $other) : $source_bytes;
-        $kept  = self::kept_copy($path, $target, $force, $limit);
+        // When pages name the copies, a copy already at its address is held
+        // to the original only: cached pages may name it, and there is no
+        // other file at that address for them (GH#1536).
+        $limit = $source_bytes;
+        if ($other > 0 && !(self::names_copies() && is_file($target))) {
+            $limit = min($limit, (int) $other);
+        }
+        $kept = self::kept_copy($path, $target, $force, $limit);
         if (null !== $kept) {
             return $kept;
         }
@@ -683,10 +691,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $bytes = (int) filesize($temp);
         if ($bytes <= 0 || $bytes >= $limit) {
             wp_delete_file($temp);
-            if (is_file($target)) {
-                wp_delete_file($target);
-            }
-            return 0;
+            return self::remove_copy($target) ? 0 : -1;
         }
         // Same folder; the temporary name is unique, so a failure is the
         // file system's and is left in the log.
@@ -706,7 +711,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @param int    $limit  Bytes the copy must be smaller than.
      * @return int|null Bytes of the copy; 0 when an up-to-date copy is not
      *                  smaller (it is removed); -1 when the target is a
-     *                  Media Library file of its own; null to make it.
+     *                  Media Library file of its own, or such a copy could
+     *                  not be removed; null to make it.
      */
     private static function kept_copy($path, $target, $force, $limit) {
         $source_time = (int) filemtime($path);
@@ -726,8 +732,43 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         }
         // Up to date but not smaller than the original or the other copy
         // (GH#1536).
+        return self::remove_copy($target) ? 0 : -1;
+    }
+
+    /**
+     * Remove a copy, if there is one. Whether none is left: a
+     * wp_delete_file filter or the file system can keep it, and a copy left
+     * is still sent, so it must not be recorded as absent.
+     *
+     * @param string $target Copy's path.
+     * @return bool
+     */
+    private static function remove_copy($target) {
+        clearstatcache(true, $target);
+        if (!is_file($target)) {
+            return true;
+        }
         wp_delete_file($target);
-        return 0;
+        clearstatcache(true, $target);
+        return !is_file($target);
+    }
+
+    /**
+     * Bytes of a file's WebP copy, which its AVIF copy must beat: the one
+     * just made, else one still there when making it failed (it is still
+     * sent). 0 when it has none.
+     *
+     * @param string $path Original file.
+     * @param int    $made What convert_file() returned for its WebP copy.
+     * @return int
+     */
+    private static function webp_bytes($path, $made) {
+        if ($made > 0) {
+            return $made;
+        }
+        $copy = $path . '.webp';
+        clearstatcache(true, $copy);
+        return is_file($copy) ? (int) filesize($copy) : 0;
     }
 
     /**
@@ -1473,7 +1514,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
 
     /**
      * A <source> for one format: each address with its copy where there is
-     * one, else the original. '' when no address has a copy.
+     * one, else the original (for AVIF, its WebP copy first). '' when no
+     * address has a copy.
      *
      * @param array[] $candidates Address and descriptor pairs.
      * @param string  $format     avif or webp.
@@ -1484,12 +1526,19 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     private static function source(array $candidates, $format, $mime, $sizes) {
         $list   = array();
         $copies = 0;
+        // A file keeps its AVIF copy only when it is smaller than its WebP
+        // copy (GH#1536), so a width without one offers that WebP copy:
+        // every browser that shows AVIF shows WebP.
+        $webp = 'avif' === $format && SEOProStack_Settings::get('nextgen_webp');
         foreach ($candidates as $candidate) {
             list($url, $descriptor) = $candidate;
             $copy = self::copy_url($url, $format);
             if ('' !== $copy) {
                 $url = $copy;
                 ++$copies;
+            } elseif ($webp) {
+                $copy = self::copy_url($url, 'webp');
+                $url  = '' !== $copy ? $copy : $url;
             }
             $list[] = $url . $descriptor;
         }
