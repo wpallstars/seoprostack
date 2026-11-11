@@ -8931,7 +8931,7 @@ msgstr "Aucune copie n'est effectuée : activez un format compatible avec ce se
 msgid "%1$s of %2$s picture converted."
 msgid_plural "%1$s of %2$s pictures converted."
 msgstr[0] "%1$s image sur %2$s convertie."
-msgstr[1] "%1$s images sur %2$s converties."
+msgstr[1] "%1$s sur %2$s images converties."
 
 # machine translation
 #: includes/features/class-seoprostack-nextgen-images.php:1916

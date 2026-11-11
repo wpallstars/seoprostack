@@ -26,8 +26,8 @@
                 "O documento n\u00e3o cont\u00e9m texto a ser adicionado."
             ],
             "%d picture in the document could not be added.": [
-                "%d imagem n\u00e3o p\u00f4de ser adicionada ao documento.",
-                "%d imagens n\u00e3o puderam ser adicionadas ao documento."
+                "%d imagem do documento n\u00e3o p\u00f4de ser adicionada.",
+                "%d imagens do documento n\u00e3o puderam ser adicionadas."
             ],
             "The document could not be converted.": [
                 "O documento n\u00e3o p\u00f4de ser convertido."

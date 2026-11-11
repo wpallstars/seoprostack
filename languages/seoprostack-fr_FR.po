@@ -2551,8 +2551,8 @@ msgstr[1] "%d plugins sont désormais activés individuellement sur chaque site 
 #, php-format
 msgid "%d plugin is network-activated, so it loads on every page and screen of every site. Load plugins only where needed can leave out only plugins activated on each site. Activated on each site instead, every site still runs it, new sites get it too, and each site can leave it out where it is not used."
 msgid_plural "%d plugins are network-activated, so they load on every page and screen of every site. Load plugins only where needed can leave out only plugins activated on each site. Activated on each site instead, every site still runs them, new sites get them too, and each site can leave them out where they are not used."
-msgstr[0] "%d extension est activée au niveau du réseau ; elle se charge donc sur chaque page et écran de chaque site. L'option « Charger les extensions uniquement là où elles sont nécessaires » permet de ne charger que les extensions activées sur chaque site. En revanche, si elle est activée sur chaque site, elle est exécutée par tous les sites, y compris les nouveaux, et chaque site peut la désactiver là où elle n'est pas utilisée."
-msgstr[1] "%d plugins sont activés au niveau du réseau ; ils se chargent donc sur chaque page et écran de chaque site. L'option « Charger les plugins uniquement là où c'est nécessaire » permet de ne charger que les plugins activés sur chaque site. En revanche, si vous les activez individuellement, tous les sites les exécutent, les nouveaux sites en bénéficient également, et chaque site peut les désactiver lorsqu'ils ne sont pas utilisés."
+msgstr[0] "%d extension est activée au niveau du réseau ; elle se charge donc sur chaque page et écran de chaque site. L'option « Charger les extensions uniquement là où elles sont nécessaires » ne peut écarter que les extensions activées sur chaque site. Activée plutôt sur chaque site, elle est toujours exécutée par tous les sites, les nouveaux sites l'ont aussi, et chaque site peut l'écarter là où elle n'est pas utilisée."
+msgstr[1] "%d plugins sont activés au niveau du réseau ; ils se chargent donc sur chaque page et écran de chaque site. L'option « Charger les plugins uniquement là où c'est nécessaire » ne peut écarter que les plugins activés sur chaque site. Activés plutôt sur chaque site, tous les sites les exécutent toujours, les nouveaux sites les ont aussi, et chaque site peut les écarter là où ils ne sont pas utilisés."
 
 # machine translation
 #: includes/class-seoprostack-network-plugins.php:509
@@ -10056,7 +10056,7 @@ msgstr "Aucune copie n'est effectuée : activez un format compatible avec ce se
 msgid "%1$s of %2$s picture converted."
 msgid_plural "%1$s of %2$s pictures converted."
 msgstr[0] "%1$s image sur %2$s convertie."
-msgstr[1] "%1$s images sur %2$s converties."
+msgstr[1] "%1$s sur %2$s images converties."
 
 # machine translation
 #: includes/features/class-seoprostack-nextgen-images.php:1916

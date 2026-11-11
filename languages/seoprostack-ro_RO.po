@@ -4893,9 +4893,9 @@ msgstr "Un alt tabel este convertit. Nu s-a schimbat nimic."
 #, php-format
 msgid "%1$s The %2$d table before it was converted."
 msgid_plural "%1$s The %2$d tables before it were converted."
-msgstr[0] "%1$s Tabelul %2$d înainte de conversie."
-msgstr[1] "%1$s Tabelele %2$d înainte de conversie."
-msgstr[2] "%1$s de Tabelele %2$d înainte de conversie."
+msgstr[0] "%1$s %2$d tabel dinaintea sa a fost convertit."
+msgstr[1] "%1$s %2$d tabele dinaintea sa au fost convertite."
+msgstr[2] "%1$s %2$d de tabele dinaintea sa au fost convertite."
 
 #. translators: %d: number of tables
 #: includes/features/class-seoprostack-database-charset.php:451
@@ -13737,9 +13737,9 @@ msgstr[2] "%s au fost omise deoarece linkurile scurte au deja adresele lor."
 #, php-format
 msgid "%s is left; import again to continue."
 msgid_plural "%s are left; import again to continue."
-msgstr[0] "%s rămas; importați din nou pentru a continua."
-msgstr[1] "%s rămase; importați din nou pentru a continua."
-msgstr[2] "%s de rămase; importați din nou pentru a continua."
+msgstr[0] "%s link rămas; importați din nou pentru a continua."
+msgstr[1] "%s linkuri rămase; importați din nou pentru a continua."
+msgstr[2] "%s de linkuri rămase; importați din nou pentru a continua."
 
 # machine translation
 #: includes/features/class-seoprostack-short-links.php:1689

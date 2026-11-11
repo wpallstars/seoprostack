@@ -2390,7 +2390,7 @@ msgstr "La oruga que se encontraba detenida ya ha girado y ha reanudado su march
 msgid "%s page is back on the crawler’s list. It is tried again on the crawler’s next pass."
 msgid_plural "%s pages are back on the crawler’s list. They are tried again on the crawler’s next pass."
 msgstr[0] "%s página vuelve a estar en la lista del rastreador. Se intenta de nuevo en la siguiente pasada del rastreador."
-msgstr[1] "%s páginas vuelven a estar en la lista del rastreador. Se intenta indexarlas de nuevo en la siguiente pasada del rastreador."
+msgstr[1] "%s páginas vuelven a estar en la lista del rastreador. Se intentan de nuevo en la siguiente pasada del rastreador."
 
 # machine translation
 #: includes/class-seoprostack-litespeed-crawler.php:557

@@ -16018,8 +16018,8 @@ msgstr "O documento não contém texto a adicionar."
 #: admin/js/seoprostack-word-import.js:110
 msgid "%d picture in the document could not be added."
 msgid_plural "%d pictures in the document could not be added."
-msgstr[0] "%d imagem não pôde ser adicionada ao documento."
-msgstr[1] "%d imagens não puderam ser adicionadas ao documento."
+msgstr[0] "%d imagem do documento não pôde ser adicionada."
+msgstr[1] "%d imagens do documento não puderam ser adicionadas."
 
 # machine translation
 #: admin/js/seoprostack-word-import.js:118
