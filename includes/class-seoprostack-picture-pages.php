@@ -31,21 +31,22 @@ class SEOProStack_Picture_Pages {
     /** Posts remembered, at most. */
     const MAX = 20;
 
-    /** @var bool This request's page is remembered already, or cannot be. */
+    /** @var bool This request's page is remembered already, or found no room. */
     private static $noted = false;
 
     /**
      * Remember the post this page shows, once a request: singular pages
-     * only, as archives have no post to purge.
+     * only, as archives have no post to purge. A picture seen before the
+     * main query (no post yet) leaves it to a later one.
      */
     public static function note() {
-        if (self::$noted) {
+        $post_id = is_singular() ? (int) get_queried_object_id() : 0;
+        if (self::$noted || $post_id < 1) {
             return;
         }
         self::$noted = true;
-        $post_id     = is_singular() ? (int) get_queried_object_id() : 0;
         $pages       = self::all();
-        if ($post_id < 1 || in_array($post_id, $pages, true) || count($pages) >= self::MAX) {
+        if (in_array($post_id, $pages, true) || count($pages) >= self::MAX) {
             return;
         }
         $pages[] = $post_id;

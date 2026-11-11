@@ -319,7 +319,12 @@ class SEOProStack_Picture_Sizes {
             $posts[] = self::run_one($id, $post_id);
         }
         self::filters(false);
-        if ($work > 0 && !in_array(self::SMALL_ONLY, $queue, true)) {
+        // The queue as stored now, not this request's cached copy: a page
+        // may have queued a picture during the batch, and its page is
+        // refreshed after that one.
+        wp_cache_delete(self::OPTION, 'options');
+        wp_cache_delete('notoptions', 'options');
+        if ($work > 0 && !in_array(self::SMALL_ONLY, self::queue(), true)) {
             $posts = array_merge($posts, SEOProStack_Picture_Pages::take());
         }
         $posts = array_filter(array_unique($posts));
