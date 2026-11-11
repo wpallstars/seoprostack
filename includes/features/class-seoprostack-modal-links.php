@@ -62,11 +62,12 @@ class SEOProStack_Modal_Links extends SEOProStack_Feature {
     }
 
     /**
-     * Load the script in the footer.
+     * Load the script in the footer, deferred: it only handles clicks, so
+     * browsers fetch it after the page's first pictures (GH#1502).
      */
     public static function enqueue() {
         $js = 'assets/modal-links.js';
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), true);
+        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
         /**
          * Filter CSS selectors of other kinds of modal or drawer that a link
          * to their ID opens. Dialogs, elements with role="dialog" or

@@ -220,6 +220,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_cloudflare_purge_queue';
     $options[] = 'seoprostack_cloudflare_purge_log';
     wp_unschedule_hook('seoprostack_cloudflare_purge');
+    // Robots.txt rules: the site's own rules. A robots.txt file it renamed
+    // (robots.txt-<date>.bak) stays, so it can be restored.
+    $options[] = 'seoprostack_robots_txt_rules';
     // Content and imported media stay; only template ownership/history goes.
     $options[] = 'seoprostack_site_template';
     $options[] = 'seoprostack_site_template_seen';

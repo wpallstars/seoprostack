@@ -840,9 +840,70 @@
 		}
 	};
 
+	/* ------------------------------------------------------------------ */
+	/* Robots.txt rules: the panel's forms, saved in place                 */
+	/* ------------------------------------------------------------------ */
+
+	// The panel's forms post to admin-post.php without this; with it they
+	// stay in the open panel and show the result there.
+	var Robots = {
+		init: function () {
+			$(document).on('submit', '[data-sps-robots-form]', function (event) {
+				var $form = $(this);
+				var $button = $form.find('[type="submit"]');
+				var $status = $form.find('[data-sps-robots-status]');
+				var action = String($form.find('input[name="action"]').val() || '');
+				var data = {};
+
+				event.preventDefault();
+				if ($button.prop('disabled')) {
+					return;
+				}
+				$.each($form.serializeArray(), function (index, field) {
+					if (field.name !== 'action') {
+						data[field.name] = field.value;
+					}
+				});
+				$button.prop('disabled', true);
+				$status.text('');
+
+				post(action, data)
+					.done(function (response) {
+						var message;
+						if (!response || !response.success) {
+							message = failureMessage(response, i18n.saveFailed);
+							$status.text(message);
+							speak(message, 'assertive');
+							return;
+						}
+						message = String(response.data.message || '');
+						if (typeof response.data.rules === 'string') {
+							$('[data-sps-robots-rules]').val(response.data.rules);
+						}
+						if (!response.data.file && $form.closest('[data-sps-robots-static]').length) {
+							// The file is gone: say so beside the rules it became.
+							$('[data-sps-robots-static]').remove();
+							$status = $('[data-sps-robots-rules]').closest('form').find('[data-sps-robots-status]');
+						}
+						$status.text(message);
+						speak(message);
+					})
+					.fail(function (xhr) {
+						var message = errorMessage(xhr, i18n.saveFailed);
+						$status.text(message);
+						speak(message, 'assertive');
+					})
+					.always(function () {
+						$button.prop('disabled', false);
+					});
+			});
+		}
+	};
+
 	$(function () {
 		Directory.init();
 		Plugins.init();
 		Theme.init();
+		Robots.init();
 	});
 })(jQuery, window.wp, window.seoprostackAdmin);

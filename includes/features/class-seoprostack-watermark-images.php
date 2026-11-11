@@ -3000,6 +3000,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$remove) {
             $mark = self::mark(!$dry);
             if (is_wp_error($mark)) {
+                if ($dry && 'watermark_missing' === $mark->get_error_code()) {
+                    // A dry run changes nothing, so it cannot fetch the mark back from cloud storage.
+                    WP_CLI::error('The watermark picture’s file is in cloud storage, so a dry run cannot compare pictures with it. A real run fetches it first.');
+                    return;
+                }
                 WP_CLI::error($mark->get_error_message());
                 return;
             }

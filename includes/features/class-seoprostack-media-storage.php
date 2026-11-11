@@ -2207,7 +2207,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if ($saved['current']['signature'] !== self::config()['signature']) {
             return new WP_Error('storage_cleanup', 'A third destination cannot replace an unfinished handover. Restore the last connection first.');
         }
-        $verified = self::verify_cleanup($start);
+        $hash = self::cleanup_hash($assoc);
+        if (is_wp_error($hash)) {
+            return $hash;
+        }
+        $verified = self::verify_cleanup($start, $hash, $saved);
         if (is_wp_error($verified)) {
             return $verified;
         }
@@ -2242,6 +2246,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $saved['retired'][$saved['previous']['signature']] = $saved['previous'];
         $saved['previous'] = array();
         update_option(self::DESTINATIONS, $saved, false);
+        self::delete_cleanup_checkpoints();
         WP_CLI::success('Previous destination forgotten. Bucket and access keys are never deleted by this command.');
         return null;
     }
@@ -2250,21 +2255,70 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Verify the entire current inventory before any old object may be touched.
      *
      * @param float $start Lease start.
+     * @param bool $hash Hash every object (false: HEAD and size only).
+     * @param array $saved Destination descriptions.
      * @return bool|WP_Error False pauses verification without deleting old objects.
      */
-    private static function verify_cleanup($start) {
-        $before = PHP_INT_MAX;
+    private static function verify_cleanup($start, $hash, $saved) {
+        // A paused run resumes at its attachment (descending IDs). After the resumed
+        // walk, one confirming walk from the top rechecks records verified earlier;
+        // those with unchanged checkpoints cost only database reads (GH#1499).
+        $name = self::JOB . 'cleanup_cursor';
+        $sig = hash('sha256', (string) wp_json_encode(array($saved['current']['signature'] ?? '', $saved['previous']['signature'] ?? '', $hash)));
+        $state = get_option($name, array());
+        $resumed = is_array($state) && isset($state['sig'], $state['before']) && $state['sig'] === $sig;
+        $confirm = $resumed && !empty($state['confirm']);
+        $before = $resumed ? (int) $state['before'] : PHP_INT_MAX;
         do {
             $ids = self::inventory_ids(100, $before);
             foreach ($ids as $id) {
-                $before = $id;
-                $result = self::verify_cleanup_record($id, $start);
+                $result = self::verify_cleanup_record($id, $start, $hash);
                 if (true !== $result) {
+                    // A pause keeps this attachment as the next to check.
+                    if (false === $result) {
+                        update_option($name, array('sig' => $sig, 'before' => $id + 1, 'confirm' => $confirm), false);
+                    } else {
+                        delete_option($name);
+                    }
                     return $result;
                 }
+                $before = $id;
+            }
+            if (!$ids && $resumed && !$confirm) {
+                $confirm = true;
+                $before = PHP_INT_MAX;
+                $ids = array(0);
             }
         } while ($ids);
+        delete_option($name);
         return true;
+    }
+
+    /**
+     * Full byte hashing is the default; --verify=size checks presence and size only.
+     *
+     * @param array $assoc CLI switches.
+     * @return bool|WP_Error
+     */
+    private static function cleanup_hash($assoc) {
+        $mode = isset($assoc['verify']) ? (string) $assoc['verify'] : 'hash';
+        if (!in_array($mode, array('hash', 'size'), true)) {
+            return new WP_Error('storage_cleanup', 'Use --verify=hash (default) or --verify=size.');
+        }
+        return 'hash' === $mode;
+    }
+
+    /** Remove per-attachment verification checkpoints once cleanup has finished. */
+    private static function delete_cleanup_checkpoints() {
+        $after = '';
+        do {
+            $names = self::jobs(100, $after, 'verify_');
+            foreach ($names as $name) {
+                $after = $name;
+                delete_option($name);
+            }
+        } while ($names);
+        delete_option(self::JOB . 'cleanup_cursor');
     }
 
     /**
@@ -2272,9 +2326,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @param int $id Attachment ID.
      * @param float $start Lease start.
+     * @param bool $hash Hash every object.
      * @return bool|WP_Error False pauses at the last verified file.
      */
-    private static function verify_cleanup_record($id, $start) {
+    private static function verify_cleanup_record($id, $start, $hash = true) {
         self::fresh($id);
         $record = get_post_meta($id, self::META, true);
         $removed = self::fresh_removed($id);
@@ -2289,9 +2344,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // Keep completed checkpoints while deletion pauses, or retries rehash them.
         $name = self::JOB . 'verify_' . $id;
         $generation = get_post_meta($id, self::GENERATION, true);
-        $fingerprint = hash('sha256', (string) wp_json_encode(array($saved['current']['signature'] ?? '', $saved['previous']['signature'] ?? '', $generation, $record, $removed)));
+        $fingerprint = hash('sha256', (string) wp_json_encode(array($saved['current']['signature'] ?? '', $saved['previous']['signature'] ?? '', $generation, $record, $removed, $hash)));
         $checkpoint = self::cleanup_checkpoint($id, $fingerprint);
-        $result = self::verify_cleanup_files($id, $record['files'], $checkpoint, $start);
+        $result = self::verify_cleanup_files($id, $record['files'], $checkpoint, $start, $hash);
         if (true !== $result) {
             return $result;
         }
@@ -2324,9 +2379,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param array $files Current inventory files.
      * @param array $checkpoint Inventory fingerprint and verified cursor.
      * @param float $start Lease start.
+     * @param bool $hash Hash every object.
      * @return bool|WP_Error False pauses at the last verified file.
      */
-    private static function verify_cleanup_files($id, $files, $checkpoint, $start) {
+    private static function verify_cleanup_files($id, $files, $checkpoint, $start, $hash = true) {
         $name = self::JOB . 'verify_' . $id;
         $index = 0;
         foreach ($files as $key => $info) {
@@ -2336,7 +2392,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (!self::more_time($start, 120)) {
                 return false;
             }
-            $result = self::verify_object((string) $key, $info, true);
+            $result = self::verify_object((string) $key, $info, $hash);
             if ('ok' !== $result) {
                 delete_option($name);
                 self::handover_error($id, $result, false);
@@ -6816,6 +6872,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * [--from-start]
      * : adopt/migrate: ignore the saved cursor and begin with the newest record.
+     *
+     * [--verify=<mode>]
+     * : hash (default) downloads and hashes every current object; size only checks each is present with its recorded size, for operators who compared the buckets themselves.
      *
      * [--delete-objects]
      * : forget-previous: explicitly delete archived previous objects.
