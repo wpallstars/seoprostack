@@ -137,6 +137,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Image_Loading',
         'SEOProStack_Wp_Extras',
         'SEOProStack_Heartbeat',
+        'SEOProStack_Quick_404',
         'SEOProStack_Deferred_Counts',
         'SEOProStack_Admin_Counts',
         'SEOProStack_Found_Rows',
