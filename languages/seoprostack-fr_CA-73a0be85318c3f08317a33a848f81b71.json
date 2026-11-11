@@ -24,8 +24,8 @@
                 "Attendez que l'op\u00e9ration en masse soit termin\u00e9e, ou arr\u00eatez-la."
             ],
             "%d plugin": [
-                "plugin %d",
-                "plugiciels %d"
+                "%d plugin",
+                "%d plugiciels"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "D\u00e9sinstaller %s? Cela supprimera ses fichiers, et le plugiciel risque de supprimer ses param\u00e8tres et ses donn\u00e9es."

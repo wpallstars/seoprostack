@@ -26,9 +26,9 @@
                 "W dokumencie nie ma tekstu, kt\u00f3ry mo\u017cna by doda\u0107."
             ],
             "%d picture in the document could not be added.": [
-                "Nie uda\u0142o si\u0119 doda\u0107 obrazka %d do dokumentu.",
-                "Nie uda\u0142o si\u0119 doda\u0107 obrazk\u00f3w %d do dokumentu.",
-                "Nie uda\u0142o si\u0119 doda\u0107 obrazk\u00f3w %d do dokumentu."
+                "%d obraz nie m\u00f3g\u0142 zosta\u0107 dodany do dokumentu.",
+                "%d obrazy nie mog\u0142y zosta\u0107 dodane do dokumentu.",
+                "%d obraz\u00f3w nie mog\u0142o zosta\u0107 dodanych do dokumentu."
             ],
             "The document could not be converted.": [
                 "Nie uda\u0142o si\u0119 przekonwertowa\u0107 dokumentu."

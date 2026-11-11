@@ -25,9 +25,9 @@
                 "Blocurile Spectra %d au fost convertite. Le verifici, apoi salvezi."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "Blocul %d Spectra nu a putut fi convertit \u0219i a r\u0103mas a\u0219a cum este.",
-                "Blocurile %d Spectra nu au putut fi convertite \u0219i au r\u0103mas a\u0219a cum sunt.",
-                "Blocurile %d Spectra nu au putut fi convertite \u0219i au r\u0103mas a\u0219a cum sunt."
+                "%d bloc Spectra nu a putut fi convertit \u0219i a r\u0103mas a\u0219a cum este.",
+                "%d blocuri Spectra nu au putut fi convertite \u0219i au r\u0103mas a\u0219a cum sunt.",
+                "%d de blocuri Spectra nu au putut fi convertite \u0219i au r\u0103mas a\u0219a cum sunt."
             ],
             "a Heading block": [
                 "un bloc de titlu"

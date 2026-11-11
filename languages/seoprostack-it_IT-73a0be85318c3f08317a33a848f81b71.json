@@ -24,8 +24,8 @@
                 "Attendi il completamento dell'operazione di massa oppure interrompila."
             ],
             "%d plugin": [
-                "plugin %d",
-                "plugin %d"
+                "%d plugin",
+                "%d plugin"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "Disinstallare %s? Questa operazione elimina i suoi file e il plugin potrebbe cancellare le proprie impostazioni e i propri dati."

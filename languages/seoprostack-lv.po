@@ -2566,15 +2566,14 @@ msgstr[0] "%d spraudnis atkal tiek aktivizēts tīklā."
 msgstr[1] "%d spraudņi atkal tiek aktivizēti tīklā."
 msgstr[2] "%d spraudņi atkal tiek aktivizēti tīklā."
 
-# machine translation
 #. translators: %d: number of plugins
 #: includes/class-seoprostack-network-plugins.php:487
 #, php-format
 msgid "%d plugin is now activated on each site instead of the network. Every site still runs it."
 msgid_plural "%d plugins are now activated on each site instead of the network. Every site still runs them."
-msgstr[0] "Spraudnis %d tagad tiek aktivizēts katrā vietnē, nevis tīklā. Tas joprojām darbojas visās vietnēs."
-msgstr[1] "%d spraudņi tagad tiek aktivizēti katrā vietnē, nevis tīklā. Tie joprojām darbojas katrā vietnē."
-msgstr[2] "%d spraudņi tagad tiek aktivizēti katrā vietnē, nevis tīklā. Tie joprojām darbojas katrā vietnē."
+msgstr[0] "%d spraudnis tagad tiek aktivizēts katrā vietnē, nevis tīklā. Tas joprojām darbojas visās vietnēs."
+msgstr[1] "%d spraudņi tagad tiek aktivizēti katrā vietnē, nevis tīklā. Tie joprojām darbojas visās vietnēs."
+msgstr[2] "%d spraudņi tagad tiek aktivizēti katrā vietnē, nevis tīklā. Tie joprojām darbojas visās vietnēs."
 
 # machine translation
 #. translators: %d: number of plugins
@@ -2601,13 +2600,12 @@ msgstr[0] "Aktivizējiet %d spraudni katrā vietnē"
 msgstr[1] "Aktivizēt %d spraudņus katrā vietnē"
 msgstr[2] "Aktivizēt %d spraudņus katrā vietnē"
 
-# machine translation
 #. translators: %d: number of plugins
 #: includes/class-seoprostack-network-plugins.php:524
 #, php-format
 msgid "%d plugin was moved from the network to each site by SEO Pro Stack."
 msgid_plural "%d plugins were moved from the network to each site by SEO Pro Stack."
-msgstr[0] "Spraudnis %d tika pārvietots no tīkla uz katru vietni, izmantojot SEO Pro Stack."
+msgstr[0] "%d spraudnis tika pārvietots no tīkla uz katru vietni, izmantojot SEO Pro Stack."
 msgstr[1] "%d spraudņi tika pārvietoti no tīkla uz katru vietni, izmantojot SEO Pro Stack."
 msgstr[2] "%d spraudņi tika pārvietoti no tīkla uz katru vietni, izmantojot SEO Pro Stack."
 
@@ -6623,15 +6621,14 @@ msgstr "Žurnāla un dublējuma failus nevarēja pārbaudīt"
 msgid "This site could not reach its own files, so whether they can be downloaded is unknown."
 msgstr "Šī vietne nevarēja piekļūt saviem failiem, tāpēc nav zināms, vai tos var lejupielādēt."
 
-# machine translation
 #. translators: %d: number of files
 #: includes/features/class-seoprostack-hardening.php:849
 #, php-format
 msgid "%d smaller file was not checked today."
 msgid_plural "%d smaller files were not checked today."
-msgstr[0] "Mazāks %d fails šodien netika pārbaudīts."
-msgstr[1] "Mazāki faili %d šodien netika pārbaudīti."
-msgstr[2] "Mazāki faili %d šodien netika pārbaudīti."
+msgstr[0] "%d mazāks fails šodien netika pārbaudīts."
+msgstr[1] "%d mazāki faili šodien netika pārbaudīti."
+msgstr[2] "%d mazāki faili šodien netika pārbaudīti."
 
 # machine translation
 #: includes/features/class-seoprostack-hardening.php:950
@@ -8474,13 +8471,12 @@ msgstr "%s (aktīvs)"
 msgid "Category pill text (white, set by Kadence)"
 msgstr "Kategorijas tabletes teksts (balts, iestatīts ar Kadence)"
 
-# machine translation
 #. translators: %s: number of colours.
 #: includes/features/class-seoprostack-kadence-colour-check.php:971
 #, php-format
 msgid "%s Kadence colour now follows the palette. Restore in Site Health puts the old colour back."
 msgid_plural "%s Kadence colours now follow the palette. Restore in Site Health puts the old colours back."
-msgstr[0] "Krāsa %s Kadence tagad atbilst paletei. Atjaunošana vietnes veselības sadaļā atjauno veco krāsu."
+msgstr[0] "%s Kadence krāsa tagad atbilst paletei. Atjaunošana vietnes veselības sadaļā atjauno veco krāsu."
 msgstr[1] "%s Kadence krāsas tagad atbilst paletei. Atjaunošana vietnes veselības sadaļā atjauno vecās krāsas."
 msgstr[2] "%s Kadence krāsas tagad atbilst paletei. Atjaunošana vietnes veselības sadaļā atjauno vecās krāsas."
 
@@ -10265,15 +10261,14 @@ msgstr[0] "%d attēls konvertēts."
 msgstr[1] "%d attēli konvertēti."
 msgstr[2] "%d attēli konvertēti."
 
-# machine translation
 #. translators: %d: number of pictures
 #: includes/features/class-seoprostack-nextgen-images.php:2095
 #, php-format
 msgid "%d more will be converted in the background."
 msgid_plural "%d more will be converted in the background."
-msgstr[0] "Fonā tiks konvertēti vēl %d."
-msgstr[1] "Fonā tiks konvertēti vēl %d."
-msgstr[2] "Fonā tiks konvertēti vēl %d."
+msgstr[0] "Vēl %d tiks konvertēts fonā."
+msgstr[1] "Vēl %d tiks konvertēti fonā."
+msgstr[2] "Vēl %d tiks konvertēti fonā."
 
 # machine translation
 #: includes/features/class-seoprostack-notification-emails.php:38
@@ -11058,15 +11053,14 @@ msgstr "SEO Pro Stack nevarēja pievienot savu ielādētāju mapei wp-content/mu
 msgid "Screens are learned as you use them: the first time you open a screen it loads every plugin, then only the ones it needs."
 msgstr "Ekrāni tiek apgūti, tos lietojot: pirmo reizi atverot ekrānu, tas ielādē visus spraudņus un pēc tam tikai tos, kas tam nepieciešami."
 
-# machine translation
 #. translators: %s: number of screens
 #: includes/features/class-seoprostack-plugin-loading.php:986
 #, php-format
 msgid "%s screen learned so far. Other screens load every plugin the first time you open them."
 msgid_plural "%s screens learned so far. Other screens load every plugin the first time you open them."
-msgstr[0] "Līdz šim apgūtais %s ekrāns. Citi ekrāni ielādē katru spraudni, kad tos atverat pirmo reizi."
-msgstr[1] "Līdz šim apgūtie %s ekrāni. Citi ekrāni ielādē katru spraudni, kad tos atverat pirmo reizi."
-msgstr[2] "Līdz šim apgūtie %s ekrāni. Citi ekrāni ielādē katru spraudni, kad tos atverat pirmo reizi."
+msgstr[0] "%s ekrāns līdz šim apgūts. Citi ekrāni ielādē katru spraudni, kad tos atverat pirmo reizi."
+msgstr[1] "%s ekrāni līdz šim apgūti. Citi ekrāni ielādē katru spraudni, kad tos atverat pirmo reizi."
+msgstr[2] "%s ekrāni līdz šim apgūti. Citi ekrāni ielādē katru spraudni, kad tos atverat pirmo reizi."
 
 # machine translation
 #. translators: %s: number of screens
@@ -13693,45 +13687,41 @@ msgstr[0] "%s īsā saite atjaunināta."
 msgstr[1] "%s īsās saites atjauninātas."
 msgstr[2] "%s īsās saites atjauninātas."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1048
 #, php-format
 msgid "%s short link not updated, somebody is editing it."
 msgid_plural "%s short links not updated, somebody is editing them."
-msgstr[0] "Īsā saite %s nav atjaunināta, kāds to rediģē."
+msgstr[0] "%s īsā saite nav atjaunināta, kāds to rediģē."
 msgstr[1] "%s īsās saites nav atjauninātas, kāds tās rediģē."
 msgstr[2] "%s īsās saites nav atjauninātas, kāds tās rediģē."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1050
 #, php-format
 msgid "%s short link permanently deleted."
 msgid_plural "%s short links permanently deleted."
-msgstr[0] "Īsā saite %s ir neatgriezeniski dzēsta."
-msgstr[1] "%s īsās saites ir neatgriezeniski izdzēstas."
-msgstr[2] "%s īsās saites ir neatgriezeniski izdzēstas."
+msgstr[0] "%s īsā saite ir neatgriezeniski dzēsta."
+msgstr[1] "%s īsās saites ir neatgriezeniski dzēstas."
+msgstr[2] "%s īsās saites ir neatgriezeniski dzēstas."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1052
 #, php-format
 msgid "%s short link moved to the bin."
 msgid_plural "%s short links moved to the bin."
-msgstr[0] "Īsā saite %s ir pārvietota uz miskasti."
+msgstr[0] "%s īsā saite ir pārvietota uz miskasti."
 msgstr[1] "%s īsās saites ir pārvietotas uz miskasti."
 msgstr[2] "%s īsās saites ir pārvietotas uz miskasti."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1054
 #, php-format
 msgid "%s short link restored from the bin."
 msgid_plural "%s short links restored from the bin."
-msgstr[0] "Īsā saite %s atjaunota no atkritumu tvertnes."
-msgstr[1] "No atkritnes atjaunotas %s īsās saites."
-msgstr[2] "No atkritnes atjaunotas %s īsās saites."
+msgstr[0] "%s īsā saite atjaunota no atkritnes."
+msgstr[1] "%s īsās saites atjaunotas no atkritnes."
+msgstr[2] "%s īsās saites atjaunotas no atkritnes."
 
 # machine translation
 #: includes/features/class-seoprostack-short-links.php:1125
@@ -13783,15 +13773,14 @@ msgstr[0] "%s tika izlaists, jo īsajai saitei jau ir sava adrese."
 msgstr[1] "%s tika izlaisti, jo īsajām saitēm jau ir to adreses."
 msgstr[2] "%s tika izlaisti, jo īsajām saitēm jau ir to adreses."
 
-# machine translation
 #. translators: %s: number of links
 #: includes/features/class-seoprostack-short-links.php:1227
 #, php-format
 msgid "%s is left; import again to continue."
 msgid_plural "%s are left; import again to continue."
-msgstr[0] "%s ir palicis; importējiet vēlreiz, lai turpinātu."
-msgstr[1] "Atlikuši %s ; importējiet vēlreiz, lai turpinātu."
-msgstr[2] "Atlikuši %s ; importējiet vēlreiz, lai turpinātu."
+msgstr[0] "%s palicis; importējiet vēlreiz, lai turpinātu."
+msgstr[1] "%s palikuši; importējiet vēlreiz, lai turpinātu."
+msgstr[2] "%s palikuši; importējiet vēlreiz, lai turpinātu."
 
 # machine translation
 #: includes/features/class-seoprostack-short-links.php:1689
@@ -14766,15 +14755,14 @@ msgstr[0] "Lodīšu raksts, kas piemērots %d terminam."
 msgstr[1] "Lodīšu raksts, kas piemērots %d terminiem."
 msgstr[2] "Lodīšu raksts, kas piemērots %d terminiem."
 
-# machine translation
 #. translators: %d: number of terms
 #: includes/features/class-seoprostack-term-tools.php:807
 #, php-format
 msgid "%d term could not be updated."
 msgid_plural "%d terms could not be updated."
-msgstr[0] "Terminu %d nevarēja atjaunināt."
-msgstr[1] "%d noteikumus nevarēja atjaunināt."
-msgstr[2] "%d noteikumus nevarēja atjaunināt."
+msgstr[0] "%d termins netika atjaunināts."
+msgstr[1] "%d termini netika atjaunināti."
+msgstr[2] "%d termini netika atjaunināti."
 
 # machine translation
 #: includes/features/class-seoprostack-term-tools.php:812
@@ -16200,14 +16188,13 @@ msgstr "Dokuments ir lielāks, nekā jūsu vietne pieņem."
 msgid "The document has no text to add."
 msgstr "Dokumentā nav pievienojama teksta."
 
-# machine translation
 #. translators: %d: number of pictures
 #: admin/js/seoprostack-word-import.js:110
 msgid "%d picture in the document could not be added."
 msgid_plural "%d pictures in the document could not be added."
-msgstr[0] "Dokumentā nevarēja pievienot attēlu %d."
-msgstr[1] "Dokumentā nevarēja pievienot %d attēlus."
-msgstr[2] "Dokumentā nevarēja pievienot %d attēlus."
+msgstr[0] "%d attēls netika pievienots dokumentam."
+msgstr[1] "%d attēli netika pievienoti dokumentam."
+msgstr[2] "%d attēli netika pievienoti dokumentam."
 
 # machine translation
 #: admin/js/seoprostack-word-import.js:118

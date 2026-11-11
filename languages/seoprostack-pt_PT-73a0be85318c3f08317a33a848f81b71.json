@@ -14,8 +14,8 @@
                 "Ativar"
             ],
             "%d item": [
-                "artigo %d",
-                "artigos %d"
+                "%d artigo",
+                "%d artigos"
             ],
             "Could not measure": [
                 "N\u00e3o foi poss\u00edvel medir"
@@ -24,8 +24,8 @@
                 "Aguarde a conclus\u00e3o da a\u00e7\u00e3o em lote ou interrompa-a."
             ],
             "%d plugin": [
-                "Plugin %d",
-                "plugins %d"
+                "%d plugin",
+                "%d plugins"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "Desinstalar %s? Isto ir\u00e1 apagar os ficheiros do plugin, e ele poder\u00e1 eliminar as suas defini\u00e7\u00f5es e dados."

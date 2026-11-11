@@ -14,9 +14,9 @@
                 "Activa"
             ],
             "%d item": [
-                "articol %d",
-                "articole %d",
-                "articole %d"
+                "%d articol",
+                "%d articole",
+                "%d de articole"
             ],
             "Could not measure": [
                 "Nu s-a putut m\u0103sura"
@@ -25,9 +25,9 @@
                 "A\u0219tepta\u021bi finalizarea ac\u021biunii \u00een bloc sau opri\u021bi-o."
             ],
             "%d plugin": [
-                "pluginul %d",
-                "plugin-uri %d",
-                "plugin-uri %d"
+                "%d plugin",
+                "%d pluginuri",
+                "%d de pluginuri"
             ],
             "Uninstall %s? This deletes its files, and the plugin may delete its settings and data.": [
                 "Dezinstala\u021bi %s? Aceast\u0103 ac\u021biune \u00eei \u0219terge fi\u0219ierele, iar pluginul poate \u0219terge set\u0103rile \u0219i datele."

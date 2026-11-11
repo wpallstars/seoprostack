@@ -24,8 +24,8 @@
                 "Blocos Spectra %d convertidos. Verifique-os e guarde."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "O bloco Spectra %d n\u00e3o p\u00f4de ser convertido e permanece como est\u00e1.",
-                "Os blocos Spectra %d n\u00e3o puderam ser convertidos e foram deixados como est\u00e3o."
+                "%d bloco Spectra n\u00e3o p\u00f4de ser convertido e permanece como est\u00e1.",
+                "%d blocos Spectra n\u00e3o puderam ser convertidos e foram deixados como est\u00e3o."
             ],
             "a Heading block": [
                 "um bloco de cabe\u00e7alho"

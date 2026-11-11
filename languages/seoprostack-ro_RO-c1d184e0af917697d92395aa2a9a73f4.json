@@ -26,9 +26,9 @@
                 "Documentul nu are text de ad\u0103ugat."
             ],
             "%d picture in the document could not be added.": [
-                "Imaginea %d din document nu a putut fi ad\u0103ugat\u0103.",
-                "Imaginile %d din document nu au putut fi ad\u0103ugate.",
-                "Imaginile %d din document nu au putut fi ad\u0103ugate."
+                "%d imagine din document nu a putut fi ad\u0103ugat\u0103.",
+                "%d imagini din document nu au putut fi ad\u0103ugate.",
+                "%d de imagini din document nu au putut fi ad\u0103ugate."
             ],
             "The document could not be converted.": [
                 "Documentul nu a putut fi convertit."
