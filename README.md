@@ -1927,7 +1927,7 @@ The LiteSpeed Cache preset is worked out for each site, from the `when` conditio
 - **Every site**: notifications off, CSS Minify and JS Minify off, Purge All On Upgrade on, so pages never point at old CSS and JS.
 - **Why Minify is off** (GitHub issue #285): with Combine off, LiteSpeed Cache 7.9 minifies and rewrites every CSS and JS file again on every page that misses the page cache (`LiteSpeed\Optimize::_build_single_hash_url()`, which never reuses the file it saved). On Hostinger test sites that took 0.25–1.2 s per uncached page (posts on one client site: 1.98 s with Minify, 0.99 s without), while compression and HTTP/2 already make the files small and quick to fetch. Combine avoids the repeat work but breaks more pages, so it stays off too. Cached pages are not affected either way. Sites that turn Minify back on keep working; they pay that time on each page the cache does not hold yet (first visits after a purge, search, query strings, crawlers).
 - **On a LiteSpeed server**: Enable Cache and Browser Cache on. Elsewhere they are left alone: the page cache needs the server (or QUIC.cloud, which SEO Pro Stack cannot see).
-- **Cloudflare** (`litespeed_cloudflare`: LiteSpeed Cache's Cloudflare API is on, with a key and zone): Clear Cloudflare cache on, so every Purge All, including the one after plugin and theme updates, also purges the zone. The key and zone are never set from the preset; a Cloudflare API token limited to Zone → Cache Purge is enough (#1301).
+- **Cloudflare** (`litespeed_cloudflare`: LiteSpeed Cache's Cloudflare API is on, with a key and zone): Clear Cloudflare cache on, so every Purge All, including the one after plugin and theme updates, also purges the zone. The key and zone are never set from the preset; a Cloudflare API token with Zone → Cache Purge → Purge and Zone → Zone → Read is enough (#1301, #1463).
 - **The crawler** (`litespeed_crawler`: a LiteSpeed server that allows it, as LiteSpeed Cache checks it from the server's `X-LSCACHE` variable, and a sitemap): Crawler on and Crawl Interval 86400 seconds instead of LiteSpeed Cache's 302400, so the whole sitemap is crawled once a day and pages purged by updates (Purge All On Upgrade) are cached again within a day rather than 3.5 days. LiteSpeed answers the crawler with HTTP 201 and no page for pages it still holds, so a crawl of a cached site costs the server little; Hostinger also caps the crawler's server load itself (`CRAWLER_LOAD_LIMIT_ENFORCE`). Custom Sitemap keeps what is set in LiteSpeed Cache; when it is empty, the preset gives it the site's sitemap index: Rank Math's when its sitemap module is on, else Yoast's, else WordPress's own (`get_sitemap_url('index')`), or the `seoprostack_crawler_sitemap` filter's. With no sitemap the crawler is left alone. It needs no QUIC.cloud account. Server IP is left alone, as it is the site's own and a wrong one stops the crawler: behind a CDN such as Cloudflare, set it in LiteSpeed Cache → General so the crawler goes straight to the server (**Hosting needs** offers this server's address when it finds one, after checking that it reaches LiteSpeed, and shows how the crawler is doing). The crawler works in turns started by WP-Cron every 10 minutes, so a site with `DISABLE_WP_CRON` needs a server cron. **Fixes for other plugins** keeps each turn to 240 seconds, under the 300 seconds LiteSpeed hosts allow a request.
 - **Where an SEO Pro Stack feature does the job**, LiteSpeed's copy is turned off, so the two never both do it: Load JS Deferred with Delay scripts until people interact, Next-Gen Image Format with WebP and AVIF copies, Frontend and Backend Heartbeat Control with Fewer Heartbeat requests (on the site and admin screens it limits; LiteSpeed's editor Heartbeat is left alone), Remove WordPress Emoji with Remove WordPress extras (emoji), and CSS Combine, Generate UCSS and Load CSS Asynchronously with Load the CSS each page uses first (which steps aside on the whole site while any of them is on).
 - Nothing that needs QUIC.cloud is turned on (critical and unused CSS, image optimisation), and the object cache is left to the host.
@@ -2018,7 +2018,21 @@ Cloudflare runs the domain's DNS for free and protects and speeds up the site.
 
 Done when Cloudflare shows the domain as **Active** and the site loads over https.
 
-##### 3. Setup aidevops (your AI assistant)
+##### 3. Clear Cloudflare's cache with LiteSpeed Cache
+
+LiteSpeed Cache keeps fast copies of pages on the server, and Cloudflare can keep its own. When LiteSpeed Cache empties its copies (Purge All, after updates), Cloudflare's stay until they expire, so visitors can see old pages. With a Cloudflare token, every Purge All empties Cloudflare too.
+
+1. In Cloudflare, open **My Profile → API Tokens → Create Token → Create Custom Token** ([Cloudflare's guide to creating a token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)). Name it after the site. Permissions: **Zone → Cache Purge → Purge** and **Zone → Zone → Read** (LiteSpeed Cache looks the zone up with it). Zone Resources: **Include → Specific zone →** this site's domain. Create it and copy the token: Cloudflare shows it only once.
+2. In WordPress, open **LiteSpeed Cache → CDN → Cloudflare** ([LiteSpeed's CDN settings guide](https://docs.litespeedtech.com/lscache/lscwp/cdn/)). Turn **Cloudflare API** on, paste the token as the API token, leave the email empty, enter the domain, turn **Clear Cloudflare cache** on and save.
+3. Test with **Purge All** (LiteSpeed Cache in the admin bar or Toolbox): it says Cloudflare was notified.
+
+**Clear Cloudflare cache** empties the whole domain on Cloudflare. If other websites share this domain (on subdomains), leave it off and turn on **SEO Pro Stack → Speed → Clear Cloudflare's copies of pages** instead: it empties only this site's address, after a Purge All and after a post is published or updated, and uses LiteSpeed Cache's token. Never paste the token into a task or comment.
+
+**With aidevops over SSH:** it can create the token through Cloudflare's API with your Cloudflare access from its secret store, then save it with WP-CLI without showing it. Test with `wp litespeed-purge all`. On a multisite network, use `wp litespeed-purge blog <id> --url=<site address>` instead: `all` empties every site's cache on the network, and without `--url` the main site's Cloudflare settings are used.
+
+Done when Purge All reports that Cloudflare was notified. (Only if the site's pages are cached by Cloudflare, `cf-cache-status` on the home page shows `MISS` straight after a purge; a visitor's request can refill it first, and `DYNAMIC` is normal when Cloudflare does not cache HTML.)
+
+##### 4. Setup aidevops (your AI assistant)
 
 [aidevops](https://aidevops.sh) lets an AI assistant on your computer set up and look after this site with you: plugin updates, settings, checks and fixes, and these setup tasks.
 
@@ -2031,7 +2045,7 @@ Docs: [aidevops.sh/docs](https://aidevops.sh/docs) and [GitHub](https://github.c
 
 Done when `aidevops status` shows it ready.
 
-##### 4. Setup SSH Access for aidevops
+##### 5. Setup SSH Access for aidevops
 
 SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your AI can do in seconds what takes many clicks, and check its own work. Recommended for every site.
 
@@ -2042,7 +2056,7 @@ SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your A
 
 Never share your hosting password or private key. Done when `wp --info` works over SSH.
 
-##### 5. Connect your AI to this Board
+##### 6. Connect your AI to this Board
 
 Optional. With SSH (the task before), aidevops can already read and update this board through WP-CLI. To let another AI client (ChatGPT, Claude) work on the board directly:
 
@@ -2052,7 +2066,7 @@ Optional. With SSH (the task before), aidevops can already read and update this 
 
 Without any AI: work through the tasks in order and move each to Done when finished.
 
-##### 6. Setup Business Email (Purelymail)
+##### 7. Setup Business Email (Purelymail)
 
 Mailboxes people write to, such as hello@ and support@ at your domain. [Purelymail](https://purelymail.com/) is simple and low-cost ([pricing](https://purelymail.com/pricing)).
 
@@ -2063,7 +2077,7 @@ Mailboxes people write to, such as hello@ and support@ at your domain. [Purelyma
 
 Done when mail arrives both ways and Purelymail shows the DNS records as correct.
 
-##### 7. Setup Email Sending (Amazon SES)
+##### 8. Setup Email Sending (Amazon SES)
 
 The website's own emails (forms, newsletters, password resets) go through [Amazon SES](https://aws.amazon.com/ses/), so they reach inboxes instead of spam. FluentSMTP connects WordPress to it.
 
@@ -2074,7 +2088,7 @@ The website's own emails (forms, newsletters, password resets) go through [Amazo
 
 FluentSMTP encrypts the key with the site's salts: re-enter it if they change. Done when the test email arrives.
 
-##### 8. Setup File Storage (Cloudflare R2)
+##### 9. Setup File Storage (Cloudflare R2)
 
 [Cloudflare R2](https://developers.cloudflare.com/r2/get-started/) stores files off the server, such as backups, with no download fees. The free allowance covers most sites.
 
@@ -2085,7 +2099,7 @@ FluentSMTP encrypts the key with the site's salts: re-enter it if they change. D
 
 Done when a first backup appears in the bucket.
 
-##### 9. Setup Google Cloud
+##### 10. Setup Google Cloud
 
 Google services the site uses (such as Maps) are billed through a Google Cloud project. Google Search Console is free and separate: add the site there too ([Search Console](https://search.google.com/search-console/about)).
 
@@ -2095,7 +2109,7 @@ Google services the site uses (such as Maps) are billed through a Google Cloud p
 
 Done when the project exists with billing and a budget alert.
 
-##### 10. Setup Payment Processing
+##### 11. Setup Payment Processing
 
 Choose who takes card payments. You can use more than one.
 
@@ -2125,7 +2139,7 @@ Checks whether the hosting fits the site, and says what to ask the host for. It 
 - **Slow pages**: once 30 pages are sampled, an average over 1 second is recommended for a look, with the causes this plugin can see, each only when it applies: Load plugins only where needed off, or not yet learned for the site's pages; options loaded on every request over 1 MB; settings saved on most page views; no working persistent object cache (off or unreachable); and, with **Calls to other sites** on, the sites visitors' pages waited for (up to three, most waiting first; the site's own address, which WordPress calls to start cron, and calls blocked there everywhere or on visitor pages are left out). With none of those it suggests Query Monitor on a slow page, to see which plugin takes the time.
 - **The site**: database size, rows of post data, products and options loaded on every request (from table statistics, read at most hourly), whether a page cache or persistent object cache is in use, and whether shop, membership, course or community plugins are active, where more visitors skip the page cache and pages take longer. It advises a page cache when none is found, an object cache above 500,000 rows of post data or 10,000 products, trimming options loaded on every request above 1 MB, and PHP 8.2 or later. On a LiteSpeed server it names the server, suggests LiteSpeed Cache (whose page cache only counts there), and warns when WP-Optimize's page cache or minify runs alongside it (see Plugin presets → LiteSpeed hosting).
 - **CDN**: whether a CDN serves the site, from the headers a CDN adds to the request being served (Cloudflare, Sucuri), a plugin that sets one up (QUIC.cloud or a CDN in LiteSpeed Cache, the Cloudflare plugin signed in, Bunny CDN, CDN Enabler, Jetpack's Site Accelerator), or the headers of the home page, asked for at most hourly from the admin (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly; each header checked against the provider's own responses). With none found it suggests one: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server (it has a free plan), Cloudflare's free plan elsewhere. When the site cannot reach its own home page, the CDN is unknown and nothing is suggested. SEO Pro Stack does not run a CDN or rewrite pages for one, and never turns one on in another plugin.
-- **Cloudflare keeps pages** (#1301): when the home page answers with a `cf-cache-status` of HIT, MISS, EXPIRED, REVALIDATED, STALE or UPDATING (a Cache Rule that caches HTML; DYNAMIC and BYPASS do not count) and LiteSpeed Cache is active without its Cloudflare API connection and **Clear Cloudflare cache** both on, it warns that purging LiteSpeed Cache leaves Cloudflare's copies, so visitors get old pages until the edge cache expires (2 hours by default), and gives the steps (a Cloudflare API token limited to Zone → Cache Purge, LiteSpeed Cache → CDN → Cloudflare API, Clear Cloudflare cache). Purging single pages when a post is edited stays with Cloudflare's own plugin with APO, so edits still wait for the edge cache. An unanswered home page, or a 403 from the server itself, is unknown and does not warn.
+- **Cloudflare keeps pages** (#1301): when the home page answers with a `cf-cache-status` of HIT, MISS, EXPIRED, REVALIDATED, STALE or UPDATING (a Cache Rule that caches HTML; DYNAMIC and BYPASS do not count) and LiteSpeed Cache is active without its Cloudflare API connection and **Clear Cloudflare cache** both on, it warns that purging LiteSpeed Cache leaves Cloudflare's copies, so visitors get old pages until the edge cache expires (2 hours by default), and gives the steps (a Cloudflare API token limited to Zone → Cache Purge, entered in **Speed → Clear Cloudflare's copies of pages**, which also empties a post's own pages after an edit; or a short edge time sent by this server). It does not warn once that feature is ready or the server gives Cloudflare an edge time of 10 minutes or less (#1461). An unanswered home page, or a 403 from the server itself, is unknown and does not warn.
 - **Settings saved on every page view**: some plugins save an option again on almost every request although only a timestamp in it changes (on one Hostinger site, five premium plugins' licence options). Each save is a database write and, with an object cache, rewrites the cached autoloaded options that every request reads. On 1 in 20 page views (GET requests outside wp-admin, cron and WP-CLI), the options saved are counted with the plugin, must-use plugin or theme that saved them, in the non-autoloaded `seoprostack_hosting_writes` option, kept for 7 days. Once 20 page views are counted, options saved on more than half of them are recommended for a look: "These settings are saved again on almost every page view, which slows pages and clears the object cache", each with its plugin and share of page views (also in Site Health Info). If one is a licence option **Ask before licence checks** knows, it suggests turning that on. Transients and SEO Pro Stack's own options are not counted. Counts start again when a plugin is deactivated or updated, or Ask before licence checks is switched. Plugins often save these while their files load: with **Load plugins only where needed** on, its must-use file starts the count before other plugins load; otherwise it starts when SEO Pro Stack loads, so plugins whose folders sort before `seoprostack` are counted only for saves made later in the request.
 - **Object cache health**: at most once a day, from admin screens, Site Health or cron started over HTTP, checks LiteSpeed Cache's configured server and looks for unused local Redis or Memcached when its PHP extension is loaded, including configured Unix sockets. A reachable unused cache is recommended even on a small site. When WordPress starts or stops using an object cache after the day's check (a drop-in added or removed, or LiteSpeed Cache's object cache turned on or off), it is checked again on the next admin screen rather than the next day. A turned-on but unreachable cache is flagged, and the site facts name Redis or Memcached when known. Other drop-ins are named from their header and checked by keeping a test value until the next daily check; the first check starts the test. A cache flush or eviction can also lose that value, so the warning asks the host to check rather than treating it as proof of a broken server. LiteSpeed Cache's own drop-in gets no test value: it falls back to the database only when it cannot connect, which asking its server shows, and its Purge All (on every plugin update by default) empties the object cache, so a test value would be lost while the cache works. A lost-value warning stored for it by an older version is checked again on the next admin screen. Hostinger sites without Memcached's extension enabled are pointed to hPanel's PHP settings when no usable backend was found. WP-CLI and cron run from the command line show the stored result without checking: they can run another PHP than the site's pages (on Hostinger, the account's PHP rather than the site's), with other extensions. The checks themselves never change another plugin's settings and never open connections on visitors' requests. Daily results and the probe token are kept in the non-autoloaded `seoprostack_hosting_object_cache` option, with a short-lived `_lock` option; both and the test key are removed on uninstall. Each server probe uses short connection and reply timeouts, below half a second. For LiteSpeed Cache's object cache (read from the network's settings when it is active for the network) the warning names the cause:
   - **PHP does not load the extension** its drop-in needs (`memcached` or `redis`): it names the extension and PHP version to turn it on for. On Hostinger, hPanel's Object Cache switch turns `memcached` on only for some PHP versions (in October 2026 it turned it on for PHP 8.3 but not 8.5), so it can go missing after a PHP update. This is checked again as soon as the extension loads, not the next day.
