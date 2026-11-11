@@ -280,10 +280,15 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
                 continue;
             }
             $like  = $n . $wpdb->esc_like($term) . $n;
-            $field = "EXISTS (SELECT 1 FROM {$wpdb->postmeta} AS sps_v INNER JOIN {$wpdb->postmeta} AS sps_r ON sps_r.post_id = sps_v.post_id AND sps_r.meta_key = CONCAT('_', sps_v.meta_key) WHERE sps_v.post_id = {$wpdb->posts}.ID AND sps_r.meta_value IN ($in){$name_sql} AND sps_v.meta_value LIKE %s)";
+            // A scalar subquery, not EXISTS: MariaDB and MySQL 8 may turn a
+            // correlated EXISTS into a semi-join and, when many posts are
+            // candidates, fill it first by reading every postmeta row (3.9 s
+            // instead of 0.14 s on a site with 4 million, GH#1513). A scalar
+            // subquery always runs per candidate post through post_id.
+            $field = "(SELECT 1 FROM {$wpdb->postmeta} AS sps_v INNER JOIN {$wpdb->postmeta} AS sps_r ON sps_r.post_id = sps_v.post_id AND sps_r.meta_key = CONCAT('_', sps_v.meta_key) WHERE sps_v.post_id = {$wpdb->posts}.ID AND sps_r.meta_value IN ($in){$name_sql} AND sps_v.meta_value LIKE %s LIMIT 1)";
             $sql   = $exclude
-                ? "(({$wpdb->posts}.post_title NOT LIKE %s) AND ({$wpdb->posts}.post_excerpt NOT LIKE %s) AND ({$wpdb->posts}.post_content NOT LIKE %s) AND NOT {$field})"
-                : "(({$wpdb->posts}.post_title LIKE %s) OR ({$wpdb->posts}.post_excerpt LIKE %s) OR ({$wpdb->posts}.post_content LIKE %s) OR {$field})";
+                ? "(({$wpdb->posts}.post_title NOT LIKE %s) AND ({$wpdb->posts}.post_excerpt NOT LIKE %s) AND ({$wpdb->posts}.post_content NOT LIKE %s) AND {$field} IS NULL)"
+                : "(({$wpdb->posts}.post_title LIKE %s) OR ({$wpdb->posts}.post_excerpt LIKE %s) OR ({$wpdb->posts}.post_content LIKE %s) OR {$field} IS NOT NULL)";
             // One prepare for the whole part, so % in a search word is never read as a placeholder.
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- one placeholder per value, built from counts only.
             $parts[] = $wpdb->prepare($sql, array_merge(array($like, $like, $like), $keys, $name_values, array($like)));
