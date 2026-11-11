@@ -315,12 +315,22 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if (is_singular() && post_password_required()) {
             return false;
         }
+        return !self::private_response();
+    }
+
+    /**
+     * Whether this response already sent a Cache-Control that keeps it out
+     * of shared caches: no-store, no-cache or private.
+     *
+     * @return bool
+     */
+    private static function private_response() {
         foreach (headers_list() as $header) {
             if (0 === stripos($header, 'Cache-Control:') && preg_match('/\b(no-store|no-cache|private)\b/i', $header)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     /**
