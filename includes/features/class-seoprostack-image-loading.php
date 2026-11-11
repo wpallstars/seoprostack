@@ -26,7 +26,10 @@
  * (GH#1326). Rows further down fetch their background pictures as the
  * visitor scrolls near them (SEOProStack_Kadence_Rows, GH#1329), and a row
  * background slider's first slide shows at its full width before the
- * slider's script runs (GH#1339).
+ * slider's script runs (GH#1339). Pictures in a row's column have a sizes
+ * for the column's width on a computer, so those that load straight away
+ * are not fetched for the whole window (SEOProStack_Kadence_Column_Sizes,
+ * GH#1517).
  *
  * A picture whose block names another attachment than the file it shows,
  * as an imported template's often does, gets what core gives every other
@@ -136,7 +139,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Image loading', 'seoprostack'),
-                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, at the size the screen needs.', 'seoprostack'),
+                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, at the size the screen needs. Pictures in a Kadence Blocks row’s columns are fetched at the column’s width on a computer, not the window’s.', 'seoprostack'),
                 'replaces'    => array('nazy-load' => 'Flying Images'),
             ),
             'image_loading_eager' => array(
@@ -218,6 +221,10 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 // the visitor scrolls near them (GH#1329).
                 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-rows.php';
                 SEOProStack_Kadence_Rows::boot();
+                // Pictures in a row's column: a sizes for the column's
+                // width on a computer (GH#1517).
+                require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-column-sizes.php';
+                SEOProStack_Kadence_Column_Sizes::boot();
             }
         }
         if (defined('KBP_VERSION') && !is_admin()) {
