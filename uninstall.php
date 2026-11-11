@@ -578,6 +578,13 @@ delete_site_transient('seoprostack_comment_goblin_failed');
 // Fixes for other plugins: what the LiteSpeed noabort block holds (the
 // block itself is removed on deactivation).
 delete_site_option('seoprostack_noabort_rules');
+// Fixes for other plugins: Tutor LMS Pro's push worker in the root folder,
+// if ours (deactivation removes it unless the file could not be removed then).
+require_once __DIR__ . '/includes/class-seoprostack-tutor-push-worker.php';
+if (SEOProStack_Tutor_Push_Worker::is_ours(SEOProStack_Tutor_Push_Worker::path())) {
+    wp_delete_file(SEOProStack_Tutor_Push_Worker::path());
+}
+delete_site_option(SEOProStack_Tutor_Push_Worker::STATE);
 // Turn off unused remote access: the log and backup files and PHP in
 // uploads blocks, and Redirect to the main address's block, which
 // deactivation removes unless a file could not be written then.

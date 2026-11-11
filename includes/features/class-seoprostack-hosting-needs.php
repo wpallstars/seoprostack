@@ -1798,6 +1798,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));
         }
         $advice = array_merge($advice, self::litespeed_advice());
+        if (class_exists('SEOProStack_Tutor_Push_Worker', false)) {
+            $advice = array_merge($advice, SEOProStack_Tutor_Push_Worker::advice());
+        }
         if ('none' === $needs['cdn']['state']) {
             $advice[] = array('recommended', SEOProStack_Litespeed::is_server()
                 ? __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; on a LiteSpeed server, use QUIC.cloud (it has a free plan), set up from LiteSpeed Cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack')
