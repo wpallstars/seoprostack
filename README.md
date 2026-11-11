@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.198-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.199-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.198
+Version: 1.3.199
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2557,6 +2557,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.199
+
+- New, on by default: **Short not-found answer for missing files** (Server). A missing file, such as `/llms.txt`, a removed picture or a bot’s probe, now gets a short “Not Found” with the same status instead of the theme’s whole not-found page. On two large directory sites that page took 6 to 9 seconds when it was not cached, longer than the 2 seconds PageSpeed Insights’ Agentic Browsing check waits for `llms.txt`. Pages, `.html` addresses and files plugins serve (Rank Math’s `llms.txt` and sitemaps, `robots.txt`) are unchanged, and Rank Math’s 404 Monitor still records the address (#1525).
+- Faster: **Search custom fields** tests a post’s type and status before its fields, so counting a common word’s results no longer runs the field test for every attachment and revision. On a directory site with about 107,000 posts, the main search query with its count went from 1.80 s to 0.38 s for one common word, with the same results (#1523).
 
 ### 1.3.198
 
