@@ -459,18 +459,20 @@ new_log_all() {
 # error for hook: HOOK, Error code: could_not_set, Error message: ..., Data:
 # {...}"; in Dutch "Cron ongepland event fout voor hook: HOOK, foutcode:
 # could_not_set, foutmelding: ..., gegevens: {...}"), so only its shape is
-# matched: message text with no colon after the timestamp, then ": HOOK, ",
-# a label, ": could_not_set" and a comma or the end of the line. Until
-# then only the English text matched, and translated lines failed installs.
-# The message text must also name cron, so another plugin's error that ends
-# in could_not_set (a payment task, say) stays a visible new line.
+# matched. wp-cron.php writes it with error_log() (no "PHP Notice:" prefix),
+# always with all four fields (WordPress 6.1 and later; plugins need 6.2), the
+# last being the event as JSON. So the line must be: optional [timestamp]
+# blocks, message text with no colon, comma or digit, then ": HOOK, ", a
+# label, ": could_not_set, ", a label, ": " and the message, ", ", a label,
+# ": {...}" and the end of the line (or Apache's ", referer: URL"). A
+# plugin's own line of a similar start ("Payment task failed for hook: HOOK,
+# status: could_not_set") is not WordPress's and still fails the install.
 classify_log() {
 	local hooks=" $1 "
 	awk -v hooks="$hooks" '
 		{
-			if (match($0, /:[[:space:]]*[^[:space:],:]+,[^:,]*:[[:space:]]*could_not_set([[:space:]]*,|[[:space:]]*$)/) \
-				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*(PHP [A-Za-z ]+:[[:space:]]*)?[^]:[]*$/ \
-				&& tolower(substr($0, 1, RSTART - 1)) ~ /cron/) {
+			if (match($0, /:[[:space:]]*[^[:space:],:]+,[^:,]*:[[:space:]]*could_not_set[[:space:]]*,[^:,]*:.*,[^:,]*:[[:space:]]*[{].*[}][[:space:]]*(,[[:space:]]*referer:[[:space:]]*[^[:space:]]*[[:space:]]*)?$/) \
+				&& substr($0, 1, RSTART - 1) ~ /^(\[[^]]*\][[:space:]]*)*[^]:[,0-9]*$/) {
 				text = substr($0, RSTART, RLENGTH)
 				sub(/^:[[:space:]]*/, "", text)
 				sub(/,.*$/, "", text)

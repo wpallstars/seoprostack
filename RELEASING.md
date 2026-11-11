@@ -19,7 +19,7 @@ only when someone pushes a version tag or manually runs it for an existing tag.
 | `scripts/preflight-release.sh [--ref REF] [--strict] [--offline] [--no-docker]` | Checks versions, headers, readme, both zips (layout, development files, PHP 7.4 and JS syntax, updater code), remote assets, presets and starter data where the plugin has them, and the Git tag. Errors stop a release; `--strict` also fails on warnings, for a WordPress.org submission. `--no-docker` lints PHP with the local `php` instead of PHP 7.4 in Docker. |
 | `scripts/plugin-check.sh [--ref REF] [--zip FILE]` | Runs Plugin Check on both zips in a disposable WordPress in Docker, then removes it. |
 | `scripts/update-test.sh [--from X.Y.Z] [--to X.Y.Z] [--wp VERSION] [--php VERSION] [--keep-log FILE]` | After a release: installs the previous GitHub release (default: the one before the newest) on a disposable WordPress in Docker and checks that it is offered the new one from its asset (WP-CLI, **Check again** on the Updates screen, the Plugins screen), that the update installs and the plugin stays active, and that `debug.log` stays empty. Then removes the site. Reads releases with `gh`. |
-| `scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z [--parent PATTERN] [--skip NAME]... [--wp-cli COMMAND] [--allow-downgrade] [--cloudflare-token-env NAME] [--keep-releases N] [--web-error-log PATH --apply]` | After the update test: installs the release's zip (a failed download is tried again after 30, 60, 120 and 120 seconds, as GitHub sometimes answers "release not found" for a while), checked against GitHub's SHA-256 and its provenance bundle, on every install on one SSH host that already has the plugin (default `'~/domains/*/public_html'`). Without `--apply` it only lists them, with their version and whether each is a multisite network. With `--apply`: a backup of each plugin folder, the new folder swapped in with two renames so running requests and cron jobs never find it missing (activation kept; the files get the install's current time, so OPcache and `filemtime()`-versioned assets pick up the new code; falls back to `wp plugin install --force`, except when the rollback of a failed second rename also fails: that install stops with a FAIL and its old folder, kept beside the plugin, needs a manual restore; where OPcache timestamp validation is off, also reset the web-serving OPcache or restart its PHP processes), a full load for each site's settings upgrade, a purge of each site's page cache (LiteSpeed Cache, when its WP-CLI command is there), one run of the plugin's own WP-Cron events (`cron=N/M`; a PHP fatal error in one fails the install; running one early reschedules it) and a home fetch with a unique query string, pinned to the origin when LiteSpeed Cache's Server IP or an address the plugin learned (its `{prefix}_origin_ip` option) is known (`home=200 pinned`; a CDN in front of a LiteSpeed host can answer the host's own unpinned fetch with 403; with neither address it uses plain DNS) (fetched once more after a 5xx or no answer; a fetch that does not complete counts as no answer). Networks skip archived, deleted and spam sites and print one indented line per site, after the install line. `cache=` lists the response's cache headers; `WARN cached` means a cache ignored query strings, so PHP did not run for that fetch. Fails on a version not reached, new lines in the site's PHP logs (`WP_DEBUG_LOG`, including a custom path, PHP's `error_log` and the `--web-error-log` file, where `{name}` and `{name_}` give each install its own: `'~/.logs/error_log_{name_}'`) or any failed site, with the restore command. New lines that are all WordPress core's cron-save notices (error code `could_not_set`, in any language: two cron runners saving at once) give `WARN cron save contention (N lines)` instead, with the lines shown and no restore command; any other line still fails. Just before each install, `--apply` refuses one whose installed version is newer than the tag, or cannot be read, with a FAIL line; `--allow-downgrade` installs anyway, for a rollback or to repair a broken install. A prerelease of the tag (`2.0.0-rc1` for `2.0.0`) counts as older, and the dry run marks the installs `--apply` would refuse. `--apply` holds a per-plugin lock on the host (`~/.{slug}-deploy/.lock`) until it ends, so overlapping runs cannot install over each other: while another run holds it, it installs nothing, names that run (tag, start time, parent) and exits 3, so wait for that run to finish and run again; the dry run says when one is active, and a lock whose run is no longer running is taken over with a warning. The lock is in the SSH account's home folder, so it keeps apart only runs from one account: roll a plugin out to a host from one account. After a successful install it removes the plugin's older run folders in `~/.{slug}-deploy/` on the host, keeping the current run and the newest `N` tags (`--keep-releases N`, default 3; 0 keeps everything), and lists what it removed and the space freed; it skips this while another deploy holds the lock and leaves other files there alone. The remote part is `scripts/lib/deploy-remote.sh`. |
+| `scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z [--parent PATTERN] [--skip NAME]... [--wp-cli COMMAND] [--allow-downgrade] [--cloudflare-token-env NAME [--cloudflare-purge zone]] [--keep-releases N] [--web-error-log PATH --apply]` | After the update test: installs the release's zip (a failed download is tried again after 30, 60, 120 and 120 seconds, as GitHub sometimes answers "release not found" for a while), checked against GitHub's SHA-256 and its provenance bundle, on every install on one SSH host that already has the plugin (default `'~/domains/*/public_html'`). Without `--apply` it only lists them, with their version and whether each is a multisite network. With `--apply`: a backup of each plugin folder, the new folder swapped in with two renames so running requests and cron jobs never find it missing (activation kept; the files get the install's current time, so OPcache and `filemtime()`-versioned assets pick up the new code; falls back to `wp plugin install --force`, except when the rollback of a failed second rename also fails: that install stops with a FAIL and its old folder, kept beside the plugin, needs a manual restore; where OPcache timestamp validation is off, also reset the web-serving OPcache or restart its PHP processes), a full load for each site's settings upgrade, a purge of each site's page cache (LiteSpeed Cache, when its WP-CLI command is there), one run of the plugin's own WP-Cron events (`cron=N/M`; a PHP fatal error in one fails the install; running one early reschedules it) and a home fetch with a unique query string, pinned to the origin when LiteSpeed Cache's Server IP or an address the plugin learned (its `{prefix}_origin_ip` option) is known (`home=200 pinned`; a CDN in front of a LiteSpeed host can answer the host's own unpinned fetch with 403; with neither address it uses plain DNS) (fetched once more after a 5xx or no answer; a fetch that does not complete counts as no answer). Networks skip archived, deleted and spam sites and print one indented line per site, after the install line. `cache=` lists the response's cache headers; `WARN cached` means a cache ignored query strings, so PHP did not run for that fetch. Fails on a version not reached, new lines in the site's PHP logs (`WP_DEBUG_LOG`, including a custom path, PHP's `error_log` and the `--web-error-log` file, where `{name}` and `{name_}` give each install its own: `'~/.logs/error_log_{name_}'`) or any failed site, with the restore command. New lines that are all WordPress core's cron-save notices (error code `could_not_set`, in any language: two cron runners saving at once) give `WARN cron save contention (N lines)` instead, with the lines shown and no restore command; any other line still fails. Just before each install, `--apply` refuses one whose installed version is newer than the tag, or cannot be read, with a FAIL line; `--allow-downgrade` installs anyway, for a rollback or to repair a broken install. A prerelease of the tag (`2.0.0-rc1` for `2.0.0`) counts as older, and the dry run marks the installs `--apply` would refuse. `--apply` holds a per-plugin lock on the host (`~/.{slug}-deploy/.lock`) until it ends, so overlapping runs cannot install over each other: while another run holds it, it installs nothing, names that run (tag, start time, parent) and exits 3, so wait for that run to finish and run again; the dry run says when one is active, and a lock whose run is no longer running is taken over with a warning. The lock is in the SSH account's home folder, so it keeps apart only runs from one account: roll a plugin out to a host from one account. After a successful install it removes the plugin's older run folders in `~/.{slug}-deploy/` on the host, keeping the current run and the newest `N` tags (`--keep-releases N`, default 3; 0 keeps everything), and lists what it removed and the space freed; it skips this while another deploy holds the lock and leaves other files there alone. The remote part is `scripts/lib/deploy-remote.sh`. |
 
 The deploy runner snapshots the **stored**, unfiltered activation lists and
 their counts before the install and the settings-upgrade load, then requires
@@ -65,16 +65,35 @@ expected in the GitHub zip too.
 
 ## GitHub release
 
+Before step 1, list the open pull requests (`gh pr list --state open`) and
+ask whoever is merging (people, other sessions, automatic merges) to hold
+merges to `main` until the release PR merges. Each merge during the release
+PR's CI adds a line under `= Unreleased =`, which conflicts with the release
+PR's rename of that heading and forces a rebase. Everything merged
+before the release PR's merge commit is in the release, because the tag goes
+on that commit.
+
 1. In a pull request, set the version in `{slug}.php` (`Version:` and
    `{PREFIX}_VERSION`), `readme.txt` (`Stable tag:`) and `README.md` (the
    `Version:` line under the intro, which GitHub shows as written), run
    `scripts/readme-badges.sh` (the release badge shows `Stable tag:`), rename the
    changelog's Unreleased section to the version in `readme.txt`,
    `changelog.txt` and `README.md`, and add an upgrade notice if people need
-   to act. `readme.txt` keeps only the newest version, in short, and must stay
-   under 10 KB; `changelog.txt` keeps every version in full.
+   to act. `scripts/release-bump.sh X.Y.Z` does all of this except the upgrade
+   notice and the short `readme.txt` lines, and prints `readme.txt`'s byte
+   budget; running it again changes nothing more. `readme.txt` keeps only the
+   newest version, in short, and must stay under 10 KB; when it is within about
+   100 bytes of the limit, combine the version's lines into one line per type
+   (`Added`, `Faster`, `Fixed`). `changelog.txt` keeps every version in full.
    Numbers only (`1.2.3`): sites still on Git Updater offer a `Version:` on
    `main` to every site, and the shared updater skips tags with letters.
+
+   If `main` moves while the release PR waits, rebase. Resolve a conflict in
+   `changelog.txt`, `readme.txt` or `README.md` by taking `main`'s file (its
+   new entries sit under `Unreleased`). First save any release-branch
+   entries absent from `main` and restore them under `Unreleased`. Then run
+   `scripts/release-bump.sh X.Y.Z`, write the new entries' short
+   `readme.txt` lines, and run the preflight.
 2. On the pull request's branch: `scripts/preflight-release.sh` (no errors) and
    `scripts/plugin-check.sh` (no errors).
    <!-- sps-own:start -->
@@ -128,7 +147,12 @@ expected in the GitHub zip too.
    for the address the site reads to name it, and checks a missing offer 3
    more times, 20 seconds apart. Without Docker, check the same by hand on a
    test site.
-5. Roll the release out to the owner's own sites, one SSH host at a time:
+5. Roll the release out to the owner's own sites, one SSH host at a time.
+   Name one roll-out owner per release. When that is not the session that
+   released, the releaser passes on the tag, the Release run and the
+   `update-test.sh` result; the owner runs `deploy-sites.sh` and reports back.
+   The deploy lock is per SSH account, not per person or session, so only one
+   owner rolls out to a host at a time:
 
    ```bash
    scripts/deploy-sites.sh --host <ssh-host> --tag vX.Y.Z            # lists the installs; changes nothing
@@ -149,14 +173,17 @@ expected in the GitHub zip too.
     to the edge TTL (2 hours by default), while the home fetch's unique query
     string never sees them. Add `--cloudflare-token-env NAME`, naming an
     environment variable that holds an API token limited to Zone → Zone Read
-    (to find the zone) and Zone → Cache Purge, and the script purges each updated site's zone from your computer (the
-    token never reaches the host and is never printed): it finds the zone from
-    the site's host name, trying its parent domains, and sends
-    `purge_everything` once per zone per run. The install line shows
-    `cdn=purged`, `cdn=failed MESSAGE` (a failed purge does not fail the
-    install) or `cdn=-` without the option, and the summary counts the zones.
-    The dry run with the option lists the zones it would purge and purges
-    nothing. Without the option the script fetches each site's plain home
+    (to find the zone) and Zone → Cache Purge, and the script purges the host names of each updated install's sites from
+    your computer (the token never reaches the host and is never printed): it
+    finds the zone from each site's host name, trying its parent domains, and
+    after the install sends one `{"hosts":[...]}` purge per zone (30 hosts per
+    request), so other sites sharing the zone keep their cached pages. The
+    install line shows `cdn=purged(N hosts)`, `cdn=failed MESSAGE` (a failed
+    purge does not fail the install) or `cdn=-` without the option, and the
+    summary counts the requests. `--cloudflare-purge zone` instead sends
+    `purge_everything` for each zone once per install, for pages on hosts the
+    script does not see. The dry run with the option names the hosts it would
+    purge for each zone and purges nothing. Without the option the script fetches each site's plain home
     address once after the install and warns `WARN Cloudflare keeps pages from
     before the deploy (age=N s); purge the zone or pass --cloudflare-token-env`
     when Cloudflare answers `cf-cache-status: HIT` with an `age` older than the
@@ -180,12 +207,17 @@ expected in the GitHub zip too.
    the same due event, whichever runs it second logs `Cron reschedule event
    error for hook: HOOK, Error code: could_not_set` (or `unschedule`),
    followed on WordPress 6.1 and later by `, Error message: …, Data: …`
-   (#1349), in the site's language: only the hook and the code stay in
+   in the site's language: only the hook and the code stay in
    English (Dutch: `Cron ongepland event fout voor hook: HOOK, foutcode:
-   could_not_set, …`), so the check matches that shape, not the words. For a
-   hook the check
-   just ran to completion, this message shows as `WARN cron race HOOK` and
-   is not counted in `new_log_lines`; the warning does not confirm a race, as
+   could_not_set, …`), so the check matches that shape, not the words: after
+   the `[…]` timestamp, text with no `PHP …:` prefix (core writes it with
+   `error_log()`) and no colon, comma or digit, then `: HOOK, `, a label,
+   `: could_not_set, `, a label and the message, and a last label with the
+   event's JSON (`: {…}`) ending the line (or before Apache's
+   `, referer: URL`). A plugin's own line that only starts the same way
+   (`Payment task failed for hook: HOOK, status: could_not_set`) still
+   fails. For a hook the check just ran to completion, this message shows
+   as `WARN cron race HOOK` and is not counted in `new_log_lines`; the warning does not confirm a race, as
    a cron-storage failure can log the same message. The same line for any other
    hook is cron-save contention, which warns only when every new line is one;
    every other new line still fails.
