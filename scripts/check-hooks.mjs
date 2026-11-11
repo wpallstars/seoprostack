@@ -17,8 +17,16 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.chdir(root);
 
-// Run git from a fixed system folder rather than whatever PATH holds.
-const gitBin = ['/usr/bin/git', '/usr/local/bin/git', '/opt/homebrew/bin/git'].find((p) => fs.existsSync(p));
+// Run git from a fixed system folder rather than whatever PATH holds
+// (each path a literal, so no file name is built).
+let gitBin = '';
+if (fs.existsSync('/usr/bin/git')) {
+	gitBin = '/usr/bin/git';
+} else if (fs.existsSync('/usr/local/bin/git')) {
+	gitBin = '/usr/local/bin/git';
+} else if (fs.existsSync('/opt/homebrew/bin/git')) {
+	gitBin = '/opt/homebrew/bin/git';
+}
 if (!gitBin) {
 	console.error('check-hooks: git was not found in /usr/bin, /usr/local/bin or /opt/homebrew/bin.');
 	process.exit(1);
