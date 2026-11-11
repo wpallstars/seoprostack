@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.200 =
 * New: the Website Setup board's starter data has a task, "Setup Backups, Updates and Uptime Alerts", after "Setup Payment Processing". The board covered the accounts a site needs but not how it is kept running: an audit of 23 directory sites' boards found no task for backups, for who installs updates, or for knowing when the site is down. The task, with Hostinger's own guides linked, says to check that recent backups are listed (daily for a site that takes orders, bookings or messages), to generate a backup before any big change (entry-level plans need an upgrade for this; until then, download the latest automatic backup), to download one backup once and check it holds the files and the database, never testing Restore on the live site, to choose one updater on hPanel's WordPress Security page (Smart auto-updates, which turns WordPress's own off, or Native auto-updates) so two never compete, to install waiting updates once a month after a backup and check the home page, a form and wp-admin, and to create an hPanel Monitoring alert sent to the support mailbox. `wp seoprostack starters add fluent-boards` adds it to an existing board after the payments task when that task is in the same stage and not archived, otherwise at the top of its stage. Other content on existing boards is not changed.
 
 = 1.3.199 =

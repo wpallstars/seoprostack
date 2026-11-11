@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.199
+Stable tag: 1.3.200
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -156,7 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.199 =
-* Faster: search counts; short answer for missing files (#1523 #1525).
+= 1.3.200 =
+* Added: setup board task for backups, updates, uptime (#1533).
 
 Older: `changelog.txt`.
