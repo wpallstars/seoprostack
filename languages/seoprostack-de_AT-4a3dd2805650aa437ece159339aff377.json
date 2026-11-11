@@ -24,7 +24,7 @@
                 "Konvertierte %d Spectra-Bl\u00f6cke. \u00dcberpr\u00fcfen Sie diese und speichern Sie sie."
             ],
             "%d Spectra block could not be converted and is left as it is.": [
-                "Der Spectra-Block %d konnte nicht konvertiert werden und bleibt unver\u00e4ndert.",
+                "%d Spectra-Block konnte nicht konvertiert werden und bleibt unver\u00e4ndert.",
                 "%d Spectra-Bl\u00f6cke konnten nicht konvertiert werden und bleiben unver\u00e4ndert."
             ],
             "a Heading block": [

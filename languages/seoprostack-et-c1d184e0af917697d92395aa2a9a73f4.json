@@ -26,8 +26,8 @@
                 "Dokumendil pole teksti, mida lisada."
             ],
             "%d picture in the document could not be added.": [
-                "Dokumendis olevat pilti %d ei saanud lisada.",
-                "Dokumendis olevaid %d pilte ei saanud lisada."
+                "%d pildi lisamine dokumenti eba\u00f5nnestus.",
+                "%d pildi lisamine dokumenti eba\u00f5nnestus."
             ],
             "The document could not be converted.": [
                 "Dokumenti ei saanud teisendada."

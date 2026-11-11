@@ -26,8 +26,8 @@
                 "El documento no tiene texto para a\u00f1adir."
             ],
             "%d picture in the document could not be added.": [
-                "No se pudo agregar la imagen %d al documento.",
-                "No se pudieron agregar las im\u00e1genes %d al documento."
+                "%d imagen no se pudo a\u00f1adir al documento.",
+                "%d im\u00e1genes no se pudieron a\u00f1adir al documento."
             ],
             "The document could not be converted.": [
                 "No se pudo convertir el documento."

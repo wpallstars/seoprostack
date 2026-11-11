@@ -6582,14 +6582,13 @@ msgstr "Logi- ja varukoopiafaile ei saanud kontrollida"
 msgid "This site could not reach its own files, so whether they can be downloaded is unknown."
 msgstr "See sait ei saanud oma failideni jõuda, seega pole teada, kas neid saab alla laadida."
 
-# machine translation
 #. translators: %d: number of files
 #: includes/features/class-seoprostack-hardening.php:849
 #, php-format
 msgid "%d smaller file was not checked today."
 msgid_plural "%d smaller files were not checked today."
-msgstr[0] "Väiksemat %d faili täna ei kontrollitud."
-msgstr[1] "%d faile täna ei kontrollitud."
+msgstr[0] "%d väiksem fail jäi täna kontrollimata."
+msgstr[1] "%d väiksemat faili jäi täna kontrollimata."
 
 # machine translation
 #: includes/features/class-seoprostack-hardening.php:950
@@ -10996,14 +10995,13 @@ msgstr "SEO Pro Stack ei saanud oma laadurit wp-content/mu-plugins kausta lisada
 msgid "Screens are learned as you use them: the first time you open a screen it loads every plugin, then only the ones it needs."
 msgstr "Ekraanid õpitakse selgeks nende kasutamise käigus: esimesel korral, kui ekraani avate, laetakse kõik pluginad ja seejärel ainult need, mida vaja."
 
-# machine translation
 #. translators: %s: number of screens
 #: includes/features/class-seoprostack-plugin-loading.php:986
 #, php-format
 msgid "%s screen learned so far. Other screens load every plugin the first time you open them."
 msgid_plural "%s screens learned so far. Other screens load every plugin the first time you open them."
-msgstr[0] "%s ekraan, mida seni õpiti. Teised ekraanid laadivad iga plugina esimesel avamisel."
-msgstr[1] "Seni õpitud %s ekraanid. Teised ekraanid laadivad iga plugina esimesel avamisel."
+msgstr[0] "%s ekraan seni õpitud. Teised ekraanid laadivad iga plugina esimesel avamisel."
+msgstr[1] "%s ekraani seni õpitud. Teised ekraanid laadivad iga plugina esimesel avamisel."
 
 # machine translation
 #. translators: %s: number of screens
@@ -14653,14 +14651,13 @@ msgid_plural "Slug pattern applied to %d terms."
 msgstr[0] "%d terminile rakendatud nälkjasmuster."
 msgstr[1] "%d terminitele rakendatud nälkjasmuster."
 
-# machine translation
 #. translators: %d: number of terms
 #: includes/features/class-seoprostack-term-tools.php:807
 #, php-format
 msgid "%d term could not be updated."
 msgid_plural "%d terms could not be updated."
-msgstr[0] "Terminit %d ei saanud uuendada."
-msgstr[1] "%d tingimusi ei saanud uuendada."
+msgstr[0] "%d termini uuendamine ebaõnnestus."
+msgstr[1] "%d termini uuendamine ebaõnnestus."
 
 # machine translation
 #: includes/features/class-seoprostack-term-tools.php:812
@@ -16074,13 +16071,12 @@ msgstr "Dokument on suurem, kui teie sait aktsepteerib."
 msgid "The document has no text to add."
 msgstr "Dokumendil pole teksti, mida lisada."
 
-# machine translation
 #. translators: %d: number of pictures
 #: admin/js/seoprostack-word-import.js:110
 msgid "%d picture in the document could not be added."
 msgid_plural "%d pictures in the document could not be added."
-msgstr[0] "Dokumendis olevat pilti %d ei saanud lisada."
-msgstr[1] "Dokumendis olevaid %d pilte ei saanud lisada."
+msgstr[0] "%d pildi lisamine dokumenti ebaõnnestus."
+msgstr[1] "%d pildi lisamine dokumenti ebaõnnestus."
 
 # machine translation
 #: admin/js/seoprostack-word-import.js:118
