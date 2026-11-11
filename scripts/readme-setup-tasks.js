@@ -3,7 +3,8 @@
 // README.md, between <!-- setup-tasks:start --> and <!-- setup-tasks:end -->,
 // so the README gives the same steps and links as the board. Each task becomes
 // a heading one level below the README section holding the markers, with its
-// description as written (Markdown). Edit the tasks in the JSON, then run this.
+// description as written (Markdown), and a note when the task is added only
+// with a plugin ("when"). Edit the tasks in the JSON, then run this.
 //
 // Usage: node scripts/readme-setup-tasks.js [--check] [--dir DIR]
 //   --check  change nothing; exit 1 if README.md differs from the tasks.
@@ -62,6 +63,10 @@ const hashes = '#'.repeat(level);
 const body = [START, NOTE, ''];
 tasks.forEach((task, i) => {
 	body.push(hashes + ' ' + (i + 1) + '. ' + task.title, '');
+	// A task with "when" is added only while that plugin folder is active.
+	if (task.when) {
+		body.push('*Added on sites where the `' + String(task.when) + '` plugin is active.*', '');
+	}
 	body.push(String(task.description || '').trim().replace(/\r\n/g, '\n'), '');
 });
 body.push(END);
