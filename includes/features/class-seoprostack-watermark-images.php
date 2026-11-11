@@ -2974,16 +2974,23 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * [--dry-run]
      * : List candidates without downloads or writes; animation checks wait for the real run.
      *
+     * [--minutes=<n>]
+     * : Stop between pictures after this many minutes, keeping the place for the next run. With --marked-only or --stale. Use it instead of a host's timeout, which can stop a picture half done.
+     *
      * ## EXAMPLES
      *
      *     wp seoprostack watermark-images --dry-run
      *     wp seoprostack watermark-images
      *     wp seoprostack watermark-images --marked-only --dry-run
      *     wp seoprostack watermark-images --marked-only
+     *     wp seoprostack watermark-images --stale --minutes=50
      *     wp seoprostack watermark-images --remove
      *
      * Pictures already marked are marked again from their kept originals,
-     * with the current settings.
+     * with the current settings. A picture that waited too long for a media
+     * batch does not hold the place: it is tried again at the end of the
+     * run, and --marked-only and --stale runs keep it in the cursor and try
+     * it first next time.
      *
      * @param array $args  Positional arguments.
      * @param array $assoc Options.
@@ -2993,7 +3000,12 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $stale       = !$remove && !empty($assoc['stale']);
         $marked_only = !$remove && (!empty($assoc['marked-only']) || $stale);
         $dry         = !empty($assoc['dry-run']);
+        $minutes     = isset($assoc['minutes']) ? max(1, (int) $assoc['minutes']) : 0;
         $signature   = '';
+        if ($minutes && !$marked_only) {
+            WP_CLI::error('--minutes works with --marked-only or --stale, which keep their place between runs.');
+            return;
+        }
         if (!$remove && !self::enabled()) {
             WP_CLI::error('Watermark pictures is off, or waiting for Easy Watermark to be deactivated.');
         }
@@ -3014,16 +3026,37 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 return;
             }
         }
-        $counts = array('added' => 0, 'removed' => 0, 'skipped' => 0, 'failed' => 0);
-        $failed = array();
-        $last   = $marked_only ? PHP_INT_MAX : 0;
-        $scope  = ($stale ? 'stale:' : 'marked:') . $signature;
-        $cursor = get_option(self::CURSOR, array());
+        $counts   = array('added' => 0, 'removed' => 0, 'skipped' => 0, 'failed' => 0);
+        $failed   = array();
+        $busy     = array(); // Waited too long for a media batch this run: tried again at the end.
+        $again    = array(); // Kept from an earlier run and failed again: tried first next run.
+        $retry    = array();
+        $last     = $marked_only ? PHP_INT_MAX : 0;
+        $scope    = ($stale ? 'stale:' : 'marked:') . $signature;
+        $cursor   = get_option(self::CURSOR, array());
         if ($marked_only && empty($assoc['from-start']) && is_array($cursor) && ($cursor['scope'] ?? '') === $scope) {
-            $last = max(0, (int) ($cursor['before'] ?? PHP_INT_MAX));
+            $last  = max(0, (int) ($cursor['before'] ?? PHP_INT_MAX));
+            $retry = array_slice(array_map('intval', (array) ($cursor['retry'] ?? array())), 0, self::FAILED_LIMIT);
+        }
+        $keep     = $marked_only && !$dry;
+        $next     = $last;
+        $pinned   = false;
+        $paused   = false;
+        $deadline = $minutes ? microtime(true) + 60 * $minutes : 0;
+        $opts     = array('remove' => $remove, 'stale' => $stale, 'marked_only' => $marked_only, 'dry' => $dry, 'signature' => $signature);
+        // First the pictures an earlier run left waiting for a media batch.
+        foreach ($retry as $i => $id) {
+            if ($deadline && microtime(true) >= $deadline) {
+                $again  = array_merge($again, array_slice($retry, $i));
+                $paused = true;
+                break;
+            }
+            if ('failed' === self::cli_picture($id, $opts, $counts, $failed, $busy)) {
+                $again[] = $id;
+            }
         }
         global $wpdb;
-        do {
+        while (!$paused) {
             if ($marked_only) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed descending ID cursor, never an offset or meta-value sort.
                 $ids = $wpdb->get_col($wpdb->prepare(
@@ -3039,69 +3072,157 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                     $last
                 ));
             }
+            if (!$ids) {
+                if (!$pinned) {
+                    $next = 0; // Scan done: only kept pictures are left.
+                }
+                break;
+            }
             foreach ($ids as $id) {
                 $last = (int) $id;
-                if ($marked_only && !$dry && !$failed) {
-                    // Save before work: a killed request retries this picture,
-                    // and a failure pins the cursor here rather than skipping it.
-                    update_option(self::CURSOR, array('scope' => $scope, 'before' => $last + 1), false);
+                if ($keep && !$pinned) {
+                    // Save before work: a killed run retries this picture, and
+                    // a failure pins the cursor here rather than skipping it.
+                    $next = $last + 1;
+                    self::save_cursor($scope, $next, array_merge($again, $busy));
                 }
-                if ($marked_only) {
-                    $record = self::record($last);
-                    if (!$record) {
-                        continue;
-                    }
-                    if ('' === $record['backup']) {
-                        $counts['skipped']++;
-                        continue;
-                    }
-                    if ($stale && ($record['signature'] ?? '') === $signature) {
-                        continue;
-                    }
+                // Stop between pictures, never during one, so no lease or
+                // half-marked picture is left behind.
+                if ($deadline && microtime(true) >= $deadline) {
+                    $paused = true;
+                    break 2;
                 }
-                if ($remove ? !self::record($last) : (bool) self::unmarkable($last, false)) {
-                    continue;
-                }
-                if ($dry) {
-                    $meta = wp_get_attachment_metadata($last);
-                    if (!$remove && is_array($meta) && isset($meta['width'], $meta['height']) && min((int) $meta['width'], (int) $meta['height']) < (int) SEOProStack_Settings::get('watermark_images_min')) {
-                        continue;
-                    }
-                    WP_CLI::log(sprintf('%d %s', $last, get_attached_file($last)));
-                    $counts[$remove ? 'removed' : 'added']++;
-                    continue;
-                }
-                $status = $remove ? self::remove($last) : self::add($last);
-                if (is_wp_error($status)) {
-                    if (!$remove && self::unmarkable($last)) {
-                        $counts['skipped']++;
-                        continue;
-                    }
-                    $counts['failed']++;
-                    if (count($failed) < self::FAILED_LIMIT) {
-                        $failed[] = $last;
-                    }
-                    WP_CLI::warning(sprintf('%d: %s', $last, $status->get_error_message()));
-                } elseif (isset($counts[$status])) {
-                    $counts[$status]++;
-                } else {
-                    $counts['skipped']++;
+                if ('failed' === self::cli_picture($last, $opts, $counts, $failed, $busy)) {
+                    $pinned = true;
                 }
             }
             wp_cache_flush_runtime();
-        } while ($ids);
+        }
+        // A media batch's lease lasts minutes at most: give pictures that
+        // waited for one a second turn instead of leaving them stale.
+        $waiting = $paused ? array() : $busy;
+        if ($waiting) {
+            $busy = array();
+            foreach ($waiting as $i => $id) {
+                if ($deadline && microtime(true) >= $deadline) {
+                    $busy   = array_merge($busy, array_slice($waiting, $i));
+                    $paused = true;
+                    break;
+                }
+                if ('failed' === self::cli_picture($id, $opts, $counts, $failed, $busy)) {
+                    $again[] = $id;
+                }
+            }
+        }
 
         if ($dry) {
+            if ($paused) {
+                WP_CLI::log('Paused at the time budget.');
+            }
             WP_CLI::success(sprintf($remove ? '%d pictures would be unmarked.' : '%d pictures would be marked.', $remove ? $counts['removed'] : $counts['added']));
             return;
         }
-        if ($marked_only && !$failed) {
-            delete_option(self::CURSOR);
+        $kept = array_values(array_unique(array_merge($again, $busy)));
+        if ($keep) {
+            if ($pinned || $paused || $kept) {
+                self::save_cursor($scope, $next, $kept);
+            } else {
+                delete_option(self::CURSOR);
+            }
+        }
+        // Pictures still waiting for a media batch count as failed.
+        foreach ($busy as $id) {
+            $counts['failed']++;
+            if (count($failed) < self::FAILED_LIMIT) {
+                $failed[] = $id;
+            }
+        }
+        if ($paused) {
+            WP_CLI::log('Paused at the time budget; run the same command again to carry on.');
         }
         WP_CLI::success(sprintf('%d marked, %d unmarked, %d left alone, %d failed.', $counts['added'], $counts['removed'], $counts['skipped'], $counts['failed']));
         if ($failed) {
             WP_CLI::log(self::failed_text(array('sps_wm_failed' => $counts['failed'], 'sps_wm_failed_ids' => $failed)));
         }
+        if ($keep && $kept) {
+            WP_CLI::log(sprintf('%d pictures are kept in the cursor and tried first next run.', count($kept)));
+        }
+    }
+
+    /**
+     * Save the --marked-only/--stale place: where the scan carries on, and
+     * the pictures to try first.
+     *
+     * @param string $scope  Scope and mark signature.
+     * @param int    $before Next run looks at pictures below this ID.
+     * @param array  $retry  Attachment IDs to try first.
+     */
+    private static function save_cursor($scope, $before, array $retry) {
+        $cursor = array('scope' => $scope, 'before' => (int) $before);
+        if ($retry) {
+            $cursor['retry'] = array_slice(array_values(array_unique(array_map('intval', $retry))), 0, self::FAILED_LIMIT);
+        }
+        update_option(self::CURSOR, $cursor, false);
+    }
+
+    /**
+     * Mark, mark again or unmark one picture for watermark-images.
+     *
+     * @param int   $id     Attachment ID.
+     * @param array $opts   remove, stale, marked_only, dry and signature.
+     * @param array $counts Totals, by reference.
+     * @param array $failed Failed IDs (at most FAILED_LIMIT), by reference.
+     * @param array $busy   IDs that waited too long for a media batch, by reference.
+     * @return string "failed", "busy" or "done" (including skipped).
+     */
+    private static function cli_picture($id, array $opts, array &$counts, array &$failed, array &$busy) {
+        $id = (int) $id;
+        if ($opts['marked_only']) {
+            $record = self::record($id);
+            if (!$record) {
+                return 'done';
+            }
+            if ('' === $record['backup']) {
+                $counts['skipped']++;
+                return 'done';
+            }
+            if ($opts['stale'] && ($record['signature'] ?? '') === $opts['signature']) {
+                return 'done';
+            }
+        }
+        if ($opts['remove'] ? !self::record($id) : (bool) self::unmarkable($id, false)) {
+            return 'done';
+        }
+        if ($opts['dry']) {
+            $meta = wp_get_attachment_metadata($id);
+            if (!$opts['remove'] && is_array($meta) && isset($meta['width'], $meta['height']) && min((int) $meta['width'], (int) $meta['height']) < (int) SEOProStack_Settings::get('watermark_images_min')) {
+                return 'done';
+            }
+            WP_CLI::log(sprintf('%d %s', $id, get_attached_file($id)));
+            $counts[$opts['remove'] ? 'removed' : 'added']++;
+            return 'done';
+        }
+        $status = $opts['remove'] ? self::remove($id) : self::add($id);
+        if (!is_wp_error($status)) {
+            $counts[isset($counts[$status]) ? $status : 'skipped']++;
+            return 'done';
+        }
+        if (!$opts['remove'] && self::unmarkable($id)) {
+            $counts['skipped']++;
+            return 'done';
+        }
+        WP_CLI::warning(sprintf('%d: %s', $id, $status->get_error_message()));
+        if ('watermark_busy' === $status->get_error_code() && count($busy) < self::FAILED_LIMIT) {
+            // Another batch holds the lease (or a killed run left it, for up
+            // to five minutes): try again later rather than pin the cursor.
+            $busy[] = $id;
+            return 'busy';
+        }
+        $counts['failed']++;
+        if (count($failed) < self::FAILED_LIMIT) {
+            $failed[] = $id;
+        }
+        return 'failed';
     }
 
     /* --------------------------------------------------------------------- */
