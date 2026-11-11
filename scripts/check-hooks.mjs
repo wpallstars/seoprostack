@@ -17,6 +17,13 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.chdir(root);
 
+// Run git from a fixed system folder rather than whatever PATH holds.
+const gitBin = ['/usr/bin/git', '/usr/local/bin/git', '/opt/homebrew/bin/git'].find((p) => fs.existsSync(p));
+if (!gitBin) {
+	console.error('check-hooks: git was not found in /usr/bin, /usr/local/bin or /opt/homebrew/bin.');
+	process.exit(1);
+}
+
 // Live hooks: apply_filters( 'name', do_action( 'name', and _ref_array variants.
 // Deprecated: the old name is the first argument of the _deprecated functions.
 const liveRe = /\b(?:apply_filters|do_action)(?:_ref_array)?\(\s*'(seoprostack_[a-z0-9_]+)'/g;
@@ -29,7 +36,7 @@ const deprecated = new Set();
 let text = '';
 try {
 	text = execFileSync(
-		'git',
+		gitBin,
 		['grep', '-h', '-A2', '-E', '(apply_filters|do_action)|Link_Cards::render', '--', '*.php'],
 		{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }
 	);
@@ -42,7 +49,7 @@ for (const m of text.matchAll(deprecatedRe)) deprecated.add(m[1]);
 // Runtime-built names: SEOProStack_Link_Cards::render( $items, 'pro', ... )
 // calls apply_filters("seoprostack_{$id}_items"), so the finite set of
 // names is read from the render() call sites.
-for (const m of text.matchAll(/SEOProStack_Link_Cards::render\(\s*[^,]+\(\)\s*,\s*'([a-z0-9_]+)'/g)) live.add(`seoprostack_${m[1]}_items`);
+for (const m of text.matchAll(/SEOProStack_Link_Cards::render\([\w:]+\(\), '([a-z0-9_]+)'/g)) live.add(`seoprostack_${m[1]}_items`);
 
 let docText = '';
 try {
@@ -82,7 +89,7 @@ for (const [name, status] of listed) {
 // note, when git or the tags are unavailable (for example a shallow clone).
 const git = (...args) => {
 	try {
-		return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+		return execFileSync(gitBin, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 	} catch {
 		return null;
 	}
@@ -90,7 +97,7 @@ const git = (...args) => {
 const tags = (git('tag', '--list', '--sort=-v:refname') || '').split('\n').filter(Boolean);
 if (tags.length >= 3) {
 	const baselineDoc = git('show', `${tags[0]}:docs/HOOKS.md`);
-	const oldCode = git('grep', '-h', '-E', '_deprecated\\(', tags[2], '--', '*.php') || '';
+	const oldCode = git('grep', '-h', '-E', String.raw`_deprecated\(`, tags[2], '--', '*.php') || '';
 	const oldDeprecated = new Set([...oldCode.matchAll(deprecatedRe)].map((m) => m[1]));
 	for (const line of (baselineDoc || '').split('\n')) {
 		const cells = line.split(/(?<!\\)\|/).map((c) => c.trim());
