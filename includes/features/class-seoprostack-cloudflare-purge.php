@@ -341,7 +341,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if ($rules['pt']) {
             $lists[] = get_post_type_archive_link($post->post_type);
         }
-        if ($rules['a']) {
+        if ($rules['a'] && (int) $post->post_author > 0) {
             $lists[] = get_author_posts_url((int) $post->post_author);
         }
         $year  = (int) get_post_time('Y', false, $post);
@@ -355,6 +355,10 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if ($rules['d'] && $year) {
             $lists[] = get_day_link($year, $month, (int) get_post_time('j', false, $post));
         }
+        // The post type archive of posts is home_url() without its slash.
+        $lists = array_map(function ($url) {
+            return is_string($url) && '' === (string) wp_parse_url($url, PHP_URL_PATH) ? trailingslashit($url) : $url;
+        }, $lists);
         $lists = array_values(array_unique(array_filter($lists, 'is_string')));
 
         $files = array_merge(array($link), $lists);
