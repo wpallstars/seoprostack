@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.197-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.198-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.197
+Version: 1.3.198
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2545,6 +2545,16 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.198
+
+- Faster: **Image loading** gives pictures in a Kadence Blocks row's column a `sizes` for the column's width on a computer, so pictures that load straight away are fetched at the size they show instead of the window's width. On one directory home page the main picture, in a narrow column, had come as its 1024 px copy where it showed 406 px wide (205 KiB more) (#1517).
+- Faster: **Search custom fields** no longer lets a common search word read the whole postmeta table. On a directory site with about 4 million postmeta rows, a search's main query went from 3.90 s to 0.14 s, with the same results (#1513).
+- Faster: with Tutor LMS Pro's Notifications add-on, **Fixes for other plugins** has the web server answer its push notification worker (`/tutor-push-notification.js`) as a file, instead of starting WordPress for each browser check. Once the add-on is off, the file tells browsers to remove the worker, so they stop asking. A file of that name SEO Pro Stack did not write is left alone (#1470).
+- New: the Website Setup board's starter data has a task to clear Cloudflare's cache with LiteSpeed Cache, with the token permissions it needs, after the Cloudflare set-up task (#1463).
+- Fixed: translated count strings keep the number first, as the English does, in about 730 plural entries of the bundled French, Spanish, Portuguese, Italian, German, Dutch, Polish, Romanian, Latvian and Estonian translations (#1459).
+- Fixed: an API token field left empty keeps the saved token, such as **Clear Cloudflare's copies of pages**'s; only a space removes it (#1456).
+- Developers: `docs/HOOKS.md` lists every `seoprostack_*` filter and action, supported or internal, with a two-minor-release deprecation rule for supported ones, checked by `scripts/check-hooks.mjs` (#1489).
 
 ### 1.3.197
 
