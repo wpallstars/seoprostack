@@ -27,8 +27,18 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
     /** Mailto link attributes the script puts back (with data-*). */
     const RESTORE = array('title', 'aria-label', 'aria-description');
 
+    /**
+     * Kadence theme actions whose callbacks (priority 10) print its header,
+     * mobile header and footer social buttons with echo and no filter; an
+     * Email button is a mailto: link (GH#1557).
+     */
+    const KADENCE_SOCIAL = array('kadence_header_social', 'kadence_mobile_social', 'kadence_footer_social');
+
     /** @var int|null One obfuscation key per response; not encryption. */
     private static $key = null;
+
+    /** @var int Output buffer level started for a Kadence social action; -1 when none. */
+    private static $social_level = -1;
 
     /** @return array Settings schema. */
     public static function settings() {
@@ -38,7 +48,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'security',
                 'label'       => __('Email protection', 'seoprostack'),
-                'description' => __('Hide email addresses in content, widgets, blocks and menus from scrapers that read HTML. A small script restores the text and email links for visitors. Without JavaScript, a message asks visitors to enable it. Does not change stored content, form values, feeds or REST responses. Works without Cloudflare; scrapers that run JavaScript can still read addresses. Cannot hide schema emails, other plugins’ script data or hard-coded templates: remove the optional schema email, change the plugin’s text or edit the template at its source.', 'seoprostack'),
+                'description' => __('Hide email addresses in content, widgets, blocks, menus and the Kadence theme’s social buttons from scrapers that read HTML. A small script restores the text and email links for visitors. Without JavaScript, a message asks visitors to enable it. Does not change stored content, form values, feeds or REST responses. Works without Cloudflare; scrapers that run JavaScript can still read addresses. Cannot hide schema emails, other plugins’ script data or hard-coded templates: remove the optional schema email, change the plugin’s text or edit the template at its source.', 'seoprostack'),
                 'panel'       => true,
             ),
         );
@@ -58,7 +68,43 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         foreach (array('the_content', 'widget_text', 'widget_text_content', 'widget_block_content', 'render_block', 'wp_nav_menu_items') as $hook) {
             add_filter($hook, array(__CLASS__, 'protect'), 999);
         }
+        // Without this, Cloudflare's Email Address Obfuscation rewrites the
+        // Email button and adds its own parser-blocking decoder script.
+        foreach (self::KADENCE_SOCIAL as $hook) {
+            add_action($hook, array(__CLASS__, 'social_start'), 9);
+            add_action($hook, array(__CLASS__, 'social_end'), 11);
+        }
         add_filter('script_loader_tag', array(__CLASS__, 'defer_script'), 10, 2);
+    }
+
+    /**
+     * Start collecting what a Kadence social action prints. Not in the
+     * Customizer preview, whose selective refresh redraws the buttons
+     * without running the restoring script again.
+     */
+    public static function social_start() {
+        if (self::$social_level < 0 && !is_customize_preview() && ob_start()) {
+            self::$social_level = ob_get_level();
+        }
+    }
+
+    /**
+     * Print what the Kadence social action printed, with its addresses and
+     * mailto: links protected.
+     */
+    public static function social_end() {
+        if (self::$social_level < 1) {
+            return;
+        }
+        $level              = self::$social_level;
+        self::$social_level = -1;
+        if (ob_get_level() !== $level) {
+            // Another callback's buffer is open above ours, or ours was
+            // closed: leave every buffer as it is, so nothing is lost; the
+            // buttons stay unprotected.
+            return;
+        }
+        echo self::protect((string) ob_get_clean()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the theme's own output; protect() only encodes addresses and mailto: links in it.
     }
 
     /**
