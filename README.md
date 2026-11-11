@@ -2136,6 +2136,18 @@ Choose who takes card payments. You can use more than one.
 
 Done when a live payment reaches your account and its receipt email arrives.
 
+##### 12. Setup Backups, Updates and Uptime Alerts
+
+Keeps the site safe to change and tells you when it is down, before your customers do. The steps are for Hostinger; other hosts have the same three things under other names.
+
+1. **Backups.** In hPanel, open the website's **Backups** ([guide](https://docs.hostinger.com/websites/backups)) and check recent backups are listed. Premium plans back up weekly, Business and Cloud plans daily (or add **Daily backups**). A site that takes orders, bookings or messages needs daily. Email mailboxes are not in website backups.
+2. **Before a big change** (updating by hand, an import, a new plugin), click **Generate backup** first (once a day at most) and wait until it shows in the list. Entry-level plans need Business or higher for this; until then, download the latest automatic backup instead. Once, **Download** a backup and check it holds the site's files and its database (`.sql`) file, so you know it is usable. Never test **Restore** on the live site: it overwrites the current files and database. To try changes first, use a [staging copy](https://docs.hostinger.com/wordpress/staging) where the plan includes it (not on WordPress multisite).
+3. **Updates: choose one updater**, so two never compete. In hPanel, open the WordPress site's **Security** page ([guide](https://docs.hostinger.com/wordpress/security)). **Smart auto-updates** lets Hostinger update WordPress, plugins and themes at the level you choose (keep at least security updates on; [what it changes](https://docs.hostinger.com/wordpress/hostinger-plugins/must-use-plugins/smart-auto-updates)). **Native auto-updates** leaves it to WordPress (Plugins → Enable auto-updates, per plugin). Premium plugins and themes update from their own servers with their licence or updater.
+4. **Once a month**, open Dashboard → Updates (or ask your AI for `wp plugin list --update=available`), take a backup, install what is waiting, then check the home page, a form and wp-admin. Add a card for anything that broke.
+5. **Uptime alert.** In hPanel, open **Websites → Monitoring** ([guide](https://docs.hostinger.com/websites/monitoring)), create an alert for the site's address and send it to the support mailbox.
+
+Done when a backup within the site's interval is listed (the last day for a site that needs daily, otherwise the last week), one downloaded backup has been checked, a comment here names the updater chosen and who checks updates each month, and the uptime alert is saved.
+
 <!-- setup-tasks:end -->
 
 ### Hosting needs (Server)
