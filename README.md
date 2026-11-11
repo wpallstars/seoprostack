@@ -2011,7 +2011,29 @@ In GitHub builds, the Hostinger and 101domain links in these tasks (here and on 
 <!-- setup-tasks:start -->
 <!-- Made by scripts/readme-setup-tasks.js from starters/fluent-boards.json: edit the tasks there, then run it. -->
 
-##### 1. Setup Hosting (Hostinger)
+##### 1. Accounts and Keys Checklist
+
+Every account this site needs, and the task on this board that sets it up. Open each account in the business's name, with an email address the business keeps, and turn on two-factor authentication. Keys go where each task says (the plugin's settings, `wp-config.php` or the aidevops secret store), never into a task or comment.
+
+- **Hosting:** Hostinger (Setup Hosting), with SSH for your AI assistant (Setup SSH Access for aidevops).
+- **Domain and DNS:** a domain registrar and Cloudflare (Setup Cloudflare). The same Cloudflare account gives the cache token (Clear Cloudflare's cache with LiteSpeed Cache), Turnstile spam protection for forms and logins, and R2 file storage.
+- **Email:** mailboxes people write to, such as hello@ and support@ (Setup Business Email), and Amazon SES for the emails the site sends (Setup Email Sending).
+- **Google:** one Google account for the business, with a Google Cloud project and billing (Setup Google Cloud) for the Google APIs the site uses, such as Cloud Translation on a site in more than one language; and Search Console (Setup Google Search Console).
+- **Payments:** Stripe, PayPal, Paddle or Polar (Setup Payment Processing).
+- **Other plugins** add tasks for their own accounts to this board, such as SEO Pro Directory's Google Maps Platform and Outscraper.
+
+**A site copied from another one** (a template, a demo or a review copy) arrives with that site's keys. They belong to its owner: they bill that owner and stop working when the owner changes them. Check each place below and put in your own key, or remove what the site does not use:
+
+- **FluentSMTP → Settings:** email connections (Amazon SES keys).
+- **LiteSpeed Cache → CDN → Cloudflare:** the API token.
+- **Settings → Cloudflare Turnstile:** the site key and secret key.
+- **Settings → TranslatePress → Automatic Translation:** the Google Translate API key.
+- **The payment plugin's settings:** API keys and webhook secrets.
+- **`wp-config.php`:** keys defined for plugins. Your AI can list their names, never their values, with `wp config list --fields=name`.
+
+Done when every account the site uses is in the business's name and every key on the site is its own.
+
+##### 2. Setup Hosting (Hostinger)
 
 Where the website lives. We use Hostinger: fast LiteSpeed servers, daily backups and SSH access for your AI assistant.
 
@@ -2022,7 +2044,7 @@ Where the website lives. We use Hostinger: fast LiteSpeed servers, daily backups
 
 Done when the site loads at its address and you can log in to hPanel.
 
-##### 2. Setup Cloudflare (domain DNS and security)
+##### 3. Setup Cloudflare (domain DNS and security)
 
 Cloudflare runs the domain's DNS for free and protects and speeds up the site.
 
@@ -2034,7 +2056,7 @@ Cloudflare runs the domain's DNS for free and protects and speeds up the site.
 
 Done when Cloudflare shows the domain as **Active** and the site loads over https.
 
-##### 3. Clear Cloudflare's cache with LiteSpeed Cache
+##### 4. Clear Cloudflare's cache with LiteSpeed Cache
 
 LiteSpeed Cache keeps fast copies of pages on the server, and Cloudflare can keep its own. When LiteSpeed Cache empties its copies (Purge All, after updates), Cloudflare's stay until they expire, so visitors can see old pages. With a Cloudflare token, every Purge All empties Cloudflare too.
 
@@ -2048,7 +2070,21 @@ LiteSpeed Cache keeps fast copies of pages on the server, and Cloudflare can kee
 
 Done when Purge All reports that Cloudflare was notified. (Only if the site's pages are cached by Cloudflare, `cf-cache-status` on the home page shows `MISS` straight after a purge; a visitor's request can refill it first, and `DYNAMIC` is normal when Cloudflare does not cache HTML.)
 
-##### 4. Setup aidevops (your AI assistant)
+##### 5. Setup Spam Protection (Cloudflare Turnstile)
+
+*Added on sites where the `simple-cloudflare-turnstile` plugin is active.*
+
+[Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) stops spam bots on the site's forms, login and registration, usually without a puzzle for people. It is free, in the same Cloudflare account as the domain. The Simple Cloudflare Turnstile plugin adds it to the site.
+
+1. In Cloudflare, open **Turnstile → Add widget**. Name it after the site, add the site's domain as a hostname (on a multisite, each domain its sites use), choose the **Managed** mode and create it.
+2. Copy the **Site Key** and **Secret Key** it shows.
+3. In WordPress, open **Settings → Cloudflare Turnstile**, paste both keys and save. Complete the test response it then shows: Turnstile is added to no form until that test succeeds. On a multisite, do this on each site.
+4. Choose where it shows: **Login Form**, **Register Form**, the password reset and comments, the forms plugin (such as **Enable on all Fluent Forms**) and, on a shop, WooCommerce's forms.
+5. Log out and in again, and send a test from one form.
+
+A site copied from another one has that site's keys here: replace them with your own, or the check fails on your domain. Never paste a key into a task or comment. Done when the test response succeeds and a form sends with Turnstile showing.
+
+##### 6. Setup aidevops (your AI assistant)
 
 [aidevops](https://aidevops.sh) lets an AI assistant on your computer set up and look after this site with you: plugin updates, settings, checks and fixes, and these setup tasks.
 
@@ -2061,7 +2097,7 @@ Docs: [aidevops.sh/docs](https://aidevops.sh/docs) and [GitHub](https://github.c
 
 Done when `aidevops status` shows it ready.
 
-##### 5. Setup SSH Access for aidevops
+##### 7. Setup SSH Access for aidevops
 
 SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your AI can do in seconds what takes many clicks, and check its own work. Recommended for every site.
 
@@ -2072,7 +2108,7 @@ SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your A
 
 Never share your hosting password or private key. Done when `wp --info` works over SSH.
 
-##### 6. Connect your AI to this Board
+##### 8. Connect your AI to this Board
 
 Optional. With SSH (the task before), aidevops can already read and update this board through WP-CLI. To let another AI client (ChatGPT, Claude) work on the board directly:
 
@@ -2082,7 +2118,7 @@ Optional. With SSH (the task before), aidevops can already read and update this 
 
 Without any AI: work through the tasks in order and move each to Done when finished.
 
-##### 7. Setup Business Email (Purelymail)
+##### 9. Setup Business Email (Purelymail)
 
 Mailboxes people write to, such as hello@ and support@ at your domain. [Purelymail](https://purelymail.com/) is simple and low-cost ([pricing](https://purelymail.com/pricing)).
 
@@ -2093,7 +2129,7 @@ Mailboxes people write to, such as hello@ and support@ at your domain. [Purelyma
 
 Done when mail arrives both ways and Purelymail shows the DNS records as correct.
 
-##### 8. Setup Email Sending (Amazon SES)
+##### 10. Setup Email Sending (Amazon SES)
 
 The website's own emails (forms, newsletters, password resets) go through [Amazon SES](https://aws.amazon.com/ses/), so they reach inboxes instead of spam. FluentSMTP connects WordPress to it.
 
@@ -2102,9 +2138,9 @@ The website's own emails (forms, newsletters, password resets) go through [Amazo
 3. [Request production access](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html), saying the site sends only emails people ask for.
 4. Create access keys that may only send email, and enter them in **FluentSMTP → Settings** ([guide](https://fluentsmtp.com/docs/set-up-amazon-ses-in-fluent-smtp/)), then send a test.
 
-FluentSMTP encrypts the key with the site's salts: re-enter it if they change. Done when the test email arrives.
+FluentSMTP encrypts the key with the site's salts: re-enter it if they change. A site copied from another one has that site's connections in FluentSMTP: delete them once yours works. Done when the test email arrives.
 
-##### 9. Setup File Storage (Cloudflare R2)
+##### 11. Setup File Storage (Cloudflare R2)
 
 [Cloudflare R2](https://developers.cloudflare.com/r2/get-started/) stores files off the server, such as backups, with no download fees. The free allowance covers most sites.
 
@@ -2115,9 +2151,9 @@ FluentSMTP encrypts the key with the site's salts: re-enter it if they change. D
 
 Done when a first backup appears in the bucket.
 
-##### 10. Setup Google Cloud
+##### 12. Setup Google Cloud
 
-Google services the site uses (such as Maps) are billed through a Google Cloud project. Google Search Console is free and separate: add the site there too ([Search Console](https://search.google.com/search-console/about)).
+Google services the site uses (such as Maps, or Cloud Translation on a site in more than one language) are billed through a Google Cloud project. Search Console, which is free, has its own task.
 
 1. Sign in to the [Google Cloud console](https://console.cloud.google.com/) with the business's Google account.
 2. Create a billing account (a card is needed; most small sites stay in the free monthly credit), then a project named after the site.
@@ -2125,7 +2161,32 @@ Google services the site uses (such as Maps) are billed through a Google Cloud p
 
 Done when the project exists with billing and a budget alert.
 
-##### 11. Setup Payment Processing
+##### 13. Setup Google Search Console
+
+[Search Console](https://search.google.com/search-console/about) shows how Google sees the site: the searches it appears in, the pages Google cannot index and why, and problems to fix. It is free, and separate from Google Cloud. Do it once the site is on its own domain and open to search engines (**Settings → Reading**).
+
+1. Sign in to Search Console with the business's Google account and add a **Domain** property for the site's domain.
+2. Google shows a TXT record: add it in Cloudflare → DNS, then click **Verify** (it can take a few minutes).
+3. Open **Sitemaps** and submit the site's sitemap address (with Rank Math, `sitemap_index.xml`).
+4. Give the team access under **Settings → Users and permissions**, rather than sharing a login.
+
+Bing Webmaster Tools can import the site from Search Console, for Bing and the search engines it supplies. Done when the property is verified and the sitemap shows **Success**.
+
+##### 14. Setup Google Translation (Cloud Translation API)
+
+*Added on sites where the `translatepress-multilingual` plugin is active.*
+
+TranslatePress translates the site's pages into its other languages automatically, with Google's Cloud Translation API, billed to the Google Cloud project from **Setup Google Cloud**. Google gives a free allowance each month; after it, you pay by the number of characters translated.
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), in the site's project, open **APIs & Services → Library**, find **Cloud Translation API** and click **Enable**.
+2. Open **APIs & Services → Credentials → Create credentials → API key** ([Google's guide to API keys](https://cloud.google.com/docs/authentication/api-keys)).
+3. Restrict the key. **API restrictions:** Cloud Translation API only. **Application restrictions:** Websites, with the address TranslatePress shows as **Your HTTP referrer is** under its Google key (TranslatePress sends it with each request).
+4. In WordPress, open **Settings → TranslatePress → Automatic Translation**, turn on **Enable Automatic Translation**, choose **Google Translate v2**, paste the key as the **Google Translate API Key** and save. Set **Limit machine translation / characters per day** so one busy day cannot run up the bill.
+5. Open a page in another language that was not translated before: it shows translated.
+
+A site copied from another one has that site's key here: replace it with yours. Never paste the key into a task or comment. Done when a new page translates and the key comes from your own project.
+
+##### 15. Setup Payment Processing
 
 Choose who takes card payments. You can use more than one.
 
@@ -2139,7 +2200,7 @@ Choose who takes card payments. You can use more than one.
 
 Done when a live payment reaches your account and its receipt email arrives.
 
-##### 12. Setup Backups, Updates and Uptime Alerts
+##### 16. Setup Backups, Updates and Uptime Alerts
 
 Keeps the site safe to change and tells you when it is down, before your customers do. The steps are for Hostinger; other hosts have the same three things under other names.
 
