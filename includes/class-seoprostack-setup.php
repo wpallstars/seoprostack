@@ -333,6 +333,7 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentcrm-email-dark.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-fluentcrm-email-dark-marker.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-kadence-slider-markup.php';
         if (is_multisite()) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-network-plugins.php';
         }
@@ -366,6 +367,10 @@ final class SEOProStack_Setup {
         if (class_exists('SEOProStack_Network_Plugins', false)) {
             SEOProStack_Network_Plugins::init();
         }
+
+        // Kadence slides as div, so the roles Splide gives them are valid
+        // (GH#1528); on with Plugin fixes, checked when a block is drawn.
+        SEOProStack_Kadence_Slider_Markup::boot();
 
         // Fixes that cannot wait for the features' boot on init.
         SEOProStack_Plugin_Fixes::early();
