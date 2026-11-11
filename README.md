@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.202-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.203-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.202
+Version: 1.3.203
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2638,9 +2638,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.203
 
 - New: the Website Setup board starts with an **Accounts and Keys Checklist**: every account the site needs, in the business's name, and where a site copied from a template or demo keeps the previous owner's keys, to replace with your own. New tasks set up Google Search Console, Cloudflare Turnstile spam protection and, on a site in more than one language, Google Cloud Translation for TranslatePress (#1554).
+- Fixed: saving the Customizer, widgets, the site title, tagline or icon, or Kadence's global palette now empties the page cache (LiteSpeed Cache or WP-Optimize, and Cloudflare's copies where set up), so a new logo, header or colours show on cached pages straight away (#1546).
 
 ### 1.3.202
 
