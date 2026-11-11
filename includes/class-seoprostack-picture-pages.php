@@ -36,16 +36,24 @@ class SEOProStack_Picture_Pages {
 
     /**
      * Remember the post this page shows, once a request: singular pages
-     * only, as archives have no post to purge. A picture seen before the
-     * main query (no post yet) leaves it to a later one.
+     * only, as archives have no post to purge. Asked before the main query
+     * (a picture shown early, by a plugin on init), it waits for the query:
+     * the picture is not looked at again when the page shows it.
      */
     public static function note() {
-        $post_id = is_singular() ? (int) get_queried_object_id() : 0;
-        if (self::$noted || $post_id < 1) {
+        if (self::$noted) {
+            return;
+        }
+        if (!did_action('wp')) {
+            add_action('wp', array(__CLASS__, 'note'));
             return;
         }
         self::$noted = true;
-        $pages       = self::all();
+        $post_id     = is_singular() ? (int) get_queried_object_id() : 0;
+        if ($post_id < 1) {
+            return;
+        }
+        $pages = self::all();
         if (in_array($post_id, $pages, true) || count($pages) >= self::MAX) {
             return;
         }
