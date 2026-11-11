@@ -161,8 +161,8 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_post_scheduler_applies` | filter | supported | 0.3.0 | post scheduler | `true`; `$data`, `$postarr` |
 | `seoprostack_post_type_switched` | action | supported | 0.9.0 | post type switch | `(int) $post_id`, `$post->post_type`, `$from` |
 | `seoprostack_preset_condition` | filter | supported | 0.10.1 | presets | `$holds`; `$condition` |
-| `seoprostack_preset_store` | filter | supported | 0.12.8 | presets | `null`; `$slug`, `$name`, `$value` |
-| `seoprostack_preset_write_check` | filter | supported | 0.12.8 | presets | `null`; `$slug` |
+| `seoprostack_preset_store` | filter | supported | 0.12.8 | presets | `null`; `$slug`, `$name`, `$value`. Return `true` when your code saved the value, or a `WP_Error` to stop |
+| `seoprostack_preset_write_check` | filter | supported | 0.12.8 | presets | `null`; `$slug`. Return a `WP_Error` to stop the write |
 | `seoprostack_pro_items` | filter | supported | 0.5.0 | link cards | `array` directory entries; built as `seoprostack_{$id}_items` |
 | `seoprostack_redirect_links` | filter | supported | 1.3.106 | redirect links | `(array) $map['exact']` |
 | `seoprostack_redundant_plugins` | filter | supported | 1.3.133 | replaced plugins | `array()` |

@@ -84,9 +84,10 @@ for (const [name, status] of listed) {
 }
 
 // Release baseline: a supported hook listed at the latest release tag may not
-// vanish unless the code two releases back already called it through a
-// _deprecated function (the two-release deprecation period). Skipped, with a
-// note, when git or the tags are unavailable (for example a shallow clone).
+// vanish unless it was already called through a _deprecated function in a
+// release two minor versions back (latest 1.5.x: the newest 1.3.x or older
+// tag), the two-minor-release deprecation period. Skipped, with a note, when
+// git or the tags are unavailable (for example a shallow clone).
 const git = (...args) => {
 	try {
 		return execFileSync(gitBin, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
@@ -94,20 +95,26 @@ const git = (...args) => {
 		return null;
 	}
 };
-const tags = (git('tag', '--list', '--sort=-v:refname') || '').split('\n').filter(Boolean);
-if (tags.length >= 3) {
+const minorKey = (tag) => {
+	const v = /^v?(\d+)\.(\d+)\.\d+$/.exec(tag);
+	return v ? Number(v[1]) * 1000 + Number(v[2]) : null;
+};
+const tags = (git('tag', '--list', '--sort=-v:refname') || '').split('\n').filter((t) => minorKey(t) !== null);
+if (tags.length) {
 	const baselineDoc = git('show', `${tags[0]}:docs/HOOKS.md`);
-	const oldCode = git('grep', '-h', '-E', String.raw`_deprecated\(`, tags[2], '--', '*.php') || '';
+	const oldTag = tags.find((t) => minorKey(t) <= minorKey(tags[0]) - 2);
+	const oldCode = oldTag ? git('grep', '-h', '-E', String.raw`_deprecated\(`, oldTag, '--', '*.php') || '' : '';
 	const oldDeprecated = new Set([...oldCode.matchAll(deprecatedRe)].map((m) => m[1]));
 	for (const line of (baselineDoc || '').split('\n')) {
 		const cells = line.split(/(?<!\\)\|/).map((c) => c.trim());
 		const m = /^`(seoprostack_[a-z0-9_]+)`$/.exec(cells[1] || '');
 		if (!m || cells[3] !== 'supported') continue;
 		if (live.has(m[1]) || deprecated.has(m[1]) || oldDeprecated.has(m[1])) continue;
-		problems.push(`${m[1]} was a supported hook in ${tags[0]} and is gone without being deprecated in ${tags[2]} or earlier: restore it, or deprecate it for two releases first (docs/HOOKS.md → Deprecation rule).`);
+		const since = oldTag ? `in ${oldTag} or earlier` : 'two minor releases before';
+		problems.push(`${m[1]} was a supported hook in ${tags[0]} and is gone without being deprecated ${since}: restore it, or deprecate it for two minor releases first (docs/HOOKS.md → Deprecation rule).`);
 	}
 } else {
-	console.log('check-hooks: fewer than three release tags found; release baseline check skipped.');
+	console.log('check-hooks: no release tags found (a shallow clone?); release baseline check skipped.');
 }
 
 if (problems.length) {
