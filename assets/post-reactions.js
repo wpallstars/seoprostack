@@ -351,6 +351,14 @@
 
 	/* ----- Server ----- */
 
+	// A page served to a visitor (no logged-in class): its state is public
+	// totals only, the same for everyone, so it is a GET that LiteSpeed Cache
+	// can keep, with the posts in order and the page's language, so each page
+	// asks for one address (GH#1490).
+	function publicState(what) {
+		return what === 'state' && !state.nonce && !(document.body && document.body.classList.contains('logged-in'));
+	}
+
 	function send(what, data) {
 		var body = new window.URLSearchParams();
 		body.append('action', cfg.action);
@@ -361,7 +369,21 @@
 		Object.keys(data || {}).forEach(function (k) {
 			body.append(k, data[k]);
 		});
-		return window.fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body }).then(function (res) {
+		// The counts (state) are not needed for the page's first view: ask
+		// for them at low priority, behind its pictures and scripts, so they
+		// are no request chain the page seems to wait on (GH#1502). Changes
+		// keep the default priority. Browsers without it ignore the option.
+		var request;
+		if (publicState(what)) {
+			body.set('posts', String((data && data.posts) || '').split(',').filter(Boolean).map(Number).sort(function (a, b) {
+				return a - b;
+			}).join(','));
+			body.append('lang', document.documentElement.lang || '');
+			request = window.fetch(cfg.ajaxUrl + (cfg.ajaxUrl.indexOf('?') === -1 ? '?' : '&') + body.toString(), { priority: 'low', credentials: 'same-origin' });
+		} else {
+			request = window.fetch(cfg.ajaxUrl, { method: 'POST', priority: what === 'state' ? 'low' : 'auto', credentials: 'same-origin', body: body });
+		}
+		return request.then(function (res) {
 			return res.json().catch(function () {
 				return null;
 			}).then(function (json) {

@@ -461,14 +461,23 @@ final class SEOProStack_Litespeed {
 
     /**
      * Whether LiteSpeed Cache's Cloudflare API is connected: on, with a key
-     * and a zone. Only read; the preset never sets either.
+     * and a zone. Only read; the preset never sets either. Not for a site
+     * on a subdomain of the zone's domain (as LiteSpeed Cache stores it):
+     * its Clear Cloudflare cache empties the whole zone, every other site
+     * on the domain too, so Clear Cloudflare's copies of pages empties
+     * such a site's own pages instead (#1461).
      *
      * @return bool
      */
     private static function cloudflare_connected() {
-        return (bool) self::conf('cdn-cloudflare', false)
-            && '' !== (string) self::conf('cdn-cloudflare_key', '')
-            && '' !== (string) self::conf('cdn-cloudflare_zone', '');
+        if (!self::conf('cdn-cloudflare', false)
+            || '' === (string) self::conf('cdn-cloudflare_key', '')
+            || '' === (string) self::conf('cdn-cloudflare_zone', '')) {
+            return false;
+        }
+        $domain = strtolower(trim((string) self::conf('cdn-cloudflare_name', '')));
+        $host   = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        return '' === $domain || $host === $domain || 'www.' . $domain === $host;
     }
 
     /**
@@ -496,6 +505,25 @@ final class SEOProStack_Litespeed {
         if (is_string($stored) && '' !== trim($stored)) {
             return trim($stored);
         }
+
+        /**
+         * Filter the sitemap SEO Pro Stack's LiteSpeed Cache preset gives
+         * LiteSpeed Cache's crawler, when none is set there yet.
+         *
+         * @param string $url Sitemap index URL, or '' when none is known (the preset then leaves the crawler alone).
+         */
+        $url = apply_filters('seoprostack_crawler_sitemap', self::sitemap_index());
+        return is_string($url) ? trim($url) : '';
+    }
+
+    /**
+     * The site's sitemap index: Rank Math's, Yoast's, or WordPress's own,
+     * whichever is on. Also used for robots.txt (SEOProStack_Robots_Txt).
+     *
+     * @since 1.3.197
+     * @return string URL, or '' when the site has none.
+     */
+    public static function sitemap_index() {
         $url = '';
         if (class_exists('\RankMath\Helper') && \RankMath\Helper::is_module_active('sitemap')) {
             // As Rank Math builds it (its index slug can be filtered).
@@ -512,14 +540,6 @@ final class SEOProStack_Litespeed {
         } elseif (function_exists('wp_sitemaps_get_server') && wp_sitemaps_get_server()->sitemaps_enabled()) {
             $url = get_sitemap_url('index');
         }
-
-        /**
-         * Filter the sitemap SEO Pro Stack's LiteSpeed Cache preset gives
-         * LiteSpeed Cache's crawler, when none is set there yet.
-         *
-         * @param string $url Sitemap index URL, or '' when none is known (the preset then leaves the crawler alone).
-         */
-        $url = apply_filters('seoprostack_crawler_sitemap', is_string($url) ? $url : '');
         return is_string($url) ? trim($url) : '';
     }
 

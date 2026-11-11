@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.194
+Stable tag: 1.3.197
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -19,7 +19,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person admin colours; dark copies go on deactivation.
+* **Light, Dark or System**: per-person admin colours.
 * **Developer admins**: limit plugin, theme, admin and address changes.
 * **Organise the admin menu** with role previews.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
@@ -71,9 +71,10 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
-* **Links skip redirects**: link straight to Rank Math's permanent on-site redirect targets.
+* **Links skip redirects** to Rank Math's on-site targets.
+* **Robots.txt rules**, with any SEO plugin or none: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
-* **Speed settings**, **Preload pages**, **Keep pages cached** after purges, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**, lighter WooCommerce and Tutor LMS pages, faster Kadence Blocks editing, no Rank Math stats bar and AI Engine's chatbot loaded on first use.
+* **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
 * **Load the CSS each page uses first** (off): pages with Kadence and the recommended plugins show sooner, worked out on your server.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
@@ -88,9 +89,9 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) applies them, and later changes, on its own.
-* **Site templates**: WP-CLI apply, compare and undo; plugin updates keep edited parts.
+* **Site templates**: WP-CLI apply, compare and undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
-* **Fixes for other plugins**: known bug workarounds; LiteSpeed requests finish after disconnects.
+* **Fixes for other plugins**: known bug workarounds.
 * **Agency** orders and client dashboard; **Recommended** themes, plugins, hosting and tools.
 
 = Affiliate disclosure =
@@ -101,6 +102,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 * **Your IMAP server** (opt-in): reads support email; saves whole sent ticket emails (up to 20 retried); SSL/STARTTLS, verified. Its policies apply.
 * **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **Cloudflare API** (api.cloudflare.com, opt-in): sends your token (or email and key), zone ID and addresses to purge. Policies as above.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
@@ -154,7 +156,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.194 =
-* Fixed: Keep pages cached lets sites on one hosting account take turns filling, ends a batch after a slow page, and fills only main pages on sites hidden from search engines (#1471).
+= 1.3.197 =
+* New: Robots.txt rules, on by default (#1506).
+* Improved: cloud storage handover resumes (#1499).
 
 Older: `changelog.txt`.

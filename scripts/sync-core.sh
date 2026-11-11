@@ -247,12 +247,20 @@ default_starter_parent() {
 	# Git directory is named or located (no --path-format, so old Git works too).
 	# A bare main repository is no checkout: its entry has a "bare" line, so
 	# the first linked worktree is used instead.
-	main_wt="$(git worktree list --porcelain 2>/dev/null | awk '
+	# A listed worktree whose folder is gone is skipped for the next one.
+	local candidate
+	main_wt=""
+	while IFS= read -r candidate; do
+		if [[ -n "$candidate" && -d "$candidate" ]]; then
+			main_wt="$candidate"
+			break
+		fi
+	done < <(git worktree list --porcelain 2>/dev/null | awk '
 		/^worktree / { path = substr($0, 10); next }
 		$0 == "bare" { path = ""; next }
-		$0 == "" && path != "" { print path; found = 1; exit }
-		END { if (!found && path != "") print path }
-	')" || main_wt=""
+		$0 == "" && path != "" { print path; path = ""; next }
+		END { if (path != "") print path }
+	')
 	if [[ -n "$main_wt" && -d "$main_wt" ]]; then
 		top="$main_wt"
 	fi

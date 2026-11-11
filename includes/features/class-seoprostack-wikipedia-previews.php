@@ -201,7 +201,8 @@ class SEOProStack_Wikipedia_Previews extends SEOProStack_Feature {
     }
 
     /**
-     * Load the script and style once, in the footer.
+     * Load the script and style once, the script in the footer, deferred
+     * (it only handles pointer and focus events; GH#1502).
      */
     private static function enqueue() {
         if (wp_script_is(self::HANDLE, 'enqueued')) {
@@ -210,7 +211,7 @@ class SEOProStack_Wikipedia_Previews extends SEOProStack_Feature {
         $js  = 'assets/wikipedia-previews.js';
         $css = 'assets/wikipedia-previews.css';
         wp_enqueue_style(self::HANDLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), true);
+        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
         wp_add_inline_script(self::HANDLE, 'window.seoprostackWikipedia = ' . wp_json_encode(array(
             'readMore'    => __('Read more on Wikipedia', 'seoprostack'),
             'close'       => __('Close', 'seoprostack'),

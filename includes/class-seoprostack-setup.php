@@ -107,6 +107,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
+        'SEOProStack_Robots_Txt',
         'SEOProStack_Old_Slugs',
         'SEOProStack_Rank_Math_Defaults',
         'SEOProStack_External_Links',
@@ -117,6 +118,8 @@ final class SEOProStack_Setup {
         'SEOProStack_Speed_Plan',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Keep_Pages_Cached',
+        // After Keep pages cached: reads its purge scope and page cache.
+        'SEOProStack_Cloudflare_Purge',
         'SEOProStack_Host_Redirect',
         'SEOProStack_Used_Css',
         // After Used CSS: its page buffer starts later, so it rewrites only the page's own styles.
@@ -128,6 +131,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Fluentforms_Later',
         'SEOProStack_Turnstile_Later',
         'SEOProStack_Ai_Engine_Later',
+        'SEOProStack_Translatepress_Defer',
         'SEOProStack_Maps_Later',
         'SEOProStack_Delayed_Analytics',
         'SEOProStack_Image_Loading',

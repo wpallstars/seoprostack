@@ -426,9 +426,16 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         }
         if (is_multisite()) {
             // Every site, archived and spam ones too: none may be redirected.
-            foreach (get_sites(array('number' => 10000, 'fields' => '')) as $site) {
-                $hosts[strtolower((string) $site->domain)] = true;
-            }
+            // In pages, so a large network is not cut short: a site missed
+            // here could have its address redirected.
+            $offset = 0;
+            do {
+                $sites = get_sites(array('number' => 1000, 'offset' => $offset, 'orderby' => 'id', 'order' => 'ASC'));
+                foreach ($sites as $site) {
+                    $hosts[strtolower((string) $site->domain)] = true;
+                }
+                $offset += 1000;
+            } while (1000 === count($sites));
         }
         return $hosts;
     }
@@ -529,7 +536,8 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
         $to = wp_parse_url($location);
         if (!is_array($to) || empty($to['host']) || strtolower($to['host']) !== $main || !empty($to['port'])
             || !isset($to['scheme']) || !in_array(strtolower($to['scheme']), array('http', 'https'), true)
-            || (isset($to['path']) && '/' !== $to['path'] && '' !== $to['path'])) {
+            || (isset($to['path']) && '/' !== $to['path'] && '' !== $to['path'])
+            || isset($to['query']) || isset($to['fragment'])) {
             return '';
         }
         return strtolower($to['scheme']) . '://' . $main;
