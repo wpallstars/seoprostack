@@ -299,11 +299,13 @@ function seoprostack_uninstall_site() {
     delete_post_meta_by_key('_seoprostack_nextgen');
     delete_post_meta_by_key('_seoprostack_nextgen_done');
 
-    // Image loading's missing picture sizes (GH#1406): the pictures waiting
-    // and when each was tried. The sizes made are WordPress's and stay.
+    // Image loading's missing picture sizes (GH#1406) and 480 pixel copies
+    // (GH#1535): the pictures waiting and when each was tried. The sizes
+    // made are WordPress's and stay.
     wp_unschedule_hook('seoprostack_picture_sizes');
     delete_option('seoprostack_picture_sizes');
     delete_post_meta_by_key('_seoprostack_sizes_tried');
+    delete_post_meta_by_key('_seoprostack_small_tried');
 
     // Cloud objects belong to the owner and stay; only local records go.
     // Files removed locally are not brought back here (that needs the

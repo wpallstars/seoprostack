@@ -18,6 +18,14 @@
  * WebP and AVIF images makes the new files' AVIF and WebP copies in the
  * same run, before the page is purged (GH#1409).
  *
+ * A 480 pixel wide copy (SMALL) fills WordPress's gap between its 300 and
+ * 768 pixel sizes (GH#1535): a picture shown 301 to 480 pixels wide, as in
+ * a two-column grid on a phone, was fetched at 768. It is registered, so
+ * uploads get it; a picture a page shows with a srcset that lacks it waits
+ * for that copy alone, and its page is not purged: the next refresh of the
+ * page lists it. Browsers take the smallest file at least as wide as what
+ * they paint, so it never makes a picture less sharp.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -42,8 +50,20 @@ class SEOProStack_Picture_Sizes {
     /** Attachment meta: when its sizes were last made or tried. */
     const TRIED = '_seoprostack_sizes_tried';
 
-    /** Sizes made: WordPress's uncropped ones, which the scripts can use. */
-    const SIZES = array('medium', 'medium_large', 'large', '1536x1536', '2048x2048');
+    /** Attachment meta: when its SMALL copy alone was last made or tried. */
+    const TRIED_SMALL = '_seoprostack_small_tried';
+
+    /** The 480 pixel wide copy, any height (GH#1535). */
+    const SMALL = 'seoprostack-480';
+
+    /** Its width. */
+    const SMALL_WIDTH = 480;
+
+    /** Queue value of a picture waiting for SMALL alone, with no page to refresh. */
+    const SMALL_ONLY = -1;
+
+    /** Sizes made: WordPress's uncropped ones and SMALL, which the scripts can use. */
+    const SIZES = array('medium', self::SMALL, 'medium_large', 'large', '1536x1536', '2048x2048');
 
     /** Pictures waiting, at most. */
     const MAX = 50;
@@ -60,38 +80,132 @@ class SEOProStack_Picture_Sizes {
     /** Seconds before a picture is tried again. */
     const RETRY = WEEK_IN_SECONDS;
 
-    /** @var array<int,bool> Pictures already looked at on this request. */
+    /** @var array<int,bool> Pictures already looked at on this request: true for every size, false for SMALL alone. */
     private static $seen = array();
 
     /** @var int Attachment whose sizes are being made. */
     private static $making = 0;
 
+    /** @var string[] Sizes being made for it. */
+    private static $only = self::SIZES;
+
     /**
-     * Register the batch.
+     * Register SMALL, everywhere, so uploads get it (GH#1535).
      */
-    public static function boot() {
-        add_action(self::HOOK, array(__CLASS__, 'run'));
+    public static function register() {
+        add_image_size(self::SMALL, self::SMALL_WIDTH, 0);
     }
 
     /**
-     * A picture was read for a page: queue it when it lacks sizes.
+     * Register the batch, and on pages, look at each picture shown with a
+     * srcset (GH#1535).
+     */
+    public static function boot() {
+        add_action(self::HOOK, array(__CLASS__, 'run'));
+        if (!is_admin()) {
+            add_filter('wp_calculate_image_srcset', array(__CLASS__, 'srcset'), 10, 5);
+        }
+    }
+
+    /**
+     * A picture shown with a srcset: queue it for SMALL when it lacks it.
+     *
+     * @param mixed $sources       Files core lists.
+     * @param mixed $size_array    Width and height shown.
+     * @param mixed $image_src     Address shown.
+     * @param mixed $image_meta    Attachment metadata.
+     * @param mixed $attachment_id Attachment ID.
+     * @return mixed The files, unchanged.
+     */
+    public static function srcset($sources, $size_array, $image_src, $image_meta, $attachment_id = 0) {
+        unset($size_array, $image_src);
+        if (is_array($image_meta)) {
+            self::want_small((int) $attachment_id, $image_meta);
+        }
+        return $sources;
+    }
+
+    /**
+     * A picture was read for a page: queue it when it lacks sizes, to make
+     * every size of SIZES and refresh the page after.
      *
      * @param int   $id   Attachment ID.
      * @param array $meta Its metadata.
      */
     public static function want($id, array $meta) {
-        $id = (int) $id;
-        if ($id < 1 || isset(self::$seen[$id]) || is_admin()) {
+        self::look((int) $id, $meta, true);
+    }
+
+    /**
+     * A picture was shown with a srcset: queue it when it lacks SMALL, for
+     * that copy alone, with no refresh (GH#1535).
+     *
+     * @param int   $id   Attachment ID.
+     * @param array $meta Its metadata.
+     */
+    public static function want_small($id, array $meta) {
+        self::look((int) $id, $meta, false);
+    }
+
+    /**
+     * Queue a picture when it lacks sizes.
+     *
+     * @param int   $id   Attachment ID.
+     * @param array $meta Its metadata.
+     * @param bool  $page Every size of SIZES, and refresh the page after;
+     *                    false: SMALL alone, no refresh.
+     */
+    private static function look($id, array $meta, $page) {
+        if ($id < 1 || is_admin() || !self::first_look($id, $page)) {
             return;
         }
-        self::$seen[$id] = true;
-        if (!self::missing($meta) || !wp_attachment_is_image($id) || (int) get_post_meta($id, self::TRIED, true) > time() - self::RETRY) {
-            return;
+        $missing = self::missing($meta, $page ? self::SIZES : array(self::SMALL));
+        // SMALL alone missing: its page is not purged for it either.
+        $page = $page && array(self::SMALL) !== array_keys($missing);
+        if ($missing && self::due($id, $page)) {
+            self::enqueue($id, $page);
         }
+    }
+
+    /**
+     * Whether a picture is looked at for the first time on this request, for
+     * as much: one looked at for SMALL alone is looked at again for every
+     * size.
+     *
+     * @param int  $id   Attachment ID.
+     * @param bool $page Every size.
+     * @return bool
+     */
+    private static function first_look($id, $page) {
+        if (isset(self::$seen[$id]) && (self::$seen[$id] || !$page)) {
+            return false;
+        }
+        self::$seen[$id] = $page;
+        return true;
+    }
+
+    /**
+     * Whether a picture's sizes may be made: an image not tried in RETRY.
+     *
+     * @param int  $id   Attachment ID.
+     * @param bool $page Every size; false: SMALL alone.
+     * @return bool
+     */
+    private static function due($id, $page) {
+        return wp_attachment_is_image($id) && (int) get_post_meta($id, $page ? self::TRIED : self::TRIED_SMALL, true) <= time() - self::RETRY;
+    }
+
+    /**
+     * Queue a picture, unless it waits already for as much, and schedule
+     * the batch.
+     *
+     * @param int  $id   Attachment ID.
+     * @param bool $page Every size; false: SMALL alone.
+     */
+    private static function enqueue($id, $page) {
         $queue = self::queue();
-        if (!isset($queue[$id]) && count($queue) < self::MAX) {
-            $queue[$id] = is_singular() ? (int) get_queried_object_id() : 0;
-            update_option(self::OPTION, $queue, false);
+        if (!isset($queue[$id]) || ($page && self::SMALL_ONLY === $queue[$id])) {
+            $queue = self::add($queue, $id, $page);
         }
         if ($queue && !wp_next_scheduled(self::HOOK)) {
             wp_schedule_single_event(time() + self::DELAY, self::HOOK);
@@ -99,14 +213,41 @@ class SEOProStack_Picture_Sizes {
     }
 
     /**
-     * The sizes of SIZES a picture lacks that WordPress would make for it:
-     * registered, and smaller than the picture (as image_resize_dimensions()
-     * decides, which wp_get_missing_image_subsizes() also asks).
+     * Add a picture to the queue, and store it, when there is room.
+     * Pictures a page needs come first (run()): when the queue is full, the
+     * last one waiting for SMALL alone gives way to one.
      *
-     * @param array $meta Attachment metadata.
+     * @param array<int,int> $queue Pictures waiting.
+     * @param int            $id    Attachment ID.
+     * @param bool           $page  Every size, for the page shown.
+     * @return array<int,int> Pictures waiting now.
+     */
+    private static function add(array $queue, $id, $page) {
+        unset($queue[$id]);
+        if ($page && count($queue) >= self::MAX) {
+            $last = array_search(self::SMALL_ONLY, array_reverse($queue, true), true);
+            if (false !== $last) {
+                unset($queue[$last]);
+            }
+        }
+        if (count($queue) < self::MAX) {
+            $queue[$id] = $page ? (is_singular() ? (int) get_queried_object_id() : 0) : self::SMALL_ONLY;
+            update_option(self::OPTION, $queue, false);
+        }
+        return $queue;
+    }
+
+    /**
+     * The sizes of SIZES (or of those given) a picture lacks that WordPress
+     * would make for it: registered, and smaller than the picture (as
+     * image_resize_dimensions() decides, which wp_get_missing_image_subsizes()
+     * also asks).
+     *
+     * @param array    $meta  Attachment metadata.
+     * @param string[] $sizes Size names to look at.
      * @return array<string,array> Size name => its registered width, height and crop.
      */
-    public static function missing(array $meta) {
+    public static function missing(array $meta, array $sizes = self::SIZES) {
         $width  = (int) ($meta['width'] ?? 0);
         $height = (int) ($meta['height'] ?? 0);
         if ($width < 1 || $height < 1) {
@@ -114,7 +255,7 @@ class SEOProStack_Picture_Sizes {
         }
         $have    = (array) ($meta['sizes'] ?? array());
         $missing = array();
-        foreach (array_intersect_key(wp_get_registered_image_subsizes(), array_flip(self::SIZES)) as $name => $size) {
+        foreach (array_intersect_key(wp_get_registered_image_subsizes(), array_flip($sizes)) as $name => $size) {
             if (empty($have[$name]) && image_resize_dimensions($width, $height, (int) $size['width'], (int) $size['height'], !empty($size['crop']))) {
                 $missing[$name] = $size;
             }
@@ -134,26 +275,26 @@ class SEOProStack_Picture_Sizes {
         $done  = 0;
         $posts = array();
         if ($queue) {
-            require_once ABSPATH . 'wp-admin/includes/image.php';
-            add_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99, 3);
-            add_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99, 2);
+            self::filters(true);
         }
-        foreach ($queue as $id => $post_id) {
+        // Pictures a page needs every size of first, then those waiting for
+        // SMALL alone (GH#1535).
+        $order = array_filter($queue, function ($post_id) {
+            return self::SMALL_ONLY !== $post_id;
+        }) + $queue;
+        foreach ($order as $id => $post_id) {
             if ($done >= self::BATCH || time() - $start >= self::BUDGET) {
                 break;
             }
             ++$done;
             unset($queue[$id]);
             self::save($queue);
-            update_post_meta($id, self::TRIED, time());
-            if (self::make($id) && $post_id > 0) {
-                $posts[] = $post_id;
-            }
+            $posts[] = self::run_one($id, $post_id);
         }
-        remove_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99);
-        remove_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99);
+        self::filters(false);
+        $posts = array_filter(array_unique($posts));
         if ($posts) {
-            self::refresh(array_unique($posts));
+            self::refresh($posts);
         }
         if ($queue && !wp_next_scheduled(self::HOOK)) {
             wp_schedule_single_event(time() + self::DELAY, self::HOOK);
@@ -161,22 +302,55 @@ class SEOProStack_Picture_Sizes {
     }
 
     /**
+     * Add, or remove, the filters a batch makes sizes with.
+     *
+     * @param bool $add Add them; false: remove them.
+     */
+    private static function filters($add) {
+        if (!$add) {
+            remove_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99);
+            remove_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99);
+            return;
+        }
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        add_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99, 3);
+        add_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99, 2);
+    }
+
+    /**
+     * Make one queued picture's sizes, marked tried first.
+     *
+     * @param int $id      Attachment ID.
+     * @param int $post_id Its page; 0 for none; SMALL_ONLY for SMALL alone.
+     * @return int The page to refresh; 0 for none.
+     */
+    private static function run_one($id, $post_id) {
+        $small = self::SMALL_ONLY === $post_id;
+        update_post_meta($id, $small ? self::TRIED_SMALL : self::TRIED, time());
+        $more = self::make($id, $small ? array(self::SMALL) : self::SIZES);
+        return $more && $post_id > 0 ? $post_id : 0;
+    }
+
+    /**
      * Make a picture's missing sizes.
      *
-     * @param int $id Attachment ID.
+     * @param int      $id    Attachment ID.
+     * @param string[] $sizes Sizes to make, those of SIZES or SMALL alone.
      * @return bool Whether it has more sizes now.
      */
-    private static function make($id) {
+    private static function make($id, array $sizes) {
         $meta = wp_get_attachment_metadata($id);
         // Not a watermarked picture: its files are marked in place, so new
         // sizes would carry a mark Watermark pictures could not remove.
-        if (!wp_attachment_is_image($id) || !is_array($meta) || !self::missing($meta) || get_post_meta($id, '_seoprostack_watermark', true)) {
+        if (!wp_attachment_is_image($id) || !is_array($meta) || !self::missing($meta, $sizes) || get_post_meta($id, '_seoprostack_watermark', true)) {
             return false;
         }
         $before       = count((array) ($meta['sizes'] ?? array()));
         self::$making = (int) $id;
+        self::$only   = $sizes;
         $result       = wp_update_image_subsizes($id);
         self::$making = 0;
+        self::$only   = self::SIZES;
         $more         = is_array($result) && count((array) ($result['sizes'] ?? array())) > $before;
         if ($more && class_exists('SEOProStack_Nextgen_Images')) {
             // Their AVIF and WebP copies now, before the page is purged and
@@ -187,7 +361,7 @@ class SEOProStack_Picture_Sizes {
     }
 
     /**
-     * While a batch makes a picture's sizes: only those of SIZES.
+     * While a batch makes a picture's sizes: only those it makes (of SIZES).
      *
      * @param array $missing       Sizes WordPress would make.
      * @param array $image_meta    Attachment metadata.
@@ -199,7 +373,7 @@ class SEOProStack_Picture_Sizes {
         if ((int) $attachment_id !== self::$making || !is_array($missing)) {
             return $missing;
         }
-        return array_intersect_key($missing, array_flip(self::SIZES));
+        return array_intersect_key($missing, array_flip(self::$only));
     }
 
     /**

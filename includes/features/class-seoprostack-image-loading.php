@@ -31,6 +31,10 @@
  * are not fetched for the whole window (SEOProStack_Kadence_Column_Sizes,
  * GH#1517).
  *
+ * Pictures get a 480 pixel wide copy, between WordPress's 300 and 768
+ * pixel sizes: at upload, and in the background for older pictures a page
+ * shows with a srcset (SEOProStack_Picture_Sizes, GH#1535).
+ *
  * A picture whose block names another attachment than the file it shows,
  * as an imported template's often does, gets what core gives every other
  * picture from the attachment that owns the file: width and height, its
@@ -139,7 +143,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Image loading', 'seoprostack'),
-                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, at the size the screen needs. Pictures in a Kadence Blocks row’s columns are fetched at the column’s width on a computer, not the window’s.', 'seoprostack'),
+                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages. When a page opens with a Kadence Blocks row with a background picture or slider, that picture is fetched first, at the size the screen needs. Pictures in a Kadence Blocks row’s columns are fetched at the column’s width on a computer, not the window’s. Pictures also get a 480 pixel wide copy, between WordPress’s 300 and 768, so one shown in a grid on a phone is not fetched at 768.', 'seoprostack'),
                 'replaces'    => array('nazy-load' => 'Flying Images'),
             ),
             'image_loading_eager' => array(
@@ -194,7 +198,13 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        if (!self::enabled() || (is_admin() && !wp_doing_ajax())) {
+        if (!self::enabled()) {
+            return;
+        }
+        // The 480 pixel copy, in the admin too, so uploads get it (GH#1535).
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-picture-sizes.php';
+        SEOProStack_Picture_Sizes::register();
+        if (is_admin() && !wp_doing_ajax()) {
             return;
         }
         add_filter('wp_omit_loading_attr_threshold', array(__CLASS__, 'threshold'), 20);
@@ -209,8 +219,8 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         add_filter('wp_get_loading_optimization_attributes', array(__CLASS__, 'core_priority'), 20, 4);
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
-        // Missing copies of row and slide pictures, made in the background (GH#1406).
-        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-picture-sizes.php';
+        // Missing copies of row and slide pictures, and the 480 pixel copy of
+        // pictures shown with a srcset, made in the background (GH#1406, GH#1535).
         SEOProStack_Picture_Sizes::boot();
         if (defined('KADENCE_BLOCKS_VERSION')) {
             // First in the head, before other plugins' inline styles and
