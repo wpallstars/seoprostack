@@ -87,6 +87,27 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
     /** Cloudflare's API. */
     const API = 'https://api.cloudflare.com/client/v4/zones/';
 
+    /** Setting: seconds Cloudflare keeps a page, while purges reach it. */
+    const EDGE_KEY = 'cloudflare_edge_time';
+
+    /** The edge time's default: a day (#1545). */
+    const EDGE_DEFAULT = 86400;
+
+    /**
+     * Most seconds for an address with a query string (directory filters,
+     * campaign links): a purge by address empties only the address itself.
+     */
+    const EDGE_QUERY = 300;
+
+    /** Seconds Cloudflare may serve its last copy while this server answers with an error. */
+    const STALE_IF_ERROR = 86400;
+
+    /** The edge time header: read by Cloudflare only; browsers and LiteSpeed Cache ignore it. */
+    const EDGE_HEADER = 'Cloudflare-CDN-Cache-Control';
+
+    /** @var bool Whether this request sent the edge time. */
+    private static $edge_sent = false;
+
     /**
      * Purges collected during this request, by site: true for the whole
      * site, or addresses.
@@ -129,6 +150,30 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
                 'description' => __('From the domain’s Overview page in Cloudflare. Leave empty to use LiteSpeed Cache’s, or set SEOPROSTACK_CLOUDFLARE_ZONE in wp-config.php.', 'seoprostack'),
                 'network'     => false,
             ),
+            self::EDGE_KEY => array(
+                'type'        => 'select',
+                'default'     => (string) self::EDGE_DEFAULT,
+                'parent'      => self::KEY,
+                'label'       => __('Cloudflare edge time', 'seoprostack'),
+                'description' => __('How long Cloudflare keeps a page for visitors who are not logged in, sent with each page while a token and zone are set and Cloudflare has not refused them, as edits and updates then empty Cloudflare’s copies. Addresses with a query string, such as filtered lists, get 5 minutes at most, as a purge cannot reach every one. Pages that are not cached (logged in, search, 404, previews, carts) get none. Pages LiteSpeed Cache holds already get it when they are next cached again.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'edge_options'),
+            ),
+        );
+    }
+
+    /**
+     * Choices of Cloudflare edge time, in seconds (PHP keeps the keys as
+     * integers; saved values are their strings).
+     *
+     * @return array<int,string>
+     */
+    public static function edge_options() {
+        return array(
+            '7200'    => __('2 hours', 'seoprostack'),
+            '86400'   => __('1 day', 'seoprostack'),
+            '604800'  => __('1 week', 'seoprostack'),
+            '2592000' => __('30 days', 'seoprostack'),
+            '0'       => __('Send none (Cloudflare’s own setting)', 'seoprostack'),
         );
     }
 
@@ -154,6 +199,95 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         add_action('wpo_cache_flush', array(__CLASS__, 'wp_optimize_purged'));
         add_action('transition_post_status', array(__CLASS__, 'post_changed'), 10, 3);
         add_action('seoprostack_page_cache_purge_post', array(__CLASS__, 'post_purged'), 10, 1);
+        // After redirects and other plugins' template_redirect work.
+        add_action('template_redirect', array(__CLASS__, 'send_edge_time'), PHP_INT_MAX - 100);
+        // LiteSpeed Cache decides a page is not cacheable as it ends.
+        add_filter('litespeed_buffer_after', array(__CLASS__, 'check_edge_time'));
+    }
+
+    /**
+     * Tell Cloudflare how long to keep this page (EDGE_HEADER), while its
+     * purges reach Cloudflare: anonymous GET and HEAD front-end pages that
+     * a page cache would keep. EDGE_QUERY at most with a query string.
+     */
+    public static function send_edge_time() {
+        if (headers_sent() || !self::ready() || !self::edge_cacheable()) {
+            return;
+        }
+        $seconds = (int) SEOProStack_Settings::get(self::EDGE_KEY);
+        if ($seconds <= 0 || self::refused()) {
+            return;
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only whether there is a query string.
+        if (array() !== $_GET) {
+            $seconds = min($seconds, self::EDGE_QUERY);
+        }
+        /**
+         * Seconds Cloudflare keeps this page (Cloudflare-CDN-Cache-Control
+         * max-age), while Clear Cloudflare's copies of pages reaches
+         * Cloudflare; 0 sends nothing. Runs on template_redirect.
+         *
+         * @since 1.3.203
+         * @param int $seconds Cloudflare edge time setting (EDGE_QUERY at most with a query string).
+         */
+        $seconds = (int) apply_filters('seoprostack_cloudflare_edge_time', $seconds);
+        if ($seconds <= 0) {
+            return;
+        }
+        header(sprintf('%s: max-age=%d, stale-if-error=%d', self::EDGE_HEADER, $seconds, self::STALE_IF_ERROR));
+        self::$edge_sent = true;
+    }
+
+    /**
+     * Take the edge time off a page that turned out not to be cacheable
+     * while it was made: LiteSpeed Cache marked it not cacheable, it set
+     * DONOTCACHEPAGE, or sent Cache-Control no-store, no-cache or private.
+     * Cloudflare reads EDGE_HEADER before Cache-Control, so it would
+     * otherwise keep the page.
+     *
+     * @param mixed $buffer Page.
+     * @return mixed
+     */
+    public static function check_edge_time($buffer) {
+        if (!self::$edge_sent || headers_sent()) {
+            return $buffer;
+        }
+        $cacheable = 'litespeed' !== SEOProStack_Keep_Cached_Requests::page_cache() || !class_exists('\LiteSpeed\Control') || \LiteSpeed\Control::is_cacheable();
+        if (!$cacheable || !self::edge_cacheable()) {
+            header_remove(self::EDGE_HEADER);
+            self::$edge_sent = false;
+        }
+        return $buffer;
+    }
+
+    /**
+     * Whether this response may be kept at Cloudflare: an anonymous GET or
+     * HEAD front-end page, not a preview, 404, search, feed, password
+     * protected post or DONOTCACHEPAGE, with no Cache-Control that forbids
+     * shared caches.
+     *
+     * @return bool
+     */
+    private static function edge_cacheable() {
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : 'GET';
+        if ('GET' !== $method && 'HEAD' !== $method) {
+            return false;
+        }
+        if (is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('REST_REQUEST') && REST_REQUEST) || is_user_logged_in()) {
+            return false;
+        }
+        if ((defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) || is_preview() || is_404() || is_search() || is_feed() || is_trackback() || is_robots()) {
+            return false;
+        }
+        if (is_singular() && post_password_required()) {
+            return false;
+        }
+        foreach (headers_list() as $header) {
+            if (0 === stripos($header, 'Cache-Control:') && preg_match('/\b(no-store|no-cache|private)\b/i', $header)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -660,6 +794,23 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
      */
     public static function ready() {
         return self::enabled() && null !== self::credentials();
+    }
+
+    /**
+     * Whether Cloudflare's last answer refused the token or zone (4xx,
+     * not 429): purges would not reach it, so a long edge time would keep
+     * old pages. Rate limits and outages are tried again, so they do not
+     * count.
+     *
+     * @return bool
+     */
+    public static function refused() {
+        $entries = self::entries();
+        if (!$entries) {
+            return false;
+        }
+        $code = isset($entries[0]['code']) ? (int) $entries[0]['code'] : 0;
+        return empty($entries[0]['ok']) && $code >= 400 && $code < 500 && 429 !== $code;
     }
 
     /**
