@@ -144,7 +144,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 'max'         => 100,
                 'parent'      => self::KEY,
                 'label'       => __('AVIF quality', 'seoprostack'),
-                'description' => __('AVIF at 70 looks about the same as WebP at 90. After a change, pictures are converted again in the background.', 'seoprostack'),
+                'description' => __('AVIF at 80 is about as sharp as WebP at 90 and a little smaller; at 70 it is a little softer and about a quarter smaller. A file’s AVIF copy is kept only when it is smaller than its WebP copy. After a change, pictures are converted again in the background.', 'seoprostack'),
             ),
             'nextgen_smart' => array(
                 'type'        => 'bool',
@@ -513,6 +513,13 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 ? isset($previous['quality'][$format]) && $previous['quality'][$format] !== $record['quality'][$format]
                 : true);
         }
+        // WebP first: a file's AVIF copy is kept only when it is smaller than
+        // its WebP copy, as browsers that accept AVIF get it whenever it is
+        // there (GH#1536).
+        $formats = self::formats();
+        if (isset($formats['webp'])) {
+            $formats = array('webp' => $formats['webp']) + $formats;
+        }
         $names = self::file_names($file, wp_get_attachment_metadata($attachment_id));
         foreach ($names as $name) {
             $path = $dir . '/' . $name;
@@ -524,15 +531,19 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             $record['sources'][$name] = $bytes;
             // Unchanged file whose copy was not smaller last time: not again.
             $same = !$force && isset($previous['sources'][$name]) && $previous['sources'][$name] === $bytes;
-            foreach (self::formats() as $format => $mime) {
+            foreach ($formats as $format => $mime) {
                 if ($mime === $type['type']) {
                     continue;
                 }
-                if ($same && !$redo[$format] && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
+                $webp = 'avif' === $format ? (int) ($record['files'][$name]['webp'] ?? 0) : 0;
+                // An AVIF copy left out for its WebP copy is tried again when
+                // that changes or is no longer made.
+                $retry = 'avif' === $format && (isset($formats['webp']) ? !empty($redo['webp']) : !empty($previous['files'][$name]['webp']));
+                if ($same && !$redo[$format] && !$retry && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
                     $record['files'][$name][$format] = 0;
                     continue;
                 }
-                $record['files'][$name][$format] = self::convert_file($path, $format, $force || $redo[$format]);
+                $record['files'][$name][$format] = self::convert_file($path, $format, $force || $redo[$format], $webp);
             }
         }
         if (!self::unchanged($attachment_id, $generation, $file, $names)) {
@@ -650,23 +661,34 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @param string $path   Original file.
      * @param string $format webp or avif.
      * @param bool   $force  Make it again even when up to date.
+     * @param int    $other  Bytes of the file's other copy that the copy must
+     *                       also be smaller than (its WebP copy, for AVIF,
+     *                       GH#1536); 0 for none.
      * @return int Bytes of the copy; 0 when not smaller; -1 when it failed.
      */
-    private static function convert_file($path, $format, $force) {
+    private static function convert_file($path, $format, $force, $other = 0) {
         $target = $path . '.' . $format;
         clearstatcache();
         $source_bytes = (int) filesize($path);
         $source_time  = (int) filemtime($path);
+        // The size to beat: the original, or the other copy when smaller.
+        $limit = $other > 0 ? min($source_bytes, (int) $other) : $source_bytes;
         if (is_file($target)) {
             if (self::is_attachment_file($target)) {
                 // A Media Library file of its own, not a copy.
                 return -1;
             }
             if (!$force && filemtime($target) >= $source_time) {
-                return (int) filesize($target);
+                $have = (int) filesize($target);
+                if ($have > 0 && $have < $limit) {
+                    return $have;
+                }
+                // Up to date but no smaller than the other copy.
+                wp_delete_file($target);
+                return 0;
             }
         } elseif (!$force) {
-            $adopted = self::adopt_compressx_copy($path, $target, $source_bytes, $source_time);
+            $adopted = self::adopt_compressx_copy($path, $target, $limit, $source_time);
             if ($adopted) {
                 return $adopted;
             }
@@ -731,7 +753,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             return -1;
         }
         $bytes = (int) filesize($temp);
-        if ($bytes <= 0 || $bytes >= $source_bytes) {
+        if ($bytes <= 0 || $bytes >= $limit) {
             wp_delete_file($temp);
             if (is_file($target)) {
                 wp_delete_file($target);
@@ -752,7 +774,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      *
      * @param string $path         Original file.
      * @param string $target       Where the copy goes.
-     * @param int    $source_bytes Size of the original.
+     * @param int    $source_bytes Size to beat: the original's, or its other
+     *                             copy's when smaller (GH#1536).
      * @param int    $source_time  Modification time of the original.
      * @return int Bytes of the copy; 0 when none was moved.
      */
