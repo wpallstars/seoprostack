@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.197
+Stable tag: 1.3.198
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -75,7 +75,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Robots.txt rules**, with any SEO plugin or none: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
-* **Load the CSS each page uses first** (off): pages with Kadence and the recommended plugins show sooner, worked out on your server.
+* **Load the CSS each page uses first** (off): pages with Kadence and recommended plugins show sooner, worked out on your server.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and tasks.
@@ -156,8 +156,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.197 =
-* New: Robots.txt rules, on by default (#1506).
-* Improved: cloud storage handover resumes (#1499).
+= 1.3.198 =
+* Faster: column images, field search, Tutor push (#1517 #1513 #1470).
+* Fixed: translations, token fields (#1459 #1456).
 
 Older: `changelog.txt`.
