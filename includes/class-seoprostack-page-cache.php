@@ -46,11 +46,62 @@ final class SEOProStack_Page_Cache {
     );
 
     /**
+     * Options that change every page when they change: the site title,
+     * tagline and icon, the theme's Customizer settings (theme_mods_ plus the
+     * stylesheet, added in init()) and Kadence's global palette. Widget
+     * options (widget_ prefix) and sidebars_widgets count too.
+     */
+    const DESIGN_OPTIONS = array('blogname', 'blogdescription', 'site_icon', 'sidebars_widgets', 'kadence_global_palette');
+
+    /** Whether this request has purged every page for a design change. */
+    private static $design_purged = false;
+
+    /**
      * Register hooks.
      */
     public static function init() {
         // Every plugin has loaded and set up its hooks.
         add_action('wp_loaded', array(__CLASS__, 'after_update'));
+        // Neither LiteSpeed Cache nor WP-Optimize purges after these (GH#1546).
+        add_action('customize_save_after', array(__CLASS__, 'design_saved'));
+        add_action('updated_option', array(__CLASS__, 'option_updated'), 10, 1);
+        add_action('added_option', array(__CLASS__, 'option_updated'), 10, 1);
+    }
+
+    /**
+     * An option was added or changed (core fires these only when the value
+     * changes): purge every page when it is one that every page shows.
+     *
+     * @since 1.3.202
+     * @param string $option Option name.
+     */
+    public static function option_updated($option) {
+        $option = (string) $option;
+        if (!in_array($option, self::DESIGN_OPTIONS, true) && 0 !== strpos($option, 'widget_') && 'theme_mods_' . get_option('stylesheet') !== $option) {
+            return;
+        }
+        self::design_saved();
+    }
+
+    /**
+     * Someone changed what every page shows (a Customizer save, a widget, the
+     * site title, tagline or icon, the palette): purge every page once for
+     * this request. Only for changes people make (wp-admin, the REST API,
+     * WP-CLI), not WP-Cron or a front-end page writing an option, and not
+     * while an import runs (it purges when it ends).
+     *
+     * @since 1.3.202
+     */
+    public static function design_saved() {
+        if (self::$design_purged || wp_doing_cron() || (defined('WP_IMPORTING') && WP_IMPORTING)) {
+            return;
+        }
+        $person = is_admin() || (defined('REST_REQUEST') && REST_REQUEST) || (defined('WP_CLI') && WP_CLI);
+        if (!$person) {
+            return;
+        }
+        self::$design_purged = true;
+        self::purge_all();
     }
 
     /**
