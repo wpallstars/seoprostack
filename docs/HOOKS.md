@@ -75,6 +75,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_block_visible` | filter | supported | 0.11.0 | restrict content | `$visible`; `$block`, `$rule` |
 | `seoprostack_can_change_settings` | filter | supported | 0.5.0 | settings | `true` |
 | `seoprostack_can_see_content` | filter | supported | 0.11.0 | restrict content | `$allowed`; `$post_id`, `$rules` |
+| `seoprostack_cloudflare_purge_post_urls` | filter | supported | 1.3.203 | cloudflare purge | `$files`; `$post` |
 | `seoprostack_core_plugins` | filter | supported | 1.3.106 | core plugins | `$plugins` |
 | `seoprostack_crawler_sitemap` | filter | supported | 1.3.19 | litespeed | `is_string($url) ? $url : ''` |
 | `seoprostack_dashboard_layout` | filter | supported | 0.5.0 | dashboard layout | `is_array($data) ? $data : array()` |

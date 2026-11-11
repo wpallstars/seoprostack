@@ -25,6 +25,8 @@
  * - Delivers purges made from the command line that LiteSpeed's bot
  *   protection kept from reaching the cache, or that a request took and
  *   then gave up waiting on a busy server (deliver_purge()).
+ * - Turns Serve Stale off for requests that save content or the site's
+ *   design, so visitors see the change at once (fresh_after_saves()).
  * - Notes in Free Plugins that WP-Optimize is not needed on LiteSpeed
  *   servers, and is for its page cache elsewhere.
  *
@@ -104,6 +106,8 @@ final class SEOProStack_Litespeed {
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'save_through_plugin'), 10, 2);
         add_filter('seoprostack_free_plugin_note', array(__CLASS__, 'free_plugin_note'), 10, 2);
         add_action('after_plugin_row', array(__CLASS__, 'wp_optimize_row_note'));
+        // Read by LiteSpeed Cache on after_setup_theme (\LiteSpeed\Control::init()), after this.
+        add_filter('litespeed_conf_load_option_purge-stale', array(__CLASS__, 'fresh_after_saves'));
         if ('cli' === PHP_SAPI) {
             add_filter('http_request_args', array(__CLASS__, 'delivery_args'), 10, 2);
             add_action('http_api_debug', array(__CLASS__, 'delivery_answered'), 10, 5);
@@ -602,6 +606,65 @@ final class SEOProStack_Litespeed {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
         return is_plugin_active_for_network(self::SLUG . '/litespeed-cache.php');
+    }
+
+    /**
+     * Serve Stale (purge-stale) off for a request that saves content or the
+     * site's design (GitHub issue #1547). With it on, LiteSpeed Cache marks
+     * every purge of the request stale, and a server that serves the stale
+     * copy while it rebuilds would show the old page after a save, and hand
+     * it to Cloudflare when Clear Cloudflare's copies of pages asks for the
+     * page again. Updates, Purge All and other purges keep Serve Stale.
+     *
+     * @since 1.3.203
+     * @param mixed $stale LiteSpeed Cache's value.
+     * @return mixed
+     */
+    public static function fresh_after_saves($stale) {
+        return $stale && self::saves_content() ? false : $stale;
+    }
+
+    /**
+     * Whether this request saves content or the site's design: the classic
+     * editor, trash and restore, bulk and quick edit, the Customizer,
+     * widgets and menus, or a REST change to WordPress's own routes (block
+     * editor, Site Editor, block widgets). Read from the request alone, as
+     * LiteSpeed Cache asks before WordPress parses it.
+     *
+     * @since 1.3.203
+     * @return bool
+     */
+    public static function saves_content() {
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput -- compared with fixed names only; nothing is stored or shown.
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : 'GET';
+        $action = isset($_REQUEST['action']) && is_string($_REQUEST['action']) ? $_REQUEST['action'] : '';
+        $bulk   = isset($_REQUEST['action2']) && is_string($_REQUEST['action2']) ? $_REQUEST['action2'] : '';
+        $route  = isset($_GET['rest_route']) && is_string($_GET['rest_route']) ? $_GET['rest_route'] : '';
+        $uri    = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $script = isset($_SERVER['SCRIPT_NAME']) ? basename((string) $_SERVER['SCRIPT_NAME']) : '';
+        // phpcs:enable
+        $writes = !in_array($method, array('GET', 'HEAD', 'OPTIONS'), true);
+        if (is_admin()) {
+            $saves = array(
+                'post.php'       => array('editpost', 'trash', 'untrash', 'delete'),
+                'edit.php'       => array('edit', 'trash', 'untrash', 'delete'),
+                'admin-ajax.php' => array('inline-save', 'customize_save', 'save-widget', 'widgets-order'),
+            );
+            if (isset($saves[$script]) && (in_array($action, $saves[$script], true) || in_array($bulk, $saves[$script], true))) {
+                return 'admin-ajax.php' !== $script || $writes;
+            }
+            return $writes && in_array($script, array('nav-menus.php', 'widgets.php'), true);
+        }
+        if (!$writes) {
+            return false;
+        }
+        if ('' === $route) {
+            $path   = (string) wp_parse_url($uri, PHP_URL_PATH);
+            $prefix = '/' . trim(rest_get_url_prefix(), '/') . '/';
+            $at     = strpos($path, $prefix);
+            $route  = false === $at ? '' : '/' . substr($path, $at + strlen($prefix));
+        }
+        return 0 === strpos($route, '/wp/v2/') || 0 === strpos($route, '/batch/v1');
     }
 
     /**
