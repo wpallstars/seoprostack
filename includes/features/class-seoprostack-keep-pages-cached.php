@@ -9,8 +9,9 @@
  *
  * Every plugin, theme or core update empties the page cache (LiteSpeed
  * Cache's Purge All On Upgrade, WP-Optimize's purge on updates, SEO Pro
- * Stack's own purge after its updates), and so do Purge All and menu or
- * Customizer saves. Until someone opens each page again, visitors wait for
+ * Stack's own purge after its updates), and so do Purge All, menu saves and
+ * Customizer, widget or site title saves (SEOProStack_Page_Cache::
+ * design_saved(), GH#1546). Until someone opens each page again, visitors wait for
  * WordPress to build it, which on a busy development day is most of the day.
  *
  * After the cache is emptied, this opens the site's main pages in WP-Cron,
