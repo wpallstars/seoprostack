@@ -1,0 +1,38 @@
+# SEO Pro Stack's own check, kept out of ci.yml, which is a core file the
+# starter sync replaces: docs/HOOKS.md must list every seoprostack_* filter
+# and action in the code, and a hook listed at a release stays listed (or
+# deprecated) for two minor releases. See docs/HOOKS.md → Deprecation.
+# Run it locally with: node scripts/check-hooks.mjs
+name: Hooks list
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hooks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hooks:
+    name: Hooks list (docs/HOOKS.md)
+    # GitHub-hosted unless CI_RUNNER names a self-hosted label (ci.yml).
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Release tags, for the release baseline check.
+          fetch-depth: 0
+
+      - name: Hooks list
+        run: node scripts/check-hooks.mjs
