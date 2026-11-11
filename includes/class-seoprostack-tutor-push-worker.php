@@ -147,13 +147,18 @@ final class SEOProStack_Tutor_Push_Worker {
     }
 
     /**
-     * What, cheaply read, decides the file on this site.
+     * What, cheaply read, decides the file on this site. Tutor's worker is
+     * read by its modified time, not TUTOR_PRO_VERSION: Load plugins only
+     * where needed can skip Tutor LMS Pro on some screens, and a constant
+     * there on one screen and missing on the next would sync each time.
      *
      * @return string
      */
     private static function stamp() {
-        $on = SEOProStack_Plugin_Fixes::enabled() ? '1' : '0';
-        return $on . '|' . (defined('TUTOR_PRO_VERSION') ? (string) TUTOR_PRO_VERSION : '') . '|' . (self::addon_on() ? '1' : '0');
+        $on     = SEOProStack_Plugin_Fixes::enabled() ? '1' : '0';
+        $source = WP_PLUGIN_DIR . '/' . self::SOURCE;
+        $mtime  = file_exists($source) ? (string) filemtime($source) : '';
+        return $on . '|' . $mtime . '|' . (self::addon_on() ? '1' : '0');
     }
 
     /**
