@@ -2,7 +2,7 @@
 # starter sync replaces: docs/HOOKS.md must list every seoprostack_* filter
 # and action in the code, and a hook listed at a release stays listed (or
 # deprecated) for two minor releases. See docs/HOOKS.md → Deprecation.
-# Run it locally with: node scripts/check-hooks.mjs
+# Run it locally with: node scripts/check-hooks.js
 name: Hooks list
 
 on:
@@ -35,4 +35,4 @@ jobs:
           fetch-depth: 0
 
       - name: Hooks list
-        run: node scripts/check-hooks.mjs
+        run: node scripts/check-hooks.js

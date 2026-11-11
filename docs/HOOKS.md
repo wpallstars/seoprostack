@@ -3,7 +3,7 @@
 # SEO Pro Stack hooks
 
 Every `seoprostack_*` filter and action in the code, for site customisations
-(SEO Pro Custom and other site code). `scripts/check-hooks.mjs` (run by
+(SEO Pro Custom and other site code). `scripts/check-hooks.js` (run by
 `.github/workflows/hooks.yml` and before a release) fails when this list and the code disagree.
 
 ## Status

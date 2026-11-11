@@ -145,7 +145,7 @@ Read the doc for your task first (`STANDARDS.md` → Agent docs):
 - Adding a feature that replaces another plugin, or is modelled on one:
   `docs/replaced-plugins.md`.
 - Adding, renaming or removing a `seoprostack_*` filter or action:
-  `docs/HOOKS.md` (list and deprecation rule; `node scripts/check-hooks.mjs`).
+  `docs/HOOKS.md` (list and deprecation rule; `node scripts/check-hooks.js`).
 - Testing, or timing pages on a live site: `TESTING.md`.
 - SEO Pro Stack writes other plugins' settings only through presets and
   starter data, and only when someone asks.
