@@ -236,6 +236,11 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         }
         header(sprintf('%s: max-age=%d, stale-if-error=%d', self::EDGE_HEADER, $seconds, self::STALE_IF_ERROR));
         self::$edge_sent = true;
+        // LiteSpeed Cache's own buffer calls check_edge_time() through
+        // litespeed_buffer_after; without it, this one does, as the page ends.
+        if (!did_action('litespeed_initing')) {
+            ob_start(array(__CLASS__, 'check_edge_time'));
+        }
     }
 
     /**
@@ -243,7 +248,8 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
      * while it was made: LiteSpeed Cache marked it not cacheable, it set
      * DONOTCACHEPAGE, or sent Cache-Control no-store, no-cache or private.
      * Cloudflare reads EDGE_HEADER before Cache-Control, so it would
-     * otherwise keep the page.
+     * otherwise keep the page. An output buffer callback: headers can
+     * still change, as nothing has been sent.
      *
      * @param mixed $buffer Page.
      * @return mixed
@@ -252,7 +258,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if (!self::$edge_sent || headers_sent()) {
             return $buffer;
         }
-        $cacheable = 'litespeed' !== SEOProStack_Keep_Cached_Requests::page_cache() || !class_exists('\LiteSpeed\Control') || \LiteSpeed\Control::is_cacheable();
+        $cacheable = !did_action('litespeed_initing') || !class_exists('\LiteSpeed\Control') || \LiteSpeed\Control::is_cacheable();
         if (!$cacheable || !self::edge_cacheable()) {
             header_remove(self::EDGE_HEADER);
             self::$edge_sent = false;
