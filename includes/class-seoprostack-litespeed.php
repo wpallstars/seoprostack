@@ -648,7 +648,7 @@ final class SEOProStack_Litespeed {
             $saves = array(
                 'post.php'       => array('editpost', 'trash', 'untrash', 'delete'),
                 'edit.php'       => array('edit', 'trash', 'untrash', 'delete'),
-                'admin-ajax.php' => array('inline-save', 'customize_save', 'save-widget', 'widgets-order'),
+                'admin-ajax.php' => array('inline-save', 'customize_save', 'save-widget', 'widgets-order', 'trash-post', 'untrash-post', 'delete-post', 'delete-page'),
             );
             if (isset($saves[$script]) && (in_array($action, $saves[$script], true) || in_array($bulk, $saves[$script], true))) {
                 return 'admin-ajax.php' !== $script || $writes;

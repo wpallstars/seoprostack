@@ -87,7 +87,9 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
      * LiteSpeed Cache's Purge Rules For Publish/Update (purge-post_<rule>)
      * that empty pages other than the post's own, and whether each is on
      * where LiteSpeed Cache is not the page cache (as its defaults, without
-     * Pages, which can be many).
+     * Pages, which can be many). Not its Recent Posts widget rule (pwrp):
+     * the pages showing that widget cannot be listed, so their Cloudflare
+     * copies wait for the edge time, or a save with the All pages rule.
      */
     const RULES = array(
         'f'  => true,  // Front page.
@@ -177,6 +179,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         add_action('wpo_cache_flush', array(__CLASS__, 'wp_optimize_purged'));
         add_action('transition_post_status', array(__CLASS__, 'post_changed'), 10, 3);
         add_action('post_updated', array(__CLASS__, 'post_moved'), 10, 3);
+        add_action('wp_after_insert_post', array(__CLASS__, 'post_saved'), 10, 4);
         add_action('seoprostack_page_cache_purge_post', array(__CLASS__, 'post_purged'), 10, 1);
     }
 
@@ -254,7 +257,41 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !is_post_type_viewable($post->post_type)) {
             return;
         }
-        $pages = self::post_pages($post, 'publish' === $new ? (string) get_permalink($post) : self::published_link($post));
+        self::queue_post_pages($post, 'publish' === $new ? (string) get_permalink($post) : self::published_link($post));
+    }
+
+    /**
+     * A published post was saved, with its terms: post_pages() again. The
+     * block editor's REST save sets the terms after transition_post_status
+     * (WP_REST_Posts_Controller::handle_terms()), so post_changed() saw the
+     * terms it had (still emptied, as they listed it) and this adds the new
+     * ones, and the address a %category% permalink now gives.
+     *
+     * @param int          $post_id     Post.
+     * @param WP_Post      $post        Post.
+     * @param bool         $update      Whether it existed.
+     * @param WP_Post|null $post_before Post before.
+     */
+    public static function post_saved($post_id, $post, $update, $post_before) {
+        unset($post_id, $update, $post_before);
+        if (!($post instanceof WP_Post) || 'publish' !== $post->post_status || (defined('WP_IMPORTING') && WP_IMPORTING)) {
+            return;
+        }
+        if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !is_post_type_viewable($post->post_type)) {
+            return;
+        }
+        self::queue_post_pages($post, (string) get_permalink($post));
+    }
+
+    /**
+     * Queue a post's address and the pages that list it (post_pages()),
+     * or the whole site when they are too many.
+     *
+     * @param WP_Post $post Post.
+     * @param string  $link Its address.
+     */
+    private static function queue_post_pages(WP_Post $post, $link) {
+        $pages = self::post_pages($post, $link);
         if (null === $pages) {
             self::site();
             return;
