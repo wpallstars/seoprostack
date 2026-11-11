@@ -2636,6 +2636,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New: the Website Setup board starts with an **Accounts and Keys Checklist**: every account the site needs, in the business's name, and where a site copied from a template or demo keeps the previous owner's keys, to replace with your own. New tasks set up Google Search Console, Cloudflare Turnstile spam protection and, on a site in more than one language, Google Cloud Translation for TranslatePress (#1554).
+
 ### 1.3.202
 
 - Fixed: Fluent Forms fields with no label get an accessible name, from the placeholder, the admin label or the field name, so screen readers (and PageSpeed's accessibility check) no longer find unnamed fields (#1529).
