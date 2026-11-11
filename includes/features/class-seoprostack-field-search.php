@@ -21,9 +21,10 @@
  * Only the main query of a search page or admin list: widgets, blocks,
  * REST requests and the media library keep core's search.
  *
- * The finished search clause moves to the end of WHERE, after the post
- * type and status tests, so the field test runs only for posts that can be
- * results, not for every attachment and revision (GH#1523).
+ * When WHERE joins its top-level parts with AND alone, the finished search
+ * clause moves to its end, after the post type and status tests, so the
+ * field test runs only for posts that can be results, not for every
+ * attachment and revision; otherwise WHERE keeps its order (GH#1523).
  *
  * Replaces ACF: Better Search.
  *
@@ -348,8 +349,11 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
      * 0.6 s, with the same posts (GH#1523). The page query stops after a
      * page of results, so mostly the count gains.
      *
-     * AND parts can be put in any order; WHERE is left as it is unless the
-     * clause appears once and neither it nor the rest has a top-level OR.
+     * AND parts can be put in any order. WHERE is left as it is unless the
+     * clause appears once, as a top-level AND part followed by another, and
+     * the parts before it, the clause and the parts after it each join their
+     * top-level parts with AND alone: a clause inside another filter's
+     * brackets, or next to an OR, stays where it is.
      *
      * @param string   $where WHERE SQL.
      * @param WP_Query $query Query.
@@ -365,76 +369,98 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
         if ('' === $clause || !is_string($where) || 1 !== substr_count($where, $clause) || !preg_match('/^\s*AND\s/i', $clause)) {
             return $where;
         }
-        $rest = str_replace($clause, ' ', $where);
-        if ('' === trim($rest) || !self::and_only($clause) || !self::and_only($rest)) {
+        $at = (int) strpos($where, $clause);
+        $before = substr($where, 0, $at);
+        $after = (string) substr($where, $at + strlen($clause));
+        // Balanced parts before the clause put it at the top level, not inside a group.
+        if (!preg_match('/^\s*AND\b/i', $after) || !self::and_only($before) || !self::and_only($clause) || !self::and_only($after)) {
             return $where;
         }
-        return rtrim($rest) . ' ' . ltrim($clause);
+        return rtrim($before) . ' ' . trim($after) . ' ' . ltrim($clause);
     }
 
     /**
-     * Whether SQL joins its top-level parts with AND only: no top-level OR,
-     * XOR or ||, no comment or semicolon, and balanced brackets and quotes.
+     * Whether SQL joins its top-level parts with AND only: balanced brackets
+     * and quotes, no comment or semicolon, and no top-level OR, XOR, ||,
+     * BETWEEN (whose AND is not a join) or CASE.
      *
      * @param string $sql SQL.
      * @return bool
      */
     private static function and_only($sql) {
+        $plain = self::without_literals($sql);
+        $parts = null === $plain || preg_match('/[#;]|--|\/\*/', $plain) ? false : preg_split('/([()])/', $plain, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if (false === $parts) {
+            return false;
+        }
         $top = '';
         $depth = 0;
-        $length = strlen($sql);
-        $i = 0;
-        while ($i < $length) {
-            $run = strcspn($sql, "'\"`()#;-/", $i);
-            if ($run > 0) {
-                if (0 === $depth) {
-                    $top .= substr($sql, $i, $run);
-                }
-                $i += $run;
-                continue;
-            }
-            $char = $sql[$i];
-            $next = $i + 1 < $length ? $sql[$i + 1] : '';
-            if ("'" === $char || '"' === $char || '`' === $char) {
-                // Skip the literal: backslash escapes (not in `names`) and doubled quotes.
-                $stops = '`' === $char ? '`' : $char . '\\';
-                $j = $i + 1;
-                while (true) {
-                    if ($j >= $length) {
-                        return false;
-                    }
-                    $j += strcspn($sql, $stops, $j);
-                    if ($j >= $length) {
-                        return false;
-                    }
-                    if ('\\' === $sql[$j]) {
-                        $j += 2;
-                    } elseif ($j + 1 < $length && $sql[$j + 1] === $char) {
-                        $j += 2;
-                    } else {
-                        break;
-                    }
-                }
-                $top .= ' ';
-                $i = $j + 1;
-                continue;
-            }
-            if ('#' === $char || ';' === $char || ('-' === $char && '-' === $next) || ('/' === $char && '*' === $next)) {
-                return false;
-            }
-            if ('(' === $char) {
-                ++$depth;
-                $top .= ' ';
-            } elseif (')' === $char) {
-                if (--$depth < 0) {
+        foreach ($parts as $part) {
+            if ('(' === $part || ')' === $part) {
+                $depth += '(' === $part ? 1 : -1;
+                if ($depth < 0) {
                     return false;
                 }
                 $top .= ' ';
             } elseif (0 === $depth) {
-                $top .= $char;
+                $top .= $part;
             }
-            ++$i;
         }
-        return 0 === $depth && !preg_match('/\b(?:OR|XOR)\b|\|\|/i', $top);
+        return 0 === $depth && !preg_match('/\b(?:OR|XOR|BETWEEN|CASE)\b|\|\|/i', $top);
+    }
+
+    /**
+     * SQL with each quoted string and `name` replaced by a space, or null
+     * when one is not closed.
+     *
+     * @param string $sql SQL.
+     * @return string|null
+     */
+    private static function without_literals($sql) {
+        $plain = '';
+        $length = strlen($sql);
+        $i = 0;
+        while ($i < $length) {
+            $run = strcspn($sql, "'\"`", $i);
+            $plain .= substr($sql, $i, $run);
+            $i += $run;
+            if ($i < $length) {
+                $end = self::literal_end($sql, $i);
+                if (null === $end) {
+                    return null;
+                }
+                $plain .= ' ';
+                $i = $end + 1;
+            }
+        }
+        return $plain;
+    }
+
+    /**
+     * Where the quoted string or `name` that starts at $start closes, or null
+     * when it does not. Backslash escapes count in strings, not in names; a
+     * doubled quote counts in both.
+     *
+     * @param string $sql   SQL.
+     * @param int    $start Opening quote's offset.
+     * @return int|null
+     */
+    private static function literal_end($sql, $start) {
+        $quote = $sql[$start];
+        $stops = '`' === $quote ? '`' : $quote . '\\';
+        $length = strlen($sql);
+        $j = $start + 1;
+        while ($j < $length) {
+            $j += strcspn($sql, $stops, $j);
+            if ($j >= $length) {
+                return null;
+            }
+            if ('\\' === $sql[$j] || ($sql[$j + 1] ?? '') === $quote) {
+                $j += 2;
+                continue;
+            }
+            return $j;
+        }
+        return null;
     }
 }
