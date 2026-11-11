@@ -108,6 +108,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_jquery_footer` | filter | supported | 1.3.165 | jquery footer | `true` |
 | `seoprostack_kadence_bg_sizes` | filter | supported | 1.3.171 | kadence rows | `true`; `$block` |
 | `seoprostack_kadence_bg_slider_width` | filter | supported | 1.3.170 | kadence rows | `true`; `$block` |
+| `seoprostack_kadence_column_sizes` | filter | supported | 1.3.198 | kadence column sizes | `true`; `$post` |
 | `seoprostack_kadence_column_wait` | filter | supported | 1.3.171 | kadence rows | `true`; `$block` |
 | `seoprostack_kadence_custom_css` | filter | supported | 1.3.51 | kadence colour check | `$sources` |
 | `seoprostack_kadence_head_preload` | filter | supported | 1.3.171 | kadence early | `true`; `$attrs` |
