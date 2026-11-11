@@ -22,9 +22,16 @@
  * 768 pixel sizes (GH#1535): a picture shown 301 to 480 pixels wide, as in
  * a two-column grid on a phone, was fetched at 768. It is registered, so
  * uploads get it; a picture a page shows with a srcset that lacks it waits
- * for that copy alone, and its page is not purged: the next refresh of the
- * page lists it. Browsers take the smallest file at least as wide as what
- * they paint, so it never makes a picture less sharp.
+ * for that copy alone. Browsers take the smallest file at least as wide as
+ * what they paint, so it never makes a picture less sharp.
+ *
+ * Pages are cached for a week, so the pages such pictures were seen on are
+ * remembered (SEOProStack_Picture_Pages), and refreshed once none waits for
+ * that copy: they list the new copies, and pictures seen while the queue
+ * was full are queued when they are opened again, until none lacks it
+ * (GH#1542). One copy is much less work than every size, so a run makes up
+ * to three times as many of them (SMALL_BATCH) as of pictures needing every
+ * size (BATCH).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -38,6 +45,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+require_once __DIR__ . '/class-seoprostack-picture-pages.php';
 
 class SEOProStack_Picture_Sizes {
 
@@ -68,8 +77,11 @@ class SEOProStack_Picture_Sizes {
     /** Pictures waiting, at most. */
     const MAX = 50;
 
-    /** Pictures a batch makes sizes for, at most. */
+    /** Pictures a batch makes every size for, at most. */
     const BATCH = 3;
+
+    /** Pictures a batch makes SMALL alone for, at most; every size counts SMALL_BATCH / BATCH (GH#1542). */
+    const SMALL_BATCH = 9;
 
     /** Seconds a batch starts new pictures for. */
     const BUDGET = 20;
@@ -138,7 +150,8 @@ class SEOProStack_Picture_Sizes {
 
     /**
      * A picture was shown with a srcset: queue it when it lacks SMALL, for
-     * that copy alone, with no refresh (GH#1535).
+     * that copy alone (GH#1535); its page is refreshed once none waits for
+     * it (GH#1542).
      *
      * @param int   $id   Attachment ID.
      * @param array $meta Its metadata.
@@ -153,17 +166,23 @@ class SEOProStack_Picture_Sizes {
      * @param int   $id   Attachment ID.
      * @param array $meta Its metadata.
      * @param bool  $page Every size of SIZES, and refresh the page after;
-     *                    false: SMALL alone, no refresh.
+     *                    false: SMALL alone, the page refreshed later.
      */
     private static function look($id, array $meta, $page) {
         if ($id < 1 || is_admin() || !self::first_look($id, $page)) {
             return;
         }
         $missing = self::missing($meta, $page ? self::SIZES : array(self::SMALL));
-        // SMALL alone missing: its page is not purged for it either.
+        // SMALL alone missing: waits for that copy alone, as from a srcset.
         $page = $page && array(self::SMALL) !== array_keys($missing);
-        if ($missing && self::due($id, $page)) {
-            self::enqueue($id, $page);
+        if (!$missing || !self::due($id, $page)) {
+            return;
+        }
+        self::enqueue($id, $page);
+        if (!$page) {
+            // Even when the queue was full: opened again, the page queues
+            // the pictures that found no room (GH#1542).
+            SEOProStack_Picture_Pages::note();
         }
     }
 
@@ -264,15 +283,21 @@ class SEOProStack_Picture_Sizes {
     }
 
     /**
-     * One batch: make the sizes of up to BATCH pictures, then purge and
-     * open again the pages they were seen on. Each picture leaves the queue
-     * and is marked tried before its sizes are made, so one that stops the
-     * run (memory, time) is not tried again for RETRY.
+     * One batch: make the sizes of up to BATCH pictures, or SMALL alone of
+     * up to SMALL_BATCH (GH#1542), then purge and open again the pages they
+     * were seen on. Each picture leaves the queue and is marked tried before
+     * its sizes are made, so one that stops the run (memory, time) is not
+     * tried again for RETRY. When this batch made anything and no picture
+     * waits for SMALL alone now, the pages SEOProStack_Picture_Pages
+     * remembered are refreshed too: their pictures have it, failed (not
+     * retried for RETRY), or found the queue full and are queued again when
+     * the page is opened. Each refresh follows a batch that made something,
+     * so it ends.
      */
     public static function run() {
         $queue = self::queue();
         $start = time();
-        $done  = 0;
+        $work  = 0;
         $posts = array();
         if ($queue) {
             self::filters(true);
@@ -283,15 +308,25 @@ class SEOProStack_Picture_Sizes {
             return self::SMALL_ONLY !== $post_id;
         }) + $queue;
         foreach ($order as $id => $post_id) {
-            if ($done >= self::BATCH || time() - $start >= self::BUDGET) {
+            if ($work >= self::SMALL_BATCH || time() - $start >= self::BUDGET) {
                 break;
             }
-            ++$done;
+            // A picture's every size counts as much as SMALL_BATCH / BATCH
+            // of SMALL alone.
+            $work += self::SMALL_ONLY === $post_id ? 1 : intdiv(self::SMALL_BATCH, self::BATCH);
             unset($queue[$id]);
             self::save($queue);
             $posts[] = self::run_one($id, $post_id);
         }
         self::filters(false);
+        // The queue as stored now, not this request's cached copy: a page
+        // may have queued a picture during the batch, and its page is
+        // refreshed after that one.
+        wp_cache_delete(self::OPTION, 'options');
+        wp_cache_delete('notoptions', 'options');
+        if ($work > 0 && !in_array(self::SMALL_ONLY, self::queue(), true)) {
+            $posts = array_merge($posts, SEOProStack_Picture_Pages::take());
+        }
         $posts = array_filter(array_unique($posts));
         if ($posts) {
             self::refresh($posts);
