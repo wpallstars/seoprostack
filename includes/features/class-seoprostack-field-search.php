@@ -21,6 +21,10 @@
  * Only the main query of a search page or admin list: widgets, blocks,
  * REST requests and the media library keep core's search.
  *
+ * The finished search clause moves to the end of WHERE, after the post
+ * type and status tests, so the field test runs only for posts that can be
+ * results, not for every attachment and revision (GH#1523).
+ *
  * Replaces ACF: Better Search.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -45,6 +49,12 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
 
     /** Field types whose values are searched. */
     const TYPES = array('text', 'textarea', 'wysiwyg', 'email', 'url', 'number', 'select', 'checkbox', 'radio');
+
+    /** @var array<int,true> Queries whose search clause search() rebuilt, by object ID. */
+    private static $rebuilt = array();
+
+    /** @var array<int,string> Their search clauses after every posts_search filter. */
+    private static $clauses = array();
 
     /**
      * Settings.
@@ -96,6 +106,8 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
             return;
         }
         add_filter('posts_search', array(__CLASS__, 'search'), 10, 2);
+        add_filter('posts_search', array(__CLASS__, 'remember'), PHP_INT_MAX, 2);
+        add_filter('posts_where_paged', array(__CLASS__, 'search_last'), PHP_INT_MAX, 2);
     }
 
     /**
@@ -300,6 +312,129 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
         if (!is_user_logged_in()) {
             $search .= " AND ({$wpdb->posts}.post_password = '') ";
         }
+        self::$rebuilt[spl_object_id($query)] = true;
         return $search;
+    }
+
+    /**
+     * Keep the search clause of a query search() rebuilt, as the last
+     * posts_search filter leaves it (another plugin may wrap it).
+     *
+     * @param string   $search Search SQL.
+     * @param WP_Query $query  Query.
+     * @return string Unchanged.
+     */
+    public static function remember($search, $query) {
+        if (!$query instanceof WP_Query) {
+            return $search;
+        }
+        $id = spl_object_id($query);
+        unset(self::$clauses[$id]);
+        if (isset(self::$rebuilt[$id])) {
+            unset(self::$rebuilt[$id]);
+            if (is_string($search) && '' !== trim($search)) {
+                self::$clauses[$id] = $search;
+            }
+        }
+        return $search;
+    }
+
+    /**
+     * Move the search clause to the end of WHERE. Core adds it before the
+     * post type and status tests, and the database tests AND parts in
+     * order, so the field test ran for every attachment and revision that
+     * failed the title and content tests. Counting a common word's results
+     * on a site with 107,000 posts took 1.6 to 8 s; tested last, 0.3 to
+     * 0.6 s, with the same posts (GH#1523). The page query stops after a
+     * page of results, so mostly the count gains.
+     *
+     * AND parts can be put in any order; WHERE is left as it is unless the
+     * clause appears once and neither it nor the rest has a top-level OR.
+     *
+     * @param string   $where WHERE SQL.
+     * @param WP_Query $query Query.
+     * @return string
+     */
+    public static function search_last($where, $query) {
+        if (!$query instanceof WP_Query) {
+            return $where;
+        }
+        $id = spl_object_id($query);
+        $clause = self::$clauses[$id] ?? '';
+        unset(self::$clauses[$id]);
+        if ('' === $clause || !is_string($where) || 1 !== substr_count($where, $clause) || !preg_match('/^\s*AND\s/i', $clause)) {
+            return $where;
+        }
+        $rest = str_replace($clause, ' ', $where);
+        if ('' === trim($rest) || !self::and_only($clause) || !self::and_only($rest)) {
+            return $where;
+        }
+        return rtrim($rest) . ' ' . ltrim($clause);
+    }
+
+    /**
+     * Whether SQL joins its top-level parts with AND only: no top-level OR,
+     * XOR or ||, no comment or semicolon, and balanced brackets and quotes.
+     *
+     * @param string $sql SQL.
+     * @return bool
+     */
+    private static function and_only($sql) {
+        $top = '';
+        $depth = 0;
+        $length = strlen($sql);
+        $i = 0;
+        while ($i < $length) {
+            $run = strcspn($sql, "'\"`()#;-/", $i);
+            if ($run > 0) {
+                if (0 === $depth) {
+                    $top .= substr($sql, $i, $run);
+                }
+                $i += $run;
+                continue;
+            }
+            $char = $sql[$i];
+            $next = $i + 1 < $length ? $sql[$i + 1] : '';
+            if ("'" === $char || '"' === $char || '`' === $char) {
+                // Skip the literal: backslash escapes (not in `names`) and doubled quotes.
+                $stops = '`' === $char ? '`' : $char . '\\';
+                $j = $i + 1;
+                while (true) {
+                    if ($j >= $length) {
+                        return false;
+                    }
+                    $j += strcspn($sql, $stops, $j);
+                    if ($j >= $length) {
+                        return false;
+                    }
+                    if ('\\' === $sql[$j]) {
+                        $j += 2;
+                    } elseif ($j + 1 < $length && $sql[$j + 1] === $char) {
+                        $j += 2;
+                    } else {
+                        break;
+                    }
+                }
+                $top .= ' ';
+                $i = $j + 1;
+                continue;
+            }
+            if ('#' === $char || ';' === $char || ('-' === $char && '-' === $next) || ('/' === $char && '*' === $next)) {
+                return false;
+            }
+            if ('(' === $char) {
+                ++$depth;
+                $top .= ' ';
+            } elseif (')' === $char) {
+                if (--$depth < 0) {
+                    return false;
+                }
+                $top .= ' ';
+            } elseif (0 === $depth) {
+                $top .= $char;
+            }
+            ++$i;
+        }
+        return 0 === $depth && !preg_match('/\b(?:OR|XOR)\b|\|\|/i', $top);
     }
 }
