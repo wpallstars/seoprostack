@@ -170,6 +170,9 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_replaced_plugin_extras` | filter | supported | 0.8.0 | replaced plugins | `array()`; `$slug` |
 | `seoprostack_replaces_link` | filter | internal | 1.3.60 | settings manager | `$link`; `(string) $slug`, `$site[$slug]`, `(string) $name` |
 | `seoprostack_restored_menu_capability` | filter | supported | 1.3.70 | plugin loading | `$item[1]`; `(string) $item[2]` |
+| `seoprostack_robots_txt_ai_crawlers` | filter | supported | 1.3.197 | robots.txt | `self::AI_TRAINING` user-agent tokens |
+| `seoprostack_robots_txt_rules` | filter | supported | 1.3.197 | robots.txt | `$rules` [directive, path] pairs |
+| `seoprostack_robots_txt_sitemap` | filter | supported | 1.3.197 | robots.txt | `SEOProStack_Litespeed::sitemap_index()` URL, or `''` |
 | `seoprostack_saved_item` | filter | supported | 1.3.58 | post reactions | `$item`; `$p`, `$list` |
 | `seoprostack_saved_panel_actions` | filter | supported | 1.3.58 | post reactions | `''`; `'shortlist'` |
 | `seoprostack_screenshot_failed` | action | supported | 0.4.0 | screenshots | `$url`, `$result` |
