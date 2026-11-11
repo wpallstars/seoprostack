@@ -227,7 +227,8 @@ class SEOProStack_Kadence_Column_Sizes {
         }
         if (class_exists('Kadence\Theme')) {
             $theme = function_exists('Kadence\kadence') ? \Kadence\kadence() : null;
-            if (!is_object($theme) || !method_exists($theme, 'sub_option')) {
+            // Its template tags reach sub_option() through __call().
+            if (!is_object($theme) || !is_callable(array($theme, 'sub_option'))) {
                 return null;
             }
             $size = $theme->sub_option('content_width', 'size');
