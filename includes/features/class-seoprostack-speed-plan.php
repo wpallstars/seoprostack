@@ -163,6 +163,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'translatepress_defer'      => array(isset($active['translatepress-multilingual']), __('For TranslatePress, which is not active.', 'seoprostack')),
             'maps_later'                => array(true, ''),
             'heartbeat_limit'           => array(true, ''),
+            'quick_404'                 => array(true, ''),
             'database_cleanup'          => array(true, ''),
             'autoload_options'          => array(!is_multisite(), __('For single sites.', 'seoprostack')),
         );

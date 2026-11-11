@@ -165,6 +165,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_preset_store` | filter | supported | 0.12.8 | presets | `null`; `$slug`, `$name`, `$value`. Return `true` when your code saved the value, or a `WP_Error` to stop |
 | `seoprostack_preset_write_check` | filter | supported | 0.12.8 | presets | `null`; `$slug`. Return a `WP_Error` to stop the write |
 | `seoprostack_pro_items` | filter | supported | 0.5.0 | link cards | `array` directory entries; built as `seoprostack_{$id}_items` |
+| `seoprostack_quick_404` | filter | supported | 1.3.199 | quick 404 | `self::is_file_path($path)`; `$path` |
 | `seoprostack_redirect_links` | filter | supported | 1.3.106 | redirect links | `(array) $map['exact']` |
 | `seoprostack_redundant_plugins` | filter | supported | 1.3.133 | replaced plugins | `array()` |
 | `seoprostack_related_posts_args` | filter | internal | 0.12.0 | term displays | `$args`; `$post` |
