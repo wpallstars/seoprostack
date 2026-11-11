@@ -120,35 +120,90 @@ class SEOProStack_Picture_Sizes {
     public static function srcset($sources, $size_array, $image_src, $image_meta, $attachment_id = 0) {
         unset($size_array, $image_src);
         if (is_array($image_meta)) {
-            self::want((int) $attachment_id, $image_meta, false);
+            self::want_small((int) $attachment_id, $image_meta);
         }
         return $sources;
     }
 
     /**
-     * A picture was read for a page: queue it when it lacks sizes.
+     * A picture was read for a page: queue it when it lacks sizes, to make
+     * every size of SIZES and refresh the page after.
+     *
+     * @param int   $id   Attachment ID.
+     * @param array $meta Its metadata.
+     */
+    public static function want($id, array $meta) {
+        self::look((int) $id, $meta, true);
+    }
+
+    /**
+     * A picture was shown with a srcset: queue it when it lacks SMALL, for
+     * that copy alone, with no refresh (GH#1535).
+     *
+     * @param int   $id   Attachment ID.
+     * @param array $meta Its metadata.
+     */
+    public static function want_small($id, array $meta) {
+        self::look((int) $id, $meta, false);
+    }
+
+    /**
+     * Queue a picture when it lacks sizes.
      *
      * @param int   $id   Attachment ID.
      * @param array $meta Its metadata.
      * @param bool  $page Every size of SIZES, and refresh the page after;
-     *                    false: SMALL alone, no refresh (GH#1535).
+     *                    false: SMALL alone, no refresh.
      */
-    public static function want($id, array $meta, $page = true) {
-        $id = (int) $id;
-        if ($id < 1 || is_admin() || (isset(self::$seen[$id]) && (self::$seen[$id] || !$page))) {
+    private static function look($id, array $meta, $page) {
+        if ($id < 1 || is_admin() || !self::first_look($id, $page)) {
             return;
+        }
+        $missing = self::missing($meta, $page ? self::SIZES : array(self::SMALL));
+        // SMALL alone missing: its page is not purged for it either.
+        $page = $page && array(self::SMALL) !== array_keys($missing);
+        if ($missing && self::due($id, $page)) {
+            self::enqueue($id, $page);
+        }
+    }
+
+    /**
+     * Whether a picture is looked at for the first time on this request, for
+     * as much: one looked at for SMALL alone is looked at again for every
+     * size.
+     *
+     * @param int  $id   Attachment ID.
+     * @param bool $page Every size.
+     * @return bool
+     */
+    private static function first_look($id, $page) {
+        if (isset(self::$seen[$id]) && (self::$seen[$id] || !$page)) {
+            return false;
         }
         self::$seen[$id] = $page;
-        $missing         = self::missing($meta, $page ? self::SIZES : array(self::SMALL));
-        // SMALL alone missing: its page is not purged for it either.
-        if ($page && array(self::SMALL) === array_keys($missing)) {
-            $page = false;
-        }
-        if (!$missing || !wp_attachment_is_image($id) || (int) get_post_meta($id, $page ? self::TRIED : self::TRIED_SMALL, true) > time() - self::RETRY) {
-            return;
-        }
+        return true;
+    }
+
+    /**
+     * Whether a picture's sizes may be made: an image not tried in RETRY.
+     *
+     * @param int  $id   Attachment ID.
+     * @param bool $page Every size; false: SMALL alone.
+     * @return bool
+     */
+    private static function due($id, $page) {
+        return wp_attachment_is_image($id) && (int) get_post_meta($id, $page ? self::TRIED : self::TRIED_SMALL, true) <= time() - self::RETRY;
+    }
+
+    /**
+     * Queue a picture, unless it waits already for as much, and schedule
+     * the batch.
+     *
+     * @param int  $id   Attachment ID.
+     * @param bool $page Every size; false: SMALL alone.
+     */
+    private static function enqueue($id, $page) {
         $queue = self::queue();
-        // Not when it waits already, for as much.
         if (!isset($queue[$id]) || ($page && self::SMALL_ONLY === $queue[$id])) {
             $queue = self::add($queue, $id, $page);
         }
@@ -220,9 +275,7 @@ class SEOProStack_Picture_Sizes {
         $done  = 0;
         $posts = array();
         if ($queue) {
-            require_once ABSPATH . 'wp-admin/includes/image.php';
-            add_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99, 3);
-            add_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99, 2);
+            self::filters(true);
         }
         // Pictures a page needs every size of first, then those waiting for
         // SMALL alone (GH#1535).
@@ -236,20 +289,46 @@ class SEOProStack_Picture_Sizes {
             ++$done;
             unset($queue[$id]);
             self::save($queue);
-            $small = self::SMALL_ONLY === $post_id;
-            update_post_meta($id, $small ? self::TRIED_SMALL : self::TRIED, time());
-            if (self::make($id, $small ? array(self::SMALL) : self::SIZES) && $post_id > 0) {
-                $posts[] = $post_id;
-            }
+            $posts[] = self::run_one($id, $post_id);
         }
-        remove_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99);
-        remove_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99);
+        self::filters(false);
+        $posts = array_filter(array_unique($posts));
         if ($posts) {
-            self::refresh(array_unique($posts));
+            self::refresh($posts);
         }
         if ($queue && !wp_next_scheduled(self::HOOK)) {
             wp_schedule_single_event(time() + self::DELAY, self::HOOK);
         }
+    }
+
+    /**
+     * Add, or remove, the filters a batch makes sizes with.
+     *
+     * @param bool $add Add them; false: remove them.
+     */
+    private static function filters($add) {
+        if (!$add) {
+            remove_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99);
+            remove_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99);
+            return;
+        }
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        add_filter('wp_get_missing_image_subsizes', array(__CLASS__, 'only_these'), 99, 3);
+        add_filter('wp_get_original_image_path', array(__CLASS__, 'source'), 99, 2);
+    }
+
+    /**
+     * Make one queued picture's sizes, marked tried first.
+     *
+     * @param int $id      Attachment ID.
+     * @param int $post_id Its page; 0 for none; SMALL_ONLY for SMALL alone.
+     * @return int The page to refresh; 0 for none.
+     */
+    private static function run_one($id, $post_id) {
+        $small = self::SMALL_ONLY === $post_id;
+        update_post_meta($id, $small ? self::TRIED_SMALL : self::TRIED, time());
+        $more = self::make($id, $small ? array(self::SMALL) : self::SIZES);
+        return $more && $post_id > 0 ? $post_id : 0;
     }
 
     /**
