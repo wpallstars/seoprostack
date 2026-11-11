@@ -254,7 +254,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
          * max-age), while Clear Cloudflare's copies of pages reaches
          * Cloudflare; 0 sends nothing. Runs on template_redirect.
          *
-         * @since 1.3.203
+         * @since 1.3.204
          * @param int $seconds Cloudflare edge time setting (EDGE_QUERY at most with a query string).
          */
         $seconds = (int) apply_filters('seoprostack_cloudflare_edge_time', $seconds);
