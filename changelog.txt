@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.207 =
 * Faster: SEO Pro Stack's own front-end scripts and stylesheets load as minified copies (GitHub issue #1531). Release builds now carry a .min copy beside each file in assets/ (scripts/build-release.sh, from WP Plugin Starter 1.0.62), starting with its file's licence and Provenance lines, and SEOProStack::asset_url() returns it unless SCRIPT_DEBUG is on, so a Git checkout still loads the readable files. Post reactions, Language switcher, Email protection, Modal links, Dark mode image contrast, Wikipedia previews and Fluent Forms by key's panel and modal load through it: the 11 files go from 138 KB to 79 KB (post-reactions.js 53 to 30 KB, dark-image-contrast.js 34 to 14 KB). PageSpeed Insights listed post-reactions.js under Minify JavaScript on a directory home page. The two small stylesheets WordPress prints in the page (post reactions, the form panel) print their .min copy too.
 * Developers: core files synced with WP Plugin Starter 1.0.62 and its unreleased GH#715 and GH#725: the release build's minified copies and the preflight check for them, Node set up for them in CI and the Release workflow, scripts/lint.sh changelog and hooks run by CI, the deploy log classifier and load check retry fixes, and SEOProStack::asset_url() documented as returning a non-empty string (wp_register_script() needs one for PHPStan). The starter's scripts/check-hooks.js (scripts/lint.sh hooks, from this plugin's check) replaces scripts/check-hooks.mjs and .github/workflows/hooks.yml; it also checks hook names built at run time and the latest release's supported hooks.
 
