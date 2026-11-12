@@ -246,6 +246,15 @@
  * full server as before. REST requests (the editor, Kadence's filters
  * reloading results) already have the full server and are not changed.
  *
+ * Those REST requests send the nonce the page was built with, and cached
+ * pages outlive it (12 to 24 hours; LiteSpeed Cache keeps pages a week,
+ * Cloudflare a day). WordPress answers an expired nonce with 403
+ * rest_cookie_invalid_nonce even for a visitor who is not logged in, so
+ * Kadence's filters and further pages failed on older cached pages, as did
+ * other plugins' requests from them. For a visitor with no login, a refused
+ * nonce is now answered as a request without one, as anonymous, which core
+ * already accepts; logged-in users keep the error (#1573).
+ *
  * The Kadence theme (checked with 1.5.2) reads its settings with
  * get_theme_mod() over 1,300 times as it builds a page's CSS, and each read
  * decodes the whole theme_mods option again (37 KB on one site: 250 ms per
@@ -475,7 +484,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -541,6 +550,8 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             // Last, so a value another filter gives is kept.
             add_filter('pre_option_theme_mods_' . get_stylesheet(), array(__CLASS__, 'kadence_theme_mods'), PHP_INT_MAX, 2);
         }
+        // After core's nonce check (rest_cookie_check_errors, priority 100).
+        add_filter('rest_authentication_errors', array(__CLASS__, 'rest_anonymous_nonce'), 101);
         // Now (init, priority 0): LiteSpeed Cache reads the constant when a
         // crawl starts and in its role simulation (init, priority 5).
         self::litespeed_crawler_duration();
@@ -1298,6 +1309,34 @@ JS;
                 'data-cfasync'     => 'false',
             )
         );
+    }
+
+    /**
+     * A REST request from a visitor who is not logged in, with a nonce
+     * WordPress refused: answer it as one without a nonce (GitHub issue
+     * #1573). Cached pages keep the nonce they were built with (Kadence
+     * Blocks Pro's query loop sends kbp_query_loop_rest_endpoint.nonce as
+     * X-WP-Nonce) for longer than its 12 to 24 hours: LiteSpeed Cache keeps
+     * pages a week and Cloudflare a day. Core still checks a nonce sent by a
+     * visitor with no login and answers 403 rest_cookie_invalid_nonce, so
+     * filters and further pages failed on pages cached for over a day. A
+     * nonce protects a logged-in user from forged requests; with nobody
+     * logged in it protects nothing, and core answers the same request
+     * without one as anonymous (rest_cookie_check_errors()). Logged-in users
+     * keep the error.
+     *
+     * @param WP_Error|null|true $result Result so far.
+     * @return WP_Error|null|true Unchanged, or true for that request.
+     */
+    public static function rest_anonymous_nonce($result) {
+        if (!is_wp_error($result) || 'rest_cookie_invalid_nonce' !== $result->get_error_code() || is_user_logged_in()) {
+            return $result;
+        }
+        // Core added it with the error; an anonymous answer needs none.
+        remove_filter('rest_send_nocache_headers', '__return_true', 20);
+        // As core does for a request without a nonce.
+        wp_set_current_user(0);
+        return true;
     }
 
     /**
