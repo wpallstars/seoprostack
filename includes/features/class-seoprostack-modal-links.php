@@ -67,7 +67,7 @@ class SEOProStack_Modal_Links extends SEOProStack_Feature {
      */
     public static function enqueue() {
         $js = 'assets/modal-links.js';
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
+        wp_enqueue_script(self::HANDLE, SEOProStack::asset_url($js), array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
         /**
          * Filter CSS selectors of other kinds of modal or drawer that a link
          * to their ID opens. Dialogs, elements with role="dialog" or

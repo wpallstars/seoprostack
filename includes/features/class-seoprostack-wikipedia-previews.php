@@ -210,8 +210,8 @@ class SEOProStack_Wikipedia_Previews extends SEOProStack_Feature {
         }
         $js  = 'assets/wikipedia-previews.js';
         $css = 'assets/wikipedia-previews.css';
-        wp_enqueue_style(self::HANDLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
+        wp_enqueue_style(self::HANDLE, SEOProStack::asset_url($css), array(), (string) filemtime(SEOPROSTACK_DIR . $css));
+        wp_enqueue_script(self::HANDLE, SEOProStack::asset_url($js), array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
         wp_add_inline_script(self::HANDLE, 'window.seoprostackWikipedia = ' . wp_json_encode(array(
             'readMore'    => __('Read more on Wikipedia', 'seoprostack'),
             'close'       => __('Close', 'seoprostack'),

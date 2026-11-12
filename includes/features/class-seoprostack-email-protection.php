@@ -457,7 +457,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
             $encoded .= sprintf('%02x', ord($value[$index]) ^ self::$key);
         }
         // Footer loading works when a placeholder first appears after wp_head.
-        wp_enqueue_script('seoprostack-email-protection', SEOPROSTACK_URL . 'assets/js/email-protection.js', array(), SEOPROSTACK_VERSION, true);
+        wp_enqueue_script('seoprostack-email-protection', SEOProStack::asset_url('assets/js/email-protection.js'), array(), SEOPROSTACK_VERSION, true);
         return $encoded;
     }
 
