@@ -23,7 +23,7 @@
  * ResizeObserver it measures at once, as Kadence did.
  *
  * Lighthouse mobile, 5 runs each on a Kadence home page: forced reflow
- * 272 ms to 152 ms (Kadence's own share 123 ms to 0), Style & Layout 787 ms
+ * 237 ms to 115 ms (Kadence's own share 123 ms to 0), Style & Layout 787 ms
  * to 760 ms, LCP unchanged. Setting the property even when it is 0 kept the
  * forced reflow away but cost a second style pass before the first paint
  * (Style & Layout 803 ms, LCP +38 ms), so 0 is left unset.
