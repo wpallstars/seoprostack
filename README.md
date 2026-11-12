@@ -2650,7 +2650,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
-- Developers: core files synced from WP Plugin Starter 1.0.59; `scripts/check-hooks.js` replaces `scripts/check-hooks.mjs` and runs in `scripts/lint.sh hooks`. No change to the plugin itself (#1531).
+- Developers: core files synced from WP Plugin Starter 1.0.60; `scripts/check-hooks.js` replaces `scripts/check-hooks.mjs` and runs in `scripts/lint.sh hooks`. No change to the plugin itself (#1531).
 
 ### 1.3.205
 
