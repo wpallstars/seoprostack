@@ -1179,7 +1179,7 @@ On each chosen post type’s list, a warning appears when more than 20% of its p
 
 The Rank Math preset sets Pages’ Schema Type to None: Rank Math still emits WebPage, without adding Article by default. Apply it explicitly on the Plugins screen or with `wp seoprostack presets apply seo-by-rank-math`; reset/undo use the existing preset backup. Existing per-page schema is untouched.
 
-**Copied-site repairs:** `wp --url=<url> seoprostack health --dry-run` (also the default without a flag) reports stale Kadence/WPTT `downloaded_font_files` cache paths and missing tables for active Rank Math 404 Monitor, Redirections, Link Counter and Analytics modules. `--repair` rebases font-cache entries to existing files under this site’s `wp-content/fonts`, or drops stale cache entries so the font loader can download them again; it never deletes font files or follows copied paths. Unrecognized paths are reported for manual review. The shared font cache on multisite is reported as `not_run` and never rewritten. Missing tables are created through Rank Math’s own schema routines and checked again; modules, connections, schedules and existing data are not reset, and lost table data cannot be restored. Use a database backup before repairs. JSON output and `--fail-on` include both checks; `--repair` and `--dry-run` are mutually exclusive.
+**Copied-site repairs:** `wp --url=<url> seoprostack health --dry-run` (also the default without a flag) reports stale Kadence/WPTT `downloaded_font_files` cache paths, the font stylesheets written from them (`wp-content/fonts/<md5>.css` naming a server path instead of a URL, so headings lose their font) and missing tables for active Rank Math 404 Monitor, Redirections, Link Counter and Analytics modules. `--repair` rebases font-cache entries to existing files under this install’s `wp-content/fonts`, or drops stale cache entries so the font loader can download them again, then removes those stylesheets, which Kadence writes again on the next page view that is not cached (purge page caches afterwards); it never deletes font files or follows copied paths. Unrecognized paths are reported for manual review. On multisite every site shares the font cache, so the check reports it for the whole network from any site’s `--url`, and `--repair` changes it only with `--network` as well (`wp --url=<url> seoprostack health --repair --network`); `--repair` alone still repairs that site’s Rank Math tables and says why the font cache was left. Missing tables are created through Rank Math’s own schema routines and checked again; modules, connections, schedules and existing data are not reset, and lost table data cannot be restored. Use a database backup before repairs. JSON output and `--fail-on` include both checks; `--repair` and `--dry-run` are mutually exclusive.
 
 ### Robots.txt rules (Links)
 
@@ -2648,6 +2648,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- New (`wp seoprostack health`; #1577): on multisite the copied-site font check now reports Kadence’s font cache paths from another install, and the stylesheets written from them, for the whole network; `--repair --network` repairs them (`--repair` alone leaves the shared cache and says why). On single sites too, `--repair` now also removes font stylesheets that name a server path, so Kadence writes them again.
 
 ### 1.3.208
 
