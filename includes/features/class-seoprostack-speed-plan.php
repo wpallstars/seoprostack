@@ -161,6 +161,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'turnstile_later'           => array(isset($active['simple-cloudflare-turnstile']), __('For Simple Cloudflare Turnstile, which is not active.', 'seoprostack')),
             'ai_engine_later'           => array(isset($active['ai-engine']) || isset($active['ai-engine-pro']), __('For AI Engine, which is not active.', 'seoprostack')),
             'translatepress_defer'      => array(isset($active['translatepress-multilingual']), __('For TranslatePress, which is not active.', 'seoprostack')),
+            'kadence_scrollbar'         => array('kadence' === get_template(), __('For the Kadence theme, which is not active.', 'seoprostack')),
             'maps_later'                => array(true, ''),
             'heartbeat_limit'           => array(true, ''),
             'quick_404'                 => array(true, ''),
