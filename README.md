@@ -2648,6 +2648,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced from WP Plugin Starter 1.0.59; `scripts/check-hooks.js` replaces `scripts/check-hooks.mjs` and runs in `scripts/lint.sh hooks`. No change to the plugin itself (#1531).
+
 ### 1.3.205
 
 - Fixed, on by default (Plugin fixes): **Kadence sliders and carousels** pass Lighthouse's "Accessibility tree is well-formed" check. Their slides are now printed as `div` instead of list items, where Splide's slide roles are not allowed, and look the same (#1528).
@@ -2693,7 +2697,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - New: the Website Setup board's starter data has a task to clear Cloudflare's cache with LiteSpeed Cache, with the token permissions it needs, after the Cloudflare set-up task (#1463).
 - Fixed: translated count strings keep the number first, as the English does, in about 730 plural entries of the bundled French, Spanish, Portuguese, Italian, German, Dutch, Polish, Romanian, Latvian and Estonian translations (#1459).
 - Fixed: an API token field left empty keeps the saved token, such as **Clear Cloudflare's copies of pages**'s; only a space removes it (#1456).
-- Developers: `docs/HOOKS.md` lists every `seoprostack_*` filter and action, supported or internal, with a two-minor-release deprecation rule for supported ones, checked by `scripts/check-hooks.js` (#1489).
+- Developers: `docs/HOOKS.md` lists every `seoprostack_*` filter and action, supported or internal, with a two-minor-release deprecation rule for supported ones, checked by `scripts/check-hooks.mjs` (#1489).
 
 ### 1.3.197
 

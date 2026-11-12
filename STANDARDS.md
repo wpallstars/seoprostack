@@ -49,9 +49,10 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   in its own `scripts/core-skip.txt` (`DEVELOPMENT.md` → Starter sync).
 - Every plugin keeps up with the starter: the daily Starter sync workflow
   keeps one `starter-sync` issue open while core files differ
-  (`DEVELOPMENT.md` → Starter sync). Work it like any issue: sync, check the
-  starter's changelog for changes the plugin's own files need, lint, smoke
-  test, pull request.
+  (`DEVELOPMENT.md` → Starter sync), labelled `auto-dispatch` so an aidevops
+  worker takes it. Work it like any issue: sync, check the starter's
+  changelog for changes the plugin's own files need, lint, smoke test, pull
+  request.
 - One class per feature in `includes/features/`, extending `{Prefix}_Feature`,
   registered in `{Prefix}_Setup::FEATURES`. Features some builds leave out
   go in `{Prefix}_Setup::OPTIONAL_FEATURES` and load only when present.
@@ -617,6 +618,11 @@ Two release channels, at the owner's decision:
 - Say which channel a site is on in `README.md` → Updates and releases and
   in `readme.txt` (FAQ), and mark security releases in the changelog
   ("Security:") so the exception is clear.
+- Release builds carry a minified `.min` copy beside each `assets/**/*.js|css`
+  file (`scripts/build-release.sh`, pinned esbuild, needs Node). Enqueue
+  assets with `{Prefix}::asset_url('assets/x.js')`: it returns the `.min` copy
+  when it exists and `SCRIPT_DEBUG` is off, else the readable file, so a Git
+  checkout works unchanged.
 
 Sites install the latest GitHub release whose tag is a plain version and the
 asset named exactly `{folder}-X.Y.Z.zip` (the shared updater; Git Updater,
