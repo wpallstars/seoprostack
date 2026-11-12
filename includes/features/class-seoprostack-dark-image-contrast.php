@@ -10,9 +10,10 @@
  * that are hard to see with a CSS filter. Photos and images without
  * transparency are left alone.
  *
- * The work is in assets/dark-image-contrast.js, loaded in the footer only on
- * pages whose body has a colour switch class (color-switch-light or
- * color-switch-dark). Nothing is stored and nothing is sent anywhere.
+ * The work is in assets/dark-image-contrast.js. On pages whose body has a
+ * colour switch class (color-switch-light or color-switch-dark), a few lines
+ * in the footer load it once the page is dark, so visitors who stay in light
+ * mode never fetch it. Nothing is stored and nothing is sent anywhere.
  *
  * Keep colours in dark mode: a picture ticked in the Media Library is left
  * alone wherever it is used (any size, WebP/AVIF copy or CSS background);
@@ -110,15 +111,25 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
     }
 
     /**
-     * Load the script on pages with a dark mode switcher.
+     * On pages with a dark mode switcher, load the script once the page is dark.
+     *
+     * Visitors in light mode, the default and the only mode PageSpeed
+     * Insights uses, need none of it: it measures nothing until the body has
+     * color-switch-dark (GH#1564). A small footer script sets the settings
+     * and loads it at once when the page is already dark, otherwise the first
+     * time the body gains color-switch-dark (a switch, or Kadence Pro's saved
+     * choice, applied at DOMContentLoaded), 400 ms later: the wait the script
+     * itself gives colour transitions after a switch, so it starts on settled
+     * colours. Loaded async, it competes with no picture (GH#1502).
      */
     public static function enqueue() {
         if (!self::$switcher) {
             return;
         }
-        $js = 'assets/dark-image-contrast.js';
-        // Deferred: it measures pictures as they load, so it need not compete with them (GH#1502).
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
+        $js  = 'assets/dark-image-contrast.js';
+        $src = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $js), SEOPROSTACK_URL . $js);
+        // As WordPress would print the file's address (CDN and query string filters).
+        $src    = (string) apply_filters('script_loader_src', $src, self::HANDLE); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter.
         $config = array('watermarks' => (bool) SEOProStack_Settings::get(self::WATERMARKS));
         $kept   = get_option(self::KEPT, array());
         if (is_array($kept) && $kept) {
@@ -130,7 +141,20 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
                 $config['uploads'] = untrailingslashit($path);
             }
         }
-        wp_add_inline_script(self::HANDLE, 'window.seoprostackDarkImageContrast = ' . wp_json_encode($config) . ';', 'before');
+        $flags = JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP;
+        $js    = 'window.seoprostackDarkImageContrast=' . wp_json_encode($config, $flags) . ';'
+            . '(function(d,src){var b=d.body,o;if(!b){return;}'
+            . 'function dark(){return b.classList.contains("color-switch-dark");}'
+            . 'function load(){var s=d.createElement("script");s.src=src;s.async=true;s.id=' . wp_json_encode(self::HANDLE . '-js') . ';d.head.appendChild(s);}'
+            . 'if(dark()){load();return;}'
+            . 'if(!window.MutationObserver){return;}'
+            . 'o=new MutationObserver(function(){if(dark()){o.disconnect();setTimeout(load,400);}});'
+            . 'o.observe(b,{attributes:true,attributeFilter:["class"]});'
+            . '})(document,' . wp_json_encode($src, $flags) . ');';
+        // No file of its own: WordPress prints only the inline script.
+        wp_register_script(self::HANDLE, false, array(), SEOPROSTACK_VERSION, true);
+        wp_enqueue_script(self::HANDLE);
+        wp_add_inline_script(self::HANDLE, $js);
     }
 
     /**
