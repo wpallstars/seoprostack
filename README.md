@@ -2649,11 +2649,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
-
-- Fixed: a secret settings field (a Cloudflare or GitHub token) shows the right placeholder after saving it without reloading the screen, and a save still pending never replaces text typed since (#1572).
-- Developers: core files synced with WP Plugin Starter commit 9e44e08: release tooling, `scripts/check-hooks.js` (comments ignored, hook types checked), the deploy log baseline taken after the account-load wait, and the Starter sync workflow keeping a `no-auto-dispatch` hold (#1572).
-
 ### 1.3.208
 
 - Fixed (**Fixes for other plugins**, on by default; #1573): on pages cached for over a day, Kadence Blocks Pro’s query loop filters and further pages, and other plugins’ REST requests from the page, keep working for visitors who are not logged in. WordPress answered the page’s expired nonce with `403 rest_cookie_invalid_nonce`; it is now answered as a request without one, as anonymous. Logged-in users keep the error.
