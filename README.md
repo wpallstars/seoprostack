@@ -995,7 +995,7 @@ On by default (#1486). TranslatePress puts its language switcher's script (16 KB
 
 On by default (#1552). The Kadence theme prints a script at the end of every page that measures the scrollbar's width (`--scrollbar-offset`, used by full-width blocks and transparent headers). It reads the page's width while the page is still loading, so the browser has to style and lay out the whole page early: PageSpeed Insights lists it under **Forced reflow**. This prints a script in its place that measures with a `ResizeObserver`, after the browser's own layout and before it paints, so nothing is laid out early and the first paint is the same. It also measures again when the window or page changes size. On phones, whose scrollbars take no room, it sets nothing: Kadence's styles fall back to what a width of 0 gives. Checked on a test site with Kadence 1.6.0: full-width blocks have the same size and place with it on and off, on desktop (a 15px scrollbar) and phones.
 
-- Lighthouse (mobile, 5 runs each) on a Kadence home page: forced reflow 272 ms to 152 ms (the theme's own share 123 ms to 0), Style & Layout 787 ms to 760 ms, LCP unchanged. What remains is other scripts' own.
+- Lighthouse (mobile, 5 runs each) on a Kadence home page: forced reflow 237 ms to 115 ms (the theme's own share 123 ms to 0), Style & Layout 787 ms to 760 ms, LCP unchanged. What remains is other scripts' own.
 - Only with the Kadence theme (or a child theme of it). Not in the admin, feeds, embeds or AMP pages. Return false from `seoprostack_kadence_scrollbar` to keep Kadence's script on a page.
 
 ### Load Google Maps embeds when they come near (Speed)
