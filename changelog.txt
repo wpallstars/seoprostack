@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.206 =
 * Faster: Image loading's Kadence rows script no longer makes the browser lay out the page while it is still being read (GitHub issue #1567). Each waiting row's or column's one-line script called check(), which read getBoundingClientRect() at once, so the browser laid out everything parsed so far there and then; PageSpeed Insights (mobile) on one Kadence home page listed it as the largest attributed Forced reflow item, 87 ms, for a row near the end of the page, nowhere near the first screen. With ResizeObserver, check() now hands the row or column to a one-shot observer whose callback runs after the browser's own style and layout pass and before it paints: there it is measured, and one within 1,250 pixels of the window is shown (sps-near) in that same frame, or else handed to the IntersectionObserver as before; without ResizeObserver, as before. size() is split into pick() (reads) and put() (writes), and every observer callback and the DPR change now read all reported rows before writing any, so one row's new picture does not make the browser redo styles to measure the next. Through a local proxy swapping the script on two live Kadence home pages (phone 412×823 at 1.75, desktop 1350×940): the same copies fetched at the same points, a column 2,136 pixels down on desktop shown at load just after the first paint (17 ms after it live, 30 ms with the change), rows further down fetched only once scrolled near, and no page errors. Lighthouse on a phone (5 runs each, devtools throttling) on the other page: Total Blocking Time and the largest paint no worse (medians 47 and 1,808 ms against 50 and 1,854 ms).
 
 = 1.3.205 =
