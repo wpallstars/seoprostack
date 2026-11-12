@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.203-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.204-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.203
+Version: 1.3.204
 
 <!-- github-only:start -->
 ## Screenshots
@@ -995,7 +995,7 @@ On by default (#1486). TranslatePress puts its language switcher's script (16 KB
 
 On by default (#1552). The Kadence theme prints a script at the end of every page that measures the scrollbar's width (`--scrollbar-offset`, used by full-width blocks and transparent headers). It reads the page's width while the page is still loading, so the browser has to style and lay out the whole page early: PageSpeed Insights lists it under **Forced reflow**. This prints a script in its place that measures with a `ResizeObserver`, after the browser's own layout and before it paints, so nothing is laid out early and the first paint is the same. It also measures again when the window or page changes size. On phones, whose scrollbars take no room, it sets nothing: Kadence's styles fall back to what a width of 0 gives. Checked on a test site with Kadence 1.6.0: full-width blocks have the same size and place with it on and off, on desktop (a 15px scrollbar) and phones.
 
-- Lighthouse (mobile, 5 runs each) on a Kadence home page: forced reflow 272 ms to 152 ms (the theme's own share 123 ms to 0), Style & Layout 787 ms to 760 ms, LCP unchanged. What remains is other scripts' own.
+- Lighthouse (mobile, 5 runs each) on a Kadence home page: forced reflow 237 ms to 115 ms (the theme's own share 123 ms to 0), Style & Layout 787 ms to 760 ms, LCP unchanged. What remains is other scripts' own.
 - Only with the Kadence theme (or a child theme of it). Not in the admin, feeds, embeds or AMP pages. Return false from `seoprostack_kadence_scrollbar` to keep Kadence's script on a page.
 
 ### Load Google Maps embeds when they come near (Speed)
@@ -2646,6 +2646,13 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### 1.3.204
+
+- New: **Cloudflare edge time**, under **Clear Cloudflare's copies of pages** (Speed). Once the token and zone are set, Cloudflare keeps visitors' copies of pages for a day (or 2 hours, a week, 30 days, or Cloudflare's own time) instead of 2 hours, as SEO Pro Stack empties them whenever something changes. Pages with a query string are kept 5 minutes at most. Nothing changes for logged-in people, previews, search, feeds, 404s, password-protected posts or pages that are not cached, and browsers keep their own cache time (#1545).
+- New, on by default: **Measure Kadence's scrollbar without holding up the page** (Speed). Kadence's scrollbar script made the browser lay out the whole page early (PageSpeed's Forced reflow); it now measures after layout, and full-width blocks and transparent headers look the same (#1552).
+- Faster, more private: **Email protection** now covers the Kadence header, mobile header and footer social buttons, so an Email button's address is hidden and Cloudflare no longer adds its email decoding script to the page (#1557).
+- Faster: with **Keep pages cached**, a saved post no longer refills every page of the site. With LiteSpeed Cache's default rules it refreshes the post, the home and posts page and up to 50 Pages; only LiteSpeed's **All pages** rule still refills the whole site (#1551).
 
 ### 1.3.203
 
