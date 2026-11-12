@@ -258,8 +258,8 @@ class SEOProStack_Language_Switcher extends SEOProStack_Feature {
         if (!self::shows()) {
             return;
         }
-        wp_enqueue_style(self::HANDLE, SEOPROSTACK_URL . 'assets/language-switcher.css', array(), SEOPROSTACK_VERSION);
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . 'assets/language-switcher.js', array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
+        wp_enqueue_style(self::HANDLE, SEOProStack::asset_url('assets/language-switcher.css'), array(), SEOPROSTACK_VERSION);
+        wp_enqueue_script(self::HANDLE, SEOProStack::asset_url('assets/language-switcher.js'), array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
     }
 
     /** Top bar. */

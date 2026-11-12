@@ -2648,6 +2648,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Faster: SEO Pro Stack's own **front-end scripts and stylesheets** load as minified copies made by the release build (138 KB to 79 KB across its 11 files); with `SCRIPT_DEBUG` on, or in a Git checkout, the readable files load as before (#1531).
+- Developers: core files synced with WP Plugin Starter 1.0.62; `scripts/lint.sh hooks` (the starter's `scripts/check-hooks.js`) replaces `scripts/check-hooks.mjs` and `.github/workflows/hooks.yml` (#1531).
+
 ### 1.3.206
 
 - Faster: Image loading's **Kadence rows and columns** that wait for their background picture no longer make the browser lay out the page while it is still being read (PageSpeed Insights' Forced reflow, 87 ms on one Kadence home page on a phone). They are measured just after the browser's own layout, before it paints, so one near the first screen still has its picture in the first frame (#1567).

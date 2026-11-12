@@ -49,9 +49,10 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   in its own `scripts/core-skip.txt` (`DEVELOPMENT.md` → Starter sync).
 - Every plugin keeps up with the starter: the daily Starter sync workflow
   keeps one `starter-sync` issue open while core files differ
-  (`DEVELOPMENT.md` → Starter sync). Work it like any issue: sync, check the
-  starter's changelog for changes the plugin's own files need, lint, smoke
-  test, pull request.
+  (`DEVELOPMENT.md` → Starter sync), labelled `auto-dispatch` so an aidevops
+  worker takes it. Work it like any issue: sync, check the starter's
+  changelog for changes the plugin's own files need, lint, smoke test, pull
+  request.
 - One class per feature in `includes/features/`, extending `{Prefix}_Feature`,
   registered in `{Prefix}_Setup::FEATURES`. Features some builds leave out
   go in `{Prefix}_Setup::OPTIONAL_FEATURES` and load only when present.
@@ -355,6 +356,15 @@ it reads it. A small plugin has only `AGENTS.md`; a large one adds docs.
   `plugin_updater_detected` as an error, and WordPress.org asks plugins not
   to interfere with the updater. Such a change goes in the shared updater,
   so it reaches GitHub builds only.
+- Hooks are a contract with site code. Every `{prefix}_*` filter and action
+  is listed in `docs/HOOKS.md` as supported (for site code) or internal (may
+  change). A supported hook is kept, or kept working through
+  `apply_filters_deprecated()` / `do_action_deprecated()`, for at least two
+  minor releases before it is removed, and the changelog names it. CI fails
+  when a hook in the code is not listed, or a supported one has gone
+  (`scripts/check-hooks.js`, run by `scripts/lint.sh hooks`). The list
+  starts as the starter's, which has the core files' hooks; a plugin keeps
+  those rows and adds its own.
 - Leave no PHP errors, warnings, notices or deprecations behind. Fix any the
   plugin causes, including ones in other plugins that happen only because of
   this one, in the same change when small or as a tracked issue. Messages
@@ -608,6 +618,11 @@ Two release channels, at the owner's decision:
 - Say which channel a site is on in `README.md` → Updates and releases and
   in `readme.txt` (FAQ), and mark security releases in the changelog
   ("Security:") so the exception is clear.
+- Release builds carry a minified `.min` copy beside each `assets/**/*.js|css`
+  file (`scripts/build-release.sh`, pinned esbuild, needs Node). Enqueue
+  assets with `{Prefix}::asset_url('assets/x.js')`: it returns the `.min` copy
+  when it exists and `SCRIPT_DEBUG` is off, else the readable file, so a Git
+  checkout works unchanged.
 
 Sites install the latest GitHub release whose tag is a plain version and the
 asset named exactly `{folder}-X.Y.Z.zip` (the shared updater; Git Updater,

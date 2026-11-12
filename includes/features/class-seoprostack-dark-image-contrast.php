@@ -127,7 +127,7 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
             return;
         }
         $js  = 'assets/dark-image-contrast.js';
-        $src = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $js), SEOPROSTACK_URL . $js);
+        $src = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $js), SEOProStack::asset_url($js));
         // As WordPress would print the file's address (CDN and query string filters).
         $src    = (string) apply_filters('script_loader_src', $src, self::HANDLE); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter.
         $config = array('watermarks' => (bool) SEOProStack_Settings::get(self::WATERMARKS));

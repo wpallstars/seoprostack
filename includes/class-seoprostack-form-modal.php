@@ -133,7 +133,7 @@ class SEOProStack_Form_Modal {
         wp_enqueue_style(self::HANDLE);
         $js = 'assets/form-keys.js';
         // Deferred (it only handles clicks): fetched after the page's first pictures; Kadence's script still runs first (GH#1502).
-        wp_enqueue_script(SEOProStack_Form_Keys::HANDLE, SEOPROSTACK_URL . $js, array(self::HANDLE), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
+        wp_enqueue_script(SEOProStack_Form_Keys::HANDLE, SEOProStack::asset_url($js), array(self::HANDLE), (string) filemtime(SEOPROSTACK_DIR . $js), array('strategy' => 'defer', 'in_footer' => true));
         SEOProStack_Form_Keys::enqueue_style();
     }
 

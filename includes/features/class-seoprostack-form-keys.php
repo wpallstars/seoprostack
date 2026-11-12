@@ -207,10 +207,12 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
 
     /** The panel and modal base style, which any theme rule naming these classes beats. */
     public static function enqueue_style() {
-        $css = 'assets/form-keys.css';
-        wp_enqueue_style(self::HANDLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
+        $css   = 'assets/form-keys.css';
+        $style = SEOProStack::asset_url($css);
+        wp_enqueue_style(self::HANDLE, $style, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
         // Small and needed for the first paint: core prints it in the page (wp_maybe_inline_styles), not as a render-blocking link.
-        wp_style_add_data(self::HANDLE, 'path', SEOPROSTACK_DIR . $css);
+        // The path is the file the address names: the .min copy in a release build.
+        wp_style_add_data(self::HANDLE, 'path', SEOPROSTACK_DIR . substr($style, strlen(SEOPROSTACK_URL)));
     }
 
     /**

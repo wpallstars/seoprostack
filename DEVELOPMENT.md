@@ -191,11 +191,12 @@ Every pull request and every push to `main` runs these in GitHub Actions
 | Coding standards | `scripts/lint.sh phpcs` | WordPress Coding Standards: escaping, sanitising, nonces, prepared SQL, i18n, PHP 7.4 and WordPress 6.2 compatibility; slow and unlimited queries, `ORDER BY RAND()`, short cache times and long remote timeouts (`phpcs.xml.dist`). |
 | Static analysis | `scripts/lint.sh phpstan` | Unknown functions, classes and methods, wrong argument counts and types, dead code, `false` and `null` results used as values (PHPStan level 8 without the `missingType.*` checks, `phpstan.neon.dist`). |
 | JavaScript build | `scripts/lint.sh build` | Plugins with a build only: the `check` script's findings (types, lint), and built files in `assets/build/` that differ from a fresh build. |
+| Changelog | `scripts/lint.sh changelog` | A pull request's `changelog.txt` and `README.md` lines under a released version instead of `Unreleased` (a merge conflict with the release PR's rename can leave them there). |
 | Release build | `scripts/preflight-release.sh --offline` | Versions, headers, `readme.txt`, presets (where the plugin has them) and the contents of both zips. |
 | Plugin Check | `scripts/plugin-check.sh` | The WordPress.org review tool, on both zips. |
 | Smoke test | `scripts/smoke-test.sh --wp 6.2 --php 7.4`, `scripts/smoke-test.sh` and `scripts/smoke-test.sh --multisite` | Installs the GitHub zip on a site with 10,000 posts, loads the site and admin screens with default settings and with every feature on, runs cron, uninstalls. Lists each page's queries. Fails on any PHP message, a failed page, a full table scan or large sort in the plugin's own queries, or leftover options, cron events or tables (`{prefix}_*`). On a network, also applies a setting to every site and checks the other site picks it up. |
 
-`scripts/lint.sh` with no arguments runs the first seven.
+`scripts/lint.sh` with no arguments runs every check of `scripts/lint.sh`.
 
 Release preflight also compares core files with a local starter checkout.
 If it is not next to the plugin (for example, in a linked worktree), use
@@ -415,6 +416,23 @@ very unlikely to find it gone. The tar backup and restore line are unchanged. If
 swap cannot start (no `unzip`, unexpected zip layout), the live folder is
 untouched and the deploy falls back to `wp plugin install --force`.
 
+A host at its process or memory limit (CloudLinux LVE) kills WP-CLI with
+exit 137. The post-install load check is run again once, and each killed cron
+event up to 3 tries in all, `DEPLOY_LOAD_RETRY_DELAY` seconds apart (default
+30), whatever the killed process printed; every other exit code fails at once.
+An event gone from `wp cron event list` after a kill (a one-off it took) counts
+as done, only when the list command succeeded. Retried checks report
+`WARN ... retried (137)`, not FAIL. Events already run one per process, so a
+killed backlog is not run again as one `--due-now` call. To wait before each
+install while the account runs too many processes, set
+`DEPLOY_MAX_ACCOUNT_PROCS` (waits up to 10 minutes while `pgrep -u "$(id -u)"`
+counts more; unset means no wait).
+
+When purging Cloudflare by host (no `--cloudflare-token-env`), the WARN
+`Cloudflare keeps pages from before the deploy` on multisite subsites means
+only the main host was purged. Such callers must purge every network host
+(`wp site list --field=url`).
+
 `scripts/check-deploy-log.sh` checks the web PHP log classifier
 (`classify_new_log()` in `scripts/lib/deploy-remote.sh`): WordPress's cron
 `could_not_set` notice in several languages and log formats warns, and look-alike
@@ -435,6 +453,18 @@ they match it closes that issue. It needs no setup: the
 workflow's own token reads the public starter and writes the issue. To
 follow another starter (a fork), set the repository variable
 `STARTER_REPO` to its `owner/repo`. In the starter itself it does nothing.
+
+The issue is a worker-ready brief (What, How, Files Scope, Acceptance
+criteria, Verification) labelled `auto-dispatch` as well, so aidevops Pulse
+gives it to a worker, who syncs and opens the pull request; each daily
+update adds the label again unless the issue has `no-auto-dispatch` (a
+person's hold). The repository variable `STARTER_SYNC_DISPATCH_LABEL` sets
+another label, or `none` for no label (a repository that does not use
+aidevops). Keep the issue's title and `starter-sync` label as they are:
+aidevops merges a worker's pull request for this issue by itself (after
+the usual checks) only for that issue shape, and only while the pull
+request changes nothing outside `scripts/core-files.txt` and
+`changelog.txt`; anything else waits for a person.
 
 To sync by hand, with the starter cloned next to the plugin (the issue
 gives its folder name):
@@ -565,7 +595,9 @@ without its secret, and nothing fails.
    a self-hosted runner label (such as `4cpu-8gb`); private repositories
    pay for GitHub-hosted minutes. Set it per repository:
    `gh variable set CI_RUNNER --repo {owner}/{repo} --body 4cpu-8gb`, and
-   add the repository to the runner group. An organization variable does
+   add the repository to the runner group. Jobs that build the zips set up
+   Node 22 themselves (`actions/setup-node`, for the minifier), so the
+   runner needs no Node of its own. An organization variable does
    not reach private repositories on GitHub's Free plan. Never set it in a
    public repository, or in a private one that runs workflows from fork
    pull requests (Settings → Actions → General): a pull request from a

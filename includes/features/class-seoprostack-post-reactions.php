@@ -305,11 +305,13 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     public static function register() {
         // Deferred: browsers fetch it at low priority, after the page's first pictures (GH#1502).
-        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.js', array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
+        wp_register_script(self::HANDLE, SEOProStack::asset_url('assets/post-reactions.js'), array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
         wp_add_inline_script(self::HANDLE, 'window.seoprostackReactions = ' . wp_json_encode(self::script_config()) . ';', 'before');
-        wp_register_style(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.css', array(), SEOPROSTACK_VERSION);
+        $style = SEOProStack::asset_url('assets/post-reactions.css');
+        wp_register_style(self::HANDLE, $style, array(), SEOPROSTACK_VERSION);
         // Core prints a small stylesheet with a path in the page, not as a render-blocking link, and keeps the inline colour rules.
-        wp_style_add_data(self::HANDLE, 'path', SEOPROSTACK_DIR . 'assets/post-reactions.css');
+        // The path is the file the address names: the .min copy in a release build.
+        wp_style_add_data(self::HANDLE, 'path', SEOPROSTACK_DIR . substr($style, strlen(SEOPROSTACK_URL)));
         $css = self::colour_css();
         if ('' !== $css) {
             wp_add_inline_style(self::HANDLE, $css);

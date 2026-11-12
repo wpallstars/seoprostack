@@ -73,6 +73,10 @@ INSTALL_START=0
 # Seconds before a home page that gave 5xx or no answer is fetched again.
 HOME_RETRY_DELAY="${DEPLOY_HOME_RETRY_DELAY:-5}"
 [[ "$HOME_RETRY_DELAY" =~ ^[0-9]+$ ]] || HOME_RETRY_DELAY=5
+# The host can kill WP-CLI (exit 137, no output) at its process or memory
+# limit; the limit clears in tens of seconds, so the load check waits longer.
+LOAD_RETRY_DELAY="${DEPLOY_LOAD_RETRY_DELAY:-30}"
+[[ "$LOAD_RETRY_DELAY" =~ ^[0-9]+$ ]] || LOAD_RETRY_DELAY=30
 SKIPS=()
 LOG_FILES=()
 LOG_BEFORE=()
@@ -151,6 +155,10 @@ wp_checked() {
 	output="$("$WP_CLI" --path="$root" "$@" 2>"$err_file")" || status=$?
 	errors="$(cat "$err_file")"
 	rm -f "$err_file"
+	# Whether WP-CLI itself wrote nothing to stderr (callers may retry a
+	# bare SIGKILL; the copy of stdout below must not hide that).
+	WP_STDERR_EMPTY=0
+	[[ -n "$errors" ]] || WP_STDERR_EMPTY=1
 	if [[ "$status" -ne 0 || "$output$errors" == *"$DB_CONNECT_ERROR"* || "$output$errors" == *"$DB_QUERY_ERROR"* ]]; then
 		[[ -z "$output" ]] || printf '%s\n' "$output" >&2
 		[[ -z "$errors" ]] || printf '%s\n' "$errors" >&2
@@ -285,16 +293,21 @@ active_check() {
 }
 
 # Even when the command fails, check for damage before stopping the install.
+# Sets GUARD_ACTIVE_OK (1 only when the activation lists were checked and are as
+# they should be; a retry is safe only then).
 active_guard() {
 	local root="$1" add="$2" remove="$3"
 	shift 3
 	local before status=0
+	GUARD_ACTIVE_OK=0
 	before="$(active_snapshot "$root")" || return 1
 	# Validate the machine-readable snapshot before ANY mutation.
 	FLEET_BEFORE="$before" wp_checked "$root" --skip-plugins --skip-themes eval \
 		'if (!is_array(json_decode(getenv("FLEET_BEFORE"), true))) { WP_CLI::error("Invalid activation snapshot output"); }' >/dev/null || return 1
 	wp_checked "$root" "$@" || status=$?
-	if ! active_check "$root" "$before" "$add" "$remove"; then
+	if active_check "$root" "$before" "$add" "$remove"; then
+		GUARD_ACTIVE_OK=1
+	else
 		[[ "$status" -ne 0 ]] || status=1
 	fi
 	return "$status"
@@ -729,10 +742,37 @@ run_site_cron() {
 	local cmd=()
 	CRON_RUN=0 CRON_TOTAL=0 CRON_FAILURE="" CRON_WARN=""
 	[[ "$limit" =~ ^[0-9]+$ ]] || limit=120
-	hooks="$(DEPLOY_SLUG="$SLUG" wp_checked "$root" "$@" eval "$(cron_list_code)")" || {
-		CRON_FAILURE="cron list failed; "
+	local list_code list_out list_err list_status=0 retried="" list_failed="cron list failed; "
+	list_code="$(cron_list_code)"
+	list_out="$(mktemp)" || {
+		CRON_FAILURE="$list_failed"
 		return 0
 	}
+	list_err="$(mktemp)" || {
+		rm -f "$list_out"
+		CRON_FAILURE="$list_failed"
+		return 0
+	}
+	# In this shell, not in $(...), so WP_STDERR_EMPTY reaches the retry
+	# test: on failure wp_checked copies stdout to stderr, so a non-empty
+	# list_err does not mean WP-CLI wrote to stderr.
+	DEPLOY_SLUG="$SLUG" wp_checked "$root" "$@" eval "$list_code" >"$list_out" 2>"$list_err" || list_status=$?
+	# A bare SIGKILL (137, nothing on stderr) is retried once, as the load check is.
+	if [[ "$list_status" -eq 137 && "$WP_STDERR_EMPTY" -eq 1 ]]; then
+		retried=137 list_status=0
+		sleep "$LOAD_RETRY_DELAY"
+		DEPLOY_SLUG="$SLUG" wp_checked "$root" "$@" eval "$list_code" >"$list_out" 2>"$list_err" || list_status=$?
+	fi
+	hooks="$(cat "$list_out")"
+	rm -f "$list_out"
+	if [[ "$list_status" -ne 0 ]]; then
+		[[ ! -s "$list_err" ]] || cat "$list_err" >&2
+		rm -f "$list_err"
+		CRON_FAILURE="$list_failed"
+		return 0
+	fi
+	rm -f "$list_err"
+	[[ -z "$retried" ]] || CRON_WARN+="cron list retried ($retried), "
 	hooks="$(printf '%s\n' "$hooks" | sed -n 's/^cronhook://p')"
 	# The time limit needs timeout, but only when there is an event to run.
 	[[ -n "$hooks" ]] || return 0
@@ -748,6 +788,21 @@ run_site_cron() {
 		CRON_TOTAL=$((CRON_TOTAL + 1))
 		status=0
 		out="$("${cmd[@]+"${cmd[@]}"}" "$WP_CLI" --path="$root" "$@" cron event run "$hook" 2>&1)" || status=$?
+		# A killed event (137) is run again, up to 3 tries in all. One no longer
+		# listed after a kill (a one-off it took) is done, when the list worked.
+		local tries=1 still=""
+		while [[ "$status" -eq 137 && "$tries" -lt 3 ]]; do
+			tries=$((tries + 1))
+			sleep "$LOAD_RETRY_DELAY"
+			status=0
+			out="$("${cmd[@]+"${cmd[@]}"}" "$WP_CLI" --path="$root" "$@" cron event run "$hook" 2>&1)" || status=$?
+		done
+		if [[ "$status" -eq 137 ]]; then
+			if still="$("$WP_CLI" --path="$root" "$@" cron event list --field=hook 2>/dev/null)" && ! printf '%s\n' "$still" | grep -qxF "$hook"; then
+				status=0 out=""
+			fi
+		fi
+		[[ "$tries" -eq 1 ]] || CRON_WARN+="cron $hook retried (137), "
 		if [[ "$status" -eq 124 && "${#cmd[@]}" -gt 0 ]]; then
 			CRON_WARN+="cron $hook timed out (${limit}s), "
 			CRON_RUN=$((CRON_RUN + 1))
@@ -949,17 +1004,59 @@ cdn_announce() {
 	return 0
 }
 
+# Waits, at most 10 minutes, while the account runs more than
+# DEPLOY_MAX_ACCOUNT_PROCS processes (unset or not a number: no wait), so a
+# host at its process limit does not kill the install's checks.
+wait_for_account_load() {
+	local max="${DEPLOY_MAX_ACCOUNT_PROCS:-}" count waited=0
+	[[ "$max" =~ ^[0-9]+$ ]] || return 0
+	command -v pgrep >/dev/null 2>&1 || return 0
+	while [[ "$waited" -lt 600 ]]; do
+		count="$(pgrep -u "$(id -u)" | wc -l | tr -d ' ')"
+		[[ "$count" =~ ^[0-9]+$ && "$count" -gt "$max" ]] || return 0
+		sleep 10
+		waited=$((waited + 10))
+	done
+	return 0
+}
+
+# The load check: $1 root, $2 stderr file, rest WP-CLI args. Sets LOAD_OUT,
+# LOAD_STATUS and LOAD_RETRIED. Only a SIGKILL (137), whatever stderr holds,
+# after which the activation lists were found intact, is retried, once,
+# after LOAD_RETRY_DELAY: an activation failure stays FAIL.
+load_check() {
+	local root="$1" errors="$2"
+	shift 2
+	LOAD_STATUS=0 LOAD_RETRIED="" LOAD_OUT="" GUARD_ACTIVE_OK=0
+	local out_file
+	out_file="$(mktemp)" || {
+		LOAD_STATUS=1
+		return 0
+	}
+	# active_guard runs in this shell, not in $(...), so its GUARD_* flags
+	# reach the retry test below; stdout goes through a private file.
+	active_guard "$root" "" "" "$@" eval "$(load_code)" >"$out_file" 2>"$errors" || LOAD_STATUS=$?
+	if [[ "$LOAD_STATUS" -eq 137 && "$GUARD_ACTIVE_OK" -eq 1 ]]; then
+		LOAD_RETRIED=137 LOAD_STATUS=0
+		sleep "$LOAD_RETRY_DELAY"
+		active_guard "$root" "" "" "$@" eval "$(load_code)" >"$out_file" 2>"$errors" || LOAD_STATUS=$?
+	fi
+	LOAD_OUT="$(cat "$out_file")"
+	rm -f "$out_file"
+	return 0
+}
+
 # Called directly: counters, the main row and network lines are results.
 check_sites() {
 	local root="$1"
 	local kind urls url status result reason warn load purged line network=0
-	local load_errors load_status summary first_code cron_note cron_before
+	local load_errors load_status load_retried summary first_code cron_note cron_before
 	local check_error="home check failed; "
 	local url_args=() origin
 	CDN_URLS="" MAIN_CF=""
 	SITES_TOTAL=0 SITES_FAILED=0 SITES_PURGED=0 PURGE_FAILED=0 SITE_LINES=""
 	CRON_SUM_RUN=0 CRON_SUM_TOTAL=0 CRON_WARNED="" CRON_HOOKS_RUN=""
-	MAIN_STATUS="?" MAIN_CODE="000" MAIN_CACHE="none" MAIN_REASON="" MAIN_RETRIED=""
+	MAIN_STATUS="?" MAIN_CODE="000" MAIN_CACHE="none" MAIN_REASON="" MAIN_RETRIED="" MAIN_LOAD_RETRIED=""
 	kind="$(wp_bare "$root" eval 'echo is_multisite() ? "multisite" : "single";')" || return 1
 	case "$kind" in
 	multisite) network=1 ;;
@@ -973,11 +1070,14 @@ check_sites() {
 		SITES_TOTAL=$((SITES_TOTAL + 1))
 		[[ "$network" -eq 0 ]] || url_args=(--url="$url")
 		reason="" warn="" result="ok" purged="no" cron_note="cron=0/0"
-		if load="$(active_guard "$root" "" "" ${url_args[@]+"${url_args[@]}"} eval "$(load_code)" 2>"$load_errors")"; then
+		load_check "$root" "$load_errors" ${url_args[@]+"${url_args[@]}"}
+		load="$LOAD_OUT" load_status="$LOAD_STATUS" load_retried="$LOAD_RETRIED"
+		if [[ "$load_status" -eq 0 ]]; then
+			[[ -z "$load_retried" ]] || warn+="load retried ($load_retried), "
 			case "$load" in
 			*purged=yes*) purged="yes" SITES_PURGED=$((SITES_PURGED + 1)) ;;
 			*purged=failed*)
-				purged="failed" warn="purge failed, "
+				purged="failed" warn+="purge failed, "
 				PURGE_FAILED=$((PURGE_FAILED + 1))
 				;;
 			*) ;;
@@ -992,7 +1092,6 @@ check_sites() {
 				CRON_WARNED+="$CRON_WARN"
 			}
 		else
-			load_status=$?
 			# Keep the full diagnostics on stderr, but one short, printable
 			# line on the report (also when WP-CLI itself printed no error).
 			summary="$(tail -n 3 "$load_errors" | LC_ALL=C tr '\t\r\n' '   ' | LC_ALL=C tr -cd '[:print:]')"
@@ -1033,7 +1132,7 @@ check_sites() {
 		fi
 		if [[ "$SITES_TOTAL" -eq 1 ]]; then
 			MAIN_STATUS="$status" MAIN_CODE="${HOME_CODE}${HOME_PINNED:+ pinned}" MAIN_CACHE="$HOME_CACHE"
-			MAIN_REASON="${reason%; }" MAIN_RETRIED="$first_code"
+			MAIN_REASON="${reason%; }" MAIN_RETRIED="$first_code" MAIN_LOAD_RETRIED="$load_retried"
 		fi
 		if [[ "$network" -eq 1 ]]; then
 			printf -v line '    site %s\tstatus=%s\tpurged=%s\t%s\thome=%s\tcache=%s\t%s\n' "$url" "${status:-?}" "$purged" "$cron_note" "${HOME_CODE}${HOME_PINNED:+ pinned}" "$HOME_CACHE" "$result"
@@ -1178,6 +1277,7 @@ apply_one() {
 		return 0
 	fi
 
+	wait_for_account_load
 	INSTALL_START="$(date +%s)"
 	if ! install_build "$root" "$name" "$zip" "$plugins" "$backup"; then
 		FAILED=1
@@ -1200,6 +1300,7 @@ apply_one() {
 	[[ "$PURGE_FAILED" -eq 0 ]] || warn+="purge failed, "
 	[[ -z "$CRON_WARNED" || -n "$SITE_LINES" ]] || warn+="$CRON_WARNED"
 	[[ "$MAIN_CACHE" != *hit* || "$MAIN_CACHE" == redirected:* ]] || warn+="cached, "
+	[[ -z "$MAIN_LOAD_RETRIED" || -n "$SITE_LINES" ]] || warn+="load retried ($MAIN_LOAD_RETRIED), "
 	[[ -z "$MAIN_RETRIED" ]] || warn+="home retried ($MAIN_RETRIED), "
 	# A network's site rows carry this warning; a single site has no row.
 	[[ -z "$MAIN_CF" || -n "$SITE_LINES" ]] || warn+="$(cf_warning "$MAIN_CF"), "
