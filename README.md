@@ -173,7 +173,7 @@ Also available, off by default: **Count terms and comments in the background** o
 
 ### Email protection (Security)
 
-**On by default.** Email addresses in rendered content, blocks, text widgets and menus become encoded placeholders in the HTML, including email links. A small deferred script, loaded only when needed, restores their readable text and clickable links, keeping link classes, inner markup and mailto queries. Works on any host, with or without Cloudflare email obfuscation.
+**On by default.** Email addresses in rendered content, blocks, text widgets, menus and the Kadence theme's header, mobile and footer social buttons become encoded placeholders in the HTML, including email links. With the Kadence social Email button protected, Cloudflare's Email Address Obfuscation finds nothing to rewrite there, so it no longer adds its own decoder script to the page. A small deferred script, loaded only when needed, restores their readable text and clickable links, keeping link classes, inner markup and mailto queries. Works on any host, with or without Cloudflare email obfuscation.
 
 Visitors need JavaScript to read protected addresses; without it they see “Email address hidden, enable JavaScript.” This deters scrapers that only read HTML, not bots that run JavaScript. It is obfuscation, not encryption or a guarantee against spam.
 
@@ -183,7 +183,7 @@ Stored content, outgoing email, feeds, REST/JSON responses and admin screens are
 
 - **Schema (JSON-LD):** search engines need plain data, so schema emails cannot be encoded. Clear the optional organisation email in your SEO plugin; for example, Rank Math → Titles & Meta → Local SEO → Email, or Yoast SEO → Settings → Site representation → Organization email address.
 - **Other plugins’ script data:** a chatbot notice, for example AI Engine’s compliance text, may put an address into a script or JSON attribute. Change that text in the plugin’s settings; encoding it could break the plugin.
-- **Theme templates and hard-coded HTML:** addresses outside the content, block, widget and menu filters stay readable. Edit the template at its source.
+- **Theme templates and hard-coded HTML:** addresses outside the content, block, widget and menu filters (and the Kadence theme's social buttons) stay readable. Edit the template at its source.
 
 Open the Email protection panel on **Security** and choose **Check for readable addresses** to fetch the public home page. It runs only when requested and lists each address once, with its contexts (`schema`, `script data`, `attribute` or `text`) and a source hint. It ignores protected placeholders and never changes another plugin’s settings. Clear page caches after fixing a source. The check inspects at most 2 MB, does not follow redirects, and cannot guarantee protection or cover pages it has not checked.
 
