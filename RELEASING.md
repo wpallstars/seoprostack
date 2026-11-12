@@ -69,7 +69,8 @@ Before step 1, list the open pull requests (`gh pr list --state open`) and
 ask whoever is merging (people, other sessions, automatic merges) to hold
 merges to `main` until the release PR merges. Each merge during the release
 PR's CI adds a line under `= Unreleased =`, which conflicts with the release
-PR's rename of that heading and forces a rebase. Everything merged
+PR's rename of that heading and forces a rebase; `scripts/lint.sh changelog`
+fails a line left under a released heading. Everything merged
 before the release PR's merge commit is in the release, because the tag goes
 on that commit.
 
@@ -211,8 +212,8 @@ on that commit.
    English (Dutch: `Cron ongepland event fout voor hook: HOOK, foutcode:
    could_not_set, …`), so the check matches that shape, not the words: after
    the `[…]` timestamp, text with no `PHP …:` prefix (core writes it with
-   `error_log()`) and no colon, comma or digit, then `: HOOK, `, a label,
-   `: could_not_set, `, a label and the message, and a last label with the
+   `error_log()`) and no colon, comma or digit, then `: HOOK,` and a space, a
+   label, `: could_not_set,` and a space, a label and the message, and a last label with the
    event's JSON (`: {…}`) ending the line (or before Apache's
    `, referer: URL`). A plugin's own line that only starts the same way
    (`Payment task failed for hook: HOOK, status: could_not_set`) still
