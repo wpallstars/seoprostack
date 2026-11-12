@@ -363,13 +363,16 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
     /**
      * LiteSpeed Cache purged a post's pages (a post published, updated,
      * unpublished, trashed or deleted, or its comment count changed). With
-     * its Purge Rules For Publish/Update set to Pages (on by default), that
-     * empties every WordPress page of this site, the front page among them;
-     * with All pages, the whole site. Neither runs Purge All, so fill this
-     * site as after it: its main pages, then LiteSpeed Cache's crawler, or
-     * the rest where the crawler is off. post_changed() still reopens the
-     * post itself first. Saves one after another move the fill back, for up
-     * to 10 minutes after the first (#1399).
+     * its Purge Rules For Publish/Update set to All pages, that empties the
+     * whole site without running Purge All, so fill this site as after it:
+     * its main pages, then LiteSpeed Cache's crawler, or the rest where the
+     * crawler is off. Saves one after another move the fill back, for up to
+     * 10 minutes after the first (#1399).
+     *
+     * Its Pages rule (on by default) empties pages of the Page type only
+     * (the PGS tag, set where is_page()), not every page, so reopen the
+     * published Pages, newest first, up to COVERED_MAX, with the post's own
+     * pages (post_changed()); the crawler reaches any others (#1551).
      *
      * Only for a post LiteSpeed Cache applies those rules to: one of a
      * built-in or viewable type (\LiteSpeed\Purge::_get_purge_tags_by_post()).
@@ -380,7 +383,8 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         if ((defined('WP_IMPORTING') && WP_IMPORTING) || 'litespeed' !== SEOProStack_Keep_Cached_Requests::page_cache()) {
             return;
         }
-        if (!SEOProStack_Litespeed::conf('purge-post_p', false) && !SEOProStack_Litespeed::conf('purge-post_all', false)) {
+        $all = (bool) SEOProStack_Litespeed::conf('purge-post_all', false);
+        if (!$all && !SEOProStack_Litespeed::conf('purge-post_p', false)) {
             return;
         }
         $type = get_post_type_object((string) get_post_type((int) $post_id));
@@ -388,7 +392,41 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         if ($type && !$type->_builtin && !is_post_type_viewable($type) && apply_filters('litespeed_purge_post_skip_non_viewable', true, (int) $post_id)) {
             return;
         }
-        SEOProStack_Keep_Cached_Queue::fill_later(false);
+        if ($all) {
+            SEOProStack_Keep_Cached_Queue::fill_later(false);
+            return;
+        }
+        // Once a request: a save can purge the same post more than once.
+        static $pages_queued = false;
+        if ($pages_queued) {
+            return;
+        }
+        $pages_queued = true;
+        SEOProStack_Keep_Cached_Queue::add(SEOProStack_Keep_Cached_Pages::clean(self::page_urls(SEOProStack_Keep_Cached_Pages::COVERED_MAX), SEOProStack_Keep_Cached_Pages::COVERED_MAX), self::POST_DELAY);
+    }
+
+    /**
+     * Published Pages without a password, newest first.
+     *
+     * @param int $most Most addresses.
+     * @return string[]
+     */
+    private static function page_urls($most) {
+        $ids = get_posts(array(
+            'post_type'              => 'page',
+            'post_status'            => 'publish',
+            'has_password'           => false,
+            'posts_per_page'         => (int) $most,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'fields'                 => 'ids',
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ));
+        return array_values(array_filter(array_map(function ($id) {
+            return (string) get_permalink((int) $id);
+        }, $ids)));
     }
 
     /**
