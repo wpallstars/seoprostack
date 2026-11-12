@@ -13,12 +13,14 @@
  * other subdomains and networks too. WP-Optimize clears nothing there.
  *
  * This asks Cloudflare to empty only this site's pages:
- * - a whole site (LiteSpeed Cache's Purge All, or its purge rules emptying
- *   every page after a post is saved; WP-Optimize's purge): its home
- *   address's host name, or for a site in a folder of its host (a
- *   subdirectory network) every address under that folder. Never the zone.
- * - a post published, updated or unpublished: its page, the home page and
- *   the posts page, by address.
+ * - a whole site (LiteSpeed Cache's Purge All, or its All pages purge rule
+ *   after a post is saved; WP-Optimize's purge): its home address's host
+ *   name, or for a site in a folder of its host (a subdirectory network)
+ *   every address under that folder. Never the zone.
+ * - a post published, updated or unpublished: the pages LiteSpeed Cache's
+ *   Purge Rules For Publish/Update empty for it (post_pages()), by address,
+ *   and their further pages (/page/2/ on) by prefix; its old address when
+ *   it moved or was unpublished. More than MAX_URLS empty the whole site.
  * On a network, a purge of every site empties each site's host or folder.
  *
  * Purges are collected during the request and sent once, from WP-Cron on a
@@ -75,8 +77,31 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
     /** Hosts, folders or addresses in one request. */
     const MAX_ITEMS = 30;
 
-    /** Addresses waiting for one site above which the whole site is emptied instead. */
-    const MAX_URLS = 30;
+    /**
+     * Addresses and folders waiting for one site above which the whole site
+     * is emptied instead: three requests of MAX_ITEMS, within one run.
+     */
+    const MAX_URLS = 90;
+
+    /**
+     * LiteSpeed Cache's Purge Rules For Publish/Update (purge-post_<rule>)
+     * that empty pages other than the post's own, and whether each is on
+     * where LiteSpeed Cache is not the page cache (as its defaults, without
+     * Pages, which can be many). Not its Recent Posts widget rule (pwrp):
+     * the pages showing that widget cannot be listed, so their Cloudflare
+     * copies wait for the edge time, or a save with the All pages rule.
+     */
+    const RULES = array(
+        'f'  => true,  // Front page.
+        'h'  => true,  // Home page (the posts page).
+        'p'  => false, // Every published Page.
+        'a'  => true,  // Author archive.
+        't'  => true,  // Term archives.
+        'pt' => true,  // Post type archive.
+        'y'  => false, // Yearly archive.
+        'm'  => false, // Monthly archive.
+        'd'  => false, // Daily archive.
+    );
 
     /** Answers kept. */
     const LOG_SIZE = 20;
@@ -86,6 +111,27 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
 
     /** Cloudflare's API. */
     const API = 'https://api.cloudflare.com/client/v4/zones/';
+
+    /** Setting: seconds Cloudflare keeps a page, while purges reach it. */
+    const EDGE_KEY = 'cloudflare_edge_time';
+
+    /** The edge time's default: a day (#1545). */
+    const EDGE_DEFAULT = 86400;
+
+    /**
+     * Most seconds for an address with a query string (directory filters,
+     * campaign links): a purge by address empties only the address itself.
+     */
+    const EDGE_QUERY = 300;
+
+    /** Seconds Cloudflare may serve its last copy while this server answers with an error. */
+    const STALE_IF_ERROR = 86400;
+
+    /** The edge time header: read by Cloudflare only; browsers and LiteSpeed Cache ignore it. */
+    const EDGE_HEADER = 'Cloudflare-CDN-Cache-Control';
+
+    /** @var bool Whether this request sent the edge time. */
+    private static $edge_sent = false;
 
     /**
      * Purges collected during this request, by site: true for the whole
@@ -107,7 +153,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'speed',
                 'label'       => __('Clear Cloudflare’s copies of pages', 'seoprostack'),
-                'description' => __('Where a Cloudflare Cache Rule keeps copies of this site’s pages, empty Cloudflare’s copies whenever LiteSpeed Cache or WP-Optimize empties its own: after an update or Purge All, this site’s pages; after a post is published or updated, its page, the home page and the posts page. Only this site’s address is emptied, never every site on the domain. Needs a Cloudflare API token limited to Zone → Cache Purge, or LiteSpeed Cache’s Cloudflare API.', 'seoprostack'),
+                'description' => __('Where a Cloudflare Cache Rule keeps copies of this site’s pages, empty Cloudflare’s copies whenever LiteSpeed Cache or WP-Optimize empties its own: after an update or Purge All, this site’s pages; after a post is published, updated or unpublished, its page and the pages that list it, as LiteSpeed Cache’s purge rules empty them. Only this site’s address is emptied, never every site on the domain. Needs a Cloudflare API token limited to Zone → Cache Purge, or LiteSpeed Cache’s Cloudflare API.', 'seoprostack'),
                 'panel'       => true,
             ),
             'cloudflare_purge_token' => array(
@@ -129,6 +175,30 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
                 'description' => __('From the domain’s Overview page in Cloudflare. Leave empty to use LiteSpeed Cache’s, or set SEOPROSTACK_CLOUDFLARE_ZONE in wp-config.php.', 'seoprostack'),
                 'network'     => false,
             ),
+            self::EDGE_KEY => array(
+                'type'        => 'select',
+                'default'     => (string) self::EDGE_DEFAULT,
+                'parent'      => self::KEY,
+                'label'       => __('Cloudflare edge time', 'seoprostack'),
+                'description' => __('How long Cloudflare keeps a page for visitors who are not logged in, sent with each page while a token and zone are set and Cloudflare has not refused them, as edits and updates then empty Cloudflare’s copies. Addresses with a query string, such as filtered lists, get 5 minutes at most, as a purge cannot reach every one. Pages that are not cached (logged in, search, 404, previews, carts) get none. Pages LiteSpeed Cache holds already get it when they are next cached again.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'edge_options'),
+            ),
+        );
+    }
+
+    /**
+     * Choices of Cloudflare edge time, in seconds (PHP keeps the keys as
+     * integers; saved values are their strings).
+     *
+     * @return array<int,string>
+     */
+    public static function edge_options() {
+        return array(
+            '7200'    => __('2 hours', 'seoprostack'),
+            '86400'   => __('1 day', 'seoprostack'),
+            '604800'  => __('1 week', 'seoprostack'),
+            '2592000' => __('30 days', 'seoprostack'),
+            '0'       => __('Send none (Cloudflare’s own setting)', 'seoprostack'),
         );
     }
 
@@ -153,7 +223,114 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         add_action('litespeed_purged_post', array(__CLASS__, 'litespeed_purged_post'), 10, 1);
         add_action('wpo_cache_flush', array(__CLASS__, 'wp_optimize_purged'));
         add_action('transition_post_status', array(__CLASS__, 'post_changed'), 10, 3);
+        add_action('post_updated', array(__CLASS__, 'post_moved'), 10, 3);
+        add_action('wp_after_insert_post', array(__CLASS__, 'post_saved'), 10, 4);
         add_action('seoprostack_page_cache_purge_post', array(__CLASS__, 'post_purged'), 10, 1);
+        // After redirects and other plugins' template_redirect work.
+        add_action('template_redirect', array(__CLASS__, 'send_edge_time'), PHP_INT_MAX - 100);
+        // LiteSpeed Cache decides a page is not cacheable as it ends.
+        add_filter('litespeed_buffer_after', array(__CLASS__, 'check_edge_time'));
+    }
+
+    /**
+     * Tell Cloudflare how long to keep this page (EDGE_HEADER), while its
+     * purges reach Cloudflare: anonymous GET and HEAD front-end pages that
+     * a page cache would keep. EDGE_QUERY at most with a query string.
+     */
+    public static function send_edge_time() {
+        if (headers_sent() || !self::ready() || !self::edge_cacheable()) {
+            return;
+        }
+        $seconds = (int) SEOProStack_Settings::get(self::EDGE_KEY);
+        if ($seconds <= 0 || self::refused()) {
+            return;
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only whether there is a query string.
+        if (array() !== $_GET) {
+            $seconds = min($seconds, self::EDGE_QUERY);
+        }
+        /**
+         * Seconds Cloudflare keeps this page (Cloudflare-CDN-Cache-Control
+         * max-age), while Clear Cloudflare's copies of pages reaches
+         * Cloudflare; 0 sends nothing. Runs on template_redirect.
+         *
+         * @since 1.3.204
+         * @param int $seconds Cloudflare edge time setting (EDGE_QUERY at most with a query string).
+         */
+        $seconds = (int) apply_filters('seoprostack_cloudflare_edge_time', $seconds);
+        if ($seconds <= 0) {
+            return;
+        }
+        header(sprintf('%s: max-age=%d, stale-if-error=%d', self::EDGE_HEADER, $seconds, self::STALE_IF_ERROR));
+        self::$edge_sent = true;
+        // LiteSpeed Cache's own buffer calls check_edge_time() through
+        // litespeed_buffer_after; without it, this one does, as the page ends.
+        if (!did_action('litespeed_initing')) {
+            ob_start(array(__CLASS__, 'check_edge_time'));
+        }
+    }
+
+    /**
+     * Take the edge time off a page that turned out not to be cacheable
+     * while it was made: LiteSpeed Cache marked it not cacheable, it set
+     * DONOTCACHEPAGE, or sent Cache-Control no-store, no-cache or private.
+     * Cloudflare reads EDGE_HEADER before Cache-Control, so it would
+     * otherwise keep the page. An output buffer callback: headers can
+     * still change, as nothing has been sent.
+     *
+     * @param mixed $buffer Page.
+     * @return mixed
+     */
+    public static function check_edge_time($buffer) {
+        if (!self::$edge_sent || headers_sent()) {
+            return $buffer;
+        }
+        $cacheable = !did_action('litespeed_initing') || !class_exists('\LiteSpeed\Control') || \LiteSpeed\Control::is_cacheable();
+        if (!$cacheable || !self::edge_cacheable()) {
+            header_remove(self::EDGE_HEADER);
+            self::$edge_sent = false;
+        }
+        return $buffer;
+    }
+
+    /**
+     * Whether this response may be kept at Cloudflare: an anonymous GET or
+     * HEAD front-end page, not a preview, 404, search, feed, password
+     * protected post or DONOTCACHEPAGE, with no Cache-Control that forbids
+     * shared caches.
+     *
+     * @return bool
+     */
+    private static function edge_cacheable() {
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : 'GET';
+        if ('GET' !== $method && 'HEAD' !== $method) {
+            return false;
+        }
+        if (is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('REST_REQUEST') && REST_REQUEST) || is_user_logged_in()) {
+            return false;
+        }
+        if ((defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) || is_preview() || is_404() || is_search() || is_feed() || is_trackback() || is_robots()) {
+            return false;
+        }
+        if (is_singular() && post_password_required()) {
+            return false;
+        }
+        return !self::private_response();
+    }
+
+    /**
+     * Whether this response already sent a Cache-Control that keeps it out
+     * of shared caches: no-store, no-cache or private.
+     *
+     * @return bool
+     */
+    private static function private_response() {
+        foreach (headers_list() as $header) {
+            if (0 === stripos($header, 'Cache-Control:') && preg_match('/\b(no-store|no-cache|private)\b/i', $header)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -186,9 +363,10 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
 
     /**
      * LiteSpeed Cache purged a post's pages. With its Purge Rules For
-     * Publish/Update set to Pages (on by default) or All pages, that emptied
-     * every page of the site, so empty the site at Cloudflare too;
-     * otherwise post_changed() empties the post's own addresses.
+     * Publish/Update set to All pages, that emptied every page of the site,
+     * so empty the site at Cloudflare too; otherwise post_changed() empties
+     * the pages its rules emptied. Its Pages rule empties pages of the Page
+     * type only (the PGS tag, set where is_page()), not every page (#1547).
      *
      * @param int $post_id Post.
      */
@@ -197,7 +375,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if (defined('WP_IMPORTING') && WP_IMPORTING) {
             return;
         }
-        if (SEOProStack_Litespeed::conf('purge-post_p', false) || SEOProStack_Litespeed::conf('purge-post_all', false)) {
+        if (SEOProStack_Litespeed::conf('purge-post_all', false)) {
             self::site();
         }
     }
@@ -215,8 +393,8 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
     }
 
     /**
-     * A post was published, updated or unpublished: its page while
-     * published, the home page and, for posts, the posts page.
+     * A post was published, updated or unpublished: its page (the address
+     * it had, once unpublished) and the pages that list it (post_pages()).
      *
      * @param string  $new  New status.
      * @param string  $old  Old status.
@@ -229,15 +407,179 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !is_post_type_viewable($post->post_type)) {
             return;
         }
-        $urls = array(home_url('/'));
-        if ('publish' === $new) {
-            $urls[] = (string) get_permalink($post);
+        self::queue_post_pages($post, 'publish' === $new ? (string) get_permalink($post) : self::published_link($post));
+    }
+
+    /**
+     * A published post was saved, with its terms: post_pages() again. The
+     * block editor's REST save sets the terms after transition_post_status
+     * (WP_REST_Posts_Controller::handle_terms()), so post_changed() saw the
+     * terms it had (still emptied, as they listed it) and this adds the new
+     * ones, and the address a %category% permalink now gives.
+     *
+     * @param int          $post_id     Post.
+     * @param WP_Post      $post        Post.
+     * @param bool         $update      Whether it existed.
+     * @param WP_Post|null $post_before Post before.
+     */
+    public static function post_saved($post_id, $post, $update, $post_before) {
+        unset($post_id, $update, $post_before);
+        if (!($post instanceof WP_Post) || 'publish' !== $post->post_status || (defined('WP_IMPORTING') && WP_IMPORTING)) {
+            return;
+        }
+        if (wp_is_post_revision($post) || wp_is_post_autosave($post) || !is_post_type_viewable($post->post_type)) {
+            return;
+        }
+        self::queue_post_pages($post, (string) get_permalink($post));
+    }
+
+    /**
+     * Queue a post's address and the pages that list it (post_pages()),
+     * or the whole site when they are too many.
+     *
+     * @param WP_Post $post Post.
+     * @param string  $link Its address.
+     */
+    private static function queue_post_pages(WP_Post $post, $link) {
+        $pages = self::post_pages($post, $link);
+        if (null === $pages) {
+            self::site();
+            return;
+        }
+        self::urls($pages['files']);
+        self::prefixes($pages['prefixes']);
+    }
+
+    /**
+     * A published post's address changed (its slug, parent or date): empty
+     * the old one too, which Cloudflare would go on serving.
+     *
+     * @param int     $post_id Post.
+     * @param WP_Post $after   Post now.
+     * @param WP_Post $before  Post before.
+     */
+    public static function post_moved($post_id, $after, $before) {
+        unset($post_id);
+        if (!($after instanceof WP_Post) || !($before instanceof WP_Post) || 'publish' !== $before->post_status || 'publish' !== $after->post_status || (defined('WP_IMPORTING') && WP_IMPORTING)) {
+            return;
+        }
+        if (!is_post_type_viewable($after->post_type)) {
+            return;
+        }
+        $was = (string) get_permalink($before);
+        if ('' !== $was && (string) get_permalink($after) !== $was) {
+            self::urls(array($was));
+        }
+    }
+
+    /**
+     * The address an unpublished post had while it was published (a
+     * trashed post's slug has __trashed added).
+     *
+     * @param WP_Post $post Post.
+     * @return string
+     */
+    private static function published_link(WP_Post $post) {
+        $was              = clone $post;
+        $was->post_status = 'publish';
+        $slug             = (string) get_post_meta($post->ID, '_wp_desired_post_slug', true);
+        if ('' !== $slug) {
+            $was->post_name = $slug;
+        }
+        return (string) get_permalink($was);
+    }
+
+    /**
+     * What a changed post empties at Cloudflare: its address, and the pages
+     * LiteSpeed Cache's Purge Rules For Publish/Update empty for it (RULES
+     * where LiteSpeed Cache is not the page cache): the front and home
+     * page, every published Page, its term, post type, author and date
+     * archives, by address, with each list's further pages (/page/2/ on)
+     * by prefix, plus seoprostack_cloudflare_purge_post_urls. Never the
+     * archives' folders: a listing's own address can be inside one.
+     *
+     * @param WP_Post $post Post.
+     * @param string  $link Its address.
+     * @return array{files:string[],prefixes:string[]}|null Null when more than MAX_URLS.
+     */
+    private static function post_pages(WP_Post $post, $link) {
+        $rules = self::RULES;
+        if ('litespeed' === SEOProStack_Keep_Cached_Requests::page_cache()) {
+            foreach (array_keys($rules) as $rule) {
+                $rules[$rule] = (bool) SEOProStack_Litespeed::conf('purge-post_' . $rule, false);
+            }
+        }
+        $lists = array();
+        if ($rules['f'] || $rules['h']) {
+            $lists[] = home_url('/');
         }
         $posts_page = (int) get_option('page_for_posts');
-        if ('post' === $post->post_type && $posts_page) {
-            $urls[] = (string) get_permalink($posts_page);
+        if ($rules['h'] && $posts_page && 'post' === $post->post_type) {
+            $lists[] = (string) get_permalink($posts_page);
         }
-        self::urls($urls);
+        if ($rules['t']) {
+            foreach (get_object_taxonomies($post->post_type) as $taxonomy) {
+                $terms = is_taxonomy_viewable($taxonomy) ? get_the_terms($post, $taxonomy) : array();
+                foreach (is_array($terms) ? $terms : array() as $term) {
+                    $lists[] = get_term_link($term);
+                }
+            }
+        }
+        if ($rules['pt']) {
+            $lists[] = get_post_type_archive_link($post->post_type);
+        }
+        if ($rules['a'] && (int) $post->post_author > 0) {
+            $lists[] = get_author_posts_url((int) $post->post_author);
+        }
+        $year  = (int) get_post_time('Y', false, $post);
+        $month = (int) get_post_time('n', false, $post);
+        if ($rules['y'] && $year) {
+            $lists[] = get_year_link($year);
+        }
+        if ($rules['m'] && $year) {
+            $lists[] = get_month_link($year, $month);
+        }
+        if ($rules['d'] && $year) {
+            $lists[] = get_day_link($year, $month, (int) get_post_time('j', false, $post));
+        }
+        // The post type archive of posts is home_url() without its slash.
+        $lists = array_map(function ($url) {
+            return is_string($url) && '' === (string) wp_parse_url($url, PHP_URL_PATH) ? trailingslashit($url) : $url;
+        }, $lists);
+        $lists = array_values(array_unique(array_filter($lists, 'is_string')));
+
+        $files = array_merge(array($link), $lists);
+        if ($rules['p']) {
+            // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- IDs only, at most MAX_URLS + 1, once per saved post.
+            foreach (get_posts(array('post_type' => 'page', 'post_status' => 'publish', 'fields' => 'ids', 'numberposts' => self::MAX_URLS + 1, 'no_found_rows' => true, 'orderby' => 'ID')) as $page) {
+                $files[] = (string) get_permalink((int) $page);
+            }
+        }
+        /**
+         * Addresses (one page each) to empty at Cloudflare after a post is
+         * published, updated or unpublished, such as pages of an add-on
+         * that list it.
+         *
+         * @since 1.3.203
+         * @param string[] $files Addresses.
+         * @param WP_Post  $post  Post.
+         */
+        $files = apply_filters('seoprostack_cloudflare_purge_post_urls', $files, $post);
+        $files = array_values(array_unique(array_filter(array_map('strval', is_array($files) ? $files : array()))));
+
+        // Further pages of each list: /page/2/ on, with pretty permalinks.
+        $prefixes = array();
+        if ('' !== (string) get_option('permalink_structure')) {
+            global $wp_rewrite;
+            $base = $wp_rewrite instanceof WP_Rewrite && '' !== $wp_rewrite->pagination_base ? $wp_rewrite->pagination_base : 'page';
+            foreach ($lists as $list) {
+                $prefixes[] = trailingslashit($list) . $base . '/';
+            }
+        }
+        if (count($files) + count($prefixes) > self::MAX_URLS) {
+            return null;
+        }
+        return array('files' => $files, 'prefixes' => $prefixes);
     }
 
     /**
@@ -294,6 +636,33 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
             $url = esc_url_raw((string) $url, array('http', 'https'));
             if ('' !== $url) {
                 $have[] = $url;
+            }
+        }
+        self::$pending[$blog] = array_values(array_unique($have));
+        self::send_later();
+    }
+
+    /**
+     * Empty every address under these folders of a site at Cloudflare.
+     * Kept in the same list as addresses, without the scheme, as
+     * Cloudflare takes them (host/path/); never a site's home folder,
+     * which empties the whole site (site()).
+     *
+     * @param string[] $urls Folder addresses.
+     * @param int      $blog Site; 0 for the current one.
+     */
+    public static function prefixes(array $urls, $blog = 0) {
+        $blog = $blog ? (int) $blog : get_current_blog_id();
+        if (isset(self::$pending[$blog]) && true === self::$pending[$blog]) {
+            return;
+        }
+        $home = trim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
+        $have = isset(self::$pending[$blog]) && is_array(self::$pending[$blog]) ? self::$pending[$blog] : array();
+        foreach ($urls as $url) {
+            $host = strtolower((string) wp_parse_url((string) $url, PHP_URL_HOST));
+            $path = trim((string) wp_parse_url((string) $url, PHP_URL_PATH), '/');
+            if ('' !== $host && '' !== $path && $path !== $home) {
+                $have[] = $host . '/' . $path . '/';
             }
         }
         self::$pending[$blog] = array_values(array_unique($have));
@@ -513,14 +882,19 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
     /**
      * What to ask Cloudflare to empty for the current site: for the whole
      * site its home host, or the folder it lives in on a host it shares
-     * (a subdirectory network); otherwise its addresses.
+     * (a subdirectory network); otherwise its addresses (with a scheme) and
+     * folders (prefixes(), without).
      *
-     * @param true|string[] $what Whole site, or addresses.
+     * @param true|string[] $what Whole site, or addresses and folders.
      * @return array<string,string[]> hosts, prefixes or files => items.
      */
     private static function targets($what) {
         if (true !== $what) {
-            return array('files' => array_values(array_unique((array) $what)));
+            $targets = array();
+            foreach (array_unique((array) $what) as $item) {
+                $targets[false !== strpos((string) $item, '://') ? 'files' : 'prefixes'][] = (string) $item;
+            }
+            return $targets;
         }
         $home = home_url('/');
         $host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
@@ -663,6 +1037,23 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
     }
 
     /**
+     * Whether Cloudflare's last answer refused the token or zone (4xx,
+     * not 429): purges would not reach it, so a long edge time would keep
+     * old pages. Rate limits and outages are tried again, so they do not
+     * count.
+     *
+     * @return bool
+     */
+    public static function refused() {
+        $entries = self::entries();
+        if (!$entries) {
+            return false;
+        }
+        $code = isset($entries[0]['code']) ? (int) $entries[0]['code'] : 0;
+        return empty($entries[0]['ok']) && $code >= 400 && $code < 500 && 429 !== $code;
+    }
+
+    /**
      * Read one of the feature's stored values (the network's, on a network).
      *
      * @param string $name Option name.
@@ -750,11 +1141,15 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
     private static function describe(array $entry) {
         $count = isset($entry['count']) ? (int) $entry['count'] : 0;
         if ('hosts' === $entry['what'] || 'prefixes' === $entry['what']) {
-            return 1 === $count && !empty($entry['items'][0])
+            if (1 === $count && !empty($entry['items'][0])) {
                 /* translators: %s: host name or folder */
-                ? sprintf(__('every page of %s', 'seoprostack'), $entry['items'][0])
+                return sprintf(__('every page of %s', 'seoprostack'), $entry['items'][0]);
+            }
+            return 'hosts' === $entry['what']
                 /* translators: %s: number of sites */
-                : sprintf(_n('every page of %s site', 'every page of %s sites', $count, 'seoprostack'), number_format_i18n($count));
+                ? sprintf(_n('every page of %s site', 'every page of %s sites', $count, 'seoprostack'), number_format_i18n($count))
+                /* translators: %s: number of folders */
+                : sprintf(_n('every page in %s folder', 'every page in %s folders', $count, 'seoprostack'), number_format_i18n($count));
         }
         /* translators: %s: number of addresses */
         return sprintf(_n('%s page', '%s pages', $count, 'seoprostack'), number_format_i18n($count));

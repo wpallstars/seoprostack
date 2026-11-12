@@ -144,7 +144,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 'max'         => 100,
                 'parent'      => self::KEY,
                 'label'       => __('AVIF quality', 'seoprostack'),
-                'description' => __('AVIF at 70 looks about the same as WebP at 90. After a change, pictures are converted again in the background.', 'seoprostack'),
+                'description' => __('AVIF at 80 is about as sharp as WebP at 90 and a little smaller; at 70 it is a little softer and about a quarter smaller. A file’s AVIF copy is kept only when it is smaller than its WebP copy. After a change, pictures are converted again in the background.', 'seoprostack'),
             ),
             'nextgen_smart' => array(
                 'type'        => 'bool',
@@ -513,6 +513,13 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 ? isset($previous['quality'][$format]) && $previous['quality'][$format] !== $record['quality'][$format]
                 : true);
         }
+        // WebP first: a file's AVIF copy is kept only when it is smaller than
+        // its WebP copy, as browsers that accept AVIF get it whenever it is
+        // there (GH#1536).
+        $formats = self::formats();
+        if (isset($formats['webp'])) {
+            $formats = array('webp' => $formats['webp']) + $formats;
+        }
         $names = self::file_names($file, wp_get_attachment_metadata($attachment_id));
         foreach ($names as $name) {
             $path = $dir . '/' . $name;
@@ -524,15 +531,20 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             $record['sources'][$name] = $bytes;
             // Unchanged file whose copy was not smaller last time: not again.
             $same = !$force && isset($previous['sources'][$name]) && $previous['sources'][$name] === $bytes;
-            foreach (self::formats() as $format => $mime) {
+            foreach ($formats as $format => $mime) {
                 if ($mime === $type['type']) {
                     continue;
                 }
-                if ($same && !$redo[$format] && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
+                $made = (int) ($record['files'][$name]['webp'] ?? 0);
+                $webp = 'avif' === $format && isset($formats['webp']) ? self::webp_bytes($path, $made) : 0;
+                // An AVIF copy left out for its WebP copy is tried again when
+                // that changes or is no longer made.
+                $retry = 'avif' === $format && $made !== (int) ($previous['files'][$name]['webp'] ?? 0);
+                if ($same && !$redo[$format] && !$retry && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
                     $record['files'][$name][$format] = 0;
                     continue;
                 }
-                $record['files'][$name][$format] = self::convert_file($path, $format, $force || $redo[$format]);
+                $record['files'][$name][$format] = self::convert_file($path, $format, $force || $redo[$format], $webp);
             }
         }
         if (!self::unchanged($attachment_id, $generation, $file, $names)) {
@@ -650,29 +662,165 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @param string $path   Original file.
      * @param string $format webp or avif.
      * @param bool   $force  Make it again even when up to date.
-     * @return int Bytes of the copy; 0 when not smaller; -1 when it failed.
+     * @param int    $other  Bytes of the file's other copy that the copy must
+     *                       also be smaller than (its WebP copy, for AVIF,
+     *                       GH#1536); 0 for none.
+     * @return int Bytes of the copy; 0 when not smaller; -1 when it failed
+     *             (a copy that could not be removed too: it is still sent).
      */
-    private static function convert_file($path, $format, $force) {
+    private static function convert_file($path, $format, $force, $other = 0) {
         $target = $path . '.' . $format;
         clearstatcache();
         $source_bytes = (int) filesize($path);
-        $source_time  = (int) filemtime($path);
-        if (is_file($target)) {
-            if (self::is_attachment_file($target)) {
-                // A Media Library file of its own, not a copy.
-                return -1;
-            }
-            if (!$force && filemtime($target) >= $source_time) {
-                return (int) filesize($target);
-            }
-        } elseif (!$force) {
-            $adopted = self::adopt_compressx_copy($path, $target, $source_bytes, $source_time);
-            if ($adopted) {
-                return $adopted;
-            }
+        // The size to beat: the original, or the other copy when smaller.
+        // When pages name the copies, a copy already at its address is held
+        // to the original only: cached pages may name it, and there is no
+        // other file at that address for them (GH#1536).
+        $limit = $source_bytes;
+        if ($other > 0 && !(self::names_copies() && is_file($target))) {
+            $limit = min($limit, (int) $other);
         }
+        $kept = self::kept_copy($path, $target, $force, $limit);
+        if (null !== $kept) {
+            return $kept;
+        }
+        $temp = self::encode($path, $format);
+        if (null === $temp) {
+            return -1;
+        }
+        $bytes = (int) filesize($temp);
+        if ($bytes <= 0 || $bytes >= $limit) {
+            wp_delete_file($temp);
+            return self::remove_copy($target) ? 0 : -1;
+        }
+        // Same folder; the temporary name is unique, so a failure is the
+        // file system's and is left in the log.
+        if (!rename($temp, $target)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- same directory.
+            wp_delete_file($temp);
+            return -1;
+        }
+        return $bytes;
+    }
 
-        $mime    = self::FORMATS[$format];
+    /**
+     * A copy that is there already, or CompressX's, and stays.
+     *
+     * @param string $path   Original file.
+     * @param string $target Where the copy goes.
+     * @param bool   $force  Make it again even when up to date.
+     * @param int    $limit  Bytes the copy must be smaller than.
+     * @return int|null Bytes of the copy; 0 when an up-to-date copy is not
+     *                  smaller (it is removed); -1 when the target is a
+     *                  Media Library file of its own, or such a copy could
+     *                  not be removed; null to make it.
+     */
+    private static function kept_copy($path, $target, $force, $limit) {
+        $source_time = (int) filemtime($path);
+        if (!is_file($target)) {
+            $adopted = $force ? 0 : self::adopt_compressx_copy($path, $target, $limit, $source_time);
+            return $adopted > 0 ? $adopted : null;
+        }
+        if (self::is_attachment_file($target)) {
+            return -1;
+        }
+        if ($force || filemtime($target) < $source_time) {
+            return null;
+        }
+        $have = (int) filesize($target);
+        if ($have > 0 && $have < $limit) {
+            return $have;
+        }
+        // Up to date but not smaller than the original or the other copy
+        // (GH#1536).
+        return self::remove_copy($target) ? 0 : -1;
+    }
+
+    /**
+     * Remove a copy, if there is one. Whether none is left: a
+     * wp_delete_file filter or the file system can keep it, and a copy left
+     * is still sent, so it must not be recorded as absent.
+     *
+     * @param string $target Copy's path.
+     * @return bool
+     */
+    private static function remove_copy($target) {
+        clearstatcache(true, $target);
+        if (!is_file($target)) {
+            return true;
+        }
+        wp_delete_file($target);
+        clearstatcache(true, $target);
+        return !is_file($target);
+    }
+
+    /**
+     * Bytes of a file's WebP copy, which its AVIF copy must beat: the one
+     * just made, else one still there when making it failed (it is still
+     * sent). 0 when it has none.
+     *
+     * @param string $path Original file.
+     * @param int    $made What convert_file() returned for its WebP copy.
+     * @return int
+     */
+    private static function webp_bytes($path, $made) {
+        if ($made > 0) {
+            return $made;
+        }
+        $copy = $path . '.webp';
+        clearstatcache(true, $copy);
+        return is_file($copy) ? (int) filesize($copy) : 0;
+    }
+
+    /**
+     * Write a picture's copy in a format to a new file beside it.
+     *
+     * @param string $path   Original file.
+     * @param string $format webp or avif.
+     * @return string|null The new file's path; null when it failed.
+     */
+    private static function encode($path, $format) {
+        $mime   = self::FORMATS[$format];
+        $editor = self::editor($path, $mime);
+        if (null === $editor) {
+            return null;
+        }
+        $size    = $editor->get_size();
+        $quality = self::quality($format, (int) ($size['width'] ?? 0), (int) ($size['height'] ?? 0));
+        // save() resets the quality to WordPress's default for the new
+        // format (86 for WebP, 82 for AVIF) through this filter when it
+        // converts, so set_quality() alone has no effect.
+        $set_quality = function ($value, $type) use ($quality, $mime) {
+            return $type === $mime ? $quality : $value;
+        };
+        add_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX, 2);
+        $editor->set_quality($quality);
+
+        // Unique, so a bulk action and a background batch on the same
+        // picture do not write over each other's file.
+        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
+        $saved = $editor->save($temp, $mime);
+        remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
+        if (is_wp_error($saved) || empty($saved['path']) || !is_file($saved['path'])) {
+            return null;
+        }
+        clearstatcache();
+        // Another plugin may change the output format.
+        if ($saved['mime-type'] !== $mime || $saved['path'] !== $temp) {
+            wp_delete_file($saved['path']);
+            return null;
+        }
+        return $temp;
+    }
+
+    /**
+     * WordPress's selected image editor for a picture, with AVIF-capable
+     * variants, the picture turned upright.
+     *
+     * @param string $path Original file.
+     * @param string $mime Type to write.
+     * @return WP_Image_Editor|null Null when it failed.
+     */
+    private static function editor($path, $mime) {
         $editors = function ($classes) {
             require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-imagick.php';
             require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-gd.php';
@@ -691,7 +839,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $editor = wp_get_image_editor($path, array('output_mime_type' => $mime));
         remove_filter('wp_image_editors', $editors, PHP_INT_MAX);
         if (is_wp_error($editor)) {
-            return -1;
+            return null;
         }
         // Copies have no orientation tag, so turn the picture upright.
         $editor->maybe_exif_rotate();
@@ -700,49 +848,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             // full-size crop copies the picture to full colour, keeping
             // transparency.
             $size = $editor->get_size();
-            $crop = $editor->crop(0, 0, $size['width'], $size['height']);
-            if (is_wp_error($crop)) {
-                return -1;
+            if (is_wp_error($editor->crop(0, 0, $size['width'], $size['height']))) {
+                return null;
             }
         }
-        $size    = $editor->get_size();
-        $quality = self::quality($format, isset($size['width']) ? $size['width'] : 0, isset($size['height']) ? $size['height'] : 0);
-        // save() resets the quality to WordPress's default for the new
-        // format (86 for WebP, 82 for AVIF) through this filter when it
-        // converts, so set_quality() alone has no effect.
-        $set_quality = function ($value, $type) use ($quality, $mime) {
-            return $type === $mime ? $quality : $value;
-        };
-        add_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX, 2);
-        $editor->set_quality($quality);
-
-        // Unique, so a bulk action and a background batch on the same
-        // picture do not write over each other's file.
-        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
-        $saved = $editor->save($temp, $mime);
-        remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
-        if (is_wp_error($saved) || empty($saved['path']) || !is_file($saved['path'])) {
-            return -1;
-        }
-        clearstatcache();
-        // Another plugin may change the output format.
-        if ($saved['mime-type'] !== $mime || $saved['path'] !== $temp) {
-            wp_delete_file($saved['path']);
-            return -1;
-        }
-        $bytes = (int) filesize($temp);
-        if ($bytes <= 0 || $bytes >= $source_bytes) {
-            wp_delete_file($temp);
-            if (is_file($target)) {
-                wp_delete_file($target);
-            }
-            return 0;
-        }
-        if (!@rename($temp, $target)) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.rename_rename -- same directory.
-            wp_delete_file($temp);
-            return -1;
-        }
-        return $bytes;
+        return $editor;
     }
 
     /**
@@ -752,7 +862,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      *
      * @param string $path         Original file.
      * @param string $target       Where the copy goes.
-     * @param int    $source_bytes Size of the original.
+     * @param int    $source_bytes Size to beat: the original's, or its other
+     *                             copy's when smaller (GH#1536).
      * @param int    $source_time  Modification time of the original.
      * @return int Bytes of the copy; 0 when none was moved.
      */
@@ -1403,7 +1514,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
 
     /**
      * A <source> for one format: each address with its copy where there is
-     * one, else the original. '' when no address has a copy.
+     * one, else the original (for AVIF, its WebP copy first). '' when no
+     * address has a copy.
      *
      * @param array[] $candidates Address and descriptor pairs.
      * @param string  $format     avif or webp.
@@ -1414,12 +1526,19 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     private static function source(array $candidates, $format, $mime, $sizes) {
         $list   = array();
         $copies = 0;
+        // A file keeps its AVIF copy only when it is smaller than its WebP
+        // copy (GH#1536), so a width without one offers that WebP copy:
+        // every browser that shows AVIF shows WebP.
+        $webp = 'avif' === $format && SEOProStack_Settings::get('nextgen_webp');
         foreach ($candidates as $candidate) {
             list($url, $descriptor) = $candidate;
             $copy = self::copy_url($url, $format);
             if ('' !== $copy) {
                 $url = $copy;
                 ++$copies;
+            } elseif ($webp) {
+                $copy = self::copy_url($url, 'webp');
+                $url  = '' !== $copy ? $copy : $url;
             }
             $list[] = $url . $descriptor;
         }

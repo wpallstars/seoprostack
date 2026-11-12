@@ -37,6 +37,10 @@
  *
  * Opt out: the class seoprostack-keep-colours on the image or any parent.
  *
+ * Loaded by SEOProStack_Dark_Image_Contrast::enqueue()'s footer script only
+ * once the page is dark (GH#1564), after window.seoprostackDarkImageContrast
+ * is set; it then also follows switches back to light and dark again.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt

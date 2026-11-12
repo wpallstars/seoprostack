@@ -75,6 +75,8 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_block_visible` | filter | supported | 0.11.0 | restrict content | `$visible`; `$block`, `$rule` |
 | `seoprostack_can_change_settings` | filter | supported | 0.5.0 | settings | `true` |
 | `seoprostack_can_see_content` | filter | supported | 0.11.0 | restrict content | `$allowed`; `$post_id`, `$rules` |
+| `seoprostack_cloudflare_edge_time` | filter | supported | 1.3.204 | cloudflare purge | `(int) $seconds` |
+| `seoprostack_cloudflare_purge_post_urls` | filter | supported | 1.3.203 | cloudflare purge | `$files`; `$post` |
 | `seoprostack_core_plugins` | filter | supported | 1.3.106 | core plugins | `$plugins` |
 | `seoprostack_crawler_sitemap` | filter | supported | 1.3.19 | litespeed | `is_string($url) ? $url : ''` |
 | `seoprostack_dashboard_layout` | filter | supported | 0.5.0 | dashboard layout | `is_array($data) ? $data : array()` |
@@ -114,6 +116,8 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_kadence_head_preload` | filter | supported | 1.3.171 | kadence early | `true`; `$attrs` |
 | `seoprostack_kadence_hero_sizes` | filter | supported | 1.3.150 | kadence hero | `true`; `$post` |
 | `seoprostack_kadence_row_wait` | filter | supported | 1.3.168 | kadence rows | `true`; `$block` |
+| `seoprostack_kadence_scrollbar` | filter | supported | 1.3.204 | kadence scrollbar | `true` |
+| `seoprostack_kadence_slider_markup` | filter | supported | 1.3.205 | kadence slider markup | `true` |
 | `seoprostack_kadence_slider_sizes` | filter | supported | 1.3.169 | kadence slider | `true`; `$block` |
 | `seoprostack_kadence_slider_wait` | filter | supported | 1.3.166 | kadence slider | `true`; `$block` |
 | `seoprostack_keep_cached_max` | filter | supported | 1.3.194 | keep cached pages | `$max` |

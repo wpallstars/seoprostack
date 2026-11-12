@@ -50,6 +50,7 @@ if (!defined('ABSPATH')) {
 
 require_once dirname(__DIR__) . '/class-seoprostack-form-key-store.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-modal.php';
+require_once dirname(__DIR__) . '/class-seoprostack-form-field-names.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-policy-links.php';
 require_once dirname(__DIR__) . '/class-seoprostack-review-links.php';
 
@@ -107,6 +108,7 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
         if (!defined('FLUENTFORM') && !class_exists('FluentForm\App\Models\Form')) {
             return;
         }
+        SEOProStack_Form_Field_Names::boot();
         if ((bool) SEOProStack_Settings::get(self::TABS_KEY)) {
             SEOProStack_Form_Policy_Links::boot();
         }
