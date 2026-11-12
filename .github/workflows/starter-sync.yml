@@ -185,6 +185,16 @@ jobs:
             elif [[ "$author" == "app/github-actions" ]]; then
               old="$number"
               number=""
+              # Carry a person's dispatch hold over to the replacement.
+              if [[ -n "$dispatch" ]]; then
+                if ! labels="$(gh issue view "$old" --json labels --jq '.labels[].name')"; then
+                  echo "::warning::Could not read #$old's labels; $dispatch not added."
+                  dispatch=""
+                elif grep -qxF "no-auto-dispatch" <<<"$labels"; then
+                  dispatch=""
+                  hold="true"
+                fi
+              fi
             fi
           fi
 
@@ -201,6 +211,8 @@ jobs:
             fi
           elif [[ -n "$dispatch" ]]; then
             url="$(gh issue create --title "Core files differ from the starter" --label "$label" --label "$dispatch" --body-file "$body")"
+          elif [[ "${hold:-}" == "true" ]]; then
+            url="$(gh issue create --title "Core files differ from the starter" --label "$label" --label "no-auto-dispatch" --body-file "$body")"
           else
             url="$(gh issue create --title "Core files differ from the starter" --label "$label" --body-file "$body")"
           fi
