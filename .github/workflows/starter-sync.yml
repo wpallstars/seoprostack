@@ -188,8 +188,9 @@ jobs:
               # Carry a person's dispatch hold over to the replacement.
               if [[ -n "$dispatch" ]]; then
                 if ! labels="$(gh issue view "$old" --json labels --jq '.labels[].name')"; then
-                  echo "::warning::Could not read #$old's labels; $dispatch not added."
-                  dispatch=""
+                  echo "::warning::Could not read #$old's labels; it is kept, not replaced."
+                  number="$old"
+                  old=""
                 elif grep -qxF "no-auto-dispatch" <<<"$labels"; then
                   dispatch=""
                   hold="true"
