@@ -18,7 +18,10 @@
  * pictures once it comes within 1,250 pixels of the window (sps-near), the
  * distance Chrome's own lazy loading uses for pictures on a fast
  * connection. A row on the first screen gets them at the first check, as
- * the page is first drawn. Without JavaScript, in a browser without
+ * the page is first drawn: rows are measured in a ResizeObserver callback,
+ * after the browser's own layout and before it paints, not as the page is
+ * read, which forced a layout of everything above them (GH#1567); all
+ * rows' reads, then all their writes. Without JavaScript, in a browser without
  * IntersectionObserver or :not(), or when an optimiser runs the scripts
  * late, nothing waits; once the page has loaded, rows whose script did not
  * run are watched too.
@@ -441,17 +444,34 @@ class SEOProStack_Kadence_Rows {
     private static function script() {
         $script = <<<'JS'
 (function (d, w) {
-    var e = d.documentElement, o, r, all = [], each = Array.prototype.forEach;
+    var e = d.documentElement, o, r, f, all = [], each = Array.prototype.forEach;
     // As the page is read; left alone when run late by an optimiser.
     if (w.seoprostackRows || 'loading' !== d.readyState || !e.classList || !d.querySelectorAll || !w.IntersectionObserver || !each || !w.getComputedStyle) { return; }
     o = new w.IntersectionObserver(function (list) {
+        var go = [];
         each.call(list, function (n) {
-            if (n.isIntersecting) { o.unobserve(n.target); near(n.target); }
+            if (n.isIntersecting) { o.unobserve(n.target); go.push(n.target); }
         });
+        show(go);
     }, { rootMargin: '1250px 0px' });
     // A larger copy when the box grows; never a smaller one.
     r = w.ResizeObserver ? new w.ResizeObserver(function (list) {
-        each.call(list, function (n) { if (n.target.spsOwner) { size(n.target.spsOwner); } });
+        var go = [];
+        each.call(list, function (n) { if (n.target.spsOwner) { go.push(n.target.spsOwner); } });
+        grow(go);
+    }) : null;
+    // A row or column as the page draws it first: measured here, after the
+    // browser's own layout and before it paints, so one already near (a
+    // column in the first row) still has its picture in that first frame,
+    // and nothing forces a layout while the page is read (GH#1567).
+    f = w.ResizeObserver ? new w.ResizeObserver(function (list) {
+        var h = w.innerHeight || e.clientHeight, go = [];
+        each.call(list, function (n) {
+            var el = n.target, q = el.getBoundingClientRect();
+            f.unobserve(el);
+            if (q.bottom + 1250 > 0 && h + 1250 > q.top) { go.push(el); } else { o.observe(el); }
+        });
+        show(go);
     }) : null;
     // A row paints its own background; a column, its inner column.
     function box(el) {
@@ -460,36 +480,57 @@ class SEOProStack_Kadence_Rows {
         while (c && !c.classList.contains('kt-inside-inner-col')) { c = c.nextElementSibling; }
         return c;
     }
-    // The narrowest file at least as wide as the device pixels the picture
-    // paints, to the nearest whole one (GH#1476), else the block's own (the
-    // last); set only when larger than the one set before.
-    function size(el) {
-        var p = el.spsPicture, b = el.spsBox, z = w.getComputedStyle(b).backgroundSize, q, a, n, j = 0, f;
-        if ('cover' !== z && 'contain' !== z) { return; }
+    // Reads only: the index of the narrowest file at least as wide as the
+    // device pixels the picture paints, to the nearest whole one (GH#1476),
+    // else the block's own (the last); -1 for none.
+    function pick(el) {
+        var p = el.spsPicture, b = el.spsBox, z = w.getComputedStyle(b).backgroundSize, q, a, n, j = 0;
+        if ('cover' !== z && 'contain' !== z) { return -1; }
         q = b.getBoundingClientRect();
-        if (!q.width || !q.height) { return; }
+        if (!q.width || !q.height) { return -1; }
         a = p.w / p.h;
         n = Math.round(('cover' === z ? Math.max(q.width, q.height * a) : Math.min(q.width, q.height * a)) * (w.devicePixelRatio || 1));
         while (p.c.length - 1 > j && n > p.c[j][0]) { j++; }
+        return j;
+    }
+    // Writes only: file j, when larger than the one set before.
+    function put(el, j) {
+        var c;
         if (el.spsIndex >= j) { return; }
         el.spsIndex = j;
-        f = p.c[j];
-        // f[1] is url(…); f[2], when there, image-set() of its AVIF and WebP copies.
-        b.style.setProperty('background-image', f[1], 'important');
-        if (f[2]) { b.style.setProperty('background-image', f[2], 'important'); }
+        c = el.spsPicture.c[j];
+        // c[1] is url(…); c[2], when there, image-set() of its AVIF and WebP copies.
+        el.spsBox.style.setProperty('background-image', c[1], 'important');
+        if (c[2]) { el.spsBox.style.setProperty('background-image', c[2], 'important'); }
     }
-    // Before its pictures may load: the copy first, so only that is fetched.
-    function near(el) {
-        var b = el.spsPicture ? box(el) : null;
-        if (b) {
-            el.spsBox = b;
-            el.spsIndex = -1;
-            b.spsOwner = el;
-            try { size(el); } catch (x) {}
-            if (r) { r.observe(b); }
-            all.push(el);
-        }
-        el.classList.add('sps-near');
+    // Every row's reads, then every row's writes, so one row's new picture
+    // does not make the browser redo styles to measure the next one.
+    function grow(list) {
+        var js = [];
+        each.call(list, function (el, i) { js[i] = -1; try { js[i] = pick(el); } catch (x) {} });
+        each.call(list, function (el, i) { put(el, js[i]); });
+    }
+    // Before their pictures may load: each copy first, so only that is fetched.
+    function show(list) {
+        var go = [], sized = [];
+        each.call(list, function (el) {
+            var b;
+            if (el.classList.contains('sps-near')) { return; }
+            go.push(el);
+            b = el.spsPicture ? box(el) : null;
+            if (b) {
+                el.spsBox = b;
+                el.spsIndex = -1;
+                b.spsOwner = el;
+                sized.push(el);
+                all.push(el);
+            }
+        });
+        grow(sized);
+        each.call(go, function (el) {
+            if (r && el.spsBox) { r.observe(el.spsBox); }
+            el.classList.add('sps-near');
+        });
     }
     function watch(k, p) {
         each.call(d.querySelectorAll('.' + k), function (el) {
@@ -498,11 +539,14 @@ class SEOProStack_Kadence_Rows {
             o.observe(el);
         });
     }
-    // Already near as it is read (a column in the first row): now, not a
-    // frame later from the observer.
+    // Without ResizeObserver: measured as it is read, not a frame later
+    // from the IntersectionObserver.
     function check(el) {
-        var q = el.getBoundingClientRect(), h = w.innerHeight || e.clientHeight;
-        if (q.bottom + 1250 > 0 && h + 1250 > q.top) { near(el); } else { o.observe(el); }
+        var q, h;
+        if (f) { f.observe(el, { box: 'border-box' }); return; }
+        q = el.getBoundingClientRect();
+        h = w.innerHeight || e.clientHeight;
+        if (q.bottom + 1250 > 0 && h + 1250 > q.top) { show([el]); } else { o.observe(el); }
     }
     e.classList.add('sps-rows');
     // s: the script; a row's comes after it, a column's is its last child.
@@ -518,7 +562,7 @@ class SEOProStack_Kadence_Rows {
     // Denser pixels (the window moved to another display, or zoomed).
     (function dense() {
         var m = w.matchMedia && w.matchMedia('(resolution: ' + (w.devicePixelRatio || 1) + 'dppx)');
-        if (m && m.addEventListener) { m.addEventListener('change', function () { each.call(all, function (el) { size(el); }); dense(); }, { once: true }); }
+        if (m && m.addEventListener) { m.addEventListener('change', function () { grow(all); dense(); }, { once: true }); }
     })();
     // Rows and columns whose own script did not run (removed or moved by an optimiser).
     w.addEventListener('load', function () {
