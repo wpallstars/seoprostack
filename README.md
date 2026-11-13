@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.208-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.209-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.208
+Version: 1.3.209
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2653,12 +2653,14 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.209
 
-- Changed (**Ask before licence checks**, **Calls to other sites**; #1584): our own plugins’ calls are never held, limited or blocked: plugins, must-use plugins and themes whose folder starts with `seopro`, and calls to the site in SEO Pro Stack’s Author URI or its subdomains, which serves their licences and updates (owner’s decision; they keep their calls light). Checks already waiting for a choice are no longer asked about. New `seoprostack_own_call` filter.
+- Changed (**Ask before licence checks**, **Calls to other sites**; #1584): our own plugins’ calls are never held, limited or blocked: plugins, must-use plugins and themes whose folder starts with `seopro`, and calls to the site in SEO Pro Stack’s Author URI or its subdomains, which serves their licences and updates (owner’s decision; they keep their calls light). Such checks stored before are no longer listed or asked about. New `seoprostack_own_call` filter.
 - New (`wp seoprostack health`; #1577): on multisite the copied-site font check now reports Kadence’s font cache paths from another install, and the stylesheets written from them, for the whole network; `--repair --network` repairs them (`--repair` alone leaves the shared cache and says why). On single sites too, `--repair` now also removes font stylesheets that name a server path, so Kadence writes them again.
 - New (**Rank Math defaults**; #1578): `wp seoprostack rank-math identity` lists Rank Math’s site identity beside Site Identity, and `--adopt` hands a copied site’s identity over to **Keep Rank Math’s site identity in sync**, so later changes follow. The sync also keeps following its logo and social image after a domain search-replace.
 - Fixed (**Fixes for other plugins**, on by default; #1579): on pages cached for over a day, visitors who are not logged in can remove a file they attached to a Fluent Forms upload field again. Fluent Forms Pro answered the page’s expired nonce with `403 Security check failed`; a fresh one is now given to its handler. Logged-in users keep the check, as do visitors on sites that give them nonces of their own.
+- Fixed: a secret settings field (a Cloudflare or GitHub token) shows the right placeholder after saving it without reloading the screen, and a save still pending never replaces text typed since (#1572).
+- Developers: core files synced with WP Plugin Starter commit 9e44e08: release tooling, `scripts/check-hooks.js` (comments ignored, hook types checked), the deploy log baseline taken after the account-load wait, and the Starter sync workflow keeping a `no-auto-dispatch` hold (#1572).
 
 ### 1.3.208
 
