@@ -324,6 +324,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             add_action('update_option_' . $option, array(__CLASS__, 'site_image_option_updated'), 10, 3);
             add_action('add_option_' . $option, array(__CLASS__, 'site_image_option_added'), 10, 2);
         }
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'social_image_chosen'), 10, 2);
         add_action('added_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
         add_action('updated_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
         // Also when switched off, so watermarks can still be removed.
@@ -375,6 +376,25 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             if (!empty($value[$key]) && (!is_array($old_value) || !isset($old_value[$key]) || $value[$key] !== $old_value[$key])) {
                 self::restore_site_image((int) $value[$key]);
             }
+        }
+    }
+
+    /**
+     * A newly chosen Default social image is the site's own artwork: take any
+     * mark off (from the kept original) and tick Never watermark. A removal
+     * that fails is reported in the admin notice, not fatal.
+     *
+     * @param array $old Previous settings.
+     * @param array $new Current settings.
+     */
+    public static function social_image_chosen($old, $new) {
+        $id = isset($new['rank_math_social_image']) ? absint($new['rank_math_social_image']) : 0;
+        if ($id <= 0 || $id === absint($old['rank_math_social_image'] ?? 0) || !wp_attachment_is_image($id)) {
+            return;
+        }
+        if (self::record($id)) {
+            update_post_meta($id, self::SKIP_META, '1');
+            self::restore_site_image($id);
         }
     }
 
@@ -1047,8 +1067,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ('' !== (string) get_post_meta($attachment_id, '_wp_attachment_context', true)) {
             return new WP_Error('watermark_site_image', __('Site icons, logos and headers are not marked.', 'seoprostack'));
         }
-        if (in_array($attachment_id, array((int) get_option('site_icon'), (int) get_theme_mod('custom_logo'), (int) get_theme_mod('mobile_logo'), (int) get_option('site_logo'), (int) SEOProStack_Settings::get('watermark_images_image')), true)) {
-            return new WP_Error('watermark_is_mark', __('This picture is the watermark or site icon.', 'seoprostack'));
+        if (in_array($attachment_id, array((int) get_option('site_icon'), (int) get_theme_mod('custom_logo'), (int) get_theme_mod('mobile_logo'), (int) get_option('site_logo'), (int) SEOProStack_Settings::get('watermark_images_image'), (int) SEOProStack_Settings::get('rank_math_social_image')), true)) {
+            return new WP_Error('watermark_is_mark', __('This picture is the watermark, site icon or default social image.', 'seoprostack'));
         }
         if (get_post_meta($attachment_id, '_ew_applied_watermarks', true)) {
             return new WP_Error('watermark_easy_watermark', __('Easy Watermark has already marked this picture.', 'seoprostack'));
