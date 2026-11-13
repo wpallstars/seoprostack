@@ -804,7 +804,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      * Hook the Plugins screen.
      */
     public static function load_plugins_screen() {
-        if (!self::allowed() || !self::entries()) {
+        if (!self::allowed() || !self::choosable_entries()) {
             return;
         }
         add_filter('plugin_action_links', array(__CLASS__, 'action_links'), 20, 2);
@@ -841,7 +841,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      */
     public static function action_links($links, $file) {
         $slug = self::slug_of($file);
-        foreach (self::entries() as $entry) {
+        foreach (self::choosable_entries() as $entry) {
             if ('plugin:' . $slug === $entry['source']) {
                 $links['seoprostack-licence'] = sprintf('<a href="%1$s">%2$s</a>', esc_url(self::open_url($slug)), esc_html__('Licence checks', 'seoprostack'));
                 break;
@@ -861,9 +861,21 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             '<a href="%1$s">%2$s <span class="count">(%3$d)</span></a>',
             esc_url(self::open_url('all')),
             esc_html__('Licence checks', 'seoprostack'),
-            count(self::entries())
+            count(self::choosable_entries())
         );
         return $views;
+    }
+
+    /**
+     * Stored entries the owner can choose for: all but our own calls, which
+     * are never held (#1584) and may have been stored before that.
+     *
+     * @return array<string,array>
+     */
+    private static function choosable_entries() {
+        return array_filter(self::entries(), function ($entry) {
+            return is_array($entry) && !self::own_call((string) ($entry['source'] ?? ''), (string) ($entry['host'] ?? ''));
+        });
     }
 
     /*
@@ -908,7 +920,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      */
     private static function shown_entries() {
         $open    = self::opened();
-        $entries = self::entries();
+        $entries = self::choosable_entries();
         if ('' !== $open) {
             return 'all' === $open ? $entries : array_filter($entries, function ($entry) use ($open) {
                 return 'plugin:' . $open === $entry['source'];
@@ -918,8 +930,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
         // other waiting check is asked about.
         $hidden = self::later_hidden();
         return array_filter($entries, function ($entry, $id) use ($hidden) {
-            // Held before our own calls went through (#1584): nothing to ask.
-            if ('ask' !== self::mode($entry) || empty($entry['first']) || self::own_call((string) ($entry['source'] ?? ''), (string) ($entry['host'] ?? ''))) {
+            if ('ask' !== self::mode($entry) || empty($entry['first'])) {
                 return false;
             }
             return !isset($hidden[$id]) || $hidden[$id]['first'] !== (int) $entry['first'];
