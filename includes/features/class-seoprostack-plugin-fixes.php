@@ -255,6 +255,18 @@
  * nonce is now answered as a request without one, as anonymous, which core
  * already accepts; logged-in users keep the error (#1573).
  *
+ * Fluent Forms prints the nonce for removing an attached file
+ * (file_delete_nonce, action fluentform_file_delete) into the page too, and
+ * Fluent Forms Pro (checked with 6.2.15) always checks it, unlike uploads
+ * and submissions, whose nonce check is off by default. On a page cached
+ * for over a day, a visitor who is not logged in could attach a file but
+ * not remove it: 403 "Security check failed". Before Fluent's handler for
+ * visitors who are not logged in, a refused nonce is replaced with a fresh
+ * one. Every such visitor gets the same nonce, from any page with a form,
+ * so an expired one guards nothing a fresh one does not; Fluent still
+ * checks that the file belongs to the upload. Logged-in users keep the
+ * check (#1579).
+ *
  * The Kadence theme (checked with 1.5.2) reads its settings with
  * get_theme_mod() over 1,300 times as it builds a page's CSS, and each read
  * decodes the whole theme_mods option again (37 KB on one site: 250 ms per
@@ -484,7 +496,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired. Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired, and so does removing a file attached to a Fluent Forms upload field ("Security check failed" before). Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -552,6 +564,10 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         }
         // After core's nonce check (rest_cookie_check_errors, priority 100).
         add_filter('rest_authentication_errors', array(__CLASS__, 'rest_anonymous_nonce'), 101);
+        if (wp_doing_ajax()) {
+            // Before Fluent Forms Pro's handler, which uses priority 10.
+            add_action('wp_ajax_nopriv_fluentform_delete_uploaded_file', array(__CLASS__, 'fluentforms_file_delete_nonce'), 9);
+        }
         // Now (init, priority 0): LiteSpeed Cache reads the constant when a
         // crawl starts and in its role simulation (init, priority 5).
         self::litespeed_crawler_duration();
@@ -1337,6 +1353,51 @@ JS;
         // As core does for a request without a nonce.
         wp_set_current_user(0);
         return true;
+    }
+
+    /**
+     * Removing an attached file from a Fluent Forms upload field, by a visitor
+     * who is not logged in, with a nonce WordPress refuses: give Fluent Forms
+     * Pro's handler a fresh one (GitHub issue #1579). Cached pages keep the
+     * file_delete_nonce they were built with for longer than it lasts, and
+     * Fluent always checks it (Uploader::deleteFile(), checked with 6.2.15).
+     * For a visitor with no login it protects nothing (every visitor gets
+     * the same nonce, from any page with a form), and Fluent still checks
+     * that the file belongs to the upload. Only runs on the action for
+     * visitors who are not logged in, so logged-in users keep the check, and
+     * not where visitors get nonces of their own (core's
+     * nonce_user_logged_out, as a session plugin may set), where the nonce
+     * does protect the visitor.
+     */
+    public static function fluentforms_file_delete_nonce() {
+        $key = '_fluentform_file_delete_nonce';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only read here to see whether it is refused; Fluent Forms Pro checks it.
+        $sent = isset($_REQUEST[$key]) && is_string($_REQUEST[$key]) ? sanitize_text_field(wp_unslash($_REQUEST[$key])) : '';
+        if ('' === $sent || is_user_logged_in() || !function_exists('wpFluentForm') || false !== wp_verify_nonce($sent, 'fluentform_file_delete')) {
+            return;
+        }
+        // The identity wp_verify_nonce() used for this visitor: 0 unless a
+        // plugin gives visitors nonces of their own.
+        if (0 !== (int) apply_filters('nonce_user_logged_out', 0, 'fluentform_file_delete')) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter, read as wp_verify_nonce() reads it.
+            return;
+        }
+        $fresh = wp_create_nonce('fluentform_file_delete');
+        // Fluent's request object copies $_GET and $_POST when first made,
+        // which may already have happened (admin_init runs before the
+        // action), so set it there as well as in the superglobals.
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- replacing a refused nonce, see above.
+        if (isset($_GET[$key])) {
+            $_GET[$key] = $fresh;
+        }
+        if (isset($_POST[$key])) {
+            $_POST[$key] = $fresh;
+        }
+        $_REQUEST[$key] = $fresh;
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $request = wpFluentForm('request');
+        if (is_object($request) && method_exists($request, 'set')) {
+            $request->set($key, $fresh);
+        }
     }
 
     /**
