@@ -67,6 +67,9 @@ class SEOProStack_Health_CLI {
      * [--repair]
      * : Repair copied font paths and missing active Rank Math module tables.
      *
+     * [--network]
+     * : On multisite, let --repair change the font cache that every site in the network shares.
+     *
      * [--format=<format>]
      * : Output format.
      * ---
@@ -108,30 +111,62 @@ class SEOProStack_Health_CLI {
             require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
         }
         $rows = self::results();
-        $rows[] = self::font_paths($repair);
+        $rows[] = self::font_paths($repair, isset($assoc_args['network']));
         $rows[] = self::rank_math_tables($repair);
         SEOProStack_Health_Output::render($format, $rows, SEOProStack_Health_Output::records());
         WP_CLI::halt(self::failed($rows, $fail) ? 1 : 0);
     }
 
-    /** @param bool $repair Whether to repair. @return array */
-    private static function font_paths($repair) {
-        if (is_multisite()) {
-            return SEOProStack_Health_Output::row('seoprostack_copied_font_paths', array(
-                'status' => 'not_run',
-                'label' => 'Copied-site font paths',
-                'description' => 'The font cache is network-wide; no shared paths were changed.',
-            ));
-        }
+    /**
+     * Kadence/WPTT's font cache: the downloaded_font_files option and the
+     * stylesheets written from it. On a network every site shares both, so
+     * repairs there need --network as well as --repair.
+     *
+     * @param bool $repair Whether to repair. @param bool $network Whether a network's shared cache may change. @return array
+     */
+    private static function font_paths($repair, $network) {
+        $allowed = $repair && (!is_multisite() || $network);
         $stored = get_site_option('downloaded_font_files', array());
         list($updated, $changed, $unresolved) = self::font_changes(is_array($stored) ? $stored : array());
-        if ($repair && $changed) {
+        $sheets = self::stale_font_stylesheets();
+        if ($allowed && $changed) {
             update_site_option('downloaded_font_files', $updated);
             if (get_site_option('downloaded_font_files') !== $updated) {
                 $unresolved += $changed;
             }
         }
-        return self::font_result($changed, $unresolved, $repair);
+        if ($allowed && $sheets) {
+            // Generated caches: Kadence writes each again on its next page view.
+            array_map('wp_delete_file', $sheets);
+            $unresolved += count(array_filter($sheets, 'file_exists'));
+        }
+        return self::font_result(array($changed, count($sheets), $unresolved), $repair, $allowed);
+    }
+
+    /**
+     * WPTT stylesheets (wp-content/fonts/<md5>.css) whose font URLs are server
+     * paths: written while downloaded_font_files named another install's files.
+     *
+     * @return string[]
+     */
+    private static function stale_font_stylesheets() {
+        $files = glob(trailingslashit(wp_normalize_path(WP_CONTENT_DIR)) . 'fonts/*.css');
+        $url_path = (string) wp_parse_url(content_url('fonts/'), PHP_URL_PATH);
+        $stale = array();
+        foreach (is_array($files) ? $files : array() as $file) {
+            if (!preg_match('/^[0-9a-f]{32}\.css$/', basename($file)) || !is_file($file)) {
+                continue; // Not a WPTT stylesheet: leave it alone.
+            }
+            $css = (string) file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local stylesheet.
+            preg_match_all('#url\(\s*[\'"]?(/[^/\'")\s][^\'")\s]*)#i', $css, $urls);
+            foreach ($urls[1] as $path) {
+                if (false !== strpos($path, '/fonts/') && ('' === $url_path || 0 !== strpos($path, $url_path))) {
+                    $stale[] = $file;
+                    break;
+                }
+            }
+        }
+        return $stale;
     }
 
     /** @param array $stored Font cache. @return array */
@@ -172,13 +207,25 @@ class SEOProStack_Health_CLI {
         return false !== $real && 0 === strpos(wp_normalize_path($real), $root) && is_file($real) ? $local : null;
     }
 
-    /** @param int $changed Copied entries. @param int $unresolved Unsafe or unsaved entries. @param bool $repair Repair mode. @return array */
-    private static function font_result($changed, $unresolved, $repair) {
+    /**
+     * @param int[] $counts Copied entries, stale stylesheets, unsafe or unsaved entries.
+     * @param bool  $repair Repair requested. @param bool $allowed Repair applied. @return array
+     */
+    private static function font_result(array $counts, $repair, $allowed) {
+        list($changed, $sheets, $unresolved) = $counts;
+        $found = $changed || $sheets;
+        $description = sprintf('%d copied font cache paths and %d font stylesheets naming a server path %s; %d unrecognized or unsaved entries left unchanged.', $changed, $sheets, $allowed ? 'repaired' : 'found', $unresolved);
+        if (is_multisite()) {
+            $description .= $repair && !$allowed && $found
+                ? ' Nothing was changed: every site in this network shares the font cache, so it is repaired only with --network.'
+                : ' Every site in this network shares this font cache.';
+        }
+        $command = is_multisite() ? 'wp seoprostack health --repair --network' : 'wp seoprostack health --repair';
         return SEOProStack_Health_Output::row('seoprostack_copied_font_paths', array(
-            'status' => $unresolved || ($changed && !$repair) ? 'recommended' : 'good',
+            'status' => $unresolved || ($found && !$allowed) ? 'recommended' : 'good',
             'label' => 'Copied-site font paths',
-            'description' => sprintf('%d copied font cache paths %s; %d unrecognized or unsaved entries left unchanged.', $changed, $repair ? 'repaired' : 'found', $unresolved),
-            'actions' => $changed && !$repair ? 'Run wp seoprostack health --repair to rebase local files or discard stale cache entries. No font files are deleted.' : '',
+            'description' => $description,
+            'actions' => $found && !$allowed ? 'Run ' . $command . ' to rebase cache entries to local files or drop stale ones, and remove the stylesheets so Kadence writes them again on the next page view (purge page caches after). No font files are deleted.' : '',
         ));
     }
 
