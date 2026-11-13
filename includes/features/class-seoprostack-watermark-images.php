@@ -409,7 +409,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     public static function restore_chosen_image($id, $attempt = 0) {
         $id = (int) $id;
         wp_cache_delete($id, 'post_meta');
-        if (self::live_claims($id, self::$claims[$id] ?? '') && (int) $attempt < 10) {
+        // No retry cap: a claim expires by itself (CLAIM_TTL), and a pending
+        // restoration must never be dropped while one is live.
+        if (self::live_claims($id, self::$claims[$id] ?? '')) {
             wp_schedule_single_event(time() + 30, 'seoprostack_watermark_restore_chosen', array($id, (int) $attempt + 1));
             return;
         }
