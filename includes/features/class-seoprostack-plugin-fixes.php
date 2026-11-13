@@ -58,6 +58,17 @@
  * now skipped while its cached answer is there, and the throwing notice is
  * removed before it runs (Readabler already logs the failure itself).
  *
+ * Readabler (checked with 2.0.20) gives the front end its reading mask
+ * height as $options['reading_mask_height'] ?? 0. The height's default (100
+ * px) is collected only when its Design tab lists the field, which it does
+ * only when the settings it has at that moment have Reading Mask or the ADHD
+ * Friendly profile on; on a site whose General tab was never saved they do
+ * not, so the height was 0. A visitor who picked the ADHD Friendly profile
+ * then got a mask over the whole window that took every click (menus, links
+ * and buttons stopped working), and Readabler kept that choice for later
+ * pages. While the Design tab's settings have no height, they now read
+ * Readabler's own default; a saved height is left alone (#1590).
+ *
  * Tutor LMS 4.1.0 names its foreign keys the same on every site
  * (fk_tutor_order_item_order_id and eight more), but MySQL and MariaDB need
  * each name once per database. On a network, or sites sharing a database,
@@ -349,6 +360,12 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Merkulove "Unity" classes: {Plugin} is the plugin's own namespace part. */
     const UNITY = '/^Merkulove\\\\(\w+)\\\\Unity\\\\(UnityActions|EnvatoItem)$/';
 
+    /** Readabler's Design tab settings (an option). */
+    const READABLER_DESIGN = 'mdp_readabler_design_settings';
+
+    /** Readabler's own default reading mask height, in px, as its slider saves it. */
+    const READABLER_MASK_HEIGHT = '100';
+
     /** After a failed Tutor table repair, wait this long (a transient) before trying again. */
     const TUTOR_RETRY = 'seoprostack_tutor_tables_retry';
 
@@ -496,7 +513,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired, and so does removing a file attached to a Fluent Forms upload field ("Security check failed" before). Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot, and its ADHD Friendly profile and Reading Mask no longer cover the whole page, taking every click, when no reading mask height is saved. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired, and so does removing a file attached to a Fluent Forms upload field ("Security check failed" before). Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -525,6 +542,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         // Before Merkulove's own callbacks, which use priority 10.
         add_action('load-plugins.php', array(__CLASS__, 'unity_skip_request'), 0);
         add_action('admin_notices', array(__CLASS__, 'unity_drop_throwing_notice'), 0);
+        // Saved settings, and none saved yet. Readabler reads them on init.
+        add_filter('option_' . self::READABLER_DESIGN, array(__CLASS__, 'readabler_mask_height'));
+        add_filter('default_option_' . self::READABLER_DESIGN, array(__CLASS__, 'readabler_mask_height'));
         // Replies from the server, and replies a filter made up instead
         // (WordPress returns those without the http_response filter).
         add_filter('http_response', array(__CLASS__, 'themeum_no_update'), 10, 3);
@@ -1958,6 +1978,24 @@ JS;
                 }
             }
         }
+    }
+
+    /**
+     * Readabler's Design tab settings without a reading mask height get its
+     * own default, which it fails to collect on sites whose General tab was
+     * never saved (and then uses 0: a mask over the whole page).
+     *
+     * @param mixed $value The saved settings, or false when none are saved.
+     * @return mixed
+     */
+    public static function readabler_mask_height($value) {
+        if (false === $value || '' === $value) {
+            $value = array();
+        }
+        if (is_array($value) && !isset($value['reading_mask_height'])) {
+            $value['reading_mask_height'] = self::READABLER_MASK_HEIGHT;
+        }
+        return $value;
     }
 
     /**
