@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= 1.3.210 =
+= Unreleased =
 * Changed (Watermark pictures, Keep Rank Math's site identity in sync; GitHub issue #1586): the picture chosen as Default social image (rank_math_social_image) is never watermarked, like the site icon and logos. SEOProStack_Watermark_Images::unmarkable() refuses it for whole-library marking, re-marking and uploads, and choosing a marked picture there (SEOProStack_Watermark_Images::social_image_chosen(), on seoprostack_settings_changed) puts its kept original back and ticks Never watermark. A removal that fails is logged and shown in the one-time admin notice, not fatal; other pictures are marked as before.
 
 = 1.3.209 =
