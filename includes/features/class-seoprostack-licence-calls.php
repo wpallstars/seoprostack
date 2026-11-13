@@ -162,7 +162,11 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             return $pre;
         }
 
-        $host  = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        if (self::own_call($source, $host)) {
+            // Our own plugins, and calls to their maker's site: never held.
+            return $pre;
+        }
         $path  = substr((string) wp_parse_url($url, PHP_URL_PATH), 0, 100);
         $id    = self::id($source, $host);
         $entry = self::touch($id, $source, $host, $path);
@@ -274,6 +278,52 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             }
         }
         return false;
+    }
+
+    /**
+     * Whether a call is our own (owner's decision, #1584): made by a plugin,
+     * must-use plugin or theme whose folder starts with "seopro" (SEO Pro
+     * Stack's family), or made to the site in SEO Pro Stack's Author URI or
+     * a subdomain of it (their maker, which serves their licences and
+     * updates). Never held by Ask before licence checks, nor limited or
+     * blocked by Calls to other sites: these plugins keep their calls light.
+     *
+     * @param string $source "plugin:folder", "mu:file", "theme:folder", "core" or "seoprostack".
+     * @param string $host   Host, lower case.
+     * @return bool
+     */
+    public static function own_call($source, $host) {
+        $source = (string) $source;
+        $host   = strtolower((string) $host);
+        $slug   = false !== strpos($source, ':') ? substr($source, strpos($source, ':') + 1) : '';
+        $own    = 0 === strpos(strtolower($slug), 'seopro');
+        $maker  = self::maker_host();
+        if (!$own && '' !== $maker && '' !== $host) {
+            $own = $host === $maker || substr($host, -strlen($maker) - 1) === '.' . $maker;
+        }
+        /**
+         * Filter whether a call is our own: never held by Ask before licence
+         * checks, nor limited or blocked by Calls to other sites.
+         *
+         * @param bool   $own    Whether it is our own call.
+         * @param string $source "plugin:folder", "mu:file", "theme:folder", "core" or "seoprostack".
+         * @param string $host   Host, lower case.
+         */
+        return (bool) apply_filters('seoprostack_own_call', $own, $source, $host);
+    }
+
+    /**
+     * Host of SEO Pro Stack's Author URI, without "www.".
+     *
+     * @return string
+     */
+    private static function maker_host() {
+        static $host = null;
+        if (null === $host) {
+            $data = get_file_data(SEOPROSTACK_FILE, array('uri' => 'Author URI'), 'plugin');
+            $host = preg_replace('/^www\./', '', strtolower((string) wp_parse_url((string) $data['uri'], PHP_URL_HOST)));
+        }
+        return $host;
     }
 
     /**
@@ -754,7 +804,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      * Hook the Plugins screen.
      */
     public static function load_plugins_screen() {
-        if (!self::allowed() || !self::entries()) {
+        if (!self::allowed() || !self::choosable_entries()) {
             return;
         }
         add_filter('plugin_action_links', array(__CLASS__, 'action_links'), 20, 2);
@@ -791,7 +841,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      */
     public static function action_links($links, $file) {
         $slug = self::slug_of($file);
-        foreach (self::entries() as $entry) {
+        foreach (self::choosable_entries() as $entry) {
             if ('plugin:' . $slug === $entry['source']) {
                 $links['seoprostack-licence'] = sprintf('<a href="%1$s">%2$s</a>', esc_url(self::open_url($slug)), esc_html__('Licence checks', 'seoprostack'));
                 break;
@@ -811,9 +861,21 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             '<a href="%1$s">%2$s <span class="count">(%3$d)</span></a>',
             esc_url(self::open_url('all')),
             esc_html__('Licence checks', 'seoprostack'),
-            count(self::entries())
+            count(self::choosable_entries())
         );
         return $views;
+    }
+
+    /**
+     * Stored entries the owner can choose for: all but our own calls, which
+     * are never held (#1584) and may have been stored before that.
+     *
+     * @return array<string,array>
+     */
+    private static function choosable_entries() {
+        return array_filter(self::entries(), function ($entry) {
+            return is_array($entry) && !self::own_call((string) ($entry['source'] ?? ''), (string) ($entry['host'] ?? ''));
+        });
     }
 
     /*
@@ -858,7 +920,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      */
     private static function shown_entries() {
         $open    = self::opened();
-        $entries = self::entries();
+        $entries = self::choosable_entries();
         if ('' !== $open) {
             return 'all' === $open ? $entries : array_filter($entries, function ($entry) use ($open) {
                 return 'plugin:' . $open === $entry['source'];

@@ -637,7 +637,7 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
      * @return bool
      */
     public static function never_block($host, $source) {
-        $never = in_array($source, array('core', 'seoprostack'), true);
+        $never = in_array($source, array('core', 'seoprostack'), true) || SEOProStack_Licence_Calls::own_call($source, $host);
         foreach (self::NEVER_BLOCK as $domain) {
             if ($host === $domain || substr($host, -strlen($domain) - 1) === '.' . $domain) {
                 $never = true;

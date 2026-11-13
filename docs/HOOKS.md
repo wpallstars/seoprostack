@@ -158,6 +158,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_nextgen_avif_speed` | filter | supported | 1.3.147 | nextgen images | `7` |
 | `seoprostack_nextgen_runners` | filter | supported | 1.3.149 | nextgen images | `1` |
 | `seoprostack_outbound_never_block` | filter | supported | 1.2.0 | outbound calls | `$never`; `$host`, `$source` |
+| `seoprostack_own_call` | filter | supported | 1.3.209 | licence calls | `$own`; `$source`, `$host` |
 | `seoprostack_page_cache_purge` | action | supported | 1.3.77 | page cache | `SEOPROSTACK_VERSION` |
 | `seoprostack_page_cache_purge_post` | action | supported | 1.3.89 | page cache | `$id` |
 | `seoprostack_plugin_preset_changed` | action | supported | 0.10.1 | presets | `$slug`, `$names` |
