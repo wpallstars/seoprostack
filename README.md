@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.210-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.211-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.210
+Version: 1.3.211
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2655,7 +2655,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.211
 
 - Faster (**Keep pages cached**, on by default; #1593): with TranslatePress, a fill also opens the main pages in every other published language (`/en/`, `/fr/` and so on), each page in every language before the next, before the rest of the site; a saved post's page, the home page and the posts page are opened again in every language too. Before, only the site's own language was filled, so every translated page waited for its first visitor after each purge.
 
