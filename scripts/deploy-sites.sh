@@ -27,6 +27,17 @@
 #                      default).
 #   --apply            Install the release on each of them.
 #   --allow-downgrade  Allow installing a release older than the installed version.
+#   --allow-concurrent-plugins  With --apply, install even while another
+#                      plugin made from the starter is deploying on the host
+#                      (its live ~/.{other}-deploy/.lock), for hosts with room
+#                      for parallel installs. Without it, --apply installs
+#                      nothing while one runs: it names that run and exits 3.
+#   --ignore-log-line TEXT  A new web PHP log line that contains TEXT (a fixed
+#                      string, not a pattern; after the line's leading [...]
+#                      timestamp or Apache prefix) only warns, ignored log
+#                      lines (N), and is still printed. For a site's own known
+#                      harmless lines. Repeatable. Any other new line still
+#                      fails the install.
 #   --keep-releases N  After a successful --apply, remove this plugin's older run
 #                      folders on the host (v<version>-<time> in ~/.{slug}-deploy),
 #                      keeping the current run and every run of the newest N tags
@@ -76,6 +87,13 @@
 # purged=N/SITES, cron=N/M, home HTTP code, cache= headers, cdn= and new log lines;
 # networks add sites=PASSED/TOTAL and a line per site. Exits 1 on a failed
 # site, a version not reached or new log lines, with the restore command.
+# A site whose load check or cron list the host killed (exit 137) on its
+# retry too, with nothing else wrong, is not a failure: its install is
+# reported after a recheck at the end of the run (after
+# DEPLOY_LOAD_RETRY_DELAY and the DEPLOY_MAX_ACCOUNT_PROCS wait). A pass
+# there is WARN rechecked after host kill (137); killed again, the site is
+# UNVERIFIED with a recheck command and no restore, and the run exits 4 when
+# nothing failed.
 # Host names, folders and backups stay out of the repository: only arguments.
 #
 # --apply holds a per-plugin lock on the host (~/.{slug}-deploy/.lock, made
@@ -84,6 +102,11 @@
 # it, --apply installs nothing, names that run (tag, start, parent, PID) and
 # exits 3; a lock left by a run that has ended (kill -9, a restart) is taken
 # over with a warning. The dry run takes no lock and says when one is active.
+# Every plugin made from the starter has such a lock, so --apply also stops
+# the same way (exit 3, nothing installed) while another plugin's live lock
+# is on the host: two roll-outs at once can push a shared account past its
+# process limit. It never removes or takes over another plugin's lock, and
+# ignores a stale one. --allow-concurrent-plugins skips this check.
 #
 # Needs gh (signed in for a private repository), ssh, and bash, WP-CLI, tar
 # and curl on the host; aidevops users can use wp-fleet-helper.sh instead.
@@ -129,7 +152,11 @@ CF_PLAN=""
 CF_HOSTS_PURGED=0
 CF_HOSTS_FAILED=""
 DOWNGRADE_ARGS=()
+# --allow-concurrent-plugins, passed to the remote part's apply (GH#761).
+CONCURRENT_ARGS=()
 SKIPS=()
+# --ignore-log-line strings (GH#756).
+IGNORES=()
 TMP_DIR=""
 ZIP=""
 SHA=""
@@ -191,7 +218,7 @@ parse_args() {
 		local arg="$1"
 		local value="${2:-}"
 		case "$arg" in
-		--host | --tag | --parent | --skip | --wp-cli | --web-error-log | --cloudflare-token-env | --cloudflare-purge | --keep-releases)
+		--host | --tag | --parent | --skip | --wp-cli | --web-error-log | --cloudflare-token-env | --cloudflare-purge | --keep-releases | --ignore-log-line)
 			[[ $# -ge 2 ]] || die "$arg needs a value"
 			[[ "$value" != -* ]] || die "$arg needs a value, not an option: $value"
 			case "$arg" in
@@ -204,6 +231,13 @@ parse_args() {
 			--cloudflare-token-env) CF_TOKEN_ENV="$value" ;;
 			--cloudflare-purge) CF_PURGE="$value" ;;
 			--keep-releases) KEEP_RELEASES="$value" ;;
+			--ignore-log-line)
+				# One line of a log: never empty (it would match every line)
+				# and no line break or other control character.
+				[[ -n "$value" ]] || die "--ignore-log-line cannot be empty"
+				[[ ! "$value" =~ [[:cntrl:]] ]] || die "--ignore-log-line takes text from one log line, without control characters"
+				IGNORES+=("$value")
+				;;
 			*) ;; # The outer pattern lists every option that takes a value.
 			esac
 			shift
@@ -211,6 +245,7 @@ parse_args() {
 		--apply) APPLY=1 ;;
 		--dry-run) APPLY=0 ;;
 		--allow-downgrade) DOWNGRADE_ARGS=(--allow-downgrade) ;;
+		--allow-concurrent-plugins) CONCURRENT_ARGS=(--allow-concurrent-plugins) ;;
 		-h | --help)
 			usage
 			exit 0
@@ -644,9 +679,16 @@ apply() {
 	remote "umask 077; cat >$(remote_words "$dir/$SLUG-$VERSION.zip")" <"$ZIP" || die "cannot copy the zip to $HOST"
 	remote "umask 077; cat >$(remote_words "$dir/deploy-remote.sh")" <"$REMOTE_PART" || die "cannot copy the remote part to $HOST"
 	remote "chmod 600 $(remote_words "$dir/$SLUG-$VERSION.zip" "$dir/deploy-remote.sh")" || die "cannot set the files' mode on $HOST"
+	# The ignore strings go as a file, one per line, so any text reaches the
+	# remote part unchanged, with no quoting for the host's shell.
+	local ignore_file=""
+	if [[ "${#IGNORES[@]}" -gt 0 ]]; then
+		ignore_file="$dir/ignore-log-lines"
+		printf '%s\n' "${IGNORES[@]}" | remote "umask 077; cat >$(remote_words "$ignore_file")" || die "cannot copy the ignored log lines to $HOST"
+	fi
 	printf '\nInstalling %s on %s (folder %s):\n' "$TAG" "$HOST" "$dir"
-	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" "DEPLOY_WEB_ERROR_LOG=$WEB_ERROR_LOG" "DEPLOY_CRON_TIMEOUT=${DEPLOY_CRON_TIMEOUT:-120}" "DEPLOY_MAX_ACCOUNT_PROCS=${DEPLOY_MAX_ACCOUNT_PROCS:-}" "DEPLOY_LOAD_RETRY_DELAY=${DEPLOY_LOAD_RETRY_DELAY:-30}" "DEPLOY_CDN_PURGE=$([[ -n "$CF_TOKEN" ]] && printf 1 || printf 0)" bash "$dir/deploy-remote.sh" apply "$SLUG" "$PARENT" \
-		"$VERSION" "$dir/$SLUG-$VERSION.zip" "$SHA" "$dir/backups" ${DOWNGRADE_ARGS[@]+"${DOWNGRADE_ARGS[@]}"} ${SKIPS[@]+"${SKIPS[@]}"})"
+	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" "DEPLOY_WEB_ERROR_LOG=$WEB_ERROR_LOG" "DEPLOY_IGNORE_LOG_FILE=$ignore_file" "DEPLOY_CRON_TIMEOUT=${DEPLOY_CRON_TIMEOUT:-120}" "DEPLOY_MAX_ACCOUNT_PROCS=${DEPLOY_MAX_ACCOUNT_PROCS:-}" "DEPLOY_LOAD_RETRY_DELAY=${DEPLOY_LOAD_RETRY_DELAY:-30}" "DEPLOY_CDN_PURGE=$([[ -n "$CF_TOKEN" ]] && printf 1 || printf 0)" bash "$dir/deploy-remote.sh" apply "$SLUG" "$PARENT" \
+		"$VERSION" "$dir/$SLUG-$VERSION.zip" "$SHA" "$dir/backups" ${DOWNGRADE_ARGS[@]+"${DOWNGRADE_ARGS[@]}"} ${CONCURRENT_ARGS[@]+"${CONCURRENT_ARGS[@]}"} ${SKIPS[@]+"${SKIPS[@]}"})"
 	set +e
 	remote "$command" | tee "$TMP_DIR/apply.out" | stream_filter
 	status="${PIPESTATUS[0]}"
@@ -656,8 +698,18 @@ apply() {
 		return 1
 	fi
 	if [[ "$status" -eq 3 ]]; then
-		printf '\nAnother deploy of %s is running on %s (named above), so nothing was installed. Wait for it to finish, then run again.\n' "$SLUG" "$HOST" >&2
+		printf '\nAnother deploy (of %s or of another plugin made from the starter) is running on %s (named above), so nothing was installed. Wait for it to finish, then run again.\n' "$SLUG" "$HOST" >&2
 		exit 3
+	fi
+	if [[ "$status" -eq 4 ]]; then
+		printf '\nDeployed %s on %s, but %s site(s) are UNVERIFIED: the host killed WP-CLI (exit 137) on the retry and again at the end-of-run recheck. Nothing failed and no restore is needed: when the host is quieter, run each recheck command above.\n' \
+			"$TAG" "$HOST" "$(grep -c '^    recheck: ' "$TMP_DIR/apply.out" || true)"
+		prune_host "$TAG-$stamp"
+		return 4
+	fi
+	if [[ "$status" -eq 1 ]] && grep -q "^No install of $SLUG under " "$TMP_DIR/apply.out"; then
+		printf '\nNothing installed on %s: no install of %s under %s (check --parent). Exit 1.\n' "$HOST" "$SLUG" "$PARENT" >&2
+		return 1
 	fi
 	if [[ "$status" -ne 0 ]]; then
 		printf '\nDeploy of %s on %s failed (exit %s): see the FAIL lines and their restore commands above.\n' "$TAG" "$HOST" "$status"
@@ -685,7 +737,9 @@ main() {
 	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$SLUG-deploy.XXXXXX")"
 	download_zip
 	if [[ "$APPLY" -eq 1 ]]; then
-		apply || return 1
+		local status=0
+		apply || status=$?
+		return "$status"
 	else
 		dry_run
 	fi

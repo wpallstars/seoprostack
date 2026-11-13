@@ -2658,6 +2658,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fixed (**Keep pages cached**, on by default; #1595): menu links without a trailing slash, such as a custom link to `/about`, are filled at `/about/`, where the site redirects them. Before, the fill opened only the redirect, so the page itself stayed uncached after a purge unless its slashed address was linked too.
+- Fixed: a secret settings field (such as a Cloudflare or GitHub token) cleared while its save is still running shows “Saved (hidden)…” once the save ends, instead of looking empty until the page is reloaded (#1589).
+- Developers: core files synced with WP Plugin Starter commit 37a1b52 (#1589): `scripts/deploy-sites.sh` installs nothing while another starter plugin is rolling out on the same host, reports a site whose check the host killed (exit 137) twice as unverified rather than failed, and takes `--ignore-log-line`; release scripts read a version define that spans lines.
 
 ### 1.3.211
 
