@@ -417,6 +417,7 @@ class SEOProStack_Admin_Manager {
                 'saving'      => __('Saving…', 'seoprostack'),
                 'saved'       => __('Saved', 'seoprostack'),
                 'saveFailed'  => __('Could not save. Please try again.', 'seoprostack'),
+                'secretSaved' => __('Saved (hidden). Type a new one to replace it, or a space to remove it.', 'seoprostack'),
                 'chooseImage' => __('Choose a picture', 'seoprostack'),
                 'useImage'    => __('Use this picture', 'seoprostack'),
                 'copyConfirm' => __('Copy these settings into every site’s own settings? Each site can change them again afterwards, unless they are applied to every site.', 'seoprostack'),

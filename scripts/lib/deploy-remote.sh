@@ -349,10 +349,30 @@ web_error_log_path() {
 	return 0
 }
 
+# The web PHP log's own checks (its folder exists; the file, if there, is a
+# readable regular file), without WP-CLI: cheap enough to run before the
+# account-load wait, so a wrong path fails at once.
+web_log_usable() {
+	local root="$1"
+	local path folder
+	[[ -n "$WEB_ERROR_LOG" ]] || return 0
+	path="$(web_error_log_path "$root")"
+	folder="$(dirname "$path")"
+	if [[ ! -d "$folder" ]]; then
+		say "deploy-remote: the web PHP log's folder does not exist: $folder"
+		return 1
+	fi
+	if [[ -e "$path" && ( ! -f "$path" || ! -r "$path" ) ]]; then
+		say "deploy-remote: web PHP log is not a readable regular file: $path"
+		return 1
+	fi
+	return 0
+}
+
 # Discover log files before installation, then print the lines each one gained.
 log_files() {
 	local root="$1"
-	local wp_debug php_error path folder candidate existing duplicate
+	local wp_debug php_error path candidate existing duplicate
 	local candidates=()
 	local unique=()
 	wp_debug="$(wp_bare "$root" eval 'echo defined("WP_DEBUG_LOG") && is_string(WP_DEBUG_LOG) && !in_array(strtolower(WP_DEBUG_LOG), array("1", "true"), true) ? WP_DEBUG_LOG : (defined("WP_DEBUG_LOG") && WP_DEBUG_LOG ? WP_CONTENT_DIR . "/debug.log" : "");')" || return 1
@@ -361,16 +381,8 @@ log_files() {
 	php_error="$(wp_bare "$root" eval 'echo ini_get("error_log");')" || return 1
 	candidates+=("$root/error_log" "$root/wp-content/debug.log")
 	if [[ -n "$WEB_ERROR_LOG" ]]; then
+		web_log_usable "$root" || return 1
 		path="$(web_error_log_path "$root")"
-		folder="$(dirname "$path")"
-		if [[ ! -d "$folder" ]]; then
-			say "deploy-remote: the web PHP log's folder does not exist: $folder"
-			return 1
-		fi
-		if [[ -e "$path" && ( ! -f "$path" || ! -r "$path" ) ]]; then
-			say "deploy-remote: web PHP log is not a readable regular file: $path"
-			return 1
-		fi
 		if [[ ! -e "$path" ]]; then
 			say "web PHP log $path: not there yet (counted if the install creates it)"
 		fi
@@ -725,6 +737,26 @@ PHP
 	return 0
 }
 
+# Prints the site's hooks that have exactly one event, a one-off: the only
+# hooks a killed run may retry. WP-CLI shows a one-off's recurrence as
+# "Non-repeating". A hook with two events is left out: the list shows hooks,
+# not events, so it cannot tell which one was killed. Returns 1, printing
+# nothing, when the list cannot be read, so no killed hook is retried. Read,
+# then filter: as a library, pipefail may be off.
+cron_lone_oneoffs() {
+	local root="$1"
+	shift
+	local events
+	events="$("$WP_CLI" --path="$root" "$@" cron event list --fields=hook,recurrence --format=csv 2>/dev/null)" || return 1
+	printf '%s\n' "$events" | awk '
+		NR > 1 && split($0, field, ",") >= 2 && field[1] != "" {
+			n[field[1]]++
+			if (field[2] != "Non-repeating") repeats[field[1]] = 1
+		}
+		END { for (h in n) if (n[h] == 1 && !(h in repeats)) print h }'
+	return 0
+}
+
 # Runs the plugin's own scheduled events once on one site, each in its own
 # WP-CLI process (a fatal error ends one process, not the count). A fatal
 # error that only a cron callback reaches never shows in the full load, the
@@ -783,24 +815,32 @@ run_site_cron() {
 		CRON_FAILURE="cron events not run: timeout is not installed on this host (set DEPLOY_CRON_TIMEOUT=0 for no limit); "
 		return 0
 	fi
+	# Read before the first run: a run changes the list.
+	local retryable=""
+	retryable="$(cron_lone_oneoffs "$root" "$@")" || retryable=""
 	while IFS= read -r hook; do
 		[[ -n "$hook" ]] || continue
 		CRON_TOTAL=$((CRON_TOTAL + 1))
 		status=0
 		out="$("${cmd[@]+"${cmd[@]}"}" "$WP_CLI" --path="$root" "$@" cron event run "$hook" 2>&1)" || status=$?
-		# A killed event (137) is run again, up to 3 tries in all. One no longer
-		# listed after a kill (a one-off it took) is done, when the list worked.
+		# A killed event (137) is run again, up to 3 tries in all, but only a
+		# hook's lone one-off still listed: WP-CLI removes a one-off before
+		# its callback and reschedules a recurring event before it, so a
+		# retry of either runs the next occurrence early or a callback twice.
+		# Any other final 137 stays a failure, even for a one-off no longer
+		# listed.
 		local tries=1 still=""
 		while [[ "$status" -eq 137 && "$tries" -lt 3 ]]; do
+			printf '%s\n' "$retryable" | grep -qxF "$hook" || break
+			still="$("$WP_CLI" --path="$root" "$@" cron event list --field=hook 2>/dev/null)" || break
+			printf '%s\n' "$still" | grep -qxF "$hook" || break
 			tries=$((tries + 1))
 			sleep "$LOAD_RETRY_DELAY"
 			status=0
 			out="$("${cmd[@]+"${cmd[@]}"}" "$WP_CLI" --path="$root" "$@" cron event run "$hook" 2>&1)" || status=$?
 		done
-		if [[ "$status" -eq 137 ]]; then
-			if still="$("$WP_CLI" --path="$root" "$@" cron event list --field=hook 2>/dev/null)" && ! printf '%s\n' "$still" | grep -qxF "$hook"; then
-				status=0 out=""
-			fi
+		if [[ "$status" -eq 137 && -z "$out" ]]; then
+			out="cron $hook killed (137)"
 		fi
 		[[ "$tries" -eq 1 ]] || CRON_WARN+="cron $hook retried (137), "
 		if [[ "$status" -eq 124 && "${#cmd[@]}" -gt 0 ]]; then
@@ -1271,13 +1311,15 @@ apply_one() {
 		return 0
 	fi
 	chmod 600 "$backup"
-	if ! log_files "$root"; then
+	# A wrong web PHP log path fails before the account-load wait. The log
+	# baseline is taken after it, just before the install, so lines the site
+	# logs during the wait are not counted as the install's.
+	if ! web_log_usable "$root" || ! wait_for_account_load || ! log_files "$root"; then
 		printf '%s\tFAIL: cannot check the web PHP log; not installed\n' "$name"
 		FAILED=1
 		return 0
 	fi
 
-	wait_for_account_load
 	INSTALL_START="$(date +%s)"
 	if ! install_build "$root" "$name" "$zip" "$plugins" "$backup"; then
 		FAILED=1

@@ -417,16 +417,28 @@ swap cannot start (no `unzip`, unexpected zip layout), the live folder is
 untouched and the deploy falls back to `wp plugin install --force`.
 
 A host at its process or memory limit (CloudLinux LVE) kills WP-CLI with
-exit 137. The post-install load check is run again once, and each killed cron
+exit 137. The post-install load check is run again once, and a killed cron
 event up to 3 tries in all, `DEPLOY_LOAD_RETRY_DELAY` seconds apart (default
 30), whatever the killed process printed; every other exit code fails at once.
-An event gone from `wp cron event list` after a kill (a one-off it took) counts
-as done, only when the list command succeeded. Retried checks report
+Only a hook's lone one-off event still in `wp cron event list` is retried
+(WP-CLI had not yet taken it). A recurring event is not run again (WP-CLI
+reschedules it before its callback), a one-off gone from the list was killed
+during its callback, and a hook with more than one event cannot show which
+was killed: all fail as `cron HOOK killed (137)`. Retried checks report
 `WARN ... retried (137)`, not FAIL. Events already run one per process, so a
 killed backlog is not run again as one `--due-now` call. To wait before each
 install while the account runs too many processes, set
 `DEPLOY_MAX_ACCOUNT_PROCS` (waits up to 10 minutes while `pgrep -u "$(id -u)"`
-counts more; unset means no wait).
+counts more; unset means no wait). Set both settings on the computer that runs
+`scripts/deploy-sites.sh`; it passes them to the host.
+
+Every `ssh` the script runs sends a keep-alive every 30 seconds
+(`ServerAliveInterval=30`, `ServerAliveCountMax=4`, over `~/.ssh/config`), so a
+connection that dies without a close fails in about 2 minutes instead of
+hanging for hours. The host may have finished by then: the script names the
+last install it reported, so check the installs after it rather than run
+again blind (running again is safe: an install already on the tag gets the
+same files again).
 
 When purging Cloudflare by host (no `--cloudflare-token-env`), the WARN
 `Cloudflare keeps pages from before the deploy` on multisite subsites means
@@ -463,8 +475,24 @@ another label, or `none` for no label (a repository that does not use
 aidevops). Keep the issue's title and `starter-sync` label as they are:
 aidevops merges a worker's pull request for this issue by itself (after
 the usual checks) only for that issue shape, and only while the pull
-request changes nothing outside `scripts/core-files.txt` and
-`changelog.txt`; anything else waits for a person.
+request changes nothing outside `scripts/core-files.txt`, `changelog.txt`
+and `README.md` (its Unreleased line, which the release notes need);
+anything else waits for a person.
+
+So that aidevops merges those pull requests by itself even when they add
+a new core file or change the plugin's own files (step 4), set the
+secret `STARTER_SYNC_TOKEN` (an organization secret covers every plugin):
+a fine-grained personal access token of a maintainer, with **Issues: Read
+and write** on the plugin repositories and nothing else. The workflow
+then writes the issue as that maintainer, so aidevops treats it as the
+maintainer's brief. The workflow runs only on its schedule and
+**Run workflow**, never on pull requests or comments, so no outside code
+can use the token. Without the secret it uses its own token as before.
+Editing an issue keeps its author, so with the secret set, the next run
+closes an open issue that its own token wrote and opens the maintainer's
+in its place; link an open pull request for the old issue to the new one.
+The replacement keeps a `no-auto-dispatch` hold the old issue had (or is
+held when its labels cannot be read).
 
 To sync by hand, with the starter cloned next to the plugin (the issue
 gives its folder name):
@@ -595,9 +623,10 @@ without its secret, and nothing fails.
    a self-hosted runner label (such as `4cpu-8gb`); private repositories
    pay for GitHub-hosted minutes. Set it per repository:
    `gh variable set CI_RUNNER --repo {owner}/{repo} --body 4cpu-8gb`, and
-   add the repository to the runner group. Jobs that build the zips set up
-   Node 22 themselves (`actions/setup-node`, for the minifier), so the
-   runner needs no Node of its own. An organization variable does
+   add the repository to the runner group. Every job that runs Node sets
+   it up itself (`actions/setup-node`: the lint job for its JavaScript and
+   hook checks, the zip-building jobs for the minifier), so the runner
+   needs no Node of its own. An organization variable does
    not reach private repositories on GitHub's Free plan. Never set it in a
    public repository, or in a private one that runs workflows from fork
    pull requests (Settings → Actions → General): a pull request from a
