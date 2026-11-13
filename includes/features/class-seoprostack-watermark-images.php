@@ -324,6 +324,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             add_action('update_option_' . $option, array(__CLASS__, 'site_image_option_updated'), 10, 3);
             add_action('add_option_' . $option, array(__CLASS__, 'site_image_option_added'), 10, 2);
         }
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'social_image_chosen'), 10, 2);
+        add_action('seoprostack_watermark_restore_chosen', array(__CLASS__, 'restore_chosen_image'), 10, 2);
         add_action('added_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
         add_action('updated_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
         // Also when switched off, so watermarks can still be removed.
@@ -376,6 +378,44 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 self::restore_site_image((int) $value[$key]);
             }
         }
+    }
+
+    /**
+     * A newly chosen Default social image is the site's own artwork: take any
+     * mark off (from the kept original) and tick Never watermark. A removal
+     * that fails is reported in the admin notice, not fatal.
+     *
+     * @param array $old Previous settings.
+     * @param array $new Current settings.
+     */
+    public static function social_image_chosen($old, $new) {
+        $id = isset($new['rank_math_social_image']) ? absint($new['rank_math_social_image']) : 0;
+        if ($id <= 0 || $id === absint($old['rank_math_social_image'] ?? 0) || !wp_attachment_is_image($id)) {
+            return;
+        }
+        // Excluded whether or not a record exists yet, so a runner past its
+        // unmarkable() check cannot be followed by a new mark unnoticed.
+        update_post_meta($id, self::SKIP_META, '1');
+        self::restore_chosen_image($id, 0);
+    }
+
+    /**
+     * Take the mark off the chosen Default social image; while a runner holds
+     * its marking claim, try again shortly and read the record afresh.
+     *
+     * @param int $id      Attachment ID.
+     * @param int $attempt Retries made so far.
+     */
+    public static function restore_chosen_image($id, $attempt = 0) {
+        $id = (int) $id;
+        wp_cache_delete($id, 'post_meta');
+        // No retry cap: a claim expires by itself (CLAIM_TTL), and a pending
+        // restoration must never be dropped while one is live.
+        if (self::live_claims($id, self::$claims[$id] ?? '')) {
+            wp_schedule_single_event(time() + 30, 'seoprostack_watermark_restore_chosen', array($id, (int) $attempt + 1));
+            return;
+        }
+        self::restore_site_image($id);
     }
 
     /**
@@ -1047,8 +1087,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ('' !== (string) get_post_meta($attachment_id, '_wp_attachment_context', true)) {
             return new WP_Error('watermark_site_image', __('Site icons, logos and headers are not marked.', 'seoprostack'));
         }
-        if (in_array($attachment_id, array((int) get_option('site_icon'), (int) get_theme_mod('custom_logo'), (int) get_theme_mod('mobile_logo'), (int) get_option('site_logo'), (int) SEOProStack_Settings::get('watermark_images_image')), true)) {
-            return new WP_Error('watermark_is_mark', __('This picture is the watermark or site icon.', 'seoprostack'));
+        if (in_array($attachment_id, array((int) get_option('site_icon'), (int) get_theme_mod('custom_logo'), (int) get_theme_mod('mobile_logo'), (int) get_option('site_logo'), (int) SEOProStack_Settings::get('watermark_images_image'), (int) SEOProStack_Settings::get('rank_math_social_image')), true)) {
+            return new WP_Error('watermark_is_mark', __('This picture is the watermark, site icon or default social image.', 'seoprostack'));
         }
         if (get_post_meta($attachment_id, '_ew_applied_watermarks', true)) {
             return new WP_Error('watermark_easy_watermark', __('Easy Watermark has already marked this picture.', 'seoprostack'));
@@ -1302,6 +1342,12 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ($record) {
             if (empty($record['backup'])) {
                 return 'marked';
+            }
+            // Protected pictures are checked before their mark comes off, so a
+            // skipped re-mark never starts a refresh.
+            $why_not = self::unmarkable($attachment_id, false);
+            if ($why_not) {
+                return $why_not;
             }
             $removed = self::remove($attachment_id, true);
             if (is_wp_error($removed)) {
