@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.210 =
 * Fixed, on by default (Plugin fixes; GitHub issue #1590): Readabler's ADHD Friendly profile and Reading Mask no longer cover the whole page and take every click on sites whose Readabler settings were never saved. Readabler (checked with 2.0.20) gives the page $options['reading_mask_height'] ?? 0 (FrontScripts.php) and collects that height's default (100) only when TabDesign::fields_reading_mask() lists the field, which needs Reading Mask or the ADHD Friendly profile on in the settings it has at that moment; with the General tab never saved they are not, so the page got readingMaskHeight "0". SEOProStack_Plugin_Fixes::readabler_mask_height() (option_ and default_option_mdp_readabler_design_settings) gives settings without reading_mask_height Readabler's own '100'. Nothing is stored; a saved height is left alone.
 
 = 1.3.209 =
