@@ -363,8 +363,48 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Readabler's Design tab settings (an option). */
     const READABLER_DESIGN = 'mdp_readabler_design_settings';
 
-    /** Readabler's own default reading mask height, in px, as its slider saves it. */
-    const READABLER_MASK_HEIGHT = '100';
+    /**
+     * Readabler's own Design tab defaults (2.0.20, its TabDesign fields),
+     * as its form saves them: numbers from sliders are strings. Readabler
+     * misspells the text magnifier background (rbga), which no browser reads.
+     */
+    const READABLER_DESIGN_DEFAULTS = array(
+        'highlight_titles_style'                => 'solid',
+        'highlight_titles_color'                => '#639af9',
+        'highlight_titles_width'                => '2',
+        'highlight_titles_offset'               => '2',
+        'highlight_links_style'                 => 'solid',
+        'highlight_links_color'                 => '#639af9',
+        'highlight_links_width'                 => '2',
+        'highlight_links_offset'                => '2',
+        'text_magnifier_bg_color'               => 'rgba(255, 255, 255, 0.9)',
+        'text_magnifier_color'                  => '#595959',
+        'text_magnifier_font_size'              => '36',
+        'reading_guide_width'                   => '500',
+        'reading_guide_height'                  => '12',
+        'reading_guide_background_color'        => '#0274e6',
+        'reading_guide_border_color'            => '#000000',
+        'reading_guide_border_width'            => '2',
+        'reading_guide_border_radius'           => '10',
+        'reading_guide_arrow'                   => '10',
+        'reading_mask_height'                   => '100',
+        'reading_mask_color'                    => 'rgba(0, 0, 0, 0.7)',
+        'highlight_hover_style'                 => 'solid',
+        'highlight_hover_color'                 => '#639af9',
+        'highlight_hover_width'                 => '2',
+        'highlight_hover_offset'                => '2',
+        'highlight_focus_style'                 => 'solid',
+        'highlight_focus_color'                 => '#639af9',
+        'highlight_focus_width'                 => '2',
+        'highlight_focus_offset'                => '2',
+        'virtual_keyboard_layout'               => array('english'),
+        'virtual_keyboard_bg_color'             => '#ececec',
+        'virtual_keyboard_button_bg_color'      => '#ffffff',
+        'virtual_keyboard_button_color'         => '#111111',
+        'virtual_keyboard_bg_color_dark'        => '#000000CC',
+        'virtual_keyboard_button_bg_color_dark' => 'rgba( 0, 0, 0, .5 )',
+        'virtual_keyboard_button_color_dark'    => '#ffffff',
+    );
 
     /** After a failed Tutor table repair, wait this long (a transient) before trying again. */
     const TUTOR_RETRY = 'seoprostack_tutor_tables_retry';
@@ -543,8 +583,8 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('load-plugins.php', array(__CLASS__, 'unity_skip_request'), 0);
         add_action('admin_notices', array(__CLASS__, 'unity_drop_throwing_notice'), 0);
         // Saved settings, and none saved yet. Readabler reads them on init.
-        add_filter('option_' . self::READABLER_DESIGN, array(__CLASS__, 'readabler_mask_height'));
-        add_filter('default_option_' . self::READABLER_DESIGN, array(__CLASS__, 'readabler_mask_height'));
+        add_filter('option_' . self::READABLER_DESIGN, array(__CLASS__, 'readabler_design_defaults'));
+        add_filter('default_option_' . self::READABLER_DESIGN, array(__CLASS__, 'readabler_design_defaults'));
         // Replies from the server, and replies a filter made up instead
         // (WordPress returns those without the http_response filter).
         add_filter('http_response', array(__CLASS__, 'themeum_no_update'), 10, 3);
@@ -1981,19 +2021,29 @@ JS;
     }
 
     /**
-     * Readabler's Design tab settings without a reading mask height get its
-     * own default, which it fails to collect on sites whose General tab was
-     * never saved (and then uses 0: a mask over the whole page).
+     * Readabler's Design tab settings get its own default for each one not
+     * saved. Readabler collects those defaults only when its settings
+     * already say the feature or its profile is on, which they do not while
+     * its General tab was never saved. It then prints empty styles (no
+     * outline for Cognitive Disability Mode's titles and links) and a
+     * reading mask height of 0 (a mask over the whole page). A saved value
+     * is never replaced (an empty one only prints invalid styles, so it
+     * counts as not saved), and nothing is stored.
      *
      * @param mixed $value The saved settings, or false when none are saved.
      * @return mixed
      */
-    public static function readabler_mask_height($value) {
+    public static function readabler_design_defaults($value) {
         if (false === $value || '' === $value) {
             $value = array();
         }
-        if (is_array($value) && !isset($value['reading_mask_height'])) {
-            $value['reading_mask_height'] = self::READABLER_MASK_HEIGHT;
+        if (!is_array($value)) {
+            return $value;
+        }
+        foreach (self::READABLER_DESIGN_DEFAULTS as $key => $default) {
+            if (!isset($value[$key]) || '' === $value[$key]) {
+                $value[$key] = $default;
+            }
         }
         return $value;
     }
