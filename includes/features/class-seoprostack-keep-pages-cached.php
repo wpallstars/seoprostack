@@ -19,6 +19,8 @@
  * again within minutes, in the order visitors reach them:
  * - the home page, the header's menus and links, the footer's, the home
  *   page's other links and the posts page;
+ * - the same pages in TranslatePress's other languages, page by page
+ *   (GitHub issue #1593);
  * - the rest of the site too (pages, posts, other public types, newest
  *   first, up to 1,000 pages), where no crawler covers it;
  * - then LiteSpeed Cache's crawler, where it is on, as its own Crawl now
@@ -372,7 +374,9 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
      * Its Pages rule (on by default) empties pages of the Page type only
      * (the PGS tag, set where is_page()), not every page, so reopen the
      * published Pages, newest first, up to COVERED_MAX, with the post's own
-     * pages (post_changed()); the crawler reaches any others (#1551).
+     * pages (post_changed()); the crawler reaches any others (#1551). Those
+     * Pages are reopened in the site's own language only, so one save does
+     * not open up to 50 Pages in every TranslatePress language (#1593).
      *
      * Only for a post LiteSpeed Cache applies those rules to: one of a
      * built-in or viewable type (\LiteSpeed\Purge::_get_purge_tags_by_post()).
@@ -440,7 +444,8 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
 
     /**
      * A post was published, updated or unpublished: open the home page, and
-     * its page while published, again once the cache has dropped them. WP-Optimize with its
+     * its page while published, again once the cache has dropped them, in
+     * TranslatePress's other languages too (#1593). WP-Optimize with its
      * preload after purge on does that itself.
      *
      * @param string  $new  New status.
@@ -453,7 +458,7 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         }
         $cache = SEOProStack_Keep_Cached_Requests::page_cache();
         if ('litespeed' === $cache || ('wp-optimize' === $cache && !SEOProStack_Keep_Cached_Requests::wp_optimize_preloads())) {
-            SEOProStack_Keep_Cached_Queue::add(SEOProStack_Keep_Cached_Pages::clean(self::post_urls($new, $post), 3), self::POST_DELAY);
+            SEOProStack_Keep_Cached_Queue::add(SEOProStack_Keep_Cached_Pages::with_translations(SEOProStack_Keep_Cached_Pages::clean(self::post_urls($new, $post), 3)), self::POST_DELAY);
         }
     }
 
