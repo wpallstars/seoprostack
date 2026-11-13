@@ -92,6 +92,9 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
 
     /** Register hooks only when Rank Math is loaded on this request. */
     public static function boot() {
+        if (defined('WP_CLI') && WP_CLI) {
+            WP_CLI::add_command('seoprostack rank-math identity', array(__CLASS__, 'cli_identity'));
+        }
         // Settings hooks must also catch the request that first enables sync.
         add_action('seoprostack_settings_changed', array(__CLASS__, 'identity_settings'), 10, 2);
         // Rank Math defines its version even when its runtime requirements fail.
@@ -136,11 +139,40 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         if (!is_array($titles)) {
             return;
         }
-        // Text settings strip percent escapes; encode exact URLs before saving.
-        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes JSON data only, never executable code; preserves percent escapes through text sanitization.
-        $saved = base64_decode((string) SEOProStack_Settings::get('rank_math_identity_previous'), true);
-        $previous = $saved ? json_decode($saved, true) : array();
-        $previous = is_array($previous) ? $previous : array();
+        $previous = self::identity_previous();
+        $targets = self::identity_targets();
+        $wanted = array_intersect_key($targets, array_flip(array('knowledgegraph_name', 'website_name')));
+        // Image URL and attachment ID are a pair: never replace half an override.
+        foreach (array('knowledgegraph_logo', 'open_graph_image') as $key) {
+            $can_sync = true;
+            foreach (array($key, $key . '_id') as $field) {
+                $current = isset($titles[$field]) ? (string) $titles[$field] : '';
+                $can_sync = $can_sync && self::claimable($field, $current, $previous, (string) $targets[$field]);
+            }
+            if ($can_sync) {
+                $wanted[$key] = $targets[$key];
+                $wanted[$key . '_id'] = $targets[$key . '_id'];
+            }
+        }
+        foreach ($wanted as $key => $value) {
+            $current = isset($titles[$key]) ? (string) $titles[$key] : '';
+            if (self::claimable($key, $current, $previous, (string) $value)) {
+                $titles[$key] = $value;
+                $previous[$key] = $value;
+            }
+        }
+        // Runs at shutdown; Rank Math reads the new options on the next request.
+        update_option('rank-math-options-titles', $titles);
+        self::save_identity_previous($previous);
+    }
+
+    /**
+     * Site Identity's values for Rank Math: the site name, the PNG logo (or
+     * PNG site icon) and the social image (or that logo), as URL and ID pairs.
+     *
+     * @return array<string,string|int>
+     */
+    private static function identity_targets() {
         $logo = absint(get_theme_mod('custom_logo', 0));
         if (!$logo || 'image/png' !== get_post_mime_type($logo)) {
             $logo = absint(get_option('site_icon', 0));
@@ -150,35 +182,159 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
         }
         $social = absint(SEOProStack_Settings::get('rank_math_social_image'));
         $social = $social && wp_attachment_is_image($social) ? $social : $logo;
-        $wanted = array(
+        $targets = array(
             'knowledgegraph_name' => wp_strip_all_tags((string) get_option('blogname')),
             'website_name' => wp_strip_all_tags((string) get_option('blogname')),
         );
-        // Image URL and attachment ID are a pair: never replace half an override.
         foreach (array('knowledgegraph_logo' => $logo, 'open_graph_image' => $social) as $key => $id) {
             $url = $id ? wp_get_attachment_url($id) : '';
-            $can_sync = true;
-            foreach (array($key, $key . '_id') as $field) {
-                $current = isset($titles[$field]) ? (string) $titles[$field] : '';
-                $target = $field === $key ? (string) $url : (string) ($url ? $id : 0);
-                $can_sync = $can_sync && (isset($previous[$field]) ? $current === (string) $previous[$field] : in_array($current, array('', '0', $target), true));
-            }
-            if ($can_sync) {
-                $wanted[$key] = $url ? $url : '';
-                $wanted[$key . '_id'] = $url ? $id : 0;
-            }
+            $targets[$key] = $url ? (string) $url : '';
+            $targets[$key . '_id'] = $url ? $id : 0;
         }
-        foreach ($wanted as $key => $value) {
-            $current = isset($titles[$key]) ? (string) $titles[$key] : '';
-            if (isset($previous[$key]) ? $current === (string) $previous[$key] : in_array($current, array('', '0', (string) $value), true)) {
-                $titles[$key] = $value;
-                $previous[$key] = $value;
-            }
-        }
-        // Runs at shutdown; Rank Math reads the new options on the next request.
-        update_option('rank-math-options-titles', $titles);
+        return $targets;
+    }
+
+    /** Values last written by the sync. @return array */
+    private static function identity_previous() {
+        // Text settings strip percent escapes; encode exact URLs before saving.
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes JSON data only, never executable code; preserves percent escapes through text sanitization.
+        $saved = base64_decode((string) SEOProStack_Settings::get('rank_math_identity_previous'), true);
+        $previous = $saved ? json_decode($saved, true) : array();
+        return is_array($previous) ? $previous : array();
+    }
+
+    /** @param array $previous Values last written by the sync. */
+    private static function save_identity_previous(array $previous) {
         // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Stores JSON data only, preserving exact URLs through the text field sanitizer.
         SEOProStack_Settings::set('rank_math_identity_previous', base64_encode((string) wp_json_encode($previous)));
+    }
+
+    /**
+     * Whether the sync may write a field: still its last write, or never
+     * written and empty or already the target.
+     *
+     * @param string $field Rank Math field. @param string $current Its value.
+     * @param array  $previous Last writes. @param string $target Site Identity value.
+     * @return bool
+     */
+    private static function claimable($field, $current, array $previous, $target) {
+        if (!isset($previous[$field])) {
+            return in_array($current, array('', '0', $target), true);
+        }
+        $last = (string) $previous[$field];
+        if ($current === $last) {
+            return true;
+        }
+        // A copied site's domain search-replace rewrites Rank Math's image
+        // URLs but not this base64 record: compare those without the host.
+        if (!in_array($field, array('knowledgegraph_logo', 'open_graph_image'), true)) {
+            return false;
+        }
+        $key = self::image_key($current);
+        return '' !== $key && $key === self::image_key($last);
+    }
+
+    /**
+     * An image URL's path from the uploads folder on, without the host or a
+     * network site's sites/<id>/ folder; the whole path when not in uploads.
+     *
+     * @param string $url Image URL.
+     * @return string
+     */
+    private static function image_key($url) {
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
+        $at = strrpos($path, '/uploads/');
+        if (false !== $at) {
+            $path = (string) preg_replace('#^sites/\d+/#', '', substr($path, $at + 9));
+        }
+        return $path;
+    }
+
+    /**
+     * Compare Rank Math's site identity with Site Identity, or adopt it.
+     *
+     * Lists Rank Math's organisation and website names, logo and social image
+     * (URL and attachment ID) beside the values Keep Rank Math's site identity
+     * in sync would give them. --adopt writes those values, even where the sync
+     * keeps a value it did not write (a copied site's), and records them as
+     * synced so later Site Identity changes follow. A field with no Site
+     * Identity value (no PNG logo or icon) keeps its value, recorded as synced.
+     *
+     * ## OPTIONS
+     *
+     * [--dry-run]
+     * : List the fields only (the default); cannot be combined with --adopt.
+     *
+     * [--adopt]
+     * : Write Site Identity's values. Needs Rank Math defaults and the sync on; turns nothing on.
+     *
+     * [--format=<format>]
+     * : Output format.
+     * ---
+     * default: table
+     * options:
+     *   - table
+     *   - json
+     * ---
+     *
+     * @param array $args Positional arguments.
+     * @param array $assoc_args Options.
+     */
+    public static function cli_identity($args, $assoc_args) {
+        $adopt = isset($assoc_args['adopt']);
+        $format = isset($assoc_args['format']) ? $assoc_args['format'] : 'table';
+        if ($adopt && isset($assoc_args['dry-run'])) {
+            WP_CLI::error('Use either --dry-run or --adopt, not both.');
+        }
+        if (!did_action('rank_math/loaded')) {
+            WP_CLI::error('Rank Math is not active on this site.');
+        }
+        $syncing = self::enabled() && SEOProStack_Settings::get('rank_math_identity_sync');
+        if ($adopt && !$syncing) {
+            WP_CLI::error('Turn on Rank Math defaults and Keep Rank Math’s site identity in sync first (Links tab); --adopt turns nothing on.');
+        }
+        $titles = get_option('rank-math-options-titles', array());
+        if (!is_array($titles)) {
+            WP_CLI::error('Rank Math’s Titles & Meta settings could not be read.');
+        }
+        list($rows, $titles, $previous) = self::identity_rows($titles, $adopt);
+        if ($adopt) {
+            update_option('rank-math-options-titles', $titles);
+            if (get_option('rank-math-options-titles') !== $titles) {
+                WP_CLI::error('Rank Math’s settings were not saved; nothing was recorded as synced.');
+            }
+            self::save_identity_previous($previous);
+        }
+        WP_CLI\Utils\format_items($format, $rows, array('field', 'rank_math', 'site_identity', 'state'));
+        if (!$syncing) {
+            WP_CLI::warning('Keep Rank Math’s site identity in sync is off on this site, so Rank Math does not follow Site Identity.');
+        } elseif (!$adopt && in_array('differs', wp_list_pluck($rows, 'state'), true)) {
+            WP_CLI::line('Run wp seoprostack rank-math identity --adopt to write the Site Identity values; later changes then follow through the sync.');
+        }
+    }
+
+    /**
+     * @param array $titles Rank Math's Titles & Meta settings. @param bool $adopt Whether to adopt.
+     * @return array Rows, the settings to save and the values to record as synced.
+     */
+    private static function identity_rows(array $titles, $adopt) {
+        $previous = self::identity_previous();
+        $rows = array();
+        $targets = self::identity_targets();
+        foreach ($targets as $field => $value) {
+            $current = isset($titles[$field]) ? (string) $titles[$field] : '';
+            // Image pairs have one owner: an empty URL means no Site Identity image.
+            $pair = (string) preg_replace('/_id$/', '', $field);
+            $empty = '' === (string) $targets[$pair];
+            $state = $current === (string) $value ? 'same' : ($empty ? 'no site value' : 'differs');
+            if ($adopt) {
+                $titles[$field] = $empty ? (isset($titles[$field]) ? $titles[$field] : '') : $value;
+                $previous[$field] = $titles[$field];
+                $state = 'differs' === $state ? 'adopted' : $state;
+            }
+            $rows[] = array('field' => $field, 'rank_math' => $current, 'site_identity' => (string) $value, 'state' => $state);
+        }
+        return array($rows, $titles, $previous);
     }
 
     /**
