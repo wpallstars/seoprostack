@@ -66,7 +66,8 @@ final class SEOProStack_Keep_Cached_Pages {
     public static function to_open($network) {
         if ($network && is_multisite()) {
             $first = self::network(0, 0, 0, 0, 1)['urls'];
-            return array_merge($first, self::network(0, 0, 0, count($first), 2)['urls']);
+            // Nothing is queued here: each round may list up to MAX, so a site with many languages is not left out.
+            return array_merge($first, self::network(0, 0, 0, 0, 2)['urls']);
         }
         return self::of_site(self::MAIN_MAX, self::site_max(), true);
     }
@@ -479,8 +480,9 @@ final class SEOProStack_Keep_Cached_Pages {
                 return self::network_end($urls, $blogs, $round);
             }
             $more = self::network_site($id, $round);
-            if ($urls && count($urls) + count($more) > self::MAX - $waiting) {
-                // Translations can make a site's list longer than $most: plan it again in a later batch, whole.
+            if (count($urls) + count($more) > self::MAX - $waiting) {
+                // Translations can make a site's list longer than $most: plan it whole once the queue
+                // has room (of_site() keeps it within MAX, so an empty queue always has), never cut.
                 $site = $id;
                 break;
             }
