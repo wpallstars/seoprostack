@@ -586,20 +586,25 @@ final class SEOProStack_Keep_Cached_Pages {
     /**
      * Only this site's own pages that a page cache keeps: no query strings,
      * files, feeds, admin or login, nor WooCommerce's basket, checkout and
-     * account pages. In order, without repeats.
+     * account pages. In order, without repeats. Where permalinks end with a
+     * slash, an address without one (a custom menu link to /about) gets it,
+     * as the site would redirect there: /about and /about/ count once, as
+     * /about/, where either first appears (#1595).
      *
      * @param string[] $urls Addresses.
      * @param int      $max  Most kept.
      * @return string[]
      */
     public static function clean(array $urls, $max) {
+        global $wp_rewrite;
         $host  = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
         $skip  = self::uncached_pages();
+        $slash = $wp_rewrite instanceof WP_Rewrite && $wp_rewrite->using_permalinks() && $wp_rewrite->use_trailing_slashes;
         $clean = array();
         foreach ($urls as $url) {
             $url = explode('#', (string) $url)[0];
             if (self::cacheable($url, $host, $skip)) {
-                $clean[$url] = true;
+                $clean[$slash ? self::slashed($url) : $url] = true;
             }
             if (count($clean) >= $max) {
                 break;
@@ -624,6 +629,22 @@ final class SEOProStack_Keep_Cached_Pages {
         $path = isset($parts['path']) ? $parts['path'] : '/';
         // Files are skipped; .html and .htm stay, as permalinks can end in them.
         return !preg_match('#/(wp-admin|wp-login\.php|feed)(/|$)#', $path) && !preg_match('/\.(?!html?$)[a-z0-9]{2,5}$/i', $path);
+    }
+
+    /**
+     * A cacheable address with a trailing slash on its path, as WordPress
+     * redirects to when permalinks end with one; .html and .htm addresses
+     * stay as they are.
+     *
+     * @param string $url Address from cacheable(): this site's, no query or fragment.
+     * @return string
+     */
+    private static function slashed($url) {
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
+        if ('/' === substr($path, -1) || preg_match('/\.html?$/i', $path) || false !== strpos($url, '?')) {
+            return $url;
+        }
+        return $url . '/';
     }
 
     /**
