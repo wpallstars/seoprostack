@@ -2655,6 +2655,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Changed (**Watermark pictures**, **Keep Rank Math’s site identity in sync**; #1586): the picture chosen as **Default social image** is never watermarked, like the site icon and logos, so link previews show the site’s card without a mark. Choosing a marked picture there puts its unmarked original back and ticks **Never watermark** on it.
+
 ### 1.3.211
 
 - Faster (**Keep pages cached**, on by default; #1593): with TranslatePress, a fill also opens the main pages in every other published language (`/en/`, `/fr/` and so on), each page in every language before the next, before the rest of the site; a saved post's page, the home page and the posts page are opened again in every language too. Before, only the site's own language was filled, so every translated page waited for its first visitor after each purge.
