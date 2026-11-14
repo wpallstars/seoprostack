@@ -1,0 +1,186 @@
+/*
+ * seoprostack/brand-assets. Text takes the theme's colour (currentColor)
+ * and borders are translucent, so the page follows light and dark palettes.
+ * Logo stages and colour chips show the brand's own colours on purpose.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
+ */
+.wp-block-seoprostack-brand-assets {
+	max-width: 100%;
+}
+
+.wp-block-seoprostack-brand-assets__title {
+	margin-top: 1.5em;
+}
+
+.wp-block-seoprostack-brand-assets__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+	gap: 1rem;
+	margin: 1em 0 1.5em;
+	padding: 0;
+	list-style: none;
+}
+
+.wp-block-seoprostack-brand-assets__grid--two {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+}
+
+.wp-block-seoprostack-brand-assets__card,
+.wp-block-seoprostack-brand-assets__swatch {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	overflow: hidden;
+	border: 1px solid rgba(127, 127, 127, 0.3);
+	border-radius: 8px;
+}
+
+.wp-block-seoprostack-brand-assets__stage {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 10rem;
+	padding: 2rem 1.5rem;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+}
+
+.wp-block-seoprostack-brand-assets__lockup {
+	display: flex;
+	align-items: center;
+	max-width: 100%;
+	text-align: left;
+}
+
+.wp-block-seoprostack-brand-assets__lockup[style*="column"] {
+	text-align: center;
+}
+
+.wp-block-seoprostack-brand-assets__lockup img {
+	display: block;
+}
+
+.wp-block-seoprostack-brand-assets__name {
+	display: block;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.wp-block-seoprostack-brand-assets__square {
+	display: block;
+	width: 6rem;
+	max-width: 100%;
+	height: auto;
+}
+
+.wp-block-seoprostack-brand-assets__caption,
+.wp-block-seoprostack-brand-assets__swatch-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+	margin: 0;
+	padding: 0.75rem 1rem 1rem;
+	font-size: 0.9em;
+}
+
+.wp-block-seoprostack-brand-assets__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+	margin-top: 0.5em;
+}
+
+.wp-block-seoprostack-brand-assets__download,
+.wp-block-seoprostack-brand-assets__copy {
+	display: inline-block;
+	margin: 0;
+	padding: 0.35em 0.75em;
+	border: 1px solid rgba(127, 127, 127, 0.5);
+	border-radius: 4px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 0.9em;
+	line-height: 1.4;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.wp-block-seoprostack-brand-assets__download:hover,
+.wp-block-seoprostack-brand-assets__download:focus-visible,
+.wp-block-seoprostack-brand-assets__copy:hover,
+.wp-block-seoprostack-brand-assets__copy:focus-visible {
+	background: rgba(127, 127, 127, 0.12);
+	color: inherit;
+	text-decoration: none;
+}
+
+.wp-block-seoprostack-brand-assets__download[disabled] {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+.wp-block-seoprostack-brand-assets__copy {
+	align-self: flex-start;
+	margin-top: 0.25em;
+}
+
+.wp-block-seoprostack-brand-assets__chip {
+	display: flex;
+	align-items: flex-end;
+	min-height: 6rem;
+	padding: 0.75rem 1rem;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.9em;
+}
+
+.wp-block-seoprostack-brand-assets__specimen {
+	margin: 0;
+	padding: 1.5rem 1rem;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+	font-size: 2.5em;
+	line-height: 1.2;
+}
+
+.wp-block-seoprostack-brand-assets__formatting {
+	padding: 1rem 1.5rem 1.5rem;
+}
+
+.wp-block-seoprostack-brand-assets__sample {
+	padding: 0.75rem 0;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.wp-block-seoprostack-brand-assets__sample-text {
+	margin: 0;
+}
+
+.wp-block-seoprostack-brand-assets__spec,
+.wp-block-seoprostack-brand-assets__note {
+	margin: 0.25em 0 0;
+	font-size: 0.85em;
+	opacity: 0.8;
+}
+
+.wp-block-seoprostack-brand-assets__quote {
+	margin: 1.5em 0;
+}
+
+.wp-block-seoprostack-brand-assets__buttons {
+	margin: 1em 0 0;
+}
+
+.wp-block-seoprostack-brand-assets__live {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
