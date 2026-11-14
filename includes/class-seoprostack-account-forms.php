@@ -90,13 +90,6 @@ final class SEOProStack_Account_Forms {
             }
             return;
         }
-        if ('customer-logout' === $endpoint) {
-            SEOProStack_Account::add_notice(sprintf(
-                /* translators: %s: logout address */
-                __('Are you sure you want to log out? <a href="%s">Confirm and log out</a>', 'seoprostack'),
-                esc_url(SEOProStack_Account::logout_url())
-            ));
-        }
         do_action('woocommerce_account_navigation');
         echo '<div class="woocommerce-MyAccount-content">';
         do_action('woocommerce_account_content');
@@ -304,7 +297,8 @@ final class SEOProStack_Account_Forms {
                 continue;
             }
             $html = esc_html($link[2]);
-            if ($link[0] > 0 && 'publish' === get_post_status($link[0])) {
+            // Any status, as WooCommerce (wc_replace_policy_page_link_placeholders()).
+            if ($link[0] > 0 && false !== get_post_status($link[0])) {
                 $html = sprintf('<a href="%1$s" class="%2$s" target="_blank">%3$s</a>', esc_url((string) get_permalink($link[0])), esc_attr($link[1]), $html);
             }
             $text = str_replace($tag, $html, $text);
@@ -461,13 +455,19 @@ final class SEOProStack_Account_Forms {
         $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_key(wp_unslash((string) $_REQUEST['_wpnonce'])) : '';
         // phpcs:enable WordPress.Security.NonceVerification.Recommended
         if ('' !== $nonce && wp_verify_nonce($nonce, 'customer-logout')) {
-            wp_safe_redirect(str_replace('&amp;', '&', SEOProStack_Account::logout_url()));
+            $to = SEOProStack_Account::logout_redirect_url();
+            wp_logout();
+            wp_safe_redirect($to);
             exit;
         }
-        if ('true' === SEOProStack_Account::current_value()) {
-            wp_safe_redirect(esc_url_raw(SEOProStack_Account::account_endpoint_url('customer-logout')));
-            exit;
-        }
+        // As wc_template_redirect(): ask, on My Account's dashboard.
+        SEOProStack_Account::add_notice(sprintf(
+            /* translators: %s: logout address */
+            __('Are you sure you want to log out? <a href="%s">Confirm and log out</a>', 'seoprostack'),
+            esc_url(SEOProStack_Account::logout_url())
+        ));
+        wp_safe_redirect(SEOProStack_Account::page_url());
+        exit;
     }
 
     /**

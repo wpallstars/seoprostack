@@ -439,12 +439,21 @@ class SEOProStack_Account extends SEOProStack_Feature {
     }
 
     /**
-     * Where logging out goes, then the account page (wc_logout_url()).
+     * The Confirm and log out address, as wc_logout_url() makes it.
      *
      * @return string
      */
     public static function logout_url() {
-        return wp_logout_url((string) apply_filters('woocommerce_logout_default_redirect_url', self::page_url()));
+        return wp_logout_url(self::logout_redirect_url());
+    }
+
+    /**
+     * Where logging out goes (wc_get_logout_redirect_url()).
+     *
+     * @return string
+     */
+    public static function logout_redirect_url() {
+        return (string) apply_filters('woocommerce_logout_default_redirect_url', self::page_url());
     }
 
     /**
@@ -746,7 +755,9 @@ class SEOProStack_Account extends SEOProStack_Feature {
      */
     private static function kadence_option($name) {
         $theme = \Kadence\kadence();
-        return is_object($theme) && method_exists($theme, 'option') ? $theme->option($name) : null;
+        // option() is a template tag Kadence's theme object answers through
+        // __call(), so method_exists() does not see it.
+        return is_object($theme) && is_callable(array($theme, 'option')) ? $theme->option($name) : null;
     }
 
     /**
@@ -801,7 +812,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
     public static function kadence_body_class($classes) {
         if (is_array($classes) && self::is_account_page()) {
             $layout    = (string) self::kadence_option('woo_account_navigation_layout');
-            $classes[] = 'kadence-account-nav-' . sanitize_html_class('' !== $layout ? $layout : 'left');
+            $classes[] = 'kadence-account-nav-' . sanitize_html_class('' !== $layout ? $layout : 'right');
         }
         return $classes;
     }
