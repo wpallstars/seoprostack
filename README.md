@@ -2749,6 +2749,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 × 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
 - Fixed (**Dark mode**, #1650): Meta for WordPress's settings screen (Settings → Meta) is dark: the dark fallback now reads stylesheets whose address has `../` in it, as Meta's does, and its text, links, badges, picker and Conversion API test fields take the dark colours.
 - Fixed (**Dark mode**, #1650): AffiliateWP's header shows its logo in light colours and its notifications and help buttons readably.
+- Fixed (**Brand assets page**, #1623): the page, its block and the footer link are translated in every bundled language.
 
 ### 1.3.218
 
