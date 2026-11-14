@@ -90,14 +90,15 @@ class SEOProStack_Fluentcart_Kadence extends SEOProStack_Feature {
      * @return array
      */
     public static function post_layout($layout) {
-        if (!is_array($layout) || !is_singular(self::POST_TYPE) || !function_exists('kadence')) {
+        if (!is_array($layout) || !is_singular(self::POST_TYPE) || !function_exists('Kadence\kadence')) {
             return $layout;
         }
-        $own = get_post_meta((int) get_queried_object_id(), '_kad_post_content_style', true);
-        if (in_array($own, array('boxed', 'unboxed'), true) || in_array(kadence()->option(self::POST_TYPE . '_content_style'), array('boxed', 'unboxed'), true)) {
+        $theme = \Kadence\kadence();
+        $own   = get_post_meta((int) get_queried_object_id(), '_kad_post_content_style', true);
+        if (in_array($own, array('boxed', 'unboxed'), true) || in_array($theme->option(self::POST_TYPE . '_content_style'), array('boxed', 'unboxed'), true)) {
             return $layout;
         }
-        $layout['boxed'] = 'boxed' === kadence()->option('product_content_style', 'unboxed') ? 'boxed' : 'unboxed';
+        $layout['boxed'] = 'boxed' === $theme->option('product_content_style', 'unboxed') ? 'boxed' : 'unboxed';
         return $layout;
     }
 
