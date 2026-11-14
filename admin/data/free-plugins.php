@@ -232,8 +232,8 @@ function seoprostack_get_own_plugins() {
             'description' => __('Change how your theme and plugins behave when their settings can\'t, without waiting on their makers: one small file per change, in your own copy.', 'seoprostack'),
         ),
     );
-    foreach (array_keys($plugins) as $slug) {
-        $plugins[$slug] += array(
+    foreach ($plugins as $slug => $plugin) {
+        $plugins[$slug] = $plugin + array(
             'author'       => 'wpallstars',
             'url'          => 'https://github.com/wpallstars/' . $slug,
             'requires_php' => '7.4',
