@@ -213,34 +213,40 @@ function seoprostack_get_free_plugins() {
  * @return array<string,array{name:string,description:string,author:string,url:string,requires_php:string,source:string}>
  */
 function seoprostack_get_own_plugins() {
-    $source  = __('From GitHub, by the makers of SEO Pro Stack.', 'seoprostack');
+    $shared = array(
+        'author'       => 'wpallstars',
+        'requires_php' => '7.4',
+        'source'       => __('From GitHub, by the makers of SEO Pro Stack.', 'seoprostack'),
+    );
     $plugins = array(
         'seoprostack'         => array(
             'name'        => 'SEO Pro Stack',
             'description' => __('One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.', 'seoprostack'),
+            'url'         => 'https://github.com/wpallstars/seoprostack',
         ),
         'seoprocookieconsent' => array(
             'name'        => 'SEO Pro Cookie Consent',
             'description' => __('Simple, light cookie consent: blocks scripts until consent, asks only where the law and the page need it, and fits your theme. Cookie, privacy and terms pages included; imports Complianz and 11 other consent plugins.', 'seoprostack'),
+            'url'         => 'https://github.com/wpallstars/seoprocookieconsent',
         ),
         'seoproanalytics'     => array(
             'name'        => 'SEO Pro Analytics',
             'description' => __('Private, cookie-free statistics with search rankings and sales, connected to your content. Imports the history of Burst Statistics and other statistics plugins.', 'seoprostack'),
+            'url'         => 'https://github.com/wpallstars/seoproanalytics',
         ),
         'seoprocustom'        => array(
             'name'        => 'SEO Pro Custom',
             'description' => __('Change how your theme and plugins behave when their settings can\'t, without waiting on their makers: one small file per change, in your own copy.', 'seoprostack'),
+            'url'         => 'https://github.com/wpallstars/seoprocustom',
         ),
     );
-    foreach ($plugins as $slug => $plugin) {
-        $plugins[$slug] = $plugin + array(
-            'author'       => 'wpallstars',
-            'url'          => 'https://github.com/wpallstars/' . $slug,
-            'requires_php' => '7.4',
-            'source'       => $source,
-        );
-    }
-    return $plugins;
+    // array_map() keeps the slugs as keys (one array given).
+    return array_map(
+        function ($plugin) use ($shared) {
+            return $plugin + $shared;
+        },
+        $plugins
+    );
 }
 
 /**
