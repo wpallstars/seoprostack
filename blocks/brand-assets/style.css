@@ -250,8 +250,9 @@
 	opacity: 0.8;
 }
 
-.wp-block-seoprostack-brand-assets__quote {
-	margin: 1.5em 0;
+/* Two classes, to win over the theme's quote margins in the content. */
+.wp-block-seoprostack-brand-assets .wp-block-seoprostack-brand-assets__quote {
+	margin: 1.5rem 0;
 }
 
 .wp-block-seoprostack-brand-assets__buttons {

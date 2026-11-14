@@ -1100,7 +1100,29 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * @return string
      */
     public static function page_content() {
-        return "<!-- wp:paragraph -->\n<p>" . esc_html__('Our logo, colours and fonts, for anyone writing about us, printing for us or designing for us.', 'seoprostack') . "</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:" . self::BLOCK . " /-->";
+        return "<!-- wp:paragraph -->\n<p>" . esc_html__('Our logos, colours and fonts, for press, print and design.', 'seoprostack') . "</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:" . self::BLOCK . " /-->";
+    }
+
+    /**
+     * Show Kadence's page title and the space above and below the content
+     * on the page, where nobody has chosen otherwise for it. Sites whose
+     * pages draw their own hero (directory sites) hide both for every page,
+     * which would leave this page with no title and no space at the end.
+     * Kadence's "show" title uses the site's own title layout.
+     *
+     * @param int $id Page ID.
+     * @return void
+     */
+    private static function kadence_layout($id) {
+        if ('kadence' !== get_template()) {
+            return;
+        }
+        foreach (array('_kad_post_title', '_kad_post_vertical_padding') as $key) {
+            $value = get_post_meta($id, $key, true);
+            if ('' === $value || 'default' === $value) {
+                update_post_meta($id, $key, 'show');
+            }
+        }
     }
 
     /**
@@ -1116,6 +1138,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             if (has_block(self::BLOCK, $page)) {
                 if (!$dry_run) {
                     update_option(self::PAGE_OPTION, (int) $page->ID, false);
+                    self::kadence_layout((int) $page->ID);
                 }
                 return array('status' => 'exists', 'id' => (int) $page->ID, 'message' => sprintf('The page already shows the block: %s', get_permalink($page)));
             }
@@ -1130,6 +1153,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 return array('status' => 'error', 'id' => (int) $page->ID, 'message' => $saved->get_error_message());
             }
             update_option(self::PAGE_OPTION, (int) $page->ID, false);
+            self::kadence_layout((int) $page->ID);
             return array('status' => 'replaced', 'id' => (int) $page->ID, 'message' => sprintf('Replaced the content of %s with the block.', get_permalink($page)));
         }
         if ($dry_run) {
@@ -1147,6 +1171,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             return array('status' => 'error', 'id' => 0, 'message' => $id->get_error_message());
         }
         update_option(self::PAGE_OPTION, (int) $id, false);
+        self::kadence_layout((int) $id);
         return array('status' => 'created', 'id' => (int) $id, 'message' => sprintf('Published %s.', get_permalink($id)));
     }
 
