@@ -59,7 +59,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
     const WC_SHORTCODE = 'woocommerce_my_account';
 
     /** Files in includes/account/ (class-seoprostack-account-{part}.php), loaded when the feature serves the page. */
-    const PARTS = array('endpoints', 'links', 'notices', 'view', 'kadence', 'turnstile', 'forms', 'login', 'signup', 'customer', 'password-form', 'password-reset', 'details');
+    const PARTS = array('endpoints', 'front-page', 'links', 'notices', 'view', 'kadence', 'turnstile', 'forms', 'login', 'signup', 'customer', 'password-form', 'password-reset', 'details');
 
     /**
      * Request cache of available().
