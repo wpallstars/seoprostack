@@ -18397,3 +18397,91 @@ msgstr "prese"
 msgctxt "block keyword"
 msgid "media kit"
 msgstr "preses komplekts"
+
+#: includes/features/class-seoprostack-brand-assets.php:757
+msgid "Logo"
+msgstr "Logotips"
+
+#: includes/features/class-seoprostack-brand-assets.php:758
+msgid "Logo with name"
+msgstr "Logotips ar nosaukumu"
+
+#. translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:892
+#, php-format
+msgid "Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s."
+msgstr "Pievienojiet to savam e-pasta parakstam kā %1$d pikseļu platu attēlu ar saiti uz %2$s."
+
+#. translators: %s: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:895
+#, php-format
+msgid "Add it to your email signature as a picture, up to 600 pixels wide, linked to %s."
+msgstr "Pievienojiet to savam e-pasta parakstam kā līdz 600 pikseļiem platu attēlu ar saiti uz %s."
+
+#: includes/features/class-seoprostack-brand-assets.php:901
+msgid "Download (PNG)"
+msgstr "Lejupielādēt (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:904
+msgid "Banner"
+msgstr "Baneris"
+
+#: includes/features/class-seoprostack-brand-assets.php:951
+msgid "Copy a link to a PNG"
+msgstr "Kopēt PNG saiti"
+
+#: includes/features/class-seoprostack-brand-assets.php:1301
+msgid "Making the file…"
+msgstr "Fails tiek veidots…"
+
+#. translators: %s: the picture, such as Banner.
+#: includes/features/class-seoprostack-brand-assets.php:1325
+#, php-format
+msgid "Copy the link to the %s PNG"
+msgstr "Kopēt PNG “%s” saiti"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1329
+msgid "Padded"
+msgstr "Ar apmali"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1329
+#, php-format
+msgid "Copy the link to the %s PNG with space around it, on its background colour"
+msgstr "Kopēt PNG “%s” saiti ar apmali uz tā fona krāsas"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1332
+msgid "Transparent"
+msgstr "Caurspīdīgs"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1332
+#, php-format
+msgid "Copy the link to the %s PNG with no space around it, on a transparent background"
+msgstr "Kopēt PNG “%s” saiti bez apmales uz caurspīdīga fona"
+
+#: includes/features/class-seoprostack-brand-assets.php:1398
+msgid "The uploads folder cannot be written to."
+msgstr "Augšupielādes mapē nevar rakstīt."
+
+#: includes/features/class-seoprostack-brand-assets.php:1430
+msgid "The block does not offer that picture."
+msgstr "Bloks nepiedāvā šo attēlu."
+
+#: includes/features/class-seoprostack-brand-assets.php:1434
+msgid "The brand changed while the file was made. Reload the page to make it again."
+msgstr "Zīmols mainījās faila veidošanas laikā. Pārlādējiet lapu, lai to izveidotu vēlreiz."
+
+#: includes/features/class-seoprostack-brand-assets.php:1469
+msgid "The file is not a PNG picture."
+msgstr "Fails nav PNG attēls."
+
+#: includes/features/class-seoprostack-brand-assets.php:1475
+msgid "The file is too large."
+msgstr "Fails ir pārāk liels."
+
+#, php-format
+#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
+#~ msgstr "Pievienojiet to savam e-pasta parakstam kā 600 pikseļu platu attēlu ar saiti uz %s."

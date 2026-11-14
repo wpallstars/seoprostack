@@ -17348,3 +17348,91 @@ msgstr "pers"
 msgctxt "block keyword"
 msgid "media kit"
 msgstr "mediakit"
+
+#: includes/features/class-seoprostack-brand-assets.php:757
+msgid "Logo"
+msgstr "Logo"
+
+#: includes/features/class-seoprostack-brand-assets.php:758
+msgid "Logo with name"
+msgstr "Logo met naam"
+
+#. translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:892
+#, php-format
+msgid "Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s."
+msgstr "Voeg het toe aan je e-mailhandtekening als afbeelding, %1$d pixels breed, gelinkt naar %2$s."
+
+#. translators: %s: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:895
+#, php-format
+msgid "Add it to your email signature as a picture, up to 600 pixels wide, linked to %s."
+msgstr "Voeg het toe aan je e-mailhandtekening als afbeelding, tot 600 pixels breed, gelinkt naar %s."
+
+#: includes/features/class-seoprostack-brand-assets.php:901
+msgid "Download (PNG)"
+msgstr "Downloaden (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:904
+msgid "Banner"
+msgstr "Banner"
+
+#: includes/features/class-seoprostack-brand-assets.php:951
+msgid "Copy a link to a PNG"
+msgstr "Link naar een PNG kopiëren"
+
+#: includes/features/class-seoprostack-brand-assets.php:1301
+msgid "Making the file…"
+msgstr "Bestand wordt gemaakt…"
+
+#. translators: %s: the picture, such as Banner.
+#: includes/features/class-seoprostack-brand-assets.php:1325
+#, php-format
+msgid "Copy the link to the %s PNG"
+msgstr "Link naar de PNG “%s” kopiëren"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1329
+msgid "Padded"
+msgstr "Met marge"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1329
+#, php-format
+msgid "Copy the link to the %s PNG with space around it, on its background colour"
+msgstr "Link naar de PNG “%s” met marge op de achtergrondkleur kopiëren"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1332
+msgid "Transparent"
+msgstr "Transparant"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1332
+#, php-format
+msgid "Copy the link to the %s PNG with no space around it, on a transparent background"
+msgstr "Link naar de PNG “%s” zonder marge op een transparante achtergrond kopiëren"
+
+#: includes/features/class-seoprostack-brand-assets.php:1398
+msgid "The uploads folder cannot be written to."
+msgstr "Er kan niet naar de uploadsmap worden geschreven."
+
+#: includes/features/class-seoprostack-brand-assets.php:1430
+msgid "The block does not offer that picture."
+msgstr "Het blok biedt die afbeelding niet aan."
+
+#: includes/features/class-seoprostack-brand-assets.php:1434
+msgid "The brand changed while the file was made. Reload the page to make it again."
+msgstr "Het merk is gewijzigd terwijl het bestand werd gemaakt. Laad de pagina opnieuw om het opnieuw te maken."
+
+#: includes/features/class-seoprostack-brand-assets.php:1469
+msgid "The file is not a PNG picture."
+msgstr "Het bestand is geen PNG-afbeelding."
+
+#: includes/features/class-seoprostack-brand-assets.php:1475
+msgid "The file is too large."
+msgstr "Het bestand is te groot."
+
+#, php-format
+#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
+#~ msgstr "Voeg het toe aan je e-mailhandtekening als afbeelding, 600 pixels breed, gelinkt naar %s."

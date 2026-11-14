@@ -184,7 +184,7 @@ msgstr ""
 #: includes/features/class-seoprostack-https-check.php:642
 #: includes/features/class-seoprostack-replace-media.php:204
 msgid "(opens in a new tab)"
-msgstr ""
+msgstr "(otevře se na nové kartě)"
 
 #. translators: Browser title of a section of an admin screen. 1: the screen's name, 2: the section's name.
 #. translators: 1: form, such as Quote Request, 2: name or email
@@ -10537,7 +10537,7 @@ msgstr ""
 
 #: includes/features/class-seoprostack-preview-links.php:263
 msgid "Copy link"
-msgstr ""
+msgstr "Kopírovat odkaz"
 
 #: includes/features/class-seoprostack-preview-links.php:265
 msgid "Could not update the preview link. Please try again."
@@ -13746,7 +13746,7 @@ msgstr ""
 
 #: blocks/brand-icon/index.js:155
 msgid "Icon"
-msgstr ""
+msgstr "Ikona"
 
 #: blocks/brand-icon/index.js:160
 msgid "Brand colour"
@@ -14592,7 +14592,7 @@ msgstr ""
 
 #: blocks/term-list/index.js:44
 msgid "Name"
-msgstr ""
+msgstr "Název"
 
 #: blocks/term-list/index.js:45
 msgid "Most posts first"
@@ -15570,3 +15570,91 @@ msgstr "tisk"
 msgctxt "block keyword"
 msgid "media kit"
 msgstr "mediální kit"
+
+#: includes/features/class-seoprostack-brand-assets.php:757
+msgid "Logo"
+msgstr "Logo"
+
+#: includes/features/class-seoprostack-brand-assets.php:758
+msgid "Logo with name"
+msgstr "Logo s názvem"
+
+#. translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:892
+#, php-format
+msgid "Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s."
+msgstr "Přidejte ho do e-mailového podpisu jako obrázek široký %1$d pixelů s odkazem na %2$s."
+
+#. translators: %s: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:895
+#, php-format
+msgid "Add it to your email signature as a picture, up to 600 pixels wide, linked to %s."
+msgstr "Přidejte ho do e-mailového podpisu jako obrázek široký až 600 pixelů s odkazem na %s."
+
+#: includes/features/class-seoprostack-brand-assets.php:901
+msgid "Download (PNG)"
+msgstr "Stáhnout (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:904
+msgid "Banner"
+msgstr "Banner"
+
+#: includes/features/class-seoprostack-brand-assets.php:951
+msgid "Copy a link to a PNG"
+msgstr "Kopírovat odkaz na PNG"
+
+#: includes/features/class-seoprostack-brand-assets.php:1301
+msgid "Making the file…"
+msgstr "Vytváří se soubor…"
+
+#. translators: %s: the picture, such as Banner.
+#: includes/features/class-seoprostack-brand-assets.php:1325
+#, php-format
+msgid "Copy the link to the %s PNG"
+msgstr "Kopírovat odkaz na PNG „%s“"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1329
+msgid "Padded"
+msgstr "S okrajem"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1329
+#, php-format
+msgid "Copy the link to the %s PNG with space around it, on its background colour"
+msgstr "Kopírovat odkaz na PNG „%s“ s okrajem na barvě pozadí"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1332
+msgid "Transparent"
+msgstr "Průhledné"
+
+#. translators: %s: the picture, such as Logo.
+#: includes/features/class-seoprostack-brand-assets.php:1332
+#, php-format
+msgid "Copy the link to the %s PNG with no space around it, on a transparent background"
+msgstr "Kopírovat odkaz na PNG „%s“ bez okraje na průhledném pozadí"
+
+#: includes/features/class-seoprostack-brand-assets.php:1398
+msgid "The uploads folder cannot be written to."
+msgstr "Do složky nahraných souborů nelze zapisovat."
+
+#: includes/features/class-seoprostack-brand-assets.php:1430
+msgid "The block does not offer that picture."
+msgstr "Blok tento obrázek nenabízí."
+
+#: includes/features/class-seoprostack-brand-assets.php:1434
+msgid "The brand changed while the file was made. Reload the page to make it again."
+msgstr "Značka se během vytváření souboru změnila. Načtěte stránku znovu a vytvořte jej znovu."
+
+#: includes/features/class-seoprostack-brand-assets.php:1469
+msgid "The file is not a PNG picture."
+msgstr "Soubor není obrázek PNG."
+
+#: includes/features/class-seoprostack-brand-assets.php:1475
+msgid "The file is too large."
+msgstr "Soubor je příliš velký."
+
+#, php-format
+#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
+#~ msgstr "Přidejte ho do e-mailového podpisu jako obrázek široký 600 pixelů s odkazem na %s."
