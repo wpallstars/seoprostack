@@ -95,22 +95,7 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'code-snippets'
         ),
-        'complianz-gdpr' => array(
-            'name' => 'Complianz Privacy Suite',
-            'description' => 'Complete GDPR/CCPA compliance solution with advanced features.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://complianz.io/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://complianz.io/pricing/'
-                )
-            ),
-            'free_slug' => 'complianz-gdpr'
-        ),
+        // Complianz Privacy Suite: replaced by SEO Pro Cookie Consent (#1657).
         // Disable Bloat PRO: replaced by Tidy WooCommerce admin, Lighter
         // WooCommerce pages, Remove WordPress extras, Tidy the login screen,
         // Tidy admin screens and Simpler block editor.
@@ -309,6 +294,20 @@ if (!defined('ABSPATH')) {
                 )
             ),
             'free_slug' => 'seo-by-rank-math'
+        ),
+        // The address SEO Pro Analytics itself links
+        // (SEOProAnalytics_Connections::CONNECT_URL).
+        'seoproanalytics-connect' => array(
+            'name' => 'SEO Pro Analytics Connect',
+            'description' => 'The add-on for SEO Pro Analytics that connects services needing an outside account, such as Google Search Console and the Chrome UX Report, into the same reports.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics-connect/',
+                    'primary' => true
+                )
+            ),
+            'free_slug' => 'seoproanalytics'
         ),
         'scalability-pro' => array(
             'name' => 'Scalability Pro',

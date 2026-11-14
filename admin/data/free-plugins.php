@@ -69,6 +69,11 @@ if (!defined('ABSPATH')) {
 // its login protection (GitHub issue #698).
 // Index WP MySQL For Speed is not listed: Faster database keys replaces it,
 // adding the same keys and keeping them after updates (GitHub issue #1649).
+// Our own plugins replace some others (GitHub issue #1657): SEO Pro Cookie
+// Consent replaces Complianz (free and Privacy Suite) and Complianz Terms &
+// Conditions, and SEO Pro Analytics replaces Burst Statistics, importing its
+// history. Their presets, fixes and menu rules stay for sites that have them.
+// SEO Pro Directory is not listed: it is private.
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -79,6 +84,9 @@ function seoprostack_get_free_plugins() {
      */
     return (array) apply_filters('seoprostack_free_plugins', array(
         'minimal' => array(
+            // Listed though it is installed wherever this list shows, so the
+            // minimal set is complete.
+            'seoprostack',
             'antispam-bee',
             'fluent-smtp',
             'kadence-blocks',
@@ -113,8 +121,7 @@ function seoprostack_get_free_plugins() {
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
         'compliance' => array(
-            'complianz-gdpr',
-            'complianz-terms-conditions'
+            'seoprocookieconsent'
         ),
         'crm' => array(
             'fluent-boards',
@@ -150,7 +157,7 @@ function seoprostack_get_free_plugins() {
             'media-file-renamer'
         ),
         'seo' => array(
-            'burst-statistics',
+            'seoproanalytics',
             'revive-so',
             'seo-by-rank-math',
             'syndication-links',
@@ -183,6 +190,7 @@ function seoprostack_get_free_plugins() {
             'code-snippets',
             'easy-code-manager',
             'secure-custom-fields',
+            'seoprocustom',
             'yellow-pencil-visual-theme-customizer'
         ),
         'debug' => array(
@@ -195,6 +203,44 @@ function seoprostack_get_free_plugins() {
             'wp-crontrol'
         )
     ));
+}
+
+/**
+ * Our own plugins on the list, which are not on WordPress.org yet: cards
+ * from this data (SEOProStack_Plugin_Manager::external_plugins()), linking
+ * to their GitHub repositories, with Activate once installed.
+ *
+ * @return array<string,array{name:string,description:string,author:string,url:string,requires_php:string,source:string}>
+ */
+function seoprostack_get_own_plugins() {
+    $source  = __('From GitHub, by the makers of SEO Pro Stack.', 'seoprostack');
+    $plugins = array(
+        'seoprostack'         => array(
+            'name'        => 'SEO Pro Stack',
+            'description' => __('One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.', 'seoprostack'),
+        ),
+        'seoprocookieconsent' => array(
+            'name'        => 'SEO Pro Cookie Consent',
+            'description' => __('Simple, light cookie consent: blocks scripts until consent, asks only where the law and the page need it, and fits your theme. Cookie, privacy and terms pages included; imports Complianz and 11 other consent plugins.', 'seoprostack'),
+        ),
+        'seoproanalytics'     => array(
+            'name'        => 'SEO Pro Analytics',
+            'description' => __('Private, cookie-free statistics with search rankings and sales, connected to your content. Imports the history of Burst Statistics and other statistics plugins.', 'seoprostack'),
+        ),
+        'seoprocustom'        => array(
+            'name'        => 'SEO Pro Custom',
+            'description' => __('Change how your theme and plugins behave when their settings can\'t, without waiting on their makers: one small file per change, in your own copy.', 'seoprostack'),
+        ),
+    );
+    foreach ($plugins as $slug => $plugin) {
+        $plugins[$slug] += array(
+            'author'       => 'wpallstars',
+            'url'          => 'https://github.com/wpallstars/' . $slug,
+            'requires_php' => '7.4',
+            'source'       => $source,
+        );
+    }
+    return $plugins;
 }
 
 /**

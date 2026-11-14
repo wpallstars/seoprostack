@@ -290,13 +290,19 @@ class SEOProStack_Plugin_Manager {
      *     button), requires_php and source (where it comes from).
      */
     public static function external_plugins() {
+        self::load_admin_includes();
+        $plugins = array();
+        foreach (seoprostack_get_own_plugins() as $slug => $data) {
+            $plugins[$slug] = $data + array('file' => self::installed_file($slug));
+        }
         /**
          * Filter the recommended plugins that are not on WordPress.org.
          * List their slugs with `seoprostack_free_plugins`.
          *
-         * @param array<string,array> $plugins Slug => card data.
+         * @param array<string,array> $plugins Slug => card data; starts with
+         *                                     our own plugins.
          */
-        return (array) apply_filters('seoprostack_external_plugins', array());
+        return (array) apply_filters('seoprostack_external_plugins', $plugins);
     }
 
     /**
