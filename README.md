@@ -2717,6 +2717,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced with WP Plugin Starter commit 575b24c (#1629): `scripts/lib/deploy-remote.sh` is split into `scripts/lib/deploy-remote-*.sh` modules (listed in `scripts/core-files.txt`); `scripts/deploy-sites.sh --apply` no longer fails an install only because the host killed one of the plugin's cron events (exit 137), and says "Nothing installed" when it finds none; updates to `DEVELOPMENT.md` and `RELEASING.md`. The deleted-site tables (#1633) move from the core file `includes/class-seoprostack.php` to `SEOProStack_Setup::site_tables()` and `SEOProStack_Setup::SITE_TABLES`, unchanged otherwise.
+
 ### 1.3.216
 
 - Fixed (multisite; #1633): deleting a network site now also deletes SEO Pro Stack’s tables for that site (the link index and the media storage indexes). Before, they were left in the database with their rows.
@@ -2724,7 +2728,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fixed (**Clear Cloudflare's copies of pages**; #1602): sites without a LiteSpeed Cache or WP-Optimize page cache kept the previous version's pages at Cloudflare after an update or a design change. Cloudflare is now emptied then too, once per site.
 - Fixed (**Brand assets page** → **Link it from the footer**; #1624): a footer About link that points somewhere other than /about is now found by its text.
 - Fixed (**Load the CSS each page uses first**, **Font fallbacks**, **Keep pages cached**; #1603): a page built while a stylesheet or the font measurements could not be read is no longer cached for the page cache’s whole lifetime. Where a rewrite is skipped for a reason that may not repeat (a stylesheet file missing, empty or unreadable, the font measurements unreadable, a regex limit), the page gets a short cache time (LiteSpeed Cache’s custom TTL of 5 minutes; other page caches are told not to store it) and a comment at its end names the cause. Keep pages cached also checks, after a fill and in its five-minute check (at most hourly), that the cached home page carries Used CSS, and if not purges it once (at most once every 6 hours) and fills it again. Normal pages are unchanged.
-- Developers: core files synced with WP Plugin Starter commit dbcaf52 (#1629): `scripts/lib/deploy-remote.sh` is split into `scripts/lib/deploy-remote-*.sh` modules (listed in `scripts/core-files.txt`), with updates to `scripts/deploy-sites.sh` and `RELEASING.md`.
 
 ### 1.3.215
 
