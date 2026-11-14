@@ -1518,6 +1518,21 @@ A **Brand icon** block with about 3,800 brand logos: the current [Simple Icons](
 - The set is refreshed with `scripts/update-brand-icons.sh` (Node.js 18 or newer), which downloads the newest Simple Icons and Font Awesome Free from npm and writes `index.json`, the `shapes-*.json` files and `LICENSE.txt`. Run it before a release.
 - Icons are trademarks of their owners; follow each brand's own guidelines. Simple Icons is CC0; Font Awesome's icons are CC BY 4.0, credited in `LICENSE.txt` and in each shapes file that holds one.
 
+### Brand assets page (Content)
+
+A **Brand assets** block, and a page holding it, for anyone writing about the business, printing for it or designing for it. It shows the site's own logos, colours, fonts and text styles, read from the Kadence theme's Customizer settings each time the page is built, so it never goes out of date: change a palette colour or the logo and the page follows. Nothing about the brand is stored in the page. Off by default, as it adds a page.
+
+- **Logos**: the logo on the light and dark backgrounds of the site's palettes (Kadence Pro's dark-mode logo on the dark one, when set), the small (mobile) logo and the site icon, each with a download of its original file.
+- **Logo with the site title**: where the header shows the site title beside the logo (or the title alone), as on sites whose logo is a flag or a symbol, the block draws the same lockup as the header, in the header's site title font, size, weight and colour, and offers it as SVG and PNG files for light and dark backgrounds. The files are made in the visitor's browser from the page's own logo and fonts (the SVG holds the font when it is a file on this site, such as Kadence's local Google Fonts), so nothing is stored and no other site is asked.
+- **Email signature banner**: a 600 × 150 PNG (drawn at twice that size, for sharp screens) of the logo, or the logo with the site title, on the light background.
+- **Colours**: the active palette and, while Kadence Pro's dark mode is on, the dark palette, with each colour's role (the name given in the Customizer, or Kadence's own: Accent, Strongest text, Page background…), hex, RGB and an approximate CMYK, and a **Copy** button.
+- **Fonts**: the heading and body fonts with their weights, and a link to Google Fonts for Google fonts.
+- **Formatting**: the page title and heading 2 to 4 styles, body text with a link and bold text, a quote and a button, in the site's styles, each with its font, weight, size and line height.
+- The block's settings choose which sections show. With another theme it shows a note to editors and nothing to visitors.
+- **Make the Brand assets page** on the card publishes `/brand-assets/` with a short introduction and the block; a page already at that address without the block is left alone. **Link it from the footer** adds a link after the About link (`/about/` or `/about-us/`) in the footer's block widgets or footer menu, once: in a widget, a copy of the paragraph or list item holding the About link; in a menu, an item for the page just after About, at the same level.
+- WP-CLI: `wp seoprostack brand-assets status` and `wp seoprostack brand-assets create [--footer] [--replace] [--dry-run]` (switches the setting on for that site; `--replace` puts the block in an existing page without it, and a revision keeps the old content). Run it with `--url=` for each site of a network.
+- The page's cached copy is purged when the Customizer is saved, the palette changes, or the site name, tagline or icon change.
+
 ### Spectra block replacements (Content)
 
 Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing content, so the theme and core blocks, or Kadence Blocks, do the work.
@@ -2658,6 +2673,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- New (**Brand assets page**, Content, off by default; #1604): a Brand assets block and page with the site’s logos, colours, fonts and text styles, read from the Kadence Customizer each time, so the page stays current. Where the header shows the site title beside the logo, visitors can download the same logo-and-title lockup as SVG or PNG for light and dark backgrounds, and an email signature banner. The card can publish the page at `/brand-assets/` and link it from the footer after About; `wp seoprostack brand-assets create --footer` does the same from WP-CLI.
 
 ### 1.3.212
 
