@@ -1,0 +1,45 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-assets\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "lv",
+                "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
+            },
+            "Logos": [
+                "Logotipi"
+            ],
+            "Colours": [
+                "Kr\u0101sas"
+            ],
+            "Fonts": [
+                "Fonti"
+            ],
+            "Formatting": [
+                "Format\u0113\u0161ana"
+            ],
+            "Logo files, the logo with the site title where the header shows it, icons and the email signature banner.": [
+                "Logotipa faili, logotips ar vietnes nosaukumu, kur galvene to r\u0101da, ikonas un e-pasta paraksta baneris."
+            ],
+            "Light mode colours, and dark mode colours when dark mode is on.": [
+                "Gai\u0161\u0101 re\u017e\u012bma kr\u0101sas un, kad iesl\u0113gts tum\u0161ais re\u017e\u012bms, tum\u0161\u0101 re\u017e\u012bma kr\u0101sas."
+            ],
+            "Heading and body fonts.": [
+                "Virsrakstu un pamatteksta fonti."
+            ],
+            "Heading, text, quote and button styles.": [
+                "Virsrakstu, teksta, cit\u0101tu un pogu stili."
+            ],
+            "Where it comes from": [
+                "No kurienes tas n\u0101k"
+            ],
+            "Change the logo, colours and fonts in Appearance \u2192 Customize (Header \u2192 Logo, Colors & Fonts). This block shows them as they are.": [
+                "Mainiet logotipu, kr\u0101sas un fontus sada\u013c\u0101 Izskats \u2192 Piel\u0101got (Galvene \u2192 Logotips, Kr\u0101sas un fonti). \u0160is bloks tos r\u0101da t\u0101dus, k\u0101di tie ir."
+            ]
+        }
+    }
+}

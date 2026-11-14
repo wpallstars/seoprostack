@@ -18071,3 +18071,329 @@ msgstr "indekss"
 msgctxt "block keyword"
 msgid "a-z"
 msgstr "az"
+
+#: includes/features/class-seoprostack-brand-assets.php:78
+msgid "Brand assets page"
+msgstr "Zīmola materiālu lapa"
+
+#: includes/features/class-seoprostack-brand-assets.php:79
+msgid "Adds a Brand assets block that shows your logos, colours, fonts and text styles from the Kadence theme’s Customizer settings, so it stays up to date when they change. Visitors can download the logos, copy colours and, where the header shows the site title, download the logo with the title as SVG or PNG and an email signature banner. The card can make the page and link it from the footer, after About."
+msgstr "Pievieno bloku Zīmola materiāli, kas rāda jūsu logotipus, krāsas, fontus un teksta stilus no Kadence tēmas pielāgotāja iestatījumiem, tāpēc tas paliek aktuāls, kad tie mainās. Apmeklētāji var lejupielādēt logotipus, kopēt krāsas un, kur galvene rāda vietnes nosaukumu, lejupielādēt logotipu ar nosaukumu kā SVG vai PNG un e-pasta paraksta baneri. Karte var izveidot lapu un saistīt to kājenē pēc sadaļas Par mums."
+
+#: includes/features/class-seoprostack-brand-assets.php:445
+msgid "The visitor’s system font"
+msgstr "Apmeklētāja sistēmas fonts"
+
+#. translators: %s: font size on phones, such as 36px.
+#: includes/features/class-seoprostack-brand-assets.php:559
+#, php-format
+msgid "(%s on phones)"
+msgstr "(%s tālruņos)"
+
+#: includes/features/class-seoprostack-brand-assets.php:667
+msgid "The Brand assets block reads the Kadence theme’s settings, and Kadence is not the active theme."
+msgstr "Bloks Zīmola materiāli nolasa Kadence tēmas iestatījumus, un Kadence nav aktīvā tēma."
+
+#: includes/features/class-seoprostack-brand-assets.php:703
+msgid "On light backgrounds"
+msgstr "Uz gaišiem foniem"
+
+#: includes/features/class-seoprostack-brand-assets.php:704
+msgid "On dark backgrounds"
+msgstr "Uz tumšiem foniem"
+
+#. translators: %s: file type, such as SVG or PNG.
+#: includes/features/class-seoprostack-brand-assets.php:718
+#, php-format
+msgid "Logo (%s)"
+msgstr "Logotips (%s)"
+
+#: includes/features/class-seoprostack-brand-assets.php:722
+msgid "Logo with name (SVG)"
+msgstr "Logotips ar nosaukumu (SVG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:722
+msgid "Name (SVG)"
+msgstr "Nosaukums (SVG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:723
+msgid "Logo with name (PNG)"
+msgstr "Logotips ar nosaukumu (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:723
+msgid "Name (PNG)"
+msgstr "Nosaukums (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:730
+#: blocks/brand-assets/index.js:26
+msgid "Logos"
+msgstr "Logotipi"
+
+#: includes/features/class-seoprostack-brand-assets.php:732
+msgid "Please keep clear space around the logo, and do not stretch, recolour or add effects to it. Use the version made for the background it sits on."
+msgstr "Lūdzu, atstājiet ap logotipu brīvu vietu un neizstiepiet, nepārkrāsojiet un nepievienojiet tam efektus. Izmantojiet versiju, kas paredzēta fonam, uz kura tas atrodas."
+
+#: includes/features/class-seoprostack-brand-assets.php:751
+#: includes/features/class-seoprostack-brand-assets.php:753
+msgid "Small logo"
+msgstr "Mazs logotips"
+
+#: includes/features/class-seoprostack-brand-assets.php:755
+msgid "The header’s logo on phones."
+msgstr "Galvenes logotips tālruņos."
+
+#: includes/features/class-seoprostack-brand-assets.php:766
+msgid "Browser tabs, bookmarks and phone home screens."
+msgstr "Pārlūka cilnes, grāmatzīmes un tālruņu sākuma ekrāni."
+
+#: includes/features/class-seoprostack-brand-assets.php:769
+msgid "Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this)."
+msgstr "Iestatiet vietnes ikonu sadaļā Izskats → Pielāgot → Vietnes identitāte, lai to parādītu šeit (to redz tikai vietnes redaktori)."
+
+#: includes/features/class-seoprostack-brand-assets.php:771
+msgid "Icons"
+msgstr "Ikonas"
+
+#. translators: the icon an iPhone or iPad shows on its home screen.
+#: includes/features/class-seoprostack-brand-assets.php:799
+msgid "Apple"
+msgstr "Apple"
+
+#. translators: the icon a browser shows in its tab.
+#: includes/features/class-seoprostack-brand-assets.php:801
+msgid "browser tab"
+msgstr "pārlūka cilne"
+
+#: includes/features/class-seoprostack-brand-assets.php:856
+msgid "Email signature banner"
+msgstr "E-pasta paraksta baneris"
+
+#: includes/features/class-seoprostack-brand-assets.php:857
+msgid "Download (PNG, 600 × 150)"
+msgstr "Lejupielādēt (PNG, 600 × 150)"
+
+#. translators: %s: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:859
+#, php-format
+msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
+msgstr "Pievienojiet to savam e-pasta parakstam kā 600 pikseļu platu attēlu ar saiti uz %s."
+
+#: includes/features/class-seoprostack-brand-assets.php:862
+msgid "Email signature"
+msgstr "E-pasta paraksts"
+
+#: includes/features/class-seoprostack-brand-assets.php:992
+msgid "Light mode"
+msgstr "Gaišais režīms"
+
+#: includes/features/class-seoprostack-brand-assets.php:995
+#: blocks/brand-assets/index.js:27
+msgid "Colours"
+msgstr "Krāsas"
+
+#. translators: 1: colour format, such as HEX; 2: its value, such as #0070CC.
+#: includes/features/class-seoprostack-brand-assets.php:1031
+#, php-format
+msgid "Copy %1$s %2$s"
+msgstr "Kopēt %1$s %2$s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1033
+msgid "Copy"
+msgstr "Kopēt"
+
+#: includes/features/class-seoprostack-brand-assets.php:1044
+msgid "Body text"
+msgstr "Pamatteksts"
+
+#: includes/features/class-seoprostack-brand-assets.php:1045
+#: blocks/brand-assets/index.js:28
+msgid "Fonts"
+msgstr "Fonti"
+
+#. translators: %s: font weights, such as 400, 700.
+#: includes/features/class-seoprostack-brand-assets.php:1054
+#, php-format
+msgid "Weights: %s"
+msgstr "Biezumi: %s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1057
+msgid "Get it from Google Fonts (free)"
+msgstr "Iegūt no Google Fonts (bez maksas)"
+
+#: includes/features/class-seoprostack-brand-assets.php:1073
+#: blocks/brand-assets/index.js:29
+msgid "Formatting"
+msgstr "Formatēšana"
+
+#: includes/features/class-seoprostack-brand-assets.php:1076
+msgid "Page title"
+msgstr "Lapas nosaukums"
+
+#: includes/features/class-seoprostack-brand-assets.php:1077
+msgid "Heading 2"
+msgstr "Virsraksts 2"
+
+#: includes/features/class-seoprostack-brand-assets.php:1078
+msgid "Heading 3"
+msgstr "Virsraksts 3"
+
+#: includes/features/class-seoprostack-brand-assets.php:1079
+msgid "Heading 4"
+msgstr "Virsraksts 4"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "Body text is set like this, with"
+msgstr "Pamatteksts izskatās šādi, ar"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "links"
+msgstr "saitēm"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "in the accent colour and"
+msgstr "akcenta krāsā un"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "bold text"
+msgstr "treknrakstu"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "for emphasis."
+msgstr "uzsvēršanai."
+
+#: includes/features/class-seoprostack-brand-assets.php:1095
+msgid "Quotes stand out from the text around them."
+msgstr "Citāti izceļas uz apkārtējā teksta fona."
+
+#: includes/features/class-seoprostack-brand-assets.php:1096
+msgid "Button"
+msgstr "Poga"
+
+#: includes/features/class-seoprostack-brand-assets.php:1127
+msgid "Our logos, colours and fonts, for press, print and design."
+msgstr "Mūsu logotipi, krāsas un fonti presei, drukai un dizainam."
+
+#: includes/features/class-seoprostack-brand-assets.php:1204
+#: includes/features/class-seoprostack-brand-assets.php:1351
+msgid "Brand assets"
+msgstr "Zīmola materiāli"
+
+#: includes/features/class-seoprostack-brand-assets.php:1504
+msgid "The block reads the Kadence theme’s settings, and Kadence is not the active theme."
+msgstr "Bloks nolasa Kadence tēmas iestatījumus, un Kadence nav aktīvā tēma."
+
+#: includes/features/class-seoprostack-brand-assets.php:1510
+msgid "The Brand assets page is published."
+msgstr "Zīmola materiālu lapa ir publicēta."
+
+#: includes/features/class-seoprostack-brand-assets.php:1511
+msgid "The Brand assets page already shows the block."
+msgstr "Zīmola materiālu lapa jau rāda bloku."
+
+#: includes/features/class-seoprostack-brand-assets.php:1512
+msgid "A page at /brand-assets/ exists without the block, so it was left as it is. Add the Brand assets block to it in the editor."
+msgstr "Lapa adresē /brand-assets/ pastāv bez bloka, tāpēc tā ir atstāta nemainīta. Pievienojiet tai bloku Zīmola materiāli redaktorā."
+
+#: includes/features/class-seoprostack-brand-assets.php:1513
+#: includes/features/class-seoprostack-brand-assets.php:1518
+msgid "That could not be saved. Please try again."
+msgstr "To neizdevās saglabāt. Lūdzu, mēģiniet vēlreiz."
+
+#: includes/features/class-seoprostack-brand-assets.php:1514
+msgid "The footer now links to the Brand assets page, after About."
+msgstr "Kājene tagad saista ar lapu Zīmola materiāli pēc sadaļas Par mums."
+
+#: includes/features/class-seoprostack-brand-assets.php:1515
+msgid "The footer already links to the Brand assets page."
+msgstr "Kājene jau saista ar lapu Zīmola materiāli."
+
+#: includes/features/class-seoprostack-brand-assets.php:1516
+msgid "No About link was found in the footer, so nothing was added. Add the link where it fits."
+msgstr "Kājenē netika atrasta saite Par mums, tāpēc nekas netika pievienots. Pievienojiet saiti, kur tā der."
+
+#: includes/features/class-seoprostack-brand-assets.php:1517
+msgid "Make the page first."
+msgstr "Vispirms izveidojiet lapu."
+
+#: includes/features/class-seoprostack-brand-assets.php:1525
+msgid "Page:"
+msgstr "Lapa:"
+
+#: includes/features/class-seoprostack-brand-assets.php:1528
+msgid "edit"
+msgstr "rediģēt"
+
+#: includes/features/class-seoprostack-brand-assets.php:1534
+msgid "Make the Brand assets page"
+msgstr "Izveidot lapu Zīmola materiāli"
+
+#: includes/features/class-seoprostack-brand-assets.php:1537
+msgid "Link it from the footer"
+msgstr "Saistīt kājenē"
+
+#: includes/features/class-seoprostack-brand-assets.php:1540
+msgid "The footer link goes after the About link in the footer’s widgets or menu, and is not added twice."
+msgstr "Kājenes saite tiek pievienota pēc saites Par mums kājenes logrīkos vai izvēlnē, un tā netiek pievienota divreiz."
+
+#: includes/features/class-seoprostack-brand-assets.php:1559
+msgid "You cannot change this site’s pages."
+msgstr "Jūs nevarat mainīt šīs vietnes lapas."
+
+#: blocks/brand-assets/index.js:26
+msgid "Logo files, the logo with the site title where the header shows it, icons and the email signature banner."
+msgstr "Logotipa faili, logotips ar vietnes nosaukumu, kur galvene to rāda, ikonas un e-pasta paraksta baneris."
+
+#: blocks/brand-assets/index.js:27
+msgid "Light mode colours, and dark mode colours when dark mode is on."
+msgstr "Gaišā režīma krāsas un, kad ieslēgts tumšais režīms, tumšā režīma krāsas."
+
+#: blocks/brand-assets/index.js:28
+msgid "Heading and body fonts."
+msgstr "Virsrakstu un pamatteksta fonti."
+
+#: blocks/brand-assets/index.js:29
+msgid "Heading, text, quote and button styles."
+msgstr "Virsrakstu, teksta, citātu un pogu stili."
+
+#: blocks/brand-assets/index.js:54
+msgid "Where it comes from"
+msgstr "No kurienes tas nāk"
+
+#: blocks/brand-assets/index.js:55
+msgid "Change the logo, colours and fonts in Appearance → Customize (Header → Logo, Colors & Fonts). This block shows them as they are."
+msgstr "Mainiet logotipu, krāsas un fontus sadaļā Izskats → Pielāgot (Galvene → Logotips, Krāsas un fonti). Šis bloks tos rāda tādus, kādi tie ir."
+
+#: blocks/brand-assets/block.json
+msgctxt "block title"
+msgid "Brand assets"
+msgstr "Zīmola materiāli"
+
+#: blocks/brand-assets/block.json
+msgctxt "block description"
+msgid "The site's logos, colours, fonts and text styles from the Kadence theme's Customizer settings, with downloads, so it stays current when they change."
+msgstr "Vietnes logotipi, krāsas, fonti un teksta stili no Kadence tēmas pielāgotāja iestatījumiem, ar lejupielādēm, tāpēc tie paliek aktuāli, kad mainās."
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "colours"
+msgstr "krāsas"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "colors"
+msgstr "colors"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "fonts"
+msgstr "fonti"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "press"
+msgstr "prese"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "media kit"
+msgstr "preses komplekts"

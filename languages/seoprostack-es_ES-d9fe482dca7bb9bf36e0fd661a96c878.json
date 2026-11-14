@@ -1,0 +1,45 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-assets\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "es_ES",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Logos": [
+                "Logotipos"
+            ],
+            "Colours": [
+                "Colores"
+            ],
+            "Fonts": [
+                "Fuentes"
+            ],
+            "Formatting": [
+                "Formato"
+            ],
+            "Logo files, the logo with the site title where the header shows it, icons and the email signature banner.": [
+                "Archivos de logotipo, el logotipo con el t\u00edtulo del sitio donde la cabecera lo muestra, iconos y el banner para la firma de correo."
+            ],
+            "Light mode colours, and dark mode colours when dark mode is on.": [
+                "Colores del modo claro y, cuando el modo oscuro est\u00e1 activado, del modo oscuro."
+            ],
+            "Heading and body fonts.": [
+                "Fuentes de los encabezados y del cuerpo."
+            ],
+            "Heading, text, quote and button styles.": [
+                "Estilos de encabezados, texto, citas y botones."
+            ],
+            "Where it comes from": [
+                "De d\u00f3nde viene"
+            ],
+            "Change the logo, colours and fonts in Appearance \u2192 Customize (Header \u2192 Logo, Colors & Fonts). This block shows them as they are.": [
+                "Cambia el logotipo, los colores y las fuentes en Apariencia \u2192 Personalizar (Cabecera \u2192 Logotipo, Colores y fuentes). Este bloque los muestra tal como est\u00e1n."
+            ]
+        }
+    }
+}
