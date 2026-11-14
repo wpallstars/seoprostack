@@ -25,8 +25,9 @@
 	list-style: none;
 }
 
+/* auto-fill, so a card on its own keeps the width of one beside another. */
 .wp-block-seoprostack-brand-assets__grid--two {
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
 }
 
 .wp-block-seoprostack-brand-assets__card,
@@ -64,6 +65,7 @@
 .wp-block-seoprostack-brand-assets__stage--halves {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
+	align-items: stretch;
 	padding: 0;
 }
 
@@ -166,7 +168,7 @@
 	height: 1rem;
 }
 
-.wp-block-seoprostack-brand-assets__done-icon,
+.wp-block-seoprostack-brand-assets__copy .wp-block-seoprostack-brand-assets__done-icon,
 .wp-block-seoprostack-brand-assets__copy.is-copied .wp-block-seoprostack-brand-assets__copy-icon {
 	display: none;
 }
@@ -183,8 +185,9 @@
 
 .wp-block-seoprostack-brand-assets__value-label {
 	flex: none;
-	width: 3em;
+	width: 3rem;
 	font-size: 0.8em;
+	white-space: nowrap;
 	letter-spacing: 0.04em;
 	opacity: 0.8;
 }
