@@ -385,7 +385,10 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
      * @return bool
      */
     private static function litespeed_clears_zone() {
-        return (bool) (SEOProStack_Litespeed::conf('cdn-cloudflare', false) && SEOProStack_Litespeed::conf('cdn-cloudflare_clear', false));
+        if (!SEOProStack_Litespeed::running()) {
+            return false;
+        }
+        return (bool) (SEOProStack_Litespeed::effective_conf('cdn-cloudflare', false) && SEOProStack_Litespeed::effective_conf('cdn-cloudflare_clear', false));
     }
 
     /**
