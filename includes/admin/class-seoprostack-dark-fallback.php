@@ -208,15 +208,17 @@ final class SEOProStack_Dark_Fallback {
 
     /**
      * The file of a stylesheet in wp-content on this site, outside SEO Pro
-     * Stack; empty for anything else.
+     * Stack; empty for anything else. An address with `./` or `../` in it
+     * counts as the address it leads to, as browsers read it: Meta for
+     * WordPress registers its stylesheet as `core/../css/admin.css`.
      *
      * @param string $href Address.
      * @return string
      */
     private static function source($href) {
-        $path = wp_parse_url($href, PHP_URL_PATH);
+        $path = self::resolve_path(wp_parse_url($href, PHP_URL_PATH));
         $host = wp_parse_url($href, PHP_URL_HOST);
-        if (!is_string($path) || '.css' !== strtolower(substr($path, -4))) {
+        if ('' === $path || '.css' !== strtolower(substr($path, -4))) {
             return '';
         }
         $content = content_url();
@@ -236,6 +238,34 @@ final class SEOProStack_Dark_Fallback {
             return '';
         }
         return is_file($file) && is_readable($file) ? $file : '';
+    }
+
+    /**
+     * An address's path with its `.` and `..` segments resolved; empty when
+     * it is not a path or `..` climbs above the root.
+     *
+     * @param mixed $path Path of an address.
+     * @return string
+     */
+    private static function resolve_path($path) {
+        if (!is_string($path) || '' === $path) {
+            return '';
+        }
+        if (false === strpos($path, '/.')) {
+            return $path;
+        }
+        $parts = array();
+        foreach (explode('/', $path) as $part) {
+            if ('..' === $part) {
+                if (!$parts || array('') === $parts) {
+                    return '';
+                }
+                array_pop($parts);
+            } elseif ('.' !== $part) {
+                $parts[] = $part;
+            }
+        }
+        return implode('/', $parts);
     }
 
     /**
@@ -268,7 +298,7 @@ final class SEOProStack_Dark_Fallback {
         if (!$folder || $size < 1 || $size > self::MAX_BYTES) {
             return '';
         }
-        $base   = dirname((string) wp_parse_url($href, PHP_URL_PATH));
+        $base   = dirname(self::resolve_path(wp_parse_url($href, PHP_URL_PATH)));
         $canvas = self::canvas();
         // One copy per stylesheet and kind of screen (block editor or not), named for what it was made from.
         $name   = substr(hash('sha256', $file . '|' . (int) $canvas), 0, 12) . '-' . substr(hash('sha256', filemtime($file) . '|' . $size . '|' . $base . '|' . self::VERSION), 0, 8) . '.css';
