@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.213
+Stable tag: 1.3.214
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,7 +49,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Custom fields to content**: ACF/SCF text and terms, including excerpts.
 * **Restrict content** by membership/role. **Menu item visibility** by login/role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Brand assets page**: logos, colours and fonts from the Kadence Customizer, with logo, name and email signature downloads.
+* **Brand assets page**: Kadence's logos, colours and fonts, with logo and email banner downloads.
 * **Named lists and Saved panel**.
 * **Spectra block replacements**, **TranslatePress colours**, a **flag language switcher** beside Kadence's dark mode switch, and **Kadence query filters**.
 * **WP Grid Builder colours** in Kadence dark mode; **palette colours for its switch**.
@@ -157,7 +157,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.213 =
-* Added: Setup Bing Webmaster Tools board task.
+= 1.3.214 =
+* Added: Brand assets page.
 
 Older: `changelog.txt`.
