@@ -251,6 +251,17 @@
 	min-width: 0;
 }
 
+/*
+ * The buttons move together: beside the label when they all fit on its line,
+ * otherwise under it, side by side (narrow cards and phones).
+ */
+.wp-block-seoprostack-brand-assets__png-buttons {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	gap: 0.5em;
+}
+
 /* A link icon and its variant; the tick shows for a moment once the link is copied. */
 .wp-block-seoprostack-brand-assets__link {
 	display: inline-flex;

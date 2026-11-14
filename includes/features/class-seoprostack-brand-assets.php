@@ -345,7 +345,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * One picture from the Media Library.
      *
      * @param int $id Attachment ID.
-     * @return array{id:int,url:string,file:string,type:string,width:int,height:int,alt:string}|null
+     * @return array{id:int,url:string,drawn:string,file:string,type:string,width:int,height:int,alt:string}|null
      */
     private static function file($id) {
         $url  = wp_get_attachment_url($id);
@@ -356,9 +356,14 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $file = function_exists('wp_get_original_image_url') ? wp_get_original_image_url($id) : '';
         $meta = wp_get_attachment_metadata($id);
         $type = strtoupper($m[1]);
+        // Replace media can keep the address: the file's time makes the PNG files
+        // drawn from it out of date (png_fingerprint()) and the browser load it afresh.
+        $path  = get_attached_file($id);
+        $mtime = $path && is_readable($path) ? (int) filemtime($path) : 0;
         return array(
             'id'     => $id,
             'url'    => $url,
+            'drawn'  => $mtime ? add_query_arg('ver', $mtime, $url) : $url,
             'file'   => $file ? $file : $url,
             'type'   => 'JPEG' === $type ? 'JPG' : $type,
             'width'  => is_array($meta) && isset($meta['width']) ? (int) $meta['width'] : 0,
@@ -661,7 +666,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             'gap'       => '' !== $gap ? (float) $gap : 16,
             'background' => self::resolve('palette9', $palette, 'light' === $scheme ? '#ffffff' : '#000000'),
             'logo'      => $logo ? array(
-                'url'    => $logo['url'],
+                'url'    => $logo['drawn'],
                 'width'  => $logo_width,
                 'ratio'  => $logo['width'] && $logo['height'] ? $logo['height'] / $logo['width'] : 0,
                 'alt'    => '' !== $logo['alt'] ? $logo['alt'] : get_bloginfo('name'),
@@ -873,52 +878,88 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
 
     /**
      * Email signature: the logo with the name in a banner up to 600 × 150,
-     * cropped to the same space on every side (view.js).
+     * cropped to the same space on every side (view.js). A second banner on
+     * the dark background, with the dark logo, where the site has one.
      *
      * @param array $palettes Palettes.
      * @return string
      */
     private static function render_email(array $palettes) {
-        $c      = 'wp-block-seoprostack-brand-assets';
-        $light  = isset($palettes['light']) ? $palettes['light'] : array();
-        $lockup = self::lockup('light', $light, self::logos());
-        $json   = wp_json_encode($lockup);
-        if ((!$lockup['logo'] && '' === $lockup['title']) || !is_string($json)) {
-            return '';
+        $c        = 'wp-block-seoprostack-brand-assets';
+        $logos    = self::logos();
+        $light    = isset($palettes['light']) ? $palettes['light'] : array();
+        $banners  = array('light' => array('email-banner', $light, __('On light backgrounds', 'seoprostack')));
+        if (self::email_dark($logos)) {
+            $banners['dark'] = array('email-banner-dark', isset($palettes['dark']) ? $palettes['dark'] : self::inverted($light), __('On dark backgrounds', 'seoprostack'));
         }
         $host  = preg_replace('/^www\./', '', (string) wp_parse_url(home_url('/'), PHP_URL_HOST));
-        $width = self::email_width();
-        /* translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com. */
-        $note = sprintf(__('Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s.', 'seoprostack'), $width, $host);
-        if (!$width) {
-            /* translators: %s: the site's address, such as example.com. */
-            $note = sprintf(__('Add it to your email signature as a picture, up to 600 pixels wide, linked to %s.', 'seoprostack'), $host);
+        $cards = '';
+        foreach ($banners as $scheme => $banner) {
+            list($key, $palette, $label) = $banner;
+            $lockup = self::lockup($scheme, $palette, $logos);
+            $json   = wp_json_encode($lockup);
+            if ((!$lockup['logo'] && '' === $lockup['title']) || !is_string($json)) {
+                continue;
+            }
+            $width = self::email_width($key);
+            /* translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com. */
+            $note = sprintf(__('Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s.', 'seoprostack'), $width, $host);
+            if (!$width) {
+                /* translators: %s: the site's address, such as example.com. */
+                $note = sprintf(__('Add it to your email signature as a picture, up to 600 pixels wide, linked to %s.', 'seoprostack'), $host);
+            }
+            $cards .= self::card(
+                self::lockup_html($lockup),
+                self::stage_style($palette, $lockup['background']),
+                1 === count($banners) ? __('Email signature banner', 'seoprostack') : $label,
+                array(self::make_button('email', $json, __('Download (PNG)', 'seoprostack'))),
+                $note,
+                'banner',
+                self::png_row($key, __('Banner', 'seoprostack'))
+            );
         }
-        $card = self::card(
-            self::lockup_html($lockup),
-            self::stage_style($light, $lockup['background']),
-            __('Email signature banner', 'seoprostack'),
-            array(self::make_button('email', $json, __('Download (PNG)', 'seoprostack'))),
-            $note,
-            'banner',
-            self::png_row('email-banner', __('Banner', 'seoprostack'))
-        );
-        return '<h2 class="' . $c . '__title">' . esc_html__('Email signature', 'seoprostack') . '</h2><div class="' . $c . '__grid ' . $c . '__grid--two">' . $card . '</div>';
+        if ('' === $cards) {
+            return '';
+        }
+        return '<h2 class="' . $c . '__title">' . esc_html__('Email signature', 'seoprostack') . '</h2><div class="' . $c . '__grid ' . $c . '__grid--two">' . $cards . '</div>';
     }
 
     /**
-     * The saved email banner's width as an email shows it, from a file drawn
+     * Whether there is a dark email banner: the site has a dark-mode logo
+     * (Kadence Pro) and the header shows the logo.
+     *
+     * @param array $logos self::logos().
+     * @return bool
+     */
+    private static function email_dark(array $logos) {
+        $branding = self::branding();
+        return isset($logos['dark']) && in_array('logo', $branding['parts'], true);
+    }
+
+    /**
+     * Whether a picture is an email banner.
+     *
+     * @param string $key Picture (png_targets()).
+     * @return bool
+     */
+    private static function is_banner($key) {
+        return in_array($key, array('email-banner', 'email-banner-dark'), true);
+    }
+
+    /**
+     * A saved email banner's width as an email shows it, from a file drawn
      * from the banner as it is now; 0 until there is one.
      *
+     * @param string $key email-banner or email-banner-dark.
      * @return int
      */
-    private static function email_width() {
+    private static function email_width($key) {
         $folder = self::png_folder();
-        if (!$folder || !is_array(self::$png) || !isset(self::$png['email-banner'])) {
+        if (!$folder || !is_array(self::$png) || !isset(self::$png[$key])) {
             return 0;
         }
-        $item = self::png_item('email-banner/padded', $folder);
-        if (!self::png_current($item, self::png_fingerprint(self::$png['email-banner'])) || empty($item['width'])) {
+        $item = self::png_item($key . '/padded', $folder);
+        if (!self::png_current($item, self::png_fingerprint(self::$png[$key])) || empty($item['width'])) {
             return 0;
         }
         return (int) round($item['width'] / self::EMAIL_SCALE);
@@ -1102,8 +1143,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if ('' !== $lockup['title']) {
             $targets['lockup-' . $scheme] = array('kind' => 'lockup', 'lockup' => $lockup, 'background' => $lockup['background'], 'variants' => array('padded', 'transparent'));
         }
-        if ('light' === $scheme) {
-            $targets['email-banner'] = array('kind' => 'banner', 'lockup' => $lockup, 'background' => $lockup['background'], 'variants' => array('padded'));
+        if ('light' === $scheme || self::email_dark($logos)) {
+            $targets['light' === $scheme ? 'email-banner' : 'email-banner-dark'] = array('kind' => 'banner', 'lockup' => $lockup, 'background' => $lockup['background'], 'variants' => array('padded'));
         }
         return $targets;
     }
@@ -1136,7 +1177,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     private static function png_image_target(array $file, $background, $display, $edge, $square) {
         return array(
             'kind'       => 'image',
-            'image'      => array('url' => $file['url'], 'width' => (int) $file['width'], 'height' => (int) $file['height']),
+            'image'      => array('url' => $file['drawn'], 'width' => (int) $file['width'], 'height' => (int) $file['height']),
             'display'    => (int) $display,
             'edge'       => (bool) $edge,
             'square'     => (bool) $square,
@@ -1167,7 +1208,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     private static function png_name($key, $variant) {
         $base = sanitize_title(get_bloginfo('name'));
         $base = '' !== $base ? $base : 'brand';
-        return $base . '-' . $key . ('email-banner' === $key ? '' : '-' . $variant) . '.png';
+        return $base . '-' . $key . (self::is_banner($key) ? '' : '-' . $variant) . '.png';
     }
 
     /**
@@ -1227,7 +1268,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if ('' === $buttons) {
             return '';
         }
-        return '<span class="' . $c . '__png-row"><span class="' . $c . '__png-label">' . esc_html($label) . '</span>' . $buttons . '</span>';
+        return '<span class="' . $c . '__png-row"><span class="' . $c . '__png-label">' . esc_html($label) . '</span><span class="' . $c . '__png-buttons">' . $buttons . '</span></span>';
     }
 
     /**
@@ -1320,7 +1361,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * @return array{0:string,1:string}
      */
     private static function png_button_text($key, $variant, $label) {
-        if ('email-banner' === $key) {
+        if (self::is_banner($key)) {
             /* translators: %s: the picture, such as Banner. */
             return array(__('Copy link', 'seoprostack'), sprintf(__('Copy the link to the %s PNG', 'seoprostack'), $label));
         }
@@ -1755,18 +1796,21 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * on the page, where nobody has chosen otherwise for it. Sites whose
      * pages draw their own hero (directory sites) hide both for every page,
      * which would leave this page with no title and no space at the end.
-     * Kadence's "show" title uses the site's own title layout.
+     * Kadence's "show" title uses the site's own title layout. When the
+     * block replaces a page's content, the choices made for the old content
+     * (a hand-made page that drew its own heading hides Kadence's) go too.
      *
-     * @param int $id Page ID.
+     * @param int  $id    Page ID.
+     * @param bool $force Show both whatever the page had (--replace).
      * @return void
      */
-    private static function kadence_layout($id) {
+    private static function kadence_layout($id, $force = false) {
         if ('kadence' !== get_template()) {
             return;
         }
         foreach (array('_kad_post_title', '_kad_post_vertical_padding') as $key) {
             $value = get_post_meta($id, $key, true);
-            if ('' === $value || 'default' === $value) {
+            if ($force || '' === $value || 'default' === $value) {
                 update_post_meta($id, $key, 'show');
             }
         }
@@ -1815,7 +1859,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 return array('status' => 'error', 'id' => (int) $page->ID, 'message' => $saved->get_error_message());
             }
             update_option(self::PAGE_OPTION, (int) $page->ID, false);
-            self::kadence_layout((int) $page->ID);
+            self::kadence_layout((int) $page->ID, true);
             return array('status' => 'replaced', 'id' => (int) $page->ID, 'message' => sprintf('Replaced the content of %s with the block. The old content is saved as revision %d: restore it from the page\'s Revisions panel in the editor.', get_permalink($page), (int) $revision));
         }
         if ($dry_run) {
