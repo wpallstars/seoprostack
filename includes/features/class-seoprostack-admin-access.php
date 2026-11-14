@@ -226,7 +226,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
             return true;
         }
         // WooCommerce's page, or My Account without WooCommerce's.
-        $page = SEOProStack_Account::page_id();
+        $page = SEOProStack_Account::get_page_id();
         if (!$page || 'publish' !== get_post_status($page)) {
             // WooCommerce may still be making its pages; try again later.
             return false;
