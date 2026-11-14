@@ -219,6 +219,10 @@
 	function loadImage(url) {
 		return new Promise(function (resolve, reject) {
 			var img = new Image();
+			// A logo on another host (a CDN or media bucket) must come with CORS, or the canvas cannot be saved.
+			if (new URL(url, window.location.href).origin !== window.location.origin) {
+				img.crossOrigin = 'anonymous';
+			}
 			img.onload = function () {
 				resolve(img);
 			};

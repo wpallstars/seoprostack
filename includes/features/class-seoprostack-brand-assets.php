@@ -417,7 +417,14 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $heading = is_array($heading) ? $heading : array();
         $fonts   = array('body' => self::font($base, 'var(--global-body-font-family)'));
         $family  = isset($heading['family']) && is_string($heading['family']) ? trim($heading['family']) : '';
-        $fonts['heading'] = '' === $family || 'inherit' === $family ? $fonts['body'] : self::font($heading, 'var(--global-heading-font-family)');
+        if ('' === $family || 'inherit' === $family) {
+            // Same family as the body, with the headings' own weights.
+            $fonts['heading']            = $fonts['body'];
+            $own                         = self::font($heading, 'var(--global-heading-font-family)');
+            $fonts['heading']['weights'] = $own['weights'];
+        } else {
+            $fonts['heading'] = self::font($heading, 'var(--global-heading-font-family)');
+        }
         if (!$fonts['heading']['weights']) {
             $fonts['heading']['weights'] = self::weights_used();
         }
@@ -588,14 +595,31 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             } else {
                 $css = self::css_family($font, $fonts['body']['css']);
             }
-            $size = self::desktop($font, 'size');
-            $line = self::desktop($font, 'lineHeight');
+            // The drawings take the size in pixels and the line height as a multiple of it.
+            $size      = self::desktop($font, 'size');
+            $line      = self::desktop($font, 'lineHeight');
+            $size_unit = isset($font['sizeType']) && is_string($font['sizeType']) ? $font['sizeType'] : 'px';
+            $line_unit = isset($font['lineType']) && is_string($font['lineType']) ? $font['lineType'] : '';
+            $px        = $default_size;
+            if ('' !== $size) {
+                $px = (float) $size * (in_array($size_unit, array('em', 'rem'), true) ? 16 : ('vw' === $size_unit ? 14.4 : 1));
+            }
+            $height = 1.2;
+            if ('' !== $line && $px > 0) {
+                if ('px' === $line_unit) {
+                    $height = (float) $line / $px;
+                } elseif ('rem' === $line_unit) {
+                    $height = (float) $line * 16 / $px;
+                } else {
+                    $height = (float) $line;
+                }
+            }
             return array(
                 'family'     => $css,
                 'weight'     => isset($font['weight']) && is_scalar($font['weight']) && '' !== (string) $font['weight'] ? ('regular' === $font['weight'] ? '400' : (string) $font['weight']) : '400',
                 'style'      => isset($font['style']) && 'italic' === $font['style'] ? 'italic' : 'normal',
-                'size'       => '' !== $size ? (float) $size : $default_size,
-                'lineHeight' => '' !== $line ? (float) $line : 1.2,
+                'size'       => round($px, 2),
+                'lineHeight' => round($height, 3),
                 'transform'  => isset($font['transform']) && is_string($font['transform']) ? $font['transform'] : '',
                 'color'      => self::resolve(isset($font['color']) ? $font['color'] : '', $palette, $default_colour),
             );
@@ -1399,7 +1423,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             }
             $html = isset($block['innerHTML']) ? (string) $block['innerHTML'] : '';
             // Only a block holding the one link (a paragraph or list item) is copied, never classic HTML.
-            if (empty($block['blockName']) || 1 !== preg_match_all('/<a\b/i', $html) || !preg_match('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>.*?<\/a>/is', $html, $m) || !in_array(self::path($m[2]), $about, true)) {
+            if (empty($block['blockName']) || in_array($block['blockName'], array('core/html', 'core/freeform', 'core/shortcode'), true) || 1 !== preg_match_all('/<a\b/i', $html) || !preg_match('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>.*?<\/a>/is', $html, $m) || !in_array(self::path($m[2]), $about, true)) {
                 continue;
             }
             $link = '<a href="' . esc_url($href) . '">' . esc_html($label) . '</a>';
