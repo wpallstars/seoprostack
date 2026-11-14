@@ -290,10 +290,16 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
      * @param string $lower      Lowercase key name.
      * @param array  $core_lower Lowercase core key names of the table.
      * @param array  $active     Active plugins: folder => file.
-     * @return array{name:string,slug:string,active:bool,core:bool,searched:bool,unknown:bool}
+     * @param string $table      Full table name ('' when not known).
+     * @return array{name:string,slug:string,active:bool,core:bool,searched:bool,unknown:bool,fast:bool}
      */
-    private static function owner($lower, array $core_lower, array $active) {
-        $owner = array('name' => '', 'slug' => '', 'active' => false, 'core' => false, 'searched' => false, 'unknown' => false);
+    private static function owner($lower, array $core_lower, array $active, $table = '') {
+        $owner = array('name' => '', 'slug' => '', 'active' => false, 'core' => false, 'searched' => false, 'unknown' => false, 'fast' => false);
+        if ('' !== $table && class_exists('SEOProStack_Fast_Keys') && SEOProStack_Fast_Keys::keeps($table, $lower) && !in_array($lower, $core_lower, true)) {
+            $owner['name'] = __('SEO Pro Stack (Faster database keys)', 'seoprostack');
+            $owner['fast'] = true;
+            return $owner;
+        }
         if (in_array($lower, $core_lower, true)) {
             $owner['core'] = true;
             $owner['name'] = isset($active[self::IWMFS])
@@ -383,7 +389,7 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
             foreach ($keys as $name => $key) {
                 $name  = (string) $name;
                 $lower = strtolower($name);
-                $owner = self::owner($lower, $core_lower, $active);
+                $owner = self::owner($lower, $core_lower, $active, $table);
                 $ordinary = self::ordinary($key);
                 $duplicate_of = $ordinary ? self::covering($name, $key, $keys, $core_lower) : '';
                 $blocked = '';
@@ -392,6 +398,8 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
                     $blocked = __('it is on a table the whole network shares, and a plugin on another site may use it.', 'seoprostack');
                 } elseif ($owner['core']) {
                     $blocked = __('it is a WordPress core key.', 'seoprostack');
+                } elseif ($owner['fast']) {
+                    $blocked = __('SEO Pro Stack keeps it (Faster database keys on the Server tab).', 'seoprostack');
                 } elseif (!$ordinary) {
                     $blocked = __('it is a unique, full-text, spatial or other special key.', 'seoprostack');
                 } elseif (array_intersect(array_column($key, 'COLUMN_NAME'), $foreign)) {
