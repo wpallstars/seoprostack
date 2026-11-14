@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.214
+Stable tag: 1.3.215
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -13,7 +13,7 @@ One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with
 
 == Description ==
 
-Free and open source: faster admin, easier publishing, safer logins. Details in the Read Me tab.
+Free and open source: faster admin, easier publishing, safer logins.
 
 Safe features start on in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait for deactivation.
 
@@ -49,11 +49,11 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Custom fields to content**: ACF/SCF text and terms, including excerpts.
 * **Restrict content** by membership/role. **Menu item visibility** by login/role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Brand assets page**: Kadence's logos, colours and fonts, with logo and email banner downloads.
+* **Brand assets page**: Kadence's logos, colours and fonts, with downloads.
 * **Named lists and Saved panel**.
-* **Spectra block replacements**, **TranslatePress colours**, a **flag language switcher** beside Kadence's dark mode switch, and **Kadence query filters**.
+* **Spectra block replacements**, **TranslatePress colours**, a **flag language switcher** and **Kadence query filters**.
 * **WP Grid Builder** and **FluentCart** in Kadence's styles; **palette colours for its switch**.
-* **Kadence colour check**: fixes Customizer contrast, with Restore.
+* **Kadence colour check**: fixes Customizer contrast.
 * **Fluent Forms by key**: form, panel and modal blocks.
 
 = Media =
@@ -75,7 +75,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Links skip redirects** to Rank Math's on-site targets.
 * **Robots.txt rules**, with any SEO plugin or none: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
-* **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address** early, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
+* **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address**, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
 * **Load the CSS each page uses first** (off): pages with Kadence and recommended plugins show sooner, worked out on your server.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
@@ -157,7 +157,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.214 =
-* Added: Brand assets page.
+= 1.3.215 =
+* Added: FluentCart in Kadence's styles; unmarked product pictures.
+* Fixed: add-ons load on their plugin's pages.
 
 Older: `changelog.txt`.
