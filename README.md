@@ -628,6 +628,33 @@ No scripts or saved WP Grid Builder settings change; turning this off restores
 its colours. No styles are added without active WP Grid Builder and Kadence,
 or on pages where WP Grid Builder does not print styles.
 
+### FluentCart styled by Kadence (Content)
+
+**On by default.** With FluentCart and Kadence (including child themes),
+FluentCart's product pages, shop cards, reviews, cart and checkout look like
+Kadence's WooCommerce pages, in light and dark mode.
+
+- **Colours**: FluentCart's colour variables follow Kadence's palette: text 3
+  and 5, links and the chosen option in the highlight colour, surfaces 9 and
+  8, borders Kadence's grey, buttons Kadence's button colours and Add To Cart
+  its secondary button colours. They are set on the page's body, where Kadence
+  Pro's dark palette is set, so they change with the dark mode switch;
+  FluentCart's own **Inherit from theme** sets them where the dark palette
+  does not reach, and its other defaults are fixed greys.
+- **Product title**: Kadence's heading 1 font, and the **Product Title** font
+  under Customizer → WooCommerce → Single Product, as a WooCommerce product's
+  title has. The price is larger and bold, as on WooCommerce product pages.
+- **Buttons**: Buy Now and Add To Cart take the font, size, radius, padding,
+  border and shadow set in Customizer → General → Buttons, at every screen
+  size, side by side and as wide as their words (FluentCart's two equal
+  columns broke the larger text over lines on phones); shop card buttons take
+  the button colours.
+- Choices without their own picture no longer show FluentCart's placeholder
+  box.
+- FluentCart's **Customize** colours (Settings → Store → Appearance) stay as
+  they are. Nothing is saved; turning this off brings FluentCart's own look
+  back.
+
 ### Palette colours for Kadence’s dark mode switch (Content)
 
 **On by default.** Kadence Pro’s Dark Mode switch colours (Customizer: Header,
@@ -1784,6 +1811,7 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 - Position (nine places), size and distance from the edge are shares of each picture, so the mark sits in the same place on the full picture and its sizes. A picture with a transparent background works best; SVG watermarks cannot be used.
 - The file, the original WordPress keeps for big pictures and every size at least 400 pixels on its shorter side are marked; thumbnails and small sizes stay clean. Files with `nowatermark` in the name, animated pictures, site icons, logos (Kadence's mobile logo too) and headers are left alone. The picture chosen as Default social image (Keep Rank Math’s site identity in sync) is never marked either: choosing a marked picture there puts its kept original back and ticks Never watermark. A marked picture that later becomes the site icon or a logo gets its kept original back; one cropped into a site icon or logo in the Customizer is cropped from its kept original. The `seoprostack_watermark_attachment` filter can leave others alone.
 - **Never watermark** in a picture’s details (Media Library, the editors’ media windows and the attachment edit screen, while Watermark pictures is on or the box is ticked) leaves that picture unmarked: uploads, row, bulk and whole-library marking and `wp seoprostack watermark-images` all skip it, and a picture marked before keeps its mark until **Remove watermark**. It is the `_seoprostack_watermark_skip` post meta (`'1'`, `SEOProStack_Watermark_Images::SKIP_META`), so code that adds a site’s own photographs can set it on `add_attachment`, which runs before WordPress makes and marks their sizes.
+- **Leave product pictures unmarked** (off by default), for shop pictures that already carry the brand: pictures used as a FluentCart or WooCommerce product’s image or gallery picture (`_thumbnail_id`, FluentCart’s `fluent-products-gallery-image`, WooCommerce’s `_product_image_gallery`), a FluentCart variation’s picture, or uploaded on a product’s screen (attached to a product or variation) are skipped by uploads, row, bulk and whole-library marking and `wp seoprostack watermark-images`. Turning it on takes the mark off the product pictures already marked, from their kept originals, in the background batch (five minutes later while another batch runs); so does adding a marked picture to a product’s image or gallery later. A picture marked while **Keep unmarked originals** was off keeps its mark. Turning it off marks product pictures again only when they are marked by hand or by a whole-library batch.
 - Marked after WordPress has made every size and after Resize large uploads, including WordPress 7.1 uploads that the browser processes. With **Mark new uploads** on, a new upload is claimed (`_seoprostack_watermark_claim`) as soon as it is added, before its sizes are made, until its mark is done, so cloud storage uploads, WebP and AVIF copies and a running batch in other processes leave it alone meanwhile, even during imports.
 - **Keep unmarked originals** (on by default) copies the original into a folder with a random name in uploads, so a watermark can be removed, or added again with new settings. Pictures marked while it is off cannot be unmarked.
 - CLI refresh: `wp seoprostack watermark-images --stale --dry-run` lists only marked pictures with a kept original whose mark or settings changed; within that scope, older records without a signature count as stale. Run without `--dry-run` to refresh them. `--marked-only` refreshes every marked picture with a kept original. Both work newest first and resume an interrupted run from `seoprostack_watermark_cursor`; `--from-start` starts again, and changing the mark or scope starts a new scan. A failed picture keeps the cursor for retry. A picture that waited too long for a media batch (another batch, or the lease of a run that was killed, which lasts up to five minutes) does not hold the cursor: it is tried again at the end of the run, and if it is still waiting the cursor keeps it to try first next run. Completed scans clear it. `--minutes=<n>` stops between pictures after that many minutes and exits with success, keeping the place; use it rather than a host's `timeout`, which can stop a picture half done and leave the lease held.
@@ -2691,6 +2719,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fixed (**Load plugins only where needed**; #1615): an add-on with no admin page of its own was skipped on the pages of the plugin it needs, so what it adds there was missing. SEO Pro Analytics Connect, for example, was left out of SEO Pro Analytics’ Connections tab, which then asked for the add-on although its licence was valid. Add-ons now load on the menu pages of the plugin they need.
+- New (**Watermark pictures** → **Leave product pictures unmarked**, off by default; #1614): pictures of FluentCart and WooCommerce products are not marked, for shop artwork that already carries the brand. Turning it on takes the mark off product pictures already marked, from their kept originals.
+- New, on by default (**FluentCart styled by Kadence**, Content; #1613): FluentCart's product pages, shop cards, reviews, cart and checkout follow Kadence's light and dark palette; before, its title, price and choices were dark text on the dark page in dark mode. The product title takes Kadence's heading and product title fonts, Buy Now and Add To Cart the site's button style, and choices without their own picture lose the placeholder box.
 
 ### 1.3.214
 

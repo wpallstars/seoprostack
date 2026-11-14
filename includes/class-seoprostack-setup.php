@@ -80,6 +80,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Readabler_Colours',
         'SEOProStack_Wpgb_Colours',
         'SEOProStack_Fluentforms_Colours',
+        'SEOProStack_Fluentcart_Kadence',
         'SEOProStack_Form_Keys',
         'SEOProStack_Kadence_Colour_Check',
         'SEOProStack_Kadence_Switch_Palette',
