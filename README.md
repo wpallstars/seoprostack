@@ -2719,6 +2719,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### 1.3.216
 
+- Fixed (multisite; #1633): deleting a network site now also deletes SEO Pro Stack’s tables for that site (the link index and the media storage indexes). Before, they were left in the database with their rows.
 - Fixed (**FluentCart styled by Kadence**; #1630): FluentCart product pages are laid out as Kadence lays out WooCommerce products. No box around the page (Kadence's product content style, unboxed by default), text sizes in proportion to the site's body text instead of FluentCart's fixed small sizes, the description and reviews at Kadence's narrow content width, and the review summary above the list. Review blocks and shortcodes keep their own layout.
 - Fixed (**Clear Cloudflare's copies of pages**; #1602): sites without a LiteSpeed Cache or WP-Optimize page cache kept the previous version's pages at Cloudflare after an update or a design change. Cloudflare is now emptied then too, once per site.
 - Fixed (**Brand assets page** → **Link it from the footer**; #1624): a footer About link that points somewhere other than /about is now found by its text.
