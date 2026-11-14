@@ -477,7 +477,7 @@ final class SEOProStack_Account_Forms {
      * @return string
      */
     private static function reset_cookie_name() {
-        return self::RESET_COOKIE . (defined('COOKIEHASH') ? COOKIEHASH : md5(site_url()));
+        return self::RESET_COOKIE . (defined('COOKIEHASH') ? COOKIEHASH : hash('sha256', site_url()));
     }
 
     /**

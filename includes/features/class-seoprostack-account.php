@@ -342,7 +342,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
         if (self::plugins_skipped()) {
             return;
         }
-        $hash = md5(SEOPROSTACK_VERSION . '|' . wp_json_encode(self::endpoints()));
+        $hash = hash('sha256', SEOPROSTACK_VERSION . '|' . wp_json_encode(self::endpoints()));
         if (get_option(self::FLUSHED) === $hash) {
             return;
         }
