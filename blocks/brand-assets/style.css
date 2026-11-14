@@ -76,13 +76,6 @@
 	padding: 2rem 1rem;
 }
 
-/* An email signature banner is 600 × 150. */
-.wp-block-seoprostack-brand-assets__stage--banner {
-	min-height: 0;
-	aspect-ratio: 4 / 1;
-	padding: 1rem 1.5rem;
-}
-
 .wp-block-seoprostack-brand-assets__icon {
 	display: block;
 	width: auto;

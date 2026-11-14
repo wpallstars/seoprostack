@@ -55,7 +55,10 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     const PNG_DIR = 'seoprostack-brand-assets';
 
     /** Changes when view.js draws the files differently, so they are drawn again. */
-    const PNG_VERSION = '1';
+    const PNG_VERSION = '2';
+
+    /** The email banner is drawn at this many times its size, as in view.js. */
+    const EMAIL_SCALE = 2;
 
     /** Largest PNG accepted, in bytes and pixels a side. */
     const PNG_MAX_BYTES = 6291456;
@@ -869,7 +872,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     }
 
     /**
-     * Email signature: the logo with the name in a 600 × 150 banner.
+     * Email signature: the logo with the name in a banner up to 600 × 150,
+     * cropped to the same space on every side (view.js).
      *
      * @param array $palettes Palettes.
      * @return string
@@ -882,18 +886,42 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if ((!$lockup['logo'] && '' === $lockup['title']) || !is_string($json)) {
             return '';
         }
-        $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+        $host  = preg_replace('/^www\./', '', (string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $width = self::email_width();
+        /* translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com. */
+        $note = sprintf(__('Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s.', 'seoprostack'), $width, $host);
+        if (!$width) {
+            /* translators: %s: the site's address, such as example.com. */
+            $note = sprintf(__('Add it to your email signature as a picture, up to 600 pixels wide, linked to %s.', 'seoprostack'), $host);
+        }
         $card = self::card(
             self::lockup_html($lockup),
             self::stage_style($light, $lockup['background']),
             __('Email signature banner', 'seoprostack'),
-            array(self::make_button('email', $json, __('Download (PNG, 600 × 150)', 'seoprostack'))),
-            /* translators: %s: the site's address, such as example.com. */
-            sprintf(__('Add it to your email signature as a picture, 600 pixels wide, linked to %s.', 'seoprostack'), preg_replace('/^www\./', '', $host)),
+            array(self::make_button('email', $json, __('Download (PNG)', 'seoprostack'))),
+            $note,
             'banner',
             self::png_row('email-banner', __('Banner', 'seoprostack'))
         );
         return '<h2 class="' . $c . '__title">' . esc_html__('Email signature', 'seoprostack') . '</h2><div class="' . $c . '__grid ' . $c . '__grid--two">' . $card . '</div>';
+    }
+
+    /**
+     * The saved email banner's width as an email shows it, from a file drawn
+     * from the banner as it is now; 0 until there is one.
+     *
+     * @return int
+     */
+    private static function email_width() {
+        $folder = self::png_folder();
+        if (!$folder || !is_array(self::$png) || !isset(self::$png['email-banner'])) {
+            return 0;
+        }
+        $item = self::png_item('email-banner/padded', $folder);
+        if (!self::png_current($item, self::png_fingerprint(self::$png['email-banner'])) || empty($item['width'])) {
+            return 0;
+        }
+        return (int) round($item['width'] / self::EMAIL_SCALE);
     }
 
     /**
