@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.218-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.219-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.218
+Version: 1.3.219
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2729,10 +2729,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### 1.3.219
+
+- Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 × 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
+
 ### 1.3.218
 
 - New (Content; on by default; #1644): **My Account without WooCommerce** keeps My Account (log in, sign up, lost password, account details and the tabs other plugins add) working when WooCommerce is deactivated, on the same page and addresses, with WooCommerce's markup, form fields and hooks and the Kadence theme's layout, so a site that sells nothing no longer loads WooCommerce for it. Settings version 36 imports WooCommerce's "Allow customers to create an account on the My account page" as **People can sign up**. Keep pages cached, Load jQuery at the end of the page, Remove WordPress extras' password meter, Your lists' Register link, Block dashboard access's default and Load plugins only where needed (which loads every plugin on that page) know the page.
-- Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 × 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
 - Fixed (**Watermark pictures**, #1621): an unmarking run stopped part-way no longer leaves the picture refusing every retry.
 
 ### 1.3.217
