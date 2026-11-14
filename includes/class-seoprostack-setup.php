@@ -147,6 +147,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Database_Cleanup',
         'SEOProStack_Autoload_Options',
         'SEOProStack_Woo_Light',
+        'SEOProStack_Account',
         'SEOProStack_Tutor_Light',
         'SEOProStack_Kadence_Library',
         'SEOProStack_Kadence_Icon_Picker',
@@ -292,8 +293,11 @@ final class SEOProStack_Setup {
      * v35: Simpler block editor's Advanced Text for new lines is switched
      *      off once, so core's Paragraph, with its typing shortcuts ("* "
      *      for a list), is what typing makes again (#978).
+     * v36: My Account without WooCommerce takes WooCommerce's "Allow
+     *      customers to create an account on the My account page" as its
+     *      People can sign up, where WooCommerce stored it (#1644).
      */
-    const DB_VERSION = 35;
+    const DB_VERSION = 36;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -304,6 +308,22 @@ final class SEOProStack_Setup {
         'general'  => 'admin',
         'workflow' => 'content',
         'advanced' => 'links',
+    );
+
+    /**
+     * Each site's own tables, without the site's table prefix: the link
+     * index's three (SEOProStack_Link_Index) and the media storage's claim,
+     * URL and kept-original indexes. uninstall.php drops the same tables.
+     *
+     * @var string[]
+     */
+    const SITE_TABLES = array(
+        'seoprostack_links',
+        'seoprostack_link_health',
+        'seoprostack_link_clicks',
+        'seoprostack_media_claims',
+        'seoprostack_media_urls',
+        'seoprostack_media_originals',
     );
 
     /**
@@ -353,6 +373,10 @@ final class SEOProStack_Setup {
      * Register the helpers' hooks, after the settings store's.
      */
     public static function init() {
+        // Deleting a network site drops its tables: ours too, whichever
+        // features are on, as a site keeps a table after its feature is off.
+        add_filter('wpmu_drop_tables', array(__CLASS__, 'site_tables'), 10, 2);
+
         if (defined('WP_CLI') && WP_CLI) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-health-cli.php';
             WP_CLI::add_command('seoprostack health', 'SEOProStack_Health_CLI');
@@ -391,6 +415,27 @@ final class SEOProStack_Setup {
         if (is_admin()) {
             self::prime_admin_options();
         }
+    }
+
+    /**
+     * A deleted network site's tables, with ours added (wpmu_drop_tables):
+     * WordPress drops each with DROP TABLE IF EXISTS, so a table the site
+     * never made is no harm.
+     *
+     * @param mixed $tables  Table names.
+     * @param mixed $site_id Site being deleted.
+     * @return array
+     */
+    public static function site_tables($tables, $site_id = 0) {
+        global $wpdb;
+        $tables = (array) $tables;
+        $prefix = $wpdb->get_blog_prefix((int) $site_id ?: get_current_blog_id());
+        foreach (self::SITE_TABLES as $name) {
+            if (!in_array($prefix . $name, $tables, true)) {
+                $tables[$name] = $prefix . $name;
+            }
+        }
+        return $tables;
     }
 
     /**

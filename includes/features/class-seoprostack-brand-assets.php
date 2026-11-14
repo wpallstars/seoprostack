@@ -48,6 +48,33 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     /** Query argument of the card's result. */
     const RESULT = 'sps-brand-assets';
 
+    /** PNG files saved for links: "key/variant" => name, fingerprint, size. Autoload off. */
+    const PNG_OPTION = 'seoprostack_brand_assets_pngs';
+
+    /** Their folder in uploads. */
+    const PNG_DIR = 'seoprostack-brand-assets';
+
+    /** Changes when view.js draws the files differently, so they are drawn again. */
+    const PNG_VERSION = '2';
+
+    /** The email banner is drawn at this many times its size, as in view.js. */
+    const EMAIL_SCALE = 2;
+
+    /** Largest PNG accepted, in bytes and pixels a side. */
+    const PNG_MAX_BYTES = 6291456;
+    const PNG_MAX_SIDE  = 4096;
+
+    /**
+     * The PNG files of the block being built (png_targets()), and the ones
+     * to draw because they are missing or out of date.
+     *
+     * @var array|null
+     */
+    private static $png = null;
+
+    /** @var array */
+    private static $png_jobs = array();
+
     /** Kadence's palette slots with a role in its own descriptions. */
     const ROLES = array(
         'palette1' => 'Accent',
@@ -99,6 +126,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         }
         // boot() runs on init, which is where blocks are registered.
         register_block_type(SEOPROSTACK_DIR . 'blocks/brand-assets');
+        add_action('rest_api_init', array(__CLASS__, 'register_routes'));
         // The page is built from these settings, so a cached copy is stale once they change.
         add_action('customize_save_after', array(__CLASS__, 'purge'));
         add_action('update_option_kadence_global_palette', array(__CLASS__, 'purge'));
@@ -666,13 +694,17 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if (!self::applies()) {
             return current_user_can('edit_theme_options') ? '<p>' . esc_html__('The Brand assets block reads the Kadence theme’s settings, and Kadence is not the active theme.', 'seoprostack') . '</p>' : '';
         }
-        $palettes = self::palettes();
-        $html     = '';
+        $palettes       = self::palettes();
+        $html           = '';
+        self::$png      = self::png_targets($palettes);
+        self::$png_jobs = array();
         if ($attributes['showLogos']) {
             $html .= self::render_logos($palettes);
             $html .= self::render_icons($palettes);
             $html .= self::render_email($palettes);
+            $html .= self::png_jobs_script();
         }
+        self::$png = null;
         if ($attributes['showColours'] && $palettes) {
             $html .= self::render_colours($palettes);
         }
@@ -722,7 +754,9 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 $links[] = self::make_button('svg', $json, $lockup['logo'] ? __('Logo with name (SVG)', 'seoprostack') : __('Name (SVG)', 'seoprostack'));
                 $links[] = self::make_button('png', $json, $lockup['logo'] ? __('Logo with name (PNG)', 'seoprostack') : __('Name (PNG)', 'seoprostack'));
             }
-            $cards .= self::card(self::lockup_html($lockup), self::stage_style($palette, $lockup['background']), $label, $links);
+            $png  = self::png_row('logo-' . $scheme, __('Logo', 'seoprostack'));
+            $png .= self::png_row('lockup-' . $scheme, $lockup['logo'] ? __('Logo with name', 'seoprostack') : __('Name', 'seoprostack'));
+            $cards .= self::card(self::lockup_html($lockup), self::stage_style($palette, $lockup['background']), $label, $links, '', '', $png);
         }
         if ('' === $cards) {
             return '';
@@ -752,7 +786,9 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 self::stage_style($light, self::resolve('palette9', $light, '#ffffff')),
                 __('Small logo', 'seoprostack'),
                 array(self::download_link($file['file'], self::size_label($file['type'], $file['width'], $file['height']))),
-                __('The header’s logo on phones.', 'seoprostack')
+                __('The header’s logo on phones.', 'seoprostack'),
+                '',
+                self::png_row('small-logo', __('Small logo', 'seoprostack'))
             );
         }
         if (isset($logos['icon'])) {
@@ -763,7 +799,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             foreach (array($light, $dark) as $palette) {
                 $stage .= '<span class="' . $c . '__half" style="' . esc_attr(self::stage_style($palette, self::resolve('palette9', $palette, '#ffffff'))) . '">' . self::icon_img($shown, $file, __('Site icon', 'seoprostack'), false) . '</span>';
             }
-            $cards .= self::card($stage, '', __('Site icon', 'seoprostack'), self::icon_links($file), __('Browser tabs, bookmarks and phone home screens.', 'seoprostack'), 'halves');
+            $cards .= self::card($stage, '', __('Site icon', 'seoprostack'), self::icon_links($file), __('Browser tabs, bookmarks and phone home screens.', 'seoprostack'), 'halves', self::png_row('site-icon', __('Icon', 'seoprostack')));
         }
         if ('' === $cards) {
             return current_user_can('edit_theme_options') ? '<p class="' . $c . '__note">' . esc_html__('Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this).', 'seoprostack') . '</p>' : '';
@@ -836,7 +872,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     }
 
     /**
-     * Email signature: the logo with the name in a 600 × 150 banner.
+     * Email signature: the logo with the name in a banner up to 600 × 150,
+     * cropped to the same space on every side (view.js).
      *
      * @param array $palettes Palettes.
      * @return string
@@ -849,17 +886,42 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if ((!$lockup['logo'] && '' === $lockup['title']) || !is_string($json)) {
             return '';
         }
-        $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+        $host  = preg_replace('/^www\./', '', (string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $width = self::email_width();
+        /* translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com. */
+        $note = sprintf(__('Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s.', 'seoprostack'), $width, $host);
+        if (!$width) {
+            /* translators: %s: the site's address, such as example.com. */
+            $note = sprintf(__('Add it to your email signature as a picture, up to 600 pixels wide, linked to %s.', 'seoprostack'), $host);
+        }
         $card = self::card(
             self::lockup_html($lockup),
             self::stage_style($light, $lockup['background']),
             __('Email signature banner', 'seoprostack'),
-            array(self::make_button('email', $json, __('Download (PNG, 600 × 150)', 'seoprostack'))),
-            /* translators: %s: the site's address, such as example.com. */
-            sprintf(__('Add it to your email signature as a picture, 600 pixels wide, linked to %s.', 'seoprostack'), preg_replace('/^www\./', '', $host)),
-            'banner'
+            array(self::make_button('email', $json, __('Download (PNG)', 'seoprostack'))),
+            $note,
+            'banner',
+            self::png_row('email-banner', __('Banner', 'seoprostack'))
         );
         return '<h2 class="' . $c . '__title">' . esc_html__('Email signature', 'seoprostack') . '</h2><div class="' . $c . '__grid ' . $c . '__grid--two">' . $card . '</div>';
+    }
+
+    /**
+     * The saved email banner's width as an email shows it, from a file drawn
+     * from the banner as it is now; 0 until there is one.
+     *
+     * @return int
+     */
+    private static function email_width() {
+        $folder = self::png_folder();
+        if (!$folder || !is_array(self::$png) || !isset(self::$png['email-banner'])) {
+            return 0;
+        }
+        $item = self::png_item('email-banner/padded', $folder);
+        if (!self::png_current($item, self::png_fingerprint(self::$png['email-banner'])) || empty($item['width'])) {
+            return 0;
+        }
+        return (int) round($item['width'] / self::EMAIL_SCALE);
     }
 
     /**
@@ -871,9 +933,10 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * @param string[] $links    Links and buttons (HTML).
      * @param string   $note     Text under the label.
      * @param string   $modifier Stage modifier: halves or banner.
+     * @param string   $png      Rows of PNG link buttons (png_row()).
      * @return string
      */
-    private static function card($stage, $style, $label, array $links, $note = '', $modifier = '') {
+    private static function card($stage, $style, $label, array $links, $note = '', $modifier = '', $png = '') {
         $c     = 'wp-block-seoprostack-brand-assets';
         $html  = '<figure class="' . $c . '__card">';
         $html .= '<div class="' . $c . '__stage' . ('' !== $modifier ? ' ' . $c . '__stage--' . $modifier : '') . '" data-sps-brand-stage' . ('' !== $style ? ' style="' . esc_attr($style) . '"' : '') . '>' . $stage . '</div>';
@@ -883,6 +946,9 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         }
         if ($links) {
             $html .= '<span class="' . $c . '__links">' . implode(' ', $links) . '</span>';
+        }
+        if ('' !== $png) {
+            $html .= '<span class="' . $c . '__png"><span class="' . $c . '__png-title">' . esc_html__('Copy a link to a PNG', 'seoprostack') . '</span>' . $png . '</span>';
         }
         return $html . '</figcaption></figure>';
     }
@@ -980,6 +1046,560 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         return '<button type="button" class="wp-block-seoprostack-brand-assets__download" data-sps-brand-make="' . esc_attr($kind) . '" data-sps-brand-lockup="' . esc_attr((string) $json) . '">' . esc_html($label) . '</button>';
     }
 
+    /* ---------------------------------------------------------------------
+     * PNG links
+     *
+     * Forms that ask for a link to a logo (profiles, directories, event
+     * listings) need a PNG at an address. view.js draws each picture as
+     * PNG files, padded on its background colour and on a transparent
+     * background without padding, in the browser of someone who can edit
+     * the theme when they open the page, and saves them in uploads through
+     * the REST route below. Visitors get buttons that copy their links. A
+     * file is drawn again when what it shows changes; until then the link
+     * gives the last one, so links already given out keep working.
+     * ------------------------------------------------------------------- */
+
+    /**
+     * The pictures offered as PNG files, as the block shows them.
+     *
+     * @param array $palettes Palettes.
+     * @return array<string,array> Key => what view.js draws.
+     */
+    private static function png_targets(array $palettes) {
+        $logos   = self::logos();
+        $light   = isset($palettes['light']) ? $palettes['light'] : array();
+        $dark    = isset($palettes['dark']) ? $palettes['dark'] : self::inverted($light);
+        $targets = self::png_scheme_targets('light', $light, $logos) + self::png_scheme_targets('dark', $dark, $logos);
+        $page    = self::resolve('palette9', $light, '#ffffff');
+        if (isset($logos['mobile'])) {
+            $targets['small-logo'] = self::png_image_target($logos['mobile'], $page, 0, true, false);
+        }
+        if (isset($logos['icon'])) {
+            $targets['site-icon'] = self::png_image_target($logos['icon'], $page, 0, false, true);
+        }
+        return $targets;
+    }
+
+    /**
+     * One background's pictures: the logo, the logo with the name and, on
+     * the light background, the email banner.
+     *
+     * @param string $scheme  light or dark.
+     * @param array  $palette Its palette.
+     * @param array  $logos   self::logos().
+     * @return array<string,array>
+     */
+    private static function png_scheme_targets($scheme, array $palette, array $logos) {
+        $lockup = self::lockup($scheme, $palette, $logos);
+        if (!$lockup['logo'] && '' === $lockup['title']) {
+            return array();
+        }
+        $targets = array();
+        $file    = self::png_logo_file($scheme, $logos);
+        if ($file && $lockup['logo']) {
+            $targets['logo-' . $scheme] = self::png_image_target($file, $lockup['background'], $lockup['logo']['width'], true, false);
+        }
+        if ('' !== $lockup['title']) {
+            $targets['lockup-' . $scheme] = array('kind' => 'lockup', 'lockup' => $lockup, 'background' => $lockup['background'], 'variants' => array('padded', 'transparent'));
+        }
+        if ('light' === $scheme) {
+            $targets['email-banner'] = array('kind' => 'banner', 'lockup' => $lockup, 'background' => $lockup['background'], 'variants' => array('padded'));
+        }
+        return $targets;
+    }
+
+    /**
+     * The logo's file on a background: Kadence Pro's dark-mode logo on the
+     * dark one, when set.
+     *
+     * @param string $scheme light or dark.
+     * @param array  $logos  self::logos().
+     * @return array|null
+     */
+    private static function png_logo_file($scheme, array $logos) {
+        if ('dark' === $scheme && isset($logos['dark'])) {
+            return $logos['dark'];
+        }
+        return isset($logos['logo']) ? $logos['logo'] : null;
+    }
+
+    /**
+     * A logo or icon from the Media Library, as view.js draws it.
+     *
+     * @param array  $file       url, width, height.
+     * @param string $background Colour behind the padded file.
+     * @param int    $display    Width the page shows it at (0: not known).
+     * @param bool   $edge       Whether the header logo's effect applies.
+     * @param bool   $square     Whether the padded file is square.
+     * @return array
+     */
+    private static function png_image_target(array $file, $background, $display, $edge, $square) {
+        return array(
+            'kind'       => 'image',
+            'image'      => array('url' => $file['url'], 'width' => (int) $file['width'], 'height' => (int) $file['height']),
+            'display'    => (int) $display,
+            'edge'       => (bool) $edge,
+            'square'     => (bool) $square,
+            'background' => $background,
+            'variants'   => array('padded', 'transparent'),
+        );
+    }
+
+    /**
+     * What a file was drawn from, so a change draws it again.
+     *
+     * @param array $target png_targets() item.
+     * @return string
+     */
+    private static function png_fingerprint(array $target) {
+        // The theme's CSS gives the logo its edge, so its versions count too.
+        $themes = wp_get_theme()->get('Version') . '|' . wp_get_theme(get_template())->get('Version');
+        return hash('sha256', self::PNG_VERSION . '|' . $themes . '|' . wp_json_encode($target));
+    }
+
+    /**
+     * A file's name: the site's name, the picture and the variant.
+     *
+     * @param string $key     Picture.
+     * @param string $variant padded or transparent.
+     * @return string
+     */
+    private static function png_name($key, $variant) {
+        $base = sanitize_title(get_bloginfo('name'));
+        $base = '' !== $base ? $base : 'brand';
+        return $base . '-' . $key . ('email-banner' === $key ? '' : '-' . $variant) . '.png';
+    }
+
+    /**
+     * The files' folder and its address.
+     *
+     * @return array{dir:string,url:string}|null
+     */
+    private static function png_folder() {
+        $uploads = wp_get_upload_dir();
+        if (!empty($uploads['error']) || empty($uploads['basedir']) || empty($uploads['baseurl'])) {
+            return null;
+        }
+        return array(
+            'dir' => untrailingslashit($uploads['basedir']) . '/' . self::PNG_DIR,
+            'url' => set_url_scheme(untrailingslashit($uploads['baseurl']) . '/' . self::PNG_DIR),
+        );
+    }
+
+    /**
+     * The files saved so far.
+     *
+     * @return array<string,array{name:string,hash:string,width:int,height:int}>
+     */
+    private static function png_saved() {
+        $saved = get_option(self::PNG_OPTION, array());
+        return is_array($saved) ? $saved : array();
+    }
+
+    /**
+     * Whether this visitor's browser draws and saves the files.
+     *
+     * @return bool
+     */
+    private static function png_can_make() {
+        return is_user_logged_in() && current_user_can('edit_theme_options');
+    }
+
+    /**
+     * One picture's PNG link buttons, padded and transparent. Visitors see
+     * the files saved so far; editors also see the ones being drawn.
+     *
+     * @param string $key   Picture (png_targets()).
+     * @param string $label Its name.
+     * @return string
+     */
+    private static function png_row($key, $label) {
+        $folder = self::png_folder();
+        if (!$folder || !is_array(self::$png) || !isset(self::$png[$key])) {
+            return '';
+        }
+        $c       = 'wp-block-seoprostack-brand-assets';
+        $buttons = '';
+        $target  = self::$png[$key];
+        foreach ($target['variants'] as $variant) {
+            $buttons .= self::png_variant($target, $key, $variant, $label, $folder);
+        }
+        if ('' === $buttons) {
+            return '';
+        }
+        return '<span class="' . $c . '__png-row"><span class="' . $c . '__png-label">' . esc_html($label) . '</span>' . $buttons . '</span>';
+    }
+
+    /**
+     * A saved file whose file is still there.
+     *
+     * @param string $id     "key/variant".
+     * @param array  $folder png_folder().
+     * @return array|null name, hash, width, height.
+     */
+    private static function png_item($id, array $folder) {
+        $saved = self::png_saved();
+        if (!isset($saved[$id]) || !is_array($saved[$id]) || empty($saved[$id]['name']) || !is_file($folder['dir'] . '/' . $saved[$id]['name'])) {
+            return null;
+        }
+        return $saved[$id];
+    }
+
+    /**
+     * One file's button, queueing it for view.js when an editor's browser
+     * is to draw it.
+     *
+     * @param array  $target  png_targets() item.
+     * @param string $key     Its key.
+     * @param string $variant padded or transparent.
+     * @param string $label   Its name.
+     * @param array  $folder  png_folder().
+     * @return string
+     */
+    private static function png_variant(array $target, $key, $variant, $label, array $folder) {
+        $hash = self::png_fingerprint($target);
+        $make = self::png_can_make();
+        $id   = $key . '/' . $variant;
+        $item = self::png_item($id, $folder);
+        if ($make && !self::png_current($item, $hash)) {
+            self::$png_jobs[] = array('id' => $id, 'key' => $key, 'variant' => $variant, 'hash' => $hash, 'target' => $target);
+        }
+        if (!$item && !$make) {
+            return '';
+        }
+        return self::png_button($id, $key, $variant, $label, $item ? $folder['url'] . '/' . rawurlencode($item['name']) : '', $item);
+    }
+
+    /**
+     * Whether a saved file was drawn from the picture as it is now.
+     *
+     * @param array|null $item png_item().
+     * @param string     $hash png_fingerprint().
+     * @return bool
+     */
+    private static function png_current($item, $hash) {
+        return is_array($item) && isset($item['hash']) && $item['hash'] === $hash;
+    }
+
+    /**
+     * One copy-link button; disabled while its file is being made.
+     *
+     * @param string     $id      "key/variant".
+     * @param string     $key     Picture.
+     * @param string     $variant padded or transparent.
+     * @param string     $label   The picture's name.
+     * @param string     $url     The file's address ('' while it is made).
+     * @param array|null $item    png_item().
+     * @return string
+     */
+    private static function png_button($id, $key, $variant, $label, $url, $item) {
+        $c    = 'wp-block-seoprostack-brand-assets';
+        $icon = '<svg class="%s" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">%s</svg>';
+        $link = sprintf($icon, $c . '__copy-icon', '<path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/>');
+        $done = sprintf($icon, $c . '__done-icon', '<path d="M5 12.5l4.5 4.5L19 7.5"/>');
+        list($text, $aria) = self::png_button_text($key, $variant, $label);
+        $title    = __('Making the file…', 'seoprostack');
+        $class    = $c . '__link is-pending';
+        $disabled = ' disabled';
+        if ($item) {
+            $title    = $url . (!empty($item['width']) ? ' (' . (int) $item['width'] . ' × ' . (int) $item['height'] . ')' : '');
+            $class    = $c . '__link';
+            $disabled = '';
+        }
+        return '<button type="button" class="' . $class . '" data-sps-brand-copy="' . esc_attr($url) . '" data-sps-brand-png="' . esc_attr($id) . '" data-sps-brand-copied="' . esc_attr__('Link copied', 'seoprostack') . '"'
+            . ' aria-label="' . esc_attr($aria) . '" title="' . esc_attr($title) . '"' . $disabled . '>'
+            . $link . $done . '<span>' . esc_html($text) . '</span></button>';
+    }
+
+    /**
+     * A button's text and its fuller name for screen readers.
+     *
+     * @param string $key     Picture.
+     * @param string $variant padded or transparent.
+     * @param string $label   The picture's name.
+     * @return array{0:string,1:string}
+     */
+    private static function png_button_text($key, $variant, $label) {
+        if ('email-banner' === $key) {
+            /* translators: %s: the picture, such as Banner. */
+            return array(__('Copy link', 'seoprostack'), sprintf(__('Copy the link to the %s PNG', 'seoprostack'), $label));
+        }
+        if ('padded' === $variant) {
+            /* translators: %s: the picture, such as Logo. */
+            return array(__('Padded', 'seoprostack'), sprintf(__('Copy the link to the %s PNG with space around it, on its background colour', 'seoprostack'), $label));
+        }
+        /* translators: %s: the picture, such as Logo. */
+        return array(__('Transparent', 'seoprostack'), sprintf(__('Copy the link to the %s PNG with no space around it, on a transparent background', 'seoprostack'), $label));
+    }
+
+    /**
+     * For editors: the files view.js is to draw and save.
+     *
+     * @return string
+     */
+    private static function png_jobs_script() {
+        if (!self::$png_jobs || !self::png_can_make()) {
+            return '';
+        }
+        $json = wp_json_encode(array(
+            'endpoint' => rest_url('seoprostack/v1/brand-assets-png'),
+            'nonce'    => wp_create_nonce('wp_rest'),
+            'jobs'     => self::$png_jobs,
+        ));
+        if (!is_string($json)) {
+            return '';
+        }
+        // JSON in a script tag must not close it early.
+        return '<script type="application/json" class="wp-block-seoprostack-brand-assets__png-jobs">' . str_replace('</', '<\/', $json) . '</script>';
+    }
+
+    /**
+     * REST route that saves a PNG drawn by view.js.
+     */
+    public static function register_routes() {
+        register_rest_route('seoprostack/v1', '/brand-assets-png', array(
+            'methods'             => 'POST',
+            'callback'            => array(__CLASS__, 'rest_png'),
+            'permission_callback' => function () {
+                return current_user_can('edit_theme_options');
+            },
+            'args'                => array(
+                'key'     => array('type' => 'string', 'required' => true),
+                'variant' => array('type' => 'string', 'required' => true, 'enum' => array('padded', 'transparent')),
+                'hash'    => array('type' => 'string', 'required' => true),
+                'png'     => array('type' => 'string', 'required' => true),
+                'last'    => array('type' => 'boolean', 'default' => false),
+            ),
+        ));
+    }
+
+    /**
+     * REST: check and save one PNG, replacing the picture's earlier file.
+     * Only the pictures the block offers, as they are now, are accepted,
+     * and the file is decoded and saved again, so it holds only a picture.
+     *
+     * @param WP_REST_Request $request Request.
+     * @return array|WP_Error
+     */
+    public static function rest_png($request) {
+        $key     = (string) $request['key'];
+        $variant = (string) $request['variant'];
+        $hash    = self::png_request_hash($key, $variant, (string) $request['hash']);
+        if (is_wp_error($hash)) {
+            return $hash;
+        }
+        $data = self::png_decode((string) $request['png']);
+        if (is_wp_error($data)) {
+            return $data;
+        }
+        $folder = self::png_folder();
+        $name   = self::png_name($key, $variant);
+        if (!$folder || !self::png_write($folder['dir'], $name, $data['bytes'])) {
+            return new WP_Error('seoprostack_brand_png', __('The uploads folder cannot be written to.', 'seoprostack'), array('status' => 500));
+        }
+        $id    = $key . '/' . $variant;
+        $saved = self::png_saved();
+        // A new site name gives a new file name: remove the old file.
+        if (isset($saved[$id]['name']) && $saved[$id]['name'] !== $name && self::png_name_ok($saved[$id]['name'])) {
+            self::filesystem()->delete($folder['dir'] . '/' . $saved[$id]['name']);
+        }
+        $saved[$id] = array('name' => $name, 'hash' => $hash, 'width' => $data['width'], 'height' => $data['height']);
+        update_option(self::PNG_OPTION, $saved, false);
+        if (!empty($request['last'])) {
+            self::purge();
+        }
+        return array(
+            'url'    => $folder['url'] . '/' . rawurlencode($name),
+            'width'  => $data['width'],
+            'height' => $data['height'],
+        );
+    }
+
+    /**
+     * The picture's fingerprint, when the request names a picture the block
+     * offers, as it is now.
+     *
+     * @param string $key     Picture.
+     * @param string $variant padded or transparent.
+     * @param string $sent    The fingerprint view.js drew it for.
+     * @return string|WP_Error
+     */
+    private static function png_request_hash($key, $variant, $sent) {
+        $targets = self::png_targets(self::palettes());
+        if (!isset($targets[$key]) || !in_array($variant, $targets[$key]['variants'], true)) {
+            return new WP_Error('seoprostack_brand_png', __('The block does not offer that picture.', 'seoprostack'), array('status' => 400));
+        }
+        $hash = self::png_fingerprint($targets[$key]);
+        if (!hash_equals($hash, $sent)) {
+            return new WP_Error('seoprostack_brand_png', __('The brand changed while the file was made. Reload the page to make it again.', 'seoprostack'), array('status' => 409));
+        }
+        return $hash;
+    }
+
+    /**
+     * Writes a file beside its place, then moves it there, so a link never
+     * gives half a file.
+     *
+     * @param string $dir   Folder (made if missing).
+     * @param string $name  File name.
+     * @param string $bytes Contents.
+     * @return bool
+     */
+    private static function png_write($dir, $name, $bytes) {
+        if (!wp_mkdir_p($dir)) {
+            return false;
+        }
+        $fs   = self::filesystem();
+        $temp = $dir . '/.' . $name . '.' . wp_generate_password(8, false) . '.tmp';
+        if ($fs->put_contents($temp, $bytes, 0644) && $fs->move($temp, $dir . '/' . $name, true)) {
+            return true;
+        }
+        $fs->delete($temp);
+        return false;
+    }
+
+    /**
+     * A data: URL or base64 PNG, checked and saved again without anything
+     * but the picture.
+     *
+     * @param string $png Data.
+     * @return array{bytes:string,width:int,height:int}|WP_Error
+     */
+    private static function png_decode($png) {
+        $bad = new WP_Error('seoprostack_brand_png', __('The file is not a PNG picture.', 'seoprostack'), array('status' => 400));
+        $png = preg_replace('#^data:image/png;base64,#', '', trim($png));
+        if (!is_string($png) || '' === $png) {
+            return $bad;
+        }
+        if (strlen($png) > self::PNG_MAX_BYTES * 4 / 3 + 4) {
+            return new WP_Error('seoprostack_brand_png', __('The file is too large.', 'seoprostack'), array('status' => 413));
+        }
+        $bytes = base64_decode($png, true); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- the browser sends the PNG it drew as base64.
+        $size  = false === $bytes ? null : self::png_size($bytes);
+        if (!$size) {
+            return $bad;
+        }
+        $clean = self::png_reencode($bytes);
+        if (false === $clean) {
+            return $bad;
+        }
+        return array('bytes' => $clean, 'width' => $size[0], 'height' => $size[1]);
+    }
+
+    /**
+     * A PNG's width and height, when it is one within the size limit.
+     *
+     * @param string $bytes File.
+     * @return array{0:int,1:int}|null
+     */
+    private static function png_size($bytes) {
+        if ("\x89PNG\r\n\x1a\n" !== substr($bytes, 0, 8)) {
+            return null;
+        }
+        $info = self::quietly(function () use ($bytes) {
+            return getimagesizefromstring($bytes);
+        });
+        if (!is_array($info) || IMAGETYPE_PNG !== $info[2]) {
+            return null;
+        }
+        $width  = (int) $info[0];
+        $height = (int) $info[1];
+        if (min($width, $height) < 1 || max($width, $height) > self::PNG_MAX_SIDE) {
+            return null;
+        }
+        return array($width, $height);
+    }
+
+    /**
+     * The PNG saved again by GD, which keeps only the picture; unchanged
+     * without GD.
+     *
+     * @param string $bytes File.
+     * @return string|false False when GD cannot read it.
+     */
+    private static function png_reencode($bytes) {
+        if (!function_exists('imagecreatefromstring') || !function_exists('imagepng')) {
+            return $bytes;
+        }
+        $image = self::quietly(function () use ($bytes) {
+            return imagecreatefromstring($bytes);
+        });
+        if (!$image) {
+            return false;
+        }
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        ob_start();
+        $ok    = imagepng($image, null, 9);
+        $clean = (string) ob_get_clean();
+        if (PHP_VERSION_ID < 80000) {
+            imagedestroy($image); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions -- frees memory before PHP 8.
+        }
+        return $ok && '' !== $clean ? $clean : false;
+    }
+
+    /**
+     * Runs a function without its PHP warnings: a file that is not a
+     * picture is reported by its result.
+     *
+     * @param callable $run Function.
+     * @return mixed Its result.
+     */
+    private static function quietly($run) {
+        set_error_handler('__return_true'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- restored straight after.
+        try {
+            return $run();
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    /**
+     * Whether a saved name is one png_name() makes, before it is deleted.
+     *
+     * @param string $name File name.
+     * @return bool
+     */
+    private static function png_name_ok($name) {
+        return (bool) preg_match('/^[a-z0-9-]+\.png$/', (string) $name);
+    }
+
+    /**
+     * WordPress's direct file access, which needs no credentials.
+     *
+     * @return WP_Filesystem_Direct
+     */
+    private static function filesystem() {
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        return new WP_Filesystem_Direct(null);
+    }
+
+    /**
+     * For the CLI: how many PNG files are saved and up to date.
+     *
+     * @return array{current:int,saved:int,total:int}
+     */
+    public static function png_status() {
+        $targets = self::png_targets(self::palettes());
+        $saved   = self::png_saved();
+        $folder  = self::png_folder();
+        $out     = array('current' => 0, 'saved' => 0, 'total' => 0);
+        foreach ($targets as $key => $target) {
+            $hash = self::png_fingerprint($target);
+            foreach ($target['variants'] as $variant) {
+                $out['total']++;
+                $id = $key . '/' . $variant;
+                if (!$folder || empty($saved[$id]['name']) || !is_file($folder['dir'] . '/' . $saved[$id]['name'])) {
+                    continue;
+                }
+                $out['saved']++;
+                $out['current'] += isset($saved[$id]['hash']) && $saved[$id]['hash'] === $hash ? 1 : 0;
+            }
+        }
+        return $out;
+    }
+
     /**
      * Colours.
      *
@@ -1054,7 +1674,10 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 $html .= '<span>' . esc_html(sprintf(__('Weights: %s', 'seoprostack'), implode(', ', $font['weights']))) . '</span>';
             }
             if ($font['google']) {
-                $html .= '<span><a href="' . esc_url('https://fonts.google.com/specimen/' . rawurlencode(str_replace(' ', '+', $font['name']))) . '" rel="noopener">' . esc_html__('Get it from Google Fonts (free)', 'seoprostack') . '</a></span>';
+                $external = '<svg class="' . $c . '__external-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+                $html    .= '<span><a class="' . $c . '__external" href="' . esc_url('https://fonts.google.com/specimen/' . str_replace('%20', '+', rawurlencode($font['name']))) . '" target="_blank" rel="noopener noreferrer">'
+                    . esc_html__('Get it from Google Fonts (free)', 'seoprostack') . $external
+                    . '<span class="screen-reader-text">' . esc_html__('(opens in a new tab)', 'seoprostack') . '</span></a></span>';
             }
             $html .= '</p></div>';
         }
@@ -1272,6 +1895,59 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     }
 
     /**
+     * Whether link text starts with "About", or the site's word for it.
+     *
+     * @param string $text Link text, with or without markup.
+     * @return bool
+     */
+    private static function about_text($text) {
+        $text  = trim(html_entity_decode(wp_strip_all_tags((string) $text), ENT_QUOTES, 'UTF-8'));
+        // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WordPress's own translation of the word.
+        $words = array_unique(array('About', (string) __('About', 'default')));
+        foreach ($words as $word) {
+            if ('' !== $word && 1 === preg_match('/^' . preg_quote($word, '/') . '(?![\p{L}\p{N}])/iu', $text)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether a link is the About link: an About path, or text starting
+     * with "About".
+     *
+     * @param string   $href  Link address.
+     * @param string   $text  Link text.
+     * @param string[] $about About paths.
+     * @return bool
+     */
+    private static function is_about_link($href, $text, array $about) {
+        return in_array(self::path($href), $about, true) || self::about_text($text);
+    }
+
+    /**
+     * Whether a menu item is the About link: by address or title, or a
+     * page whose slug starts with "about".
+     *
+     * @param object   $item  Menu item.
+     * @param string[] $about About paths.
+     * @return bool
+     */
+    private static function is_about_item($item, array $about) {
+        $fields = get_object_vars($item);
+        $url    = isset($fields['url']) ? (string) $fields['url'] : '';
+        $title  = isset($fields['title']) ? (string) $fields['title'] : '';
+        $object = isset($fields['object_id']) ? (int) $fields['object_id'] : 0;
+        if (self::is_about_link($url, $title, $about)) {
+            return true;
+        }
+        if (isset($fields['object']) && 'page' === $fields['object'] && $object > 0) {
+            return 0 === strpos((string) get_post_field('post_name', $object), 'about');
+        }
+        return false;
+    }
+
+    /**
      * The footer's places for links: block widgets and nav menus in the
      * footer widget areas, and the footer menu location.
      *
@@ -1325,21 +2001,21 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 if (((int) $item->object_id === (int) $page->ID && 'page' === $item->object) || self::path($item->url) === $target) {
                     return array('status' => 'exists', 'message' => sprintf('The footer menu "%s" already links to the page.', self::menu_name($menu)));
                 }
-                if (!$found && in_array(self::path($item->url), $about, true)) {
+                if (!$found && self::is_about_item($item, $about)) {
                     $found = array('menu', $menu, $item);
                 }
             }
         }
         foreach ($places['blocks'] as $number) {
             $content = isset($blocks[$number]['content']) ? (string) $blocks[$number]['content'] : '';
-            if (preg_match_all('/<a\b[^>]*\bhref=(["\'])(.*?)\1/i', $content, $links)) {
+            if (preg_match_all('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', $content, $links)) {
                 foreach ($links[2] as $href) {
                     if (self::path($href) === $target) {
                         return array('status' => 'exists', 'message' => sprintf('The footer widget block-%d already links to the page.', $number));
                     }
                 }
-                foreach ($links[2] as $href) {
-                    if (!$found && in_array(self::path($href), $about, true)) {
+                foreach ($links[2] as $at => $href) {
+                    if (!$found && self::is_about_link($href, $links[3][$at], $about)) {
                         $found = array('block', $number, null);
                     }
                 }
@@ -1448,7 +2124,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             }
             $html = isset($block['innerHTML']) ? (string) $block['innerHTML'] : '';
             // Only a block holding the one link (a paragraph or list item) is copied, never classic HTML.
-            if (empty($block['blockName']) || in_array($block['blockName'], array('core/html', 'core/freeform', 'core/shortcode'), true) || 1 !== preg_match_all('/<a\b/i', $html) || !preg_match('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>.*?<\/a>/is', $html, $m) || !in_array(self::path($m[2]), $about, true)) {
+            if (empty($block['blockName']) || in_array($block['blockName'], array('core/html', 'core/freeform', 'core/shortcode'), true) || 1 !== preg_match_all('/<a\b/i', $html) || !preg_match('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', $html, $m) || !self::is_about_link($m[2], $m[3], $about)) {
                 continue;
             }
             $link = '<a href="' . esc_url($href) . '">' . esc_html($label) . '</a>';

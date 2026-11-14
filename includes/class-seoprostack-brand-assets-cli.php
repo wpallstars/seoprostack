@@ -56,6 +56,8 @@ class SEOProStack_Brand_Assets_CLI {
             }, array_keys($palettes), $palettes))),
             array('item' => 'fonts', 'value' => $fonts['heading']['name'] . ' / ' . $fonts['body']['name']),
         );
+        $png    = SEOProStack_Brand_Assets::png_status();
+        $rows[] = array('item' => 'png links', 'value' => sprintf('%d of %d saved, %d up to date', $png['saved'], $png['total'], $png['current']) . ($png['current'] < $png['total'] ? ' (an editor opening the page makes the rest)' : ''));
         WP_CLI\Utils\format_items(isset($assoc_args['format']) ? $assoc_args['format'] : 'table', $rows, array('item', 'value'));
     }
 

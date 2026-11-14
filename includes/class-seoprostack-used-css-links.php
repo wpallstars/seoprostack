@@ -118,6 +118,34 @@ final class SEOProStack_Used_Css_Links {
      * @return string Empty when it is not one.
      */
     public static function file($href, array $attrs = array()) {
+        $missing = false;
+        return self::resolve($href, $attrs, $missing);
+    }
+
+    /**
+     * Whether an address is a handled stylesheet whose file is not there
+     * (file() gave empty for that reason, not because it is not handled).
+     *
+     * @param string $href  Address.
+     * @param array  $attrs The link's attributes.
+     * @return bool
+     */
+    public static function missing($href, array $attrs = array()) {
+        $missing = false;
+        self::resolve($href, $attrs, $missing);
+        return $missing;
+    }
+
+    /**
+     * The local file of a handled stylesheet, and whether it was handled but
+     * not there.
+     *
+     * @param string $href    Address.
+     * @param array  $attrs   The link's attributes.
+     * @param bool   $missing Set when the address is handled but its file is not there.
+     * @return string Empty when it is not one.
+     */
+    private static function resolve($href, array $attrs, &$missing) {
         $path = self::path($href);
         if ('' === $path) {
             return '';
@@ -125,7 +153,14 @@ final class SEOProStack_Used_Css_Links {
         foreach (self::roots() as $url_path => $dir) {
             if (0 === strpos($path, $url_path)) {
                 $file = $dir . substr($path, strlen($url_path));
-                return (self::handled($file) || self::kadence_fonts($attrs, $file)) && is_file($file) ? $file : '';
+                if (!self::handled($file) && !self::kadence_fonts($attrs, $file)) {
+                    return '';
+                }
+                if (is_file($file)) {
+                    return $file;
+                }
+                $missing = true;
+                return '';
             }
         }
         return '';

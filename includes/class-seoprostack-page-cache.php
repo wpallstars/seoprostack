@@ -158,6 +158,13 @@ final class SEOProStack_Page_Cache {
      * @since 1.3.145
      */
     public static function purge_all() {
+        /**
+         * Fires when every cached page of this site is purged because a
+         * setting changed what every page holds (not after an update: that
+         * is seoprostack_page_cache_purge). For page caches and CDNs SEO Pro
+         * Stack does not purge through its own code.
+         */
+        do_action('seoprostack_page_cache_purge_all');
         $left = array();
         foreach (self::CACHES as $file => $method) {
             if (SEOProStack_Plugin_Loader::is_active($file) && !self::$method()) {

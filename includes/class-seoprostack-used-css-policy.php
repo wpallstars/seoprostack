@@ -35,6 +35,50 @@ final class SEOProStack_Used_Css_Policy {
         'script' => array('script-src-elem', 'script-src', 'default-src'),
     );
 
+    /** Seconds a page that lost its optimisation may stay in a page cache (GitHub issue #1603). */
+    const DEGRADED_TTL = 300;
+
+    /** Whether this request's page already has the short cache time. */
+    private static $degraded = false;
+
+    /**
+     * A page that lost its optimisation for a reason that may not repeat (a
+     * stylesheet or measurements file that could not be read, a regex limit):
+     * give it a short cache time, so the next build replaces it instead of
+     * the degraded copy staying for the cache's whole TTL. LiteSpeed Cache's
+     * custom TTL applies only to a page it caches anyway; other page caches
+     * are told not to store it (DONOTCACHEPAGE).
+     *
+     * @param string $reason Why, for LiteSpeed Cache's log.
+     */
+    public static function degraded($reason) {
+        if (self::$degraded) {
+            return;
+        }
+        self::$degraded = true;
+        if (has_action('litespeed_control_set_ttl')) {
+            do_action('litespeed_control_set_ttl', self::DEGRADED_TTL, 'SEO Pro Stack: ' . $reason); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's hook.
+        } elseif (!defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- the page cache plugins' own constant.
+        }
+        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            error_log('[SEO Pro Stack] A page lost an optimisation, so it is cached briefly: ' . $reason);
+        }
+    }
+
+    /**
+     * An HTML comment naming why a rewrite was skipped, for the end of the
+     * page (as Used CSS's summary), so the next occurrence names its cause.
+     *
+     * @param string $feature Feature name.
+     * @param string $reason  Why it was skipped.
+     * @return string
+     */
+    public static function marker($feature, $reason) {
+        return "\n<!-- SEO Pro Stack " . str_replace('--', '-', $feature . ' skipped: ' . $reason) . ' -->';
+    }
+
     /**
      * Whether every enforced policy allows an inline `<style>` and onload (and
      * with $script, an inline `<script>` element).

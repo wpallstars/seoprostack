@@ -211,7 +211,7 @@ final class SEOProStack_Litespeed {
      *
      * @return bool
      */
-    private static function running() {
+    public static function running() {
         if (defined('LSCWP_V') && !(is_multisite() && ms_is_switched())) {
             return true;
         }
@@ -704,6 +704,23 @@ final class SEOProStack_Litespeed {
             return trim((string) get_blog_option(get_main_site_id(), self::PREFIX . 'server_ip', ''));
         }
         return trim((string) self::conf('server_ip', ''));
+    }
+
+    /**
+     * A LiteSpeed Cache setting as it applies to the current site: through
+     * its API where it can (primary site, constant and network rules), else
+     * as stored (conf()).
+     *
+     * @phpstan-impure Depends on the current blog after switch_to_blog().
+     * @param string $id      Setting without its prefix.
+     * @param mixed  $default Value when none is stored.
+     * @return mixed
+     */
+    public static function effective_conf($id, $default) {
+        if ((!is_multisite() || !ms_is_switched()) && has_filter('litespeed_conf')) {
+            return apply_filters('litespeed_conf', $id); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache API.
+        }
+        return self::conf($id, $default);
     }
 
     /**
