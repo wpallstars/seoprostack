@@ -25,7 +25,10 @@ final class SEOProStack_Account_Signup {
      * Register hooks.
      */
     public static function boot() {
-        add_action('wp_loaded', array(__CLASS__, 'process'), 20);
+        // Front end only (SEOProStack_Account_Forms::boot()).
+        if (!wp_doing_ajax()) {
+            add_action('wp_loaded', array(__CLASS__, 'process'), 20);
+        }
         add_action('woocommerce_created_customer', array(__CLASS__, 'welcome_email'), 10, 3);
     }
 

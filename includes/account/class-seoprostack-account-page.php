@@ -68,7 +68,8 @@ final class SEOProStack_Account_Page {
                 )
             );
             foreach ($ids as $found) {
-                if (has_shortcode((string) get_post_field('post_content', (int) $found), $code)) {
+                // Not has_shortcode(): it is false until the shortcode is registered, and this runs before.
+                if (preg_match('/' . get_shortcode_regex(array($code)) . '/', (string) get_post_field('post_content', (int) $found))) {
                     return (int) $found;
                 }
             }

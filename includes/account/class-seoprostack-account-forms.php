@@ -37,10 +37,16 @@ final class SEOProStack_Account_Forms {
         add_action('woocommerce_account_content', array(__CLASS__, 'content'));
         // Before fields other plugins add at 20, where WooCommerce's text is.
         add_action('woocommerce_register_form', array(__CLASS__, 'privacy_text'), 19);
-        SEOProStack_Account_Login::boot();
-        SEOProStack_Account_Signup::boot();
-        SEOProStack_Account_Password_Reset::boot();
         SEOProStack_Account_Details::boot();
+        SEOProStack_Account_Signup::boot();
+        // The forms post to the account page, never to admin-ajax.php, where
+        // is_admin() is true and Simple Cloudflare Turnstile does not check
+        // them: they are taken on the front end only.
+        if (wp_doing_ajax()) {
+            return;
+        }
+        SEOProStack_Account_Login::boot();
+        SEOProStack_Account_Password_Reset::boot();
     }
 
     /**

@@ -32,6 +32,33 @@ final class SEOProStack_Account_Endpoints {
         add_action('init', array(__CLASS__, 'add'), 10);
         add_action('init', array(__CLASS__, 'maybe_flush'), 99);
         add_action('parse_request', array(__CLASS__, 'parse_request'), 0);
+        add_action('pre_get_posts', array(__CLASS__, 'front_page'));
+    }
+
+    /**
+     * When My Account is the static front page, /edit-account/ and the
+     * other tabs are at the site's root, where WordPress shows the posts
+     * page: show My Account, as WC_Query::pre_get_posts() does.
+     *
+     * @param WP_Query $query Query.
+     */
+    public static function front_page($query) {
+        if (!$query instanceof WP_Query || !$query->is_main_query() || !$query->is_home() || $query->is_posts_page
+            || 'page' !== get_option('show_on_front')) {
+            return;
+        }
+        $front = (int) get_option('page_on_front');
+        $vars  = self::get_all();
+        $asked = is_array($query->query) ? array_keys($query->query) : array();
+        if ($front < 1 || SEOProStack_Account::get_page_id() !== $front
+            || !array_intersect($asked, array_merge(array_keys($vars), array_values($vars)))) {
+            return;
+        }
+        $query->is_page     = true;
+        $query->is_home     = false;
+        $query->is_singular = true;
+        $query->set('page_id', $front);
+        add_filter('redirect_canonical', '__return_false');
     }
 
     /**

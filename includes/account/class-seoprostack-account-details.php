@@ -93,7 +93,7 @@ final class SEOProStack_Account_Details {
         $user->first_name   = self::field('account_first_name');
         $user->last_name    = self::field('account_last_name');
         $user->display_name = self::field('account_display_name');
-        if (is_email($user->display_name)) {
+        if (is_email($user->display_name) && (!$current || $current->display_name !== $user->display_name)) {
             SEOProStack_Account_Notices::add(__('Display name cannot be changed to email address due to privacy concern.', 'seoprostack'), 'error');
         }
         self::check_required();
@@ -107,7 +107,11 @@ final class SEOProStack_Account_Details {
         if (SEOProStack_Account_Notices::get_count('error') > 0) {
             return;
         }
-        wp_update_user($user);
+        $saved = wp_update_user($user);
+        if (is_wp_error($saved)) {
+            SEOProStack_Account_Notices::add($saved->get_error_message(), 'error');
+            return;
+        }
         SEOProStack_Account_Notices::add(__('Account details changed successfully.', 'seoprostack'));
         do_action('woocommerce_save_account_details', $user->ID);
         wp_safe_redirect(SEOProStack_Account_Endpoints::url('edit-account'));

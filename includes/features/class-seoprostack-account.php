@@ -110,13 +110,14 @@ class SEOProStack_Account extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        // Before available(): a page published with the shortcode later is found.
+        add_action('save_post_page', array('SEOProStack_Account_Page', 'forget'));
+        add_action('deleted_post', array('SEOProStack_Account_Page', 'forget'));
         if (!self::available()) {
             return;
         }
         SEOProStack_Account_Endpoints::boot();
         SEOProStack_Account_Links::boot();
-        add_action('save_post_page', array('SEOProStack_Account_Page', 'forget'));
-        add_action('deleted_post', array('SEOProStack_Account_Page', 'forget'));
 
         if (is_admin() && !wp_doing_ajax()) {
             return;
@@ -185,6 +186,26 @@ class SEOProStack_Account extends SEOProStack_Feature {
     public static function page_url() {
         $id = self::get_page_id();
         return $id ? (string) get_permalink($id) : '';
+    }
+
+    /**
+     * Where the account page answers, for Load plugins only where needed,
+     * which loads every plugin there (other plugins' tabs and form checks
+     * use hooks its learning does not see): the page's path from the
+     * site's address ('' when it is the front page) and the tabs' slugs.
+     * Empty while this does not serve My Account.
+     *
+     * @return array{path?: string, slugs?: string[]}
+     */
+    public static function loader_paths() {
+        if (!self::available()) {
+            return array();
+        }
+        $id = self::get_page_id();
+        return array(
+            'path'  => ('page' === get_option('show_on_front') && (int) get_option('page_on_front') === $id) ? '' : (string) get_page_uri($id),
+            'slugs' => array_values(SEOProStack_Account_Endpoints::get_all()),
+        );
     }
 
     /**

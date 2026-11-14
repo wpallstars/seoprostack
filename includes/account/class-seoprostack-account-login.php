@@ -50,12 +50,12 @@ final class SEOProStack_Account_Login {
             self::failed('<strong>' . esc_html__('Error:', 'seoprostack') . '</strong> ' . esc_html__('Username is required.', 'seoprostack'));
             return;
         }
-        self::join_site($creds['user_login']);
         $user = wp_signon(apply_filters('woocommerce_login_credentials', $creds), is_ssl());
         if (is_wp_error($user)) {
             self::failed($user->get_error_message());
             return;
         }
+        self::join_site($user);
         $redirect = remove_query_arg('wc_error', self::get_redirect());
         wp_redirect(wp_validate_redirect((string) apply_filters('woocommerce_login_redirect', $redirect, $user), SEOProStack_Account::page_url())); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- validated with wp_validate_redirect().
         exit;
@@ -63,17 +63,13 @@ final class SEOProStack_Account_Login {
 
     /**
      * On a network, an account from another site joins this one, as with
-     * WooCommerce.
+     * WooCommerce; only once its password was accepted.
      *
-     * @param string $login Username or email address.
+     * @param WP_User $user The account that logged in.
      */
-    private static function join_site($login) {
-        if (!is_multisite()) {
-            return;
-        }
-        $found = get_user_by(is_email($login) ? 'email' : 'login', $login);
-        if ($found && !is_user_member_of_blog($found->ID, get_current_blog_id())) {
-            add_user_to_blog(get_current_blog_id(), $found->ID, SEOProStack_Account_Customer::get_role());
+    private static function join_site(WP_User $user) {
+        if (is_multisite() && !is_user_member_of_blog($user->ID, get_current_blog_id())) {
+            add_user_to_blog(get_current_blog_id(), $user->ID, SEOProStack_Account_Customer::get_role());
         }
     }
 
