@@ -2753,6 +2753,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Fixed (**Brand assets page**): a logo replaced with Replace media's "Keep the file name" gets its PNG files drawn again.
 - Fixed (**Dark mode**, #1650): Meta for WordPress's settings screen (Settings â†’ Meta) is dark: the dark fallback now reads stylesheets whose address has `../` in it, as Meta's does, and its text, links, badges, picker and Conversion API test fields take the dark colours.
 - Fixed (**Dark mode**, #1650): AffiliateWP's header shows its logo in light colours and its notifications and help buttons readably.
+- Fixed (**Brand assets page**, #1623): the page, its block and the footer link are translated in every bundled language.
 
 ### 1.3.218
 

@@ -1,0 +1,45 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-assets\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ro_RO",
+                "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
+            },
+            "Logos": [
+                "Logouri"
+            ],
+            "Colours": [
+                "Culori"
+            ],
+            "Fonts": [
+                "Fonturi"
+            ],
+            "Formatting": [
+                "Formatare"
+            ],
+            "Logo files, the logo with the site title where the header shows it, icons and the email signature banner.": [
+                "Fi\u0219ierele logoului, logoul cu titlul site-ului acolo unde antetul \u00eel afi\u0219eaz\u0103, pictograme \u0219i bannerul pentru semn\u0103tura de e-mail."
+            ],
+            "Light mode colours, and dark mode colours when dark mode is on.": [
+                "Culorile modului luminos \u0219i, c\u00e2nd modul \u00eentunecat este activ, ale modului \u00eentunecat."
+            ],
+            "Heading and body fonts.": [
+                "Fonturile titlurilor \u0219i ale textului de baz\u0103."
+            ],
+            "Heading, text, quote and button styles.": [
+                "Stilurile titlurilor, textului, citatelor \u0219i butoanelor."
+            ],
+            "Where it comes from": [
+                "De unde provine"
+            ],
+            "Change the logo, colours and fonts in Appearance \u2192 Customize (Header \u2192 Logo, Colors & Fonts). This block shows them as they are.": [
+                "Schimb\u0103 logoul, culorile \u0219i fonturile \u00een Aspect \u2192 Personalizare (Antet \u2192 Logo, Culori \u0219i fonturi). Acest bloc le afi\u0219eaz\u0103 a\u0219a cum sunt."
+            ]
+        }
+    }
+}
