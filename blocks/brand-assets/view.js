@@ -17,8 +17,11 @@
 	var ROOT = '.wp-block-seoprostack-brand-assets';
 	/** PNG files are drawn at this many times the header's size. */
 	var SCALE = 3;
-	/** Email signature banner's largest size, in CSS pixels; drawn at twice the size. */
-	var BANNER = { width: 600, height: 150, scale: 2 };
+	/**
+	 * Email signature banner's largest size, in CSS pixels; drawn at twice
+	 * the size. space: the share of the even space around the logo kept.
+	 */
+	var BANNER = { width: 600, height: 150, scale: 2, space: 0.5 };
 
 	function say(button, text) {
 		var root = button.closest(ROOT);
@@ -488,13 +491,13 @@
 	/*
 	 * The lockup on the light background, fitted inside a 600 by 150 banner
 	 * (never enlarged), then cropped so the space around it is the same on
-	 * every side: the smaller of the space above it and beside it.
+	 * every side: half the smaller of the space above it and beside it.
 	 */
 	function bannerCanvas(lockup, parts) {
 		var inner = { width: BANNER.width - 48, height: BANNER.height - 32 };
 		var fit = Math.min(1, inner.width / parts.width, inner.height / parts.height);
 		var drawn = { width: parts.width * fit, height: parts.height * fit };
-		var pad = Math.min((BANNER.width - drawn.width) / 2, (BANNER.height - drawn.height) / 2);
+		var pad = Math.min((BANNER.width - drawn.width) / 2, (BANNER.height - drawn.height) / 2) * BANNER.space;
 		var width = Math.min(BANNER.width, Math.round(drawn.width + pad * 2));
 		var height = Math.min(BANNER.height, Math.round(drawn.height + pad * 2));
 		var canvas = document.createElement('canvas');
@@ -582,8 +585,8 @@
 	 * one at a time, and saved to the site, whose answer gives the link.
 	 */
 	var PNG = {
-		/** Space around a padded picture, as a share of its longest side. */
-		pad: 0.125,
+		/** Space around a padded picture, the same on every side, as a share of its longest side. */
+		pad: 0.0625,
 		/** Longest side of a bitmap logo's file (never enlarged), and of an SVG logo's. */
 		maxSide: 2048,
 		svgSide: 1200
