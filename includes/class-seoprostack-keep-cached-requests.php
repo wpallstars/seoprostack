@@ -35,6 +35,14 @@ final class SEOProStack_Keep_Cached_Requests {
     /** Answers that mean the server refuses requests for now (bot protection, limits, maintenance). */
     const REFUSED = array(403, 429, 503);
 
+    /** Transients of refresh_if_unoptimised(): when the home page was last purged, and last found fine or checked. */
+    const PURGED = 'seoprostack_kc_ucss_purged';
+    const CHECKED = 'seoprostack_kc_ucss_checked';
+
+    /** Seconds before the home page may be purged again, and before it is checked again. */
+    const REPURGE_WINDOW = 6 * HOUR_IN_SECONDS;
+    const CHECKED_WINDOW = HOUR_IN_SECONDS;
+
     /** The server answered 428 to LiteSpeed Cache's crawler: the host turned it off. */
     private static $crawler_off = false;
 
@@ -215,6 +223,53 @@ final class SEOProStack_Keep_Cached_Requests {
             remove_action('http_api_curl', $resolve);
         }
         return $html;
+    }
+
+    /**
+     * With Used CSS on and a LiteSpeed page cache, check that the cached home
+     * page carries Used CSS (its link addresses waiting in
+     * data-seoprostack-href, or its summary comment). A copy built while a
+     * stylesheet could not be read has neither and would stay cached for the
+     * cache's whole TTL: purge it and open it again, once. At most once each
+     * REPURGE_WINDOW, so a home page that never gets Used CSS (every
+     * stylesheet kept as it is) cannot start a loop, and a page found fine is
+     * not fetched again within CHECKED_WINDOW unless $force (GitHub issue #1603).
+     *
+     * @param bool $force Check even if a check ran lately (after a fill).
+     * @return bool Whether the page was purged.
+     */
+    public static function refresh_if_unoptimised($force = false) {
+        if (!class_exists('SEOProStack_Used_Css') || !SEOProStack_Used_Css::enabled() || SEOProStack_Used_Css::litespeed_css() || 'litespeed' !== self::page_cache()) {
+            return false;
+        }
+        if (false !== get_transient(self::PURGED) || (!$force && false !== get_transient(self::CHECKED))) {
+            return false;
+        }
+        $url  = home_url('/');
+        $html = self::page_html($url);
+        if ('' === $html || false === stripos($html, '</head>')) {
+            return false; // Nothing learned: not a page, refused or no answer.
+        }
+        set_transient(self::CHECKED, time(), self::CHECKED_WINDOW);
+        if (false !== strpos($html, 'data-seoprostack-href') || false !== strpos($html, 'SEO Pro Stack Used CSS:')) {
+            return false;
+        }
+        set_transient(self::PURGED, time(), self::REPURGE_WINDOW);
+        // The front page's and the posts page's own tags: purges the home page whichever it is.
+        do_action('litespeed_purge', 'F'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's hook.
+        do_action('litespeed_purge', 'H'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache's hook.
+        if (class_exists('SEOProStack_Keep_Pages_Cached')) {
+            // The check's page carries the home page's tags: count it not held, as a purge from outside would not start a fill of the whole site from this one purge.
+            update_option(SEOProStack_Keep_Pages_Cached::HELD, array('held' => false, 'since' => time()), false);
+        }
+        if (class_exists('SEOProStack_Keep_Cached_Queue')) {
+            SEOProStack_Keep_Cached_Queue::add(array($url), 30);
+        }
+        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            error_log('[SEO Pro Stack] The cached home page had no Used CSS: purged it to be built again.');
+        }
+        return true;
     }
 
     /**

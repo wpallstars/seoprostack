@@ -2659,6 +2659,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fixed (**Load the CSS each page uses first**, **Font fallbacks**, **Keep pages cached**; #1603): a page built while a stylesheet or the font measurements could not be read is no longer cached for the page cache’s whole lifetime. Where a rewrite is skipped for a reason that may not repeat (a stylesheet file missing, empty or unreadable, the font measurements unreadable, a regex limit), the page gets a short cache time (LiteSpeed Cache’s custom TTL of 5 minutes; other page caches are told not to store it) and a comment at its end names the cause. Keep pages cached also checks, after a fill and in its five-minute check (at most hourly), that the cached home page carries Used CSS, and if not purges it once (at most once every 6 hours) and fills it again. Normal pages are unchanged.
+
 ### 1.3.212
 
 - Changed (**Watermark pictures**, **Keep Rank Math’s site identity in sync**; #1586): the picture chosen as **Default social image** is never watermarked, like the site icon and logos, so link previews show the site’s card without a mark. Choosing a marked picture there puts its unmarked original back and ticks **Never watermark** on it.
