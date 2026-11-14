@@ -406,8 +406,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
 
     /**
      * Where visitors log in and register to keep their lists. Registration
-     * is WooCommerce's My Account form when it takes registrations, else
-     * WordPress's own while the site allows it, else none.
+     * is WooCommerce's My Account form when it takes registrations (or My
+     * Account without WooCommerce's, when it does), else WordPress's own
+     * while the site allows it, else none.
      *
      * Filters: `seoprostack_lists_login_url`, `seoprostack_lists_register_url`
      * (return '' to leave the link out).
@@ -418,6 +419,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         $register = '';
         if (function_exists('wc_get_page_permalink') && 'yes' === get_option('woocommerce_enable_myaccount_registration')) {
             $register = (string) wc_get_page_permalink('myaccount');
+        } elseif (SEOProStack_Account::available() && SEOProStack_Account::signups_open()) {
+            $register = SEOProStack_Account::page_url();
         } elseif (get_option('users_can_register') || (is_multisite() && in_array(get_site_option('registration'), array('user', 'all'), true))) {
             $register = wp_registration_url();
         }
