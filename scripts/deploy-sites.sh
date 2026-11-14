@@ -94,6 +94,13 @@
 # there is WARN rechecked after host kill (137); killed again, the site is
 # UNVERIFIED with a recheck command and no restore, and the run exits 4 when
 # nothing failed.
+# A plugin cron event the host killed (137, nothing else printed) on its
+# final try is held back the same way, and never run again (a run
+# reschedules a recurring event early): the recheck runs the load check and
+# the cron list only. A killed hook still scheduled is WARN cron HOOK killed
+# by host (137), still scheduled; a one-off no longer listed cannot be
+# confirmed: UNVERIFIED with a recheck command and no restore (exit 4). A
+# fatal error, a database error or any other exit code stays a FAIL.
 # Host names, folders and backups stay out of the repository: only arguments.
 #
 # --apply holds a per-plugin lock on the host (~/.{slug}-deploy/.lock, made
@@ -210,6 +217,20 @@ remote_words() {
 remote() {
 	local command="$1"
 	ssh -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=4 "$HOST" "$command" || return $?
+	return 0
+}
+
+# The remote part as one stream: DEPLOY_REMOTE_BUNDLED=1, the function
+# modules (deploy-remote-*.sh), then deploy-remote.sh, which runs last. The
+# host gets one file, so deploy-remote.sh does not source the modules there.
+remote_bundle() {
+	local module
+	printf 'DEPLOY_REMOTE_BUNDLED=1\n'
+	for module in "$SCRIPT_DIR"/lib/deploy-remote-*.sh; do
+		cat "$module" || return 1
+		printf '\n'
+	done
+	cat "$REMOTE_PART" || return 1
 	return 0
 }
 
@@ -590,8 +611,10 @@ dry_run() {
 	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" "DEPLOY_CDN_PURGE=$([[ -n "$CF_TOKEN" ]] && printf 1 || printf 0)" bash -s -- list "$SLUG" "$PARENT" "--version=$VERSION" ${DOWNGRADE_ARGS[@]+"${DOWNGRADE_ARGS[@]}"} ${SKIPS[@]+"${SKIPS[@]}"})"
 	printf '\nInstalls of %s on %s (name, version, kind, folder):\n' "$SLUG" "$HOST"
 	set +e
-	remote "$command" <"$REMOTE_PART" | stream_filter
-	status="${PIPESTATUS[0]}"
+	remote_bundle | remote "$command" | stream_filter
+	local statuses=("${PIPESTATUS[@]}")
+	status="${statuses[0]}"
+	[[ "$status" -ne 0 ]] || status="${statuses[1]}"
 	set -e
 	[[ "$status" -eq 0 ]] || die "the dry run on $HOST failed"
 	printf '\nDry run: nothing changed. Run again with --apply to install %s.\n' "$TAG"
@@ -677,7 +700,7 @@ apply() {
 		die "cannot make a private folder on $HOST"
 	[[ "$dir" == /* ]] || die "unexpected folder from $HOST: $dir"
 	remote "umask 077; cat >$(remote_words "$dir/$SLUG-$VERSION.zip")" <"$ZIP" || die "cannot copy the zip to $HOST"
-	remote "umask 077; cat >$(remote_words "$dir/deploy-remote.sh")" <"$REMOTE_PART" || die "cannot copy the remote part to $HOST"
+	remote_bundle | remote "umask 077; cat >$(remote_words "$dir/deploy-remote.sh")" || die "cannot copy the remote part to $HOST"
 	remote "chmod 600 $(remote_words "$dir/$SLUG-$VERSION.zip" "$dir/deploy-remote.sh")" || die "cannot set the files' mode on $HOST"
 	# The ignore strings go as a file, one per line, so any text reaches the
 	# remote part unchanged, with no quoting for the host's shell.
@@ -702,7 +725,7 @@ apply() {
 		exit 3
 	fi
 	if [[ "$status" -eq 4 ]]; then
-		printf '\nDeployed %s on %s, but %s site(s) are UNVERIFIED: the host killed WP-CLI (exit 137) on the retry and again at the end-of-run recheck. Nothing failed and no restore is needed: when the host is quieter, run each recheck command above.\n' \
+		printf '\nDeployed %s on %s, but %s site(s) are UNVERIFIED: the host killed WP-CLI (exit 137) on the retry and again at the end-of-run recheck, or killed a cron event that could not be confirmed afterwards. Nothing failed and no restore is needed: when the host is quieter, run each recheck command above.\n' \
 			"$TAG" "$HOST" "$(grep -c '^    recheck: ' "$TMP_DIR/apply.out" || true)"
 		prune_host "$TAG-$stamp"
 		return 4
