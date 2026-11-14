@@ -1157,6 +1157,16 @@ WooCommerce loads its scripts and styles on every page, so that add-to-cart butt
 - While WooCommerce is in **Coming soon** mode (even for store pages only), it adds its coming-soon page's fonts, Inter and Cardo, to every page. Where the page also loads Inter another way, such as the Kadence theme's Inter, browsers download WooCommerce's 327 KB Inter for every weight instead of the theme's smaller files. With this on, a font WooCommerce adds is left out of pages that already load that font, so text keeps the same font; a font only WooCommerce gives stays, and the coming-soon screen keeps its fonts (#1447).
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 
+### My Account without WooCommerce (Content)
+
+A site that kept WooCommerce only for its My Account page (log in, sign up, lost password, account details and the tabs other plugins add) loads a shop's code on every request. With this on (the default), My Account keeps working once WooCommerce is deactivated, on the page WooCommerce made (or any page with the `[seoprostack_account]` shortcode), with the same address, tabs and look. Does nothing while WooCommerce is active.
+
+- WooCommerce's markup, classes, form fields, nonces and hooks, so tabs other plugins add (`woocommerce_get_query_vars`, `woocommerce_account_menu_items`, `woocommerce_account_{endpoint}_endpoint`, `woocommerce_endpoint_{endpoint}_title`) and the fields and checks they add to its forms (`woocommerce_register_form`, `woocommerce_register_post`, `woocommerce_created_customer`, `woocommerce_edit_account_form`, `woocommerce_save_account_details_errors`, `woocommerce_save_account_details`, `lostpassword_post`, `validate_password_reset`) keep working. Simple Cloudflare Turnstile's WooCommerce login, register, reset and account checks keep working with their own switches.
+- WooCommerce's settings are kept and read: the endpoint slugs, "Generate username" and "Generate password", the privacy text and the New account email switch. **People can sign up** starts as WooCommerce's "Allow customers to create an account on the My account page".
+- The Kadence theme's account layout (navigation position, avatar and its WooCommerce styles) looks the same. The password strength meter, page cache exclusion and logout confirmation work as WooCommerce's.
+- Orders, Downloads, Addresses and Payment methods are the shop's and need WooCommerce: keep it active on a site that sells.
+- Other plugins check `SEOProStack_Account::available()` and use `page_url()`, `endpoint_url()`, `account_endpoint_url()`, `is_account_page()` and `add_notice()` where they would use WooCommerce's functions. Filters: `seoprostack_account_page`, `seoprostack_account_role`, `seoprostack_account_password_line`, `seoprostack_account_min_password_strength`.
+
 ### Lighter Tutor LMS pages (Speed)
 
 Tutor LMS loads its styles and scripts on every page, and through its main script React, ReactDOM and moment; the Kadence theme adds its own Tutor stylesheet whenever Tutor is active. On a Kadence home page with no Tutor content (Tutor LMS and Tutor LMS Pro 4.2.0) that was seven stylesheets holding up the first paint and about fifteen scripts. With this on (the default), they load only on Tutor's pages: courses, bundles, lessons, quizzes, assignments and its other post types, their archives and categories, the dashboard, instructor and student profiles, the registration, cart and checkout pages named in Tutor's settings, and posts whose content, or a synced pattern in it, has Tutor blocks or shortcodes. Does nothing without Tutor LMS.
@@ -2718,6 +2728,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- New (Content; on by default; #1644): **My Account without WooCommerce** keeps My Account (log in, sign up, lost password, account details and the tabs other plugins add) working when WooCommerce is deactivated, on the same page and addresses, with WooCommerce's markup, form fields and hooks and the Kadence theme's layout, so a site that sells nothing no longer loads WooCommerce for it. Settings version 36 imports WooCommerce's "Allow customers to create an account on the My account page" as **People can sign up**. Keep pages cached, Load jQuery at the end of the page, Remove WordPress extras' password meter, Your lists' Register link, Block dashboard access's default and Load plugins only where needed (which loads every plugin on that page) know the page.
 
 ### 1.3.217
 

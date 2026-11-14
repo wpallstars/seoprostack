@@ -547,7 +547,7 @@ final class SEOProStack_Account_Forms {
         $creds = array(
             // Not sanitize_user(): it drops the + of an email address.
             'user_login'    => trim(sanitize_text_field(wp_unslash((string) $_POST['username']))),
-            'user_password' => (string) $_POST['password'], // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- a password, used as typed.
+            'user_password' => (string) $_POST['password'], // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- a password, as WordPress and WooCommerce take it (slashed), so passwords they saved keep working.
             'remember'      => isset($_POST['rememberme']),
         );
         $error = apply_filters('woocommerce_process_login_errors', new WP_Error(), $creds['user_login'], $creds['user_password']);
@@ -617,7 +617,7 @@ final class SEOProStack_Account_Forms {
             return;
         }
         $username = !SEOProStack_Account::generates_username() && isset($_POST['username']) ? sanitize_user(wp_unslash((string) $_POST['username'])) : '';
-        $password = !SEOProStack_Account::generates_password() && isset($_POST['password']) ? (string) $_POST['password'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- a password, used as typed.
+        $password = !SEOProStack_Account::generates_password() && isset($_POST['password']) ? (string) $_POST['password'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- a password, as WordPress and WooCommerce take it (slashed), so passwords they saved keep working.
         $email    = sanitize_email(wp_unslash((string) $_POST['email']));
 
         $error    = apply_filters('woocommerce_process_registration_errors', new WP_Error(), $username, $password, $email);
@@ -833,8 +833,8 @@ final class SEOProStack_Account_Forms {
         if (!isset($_POST['wc_reset_password'], $_POST['password_1'], $_POST['password_2'], $_POST['reset_key'], $_POST['reset_login'])) {
             return;
         }
-        $pass1 = (string) $_POST['password_1']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- a password, used as typed.
-        $pass2 = (string) $_POST['password_2']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the same.
+        $pass1 = (string) $_POST['password_1']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- a password, as WordPress and WooCommerce take it (slashed), so passwords they saved keep working.
+        $pass2 = (string) $_POST['password_2']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- the same.
         $user  = self::check_key(sanitize_text_field(wp_unslash((string) $_POST['reset_key'])), sanitize_user(wp_unslash((string) $_POST['reset_login'])));
         if (!$user instanceof WP_User) {
             return;
@@ -885,11 +885,11 @@ final class SEOProStack_Account_Forms {
         $last     = $field('account_last_name');
         $display  = $field('account_display_name');
         $email    = $field('account_email');
-        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- passwords, used as typed.
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- passwords, as WordPress and WooCommerce take them (slashed).
         $pass_cur = isset($_POST['password_current']) ? (string) $_POST['password_current'] : '';
         $pass1    = isset($_POST['password_1']) ? (string) $_POST['password_1'] : '';
         $pass2    = isset($_POST['password_2']) ? (string) $_POST['password_2'] : '';
-        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         $save_pass = true;
         $current   = get_user_by('id', $user_id);
 

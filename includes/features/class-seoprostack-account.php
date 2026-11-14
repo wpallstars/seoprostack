@@ -459,7 +459,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
             return $url;
         }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared.
-        $to = isset($_GET['redirect_to']) ? (string) wp_unslash($_GET['redirect_to']) : '';
+        $to = isset($_GET['redirect_to']) ? esc_url_raw(wp_unslash((string) $_GET['redirect_to'])) : '';
         if (is_multisite() && '' !== $to && false !== strpos($to, network_admin_url())) {
             return $url;
         }
