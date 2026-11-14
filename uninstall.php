@@ -46,6 +46,13 @@ function seoprostack_uninstall_site() {
     require_once __DIR__ . '/includes/features/class-seoprostack-added-keys.php';
     SEOProStack_Added_Keys::remove_all();
 
+    // Faster database keys: put WordPress's own keys back on the tables it
+    // kept, and remove its must-use file. Other keys stay.
+    if (!is_multisite()) {
+        require_once __DIR__ . '/includes/features/class-seoprostack-fast-keys.php';
+        SEOProStack_Fast_Keys::remove_all();
+    }
+
     $options = array(
         'seoprostack_options',
         // The settings save lock, if a save stopped before releasing it.

@@ -159,6 +159,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Site_Templates',
         'SEOProStack_Database_Keys',
         'SEOProStack_Added_Keys',
+        'SEOProStack_Fast_Keys',
         'SEOProStack_Database_Charset',
         'SEOProStack_Licence_Calls',
         'SEOProStack_Helpdesk_Imap',

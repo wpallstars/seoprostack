@@ -9712,6 +9712,134 @@ html.sps-dark .sps-licence :is(.sps-licence__host, .sps-licence__status, .sps-li
 }
 
 /*
+ * Meta for WordPress (official-facebook-pixel), Settings → Meta. The dark
+ * fallback darkens its grounds and lines (css/admin.css); these are its
+ * fixed text colours (#1c2b33, #374151, Meta's #1877f2 links) and status
+ * tints, and the colours its script sets inline on the pixel picker.
+ */
+html.sps-dark :is(.fbl4b-connected-title, .fbl4b-connected-value, .fbl4b-connected-section-title, .fbl4b-pixel-alert-text, .fbl4b-pixel-selection h3) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.fbl4b-connected-label, .fbl4b-connection-settings-title, .fbl4b-connected-section-desc, .fbl4b-pixel-selection p) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.fbl4b-connection-settings-arrow, .fbl4b-pixel-helper-text, .fbl4b-loading-text, .fbl4b-upgrade-dismiss) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark :is(.fbl4b-connected-logo-text, .fbl4b-link, .fbl4b-connected-section-desc a, .fbl4b-connection-settings-header:hover .fbl4b-connection-settings-title, .fbl4b-upgrade-dismiss:hover) {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark .fbl4b-connected-badge {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark :is(.fbl4b-connected-badge-setup, .fbl4b-disconnect-warning-title, .fbl4b-disconnect-warning-steps, .fbl4b-notice-warning) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .fbl4b-notice-success {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark :is(.fbl4b-notice-error, .fbl4b-btn-danger, .fb-capi-se) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .fbl4b-selection-badge {
+	color: var(--sps-ui-bad);
+	background: rgb(225 41 37 / 18%);
+	border-color: rgb(255 128 133 / 45%);
+}
+
+/* White on Meta's #1877f2 reads below 4.5:1, so the contrast guard darkened the text: Meta's own deeper #0866ff instead. */
+html.sps-dark :is(.fbl4b-btn-primary, .fbl4b-btn-confirm, .fbl4b-btn-primary.fbl4b-btn-disabled:hover, .fbl4b-btn-confirm.fbl4b-btn-disabled:hover) {
+	color: #fff;
+	background: #0866ff;
+}
+
+html.sps-dark :is(.fbl4b-btn-primary, .fbl4b-btn-confirm):not(.fbl4b-btn-disabled):hover {
+	background: #0757d9;
+}
+
+html.sps-dark .fbl4b-btn-secondary {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .fbl4b-btn-secondary:hover {
+	background: var(--sps-ui-border);
+}
+
+/* Its script sets the picker's and the confirmation's text to #1c2b33 inline. */
+html.sps-dark :is(.fbl4b-pixel-select, .fbl4b-reconnect-confirm > p) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark .fbl4b-pixel-select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23c3c4c7' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* Conversions API tests: the disabled pixel ID (#00000050), the toggle's #555 arrow and the event log's status pills. */
+html.sps-dark .events-manager-container input:disabled {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .events-manager-container :is(input, select, textarea.open) {
+	box-shadow: 0 0 0 1px var(--sps-ui-field-border);
+}
+
+html.sps-dark .advanced-edit-toggle-arrow path {
+	fill: var(--sps-ui-muted);
+}
+
+html.sps-dark .event-log-block .event-log-block__head tr {
+	border-bottom-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .test-event-pill--success {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark :is(.test-event-pill--error, .test-event-button--error) {
+	color: var(--sps-ui-bad);
+	background-color: rgb(225 41 37 / 18%);
+}
+
+html.sps-dark .show-error-icon path {
+	fill: var(--sps-ui-bad);
+}
+
+/*
+ * AffiliateWP's header on its screens (#affwp-header). The fallback darkens
+ * the bar; its logo is an image with a #2d2d2d wordmark (turned light, its
+ * red mark kept, as Rank Math's logo), and its round buttons are #f3f4f5
+ * with icons in the header's #141b38.
+ */
+html.sps-dark #affwp-header {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #affwp-header .affwp-header-title img {
+	filter: invert(1) hue-rotate(180deg);
+}
+
+html.sps-dark #affwp-header-actions .affwp-round:not(.affwp-number) {
+	background-color: var(--sps-ui-raised);
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #affwp-header-actions .affwp-round:not(.affwp-number):hover {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark #affwp-header-actions .affwp-round a {
+	color: inherit;
+}
+
+/*
  * SEO Pro Stack's own screen takes its dark colours from
  * seoprostack-theme.css and seoprostack-tabs.css: this stylesheet stays
  * off it (SEOProStack_Admin_Theme::seoprostack_dark_screen()).
