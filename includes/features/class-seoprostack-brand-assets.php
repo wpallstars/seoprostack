@@ -345,7 +345,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * One picture from the Media Library.
      *
      * @param int $id Attachment ID.
-     * @return array{id:int,url:string,file:string,type:string,width:int,height:int,alt:string}|null
+     * @return array{id:int,url:string,drawn:string,file:string,type:string,width:int,height:int,alt:string}|null
      */
     private static function file($id) {
         $url  = wp_get_attachment_url($id);
@@ -356,9 +356,14 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $file = function_exists('wp_get_original_image_url') ? wp_get_original_image_url($id) : '';
         $meta = wp_get_attachment_metadata($id);
         $type = strtoupper($m[1]);
+        // Replace media can keep the address: the file's time makes the PNG files
+        // drawn from it out of date (png_fingerprint()) and the browser load it afresh.
+        $path  = get_attached_file($id);
+        $mtime = $path && is_readable($path) ? (int) filemtime($path) : 0;
         return array(
             'id'     => $id,
             'url'    => $url,
+            'drawn'  => $mtime ? add_query_arg('ver', $mtime, $url) : $url,
             'file'   => $file ? $file : $url,
             'type'   => 'JPEG' === $type ? 'JPG' : $type,
             'width'  => is_array($meta) && isset($meta['width']) ? (int) $meta['width'] : 0,
@@ -661,7 +666,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             'gap'       => '' !== $gap ? (float) $gap : 16,
             'background' => self::resolve('palette9', $palette, 'light' === $scheme ? '#ffffff' : '#000000'),
             'logo'      => $logo ? array(
-                'url'    => $logo['url'],
+                'url'    => $logo['drawn'],
                 'width'  => $logo_width,
                 'ratio'  => $logo['width'] && $logo['height'] ? $logo['height'] / $logo['width'] : 0,
                 'alt'    => '' !== $logo['alt'] ? $logo['alt'] : get_bloginfo('name'),
@@ -1172,7 +1177,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     private static function png_image_target(array $file, $background, $display, $edge, $square) {
         return array(
             'kind'       => 'image',
-            'image'      => array('url' => $file['url'], 'width' => (int) $file['width'], 'height' => (int) $file['height']),
+            'image'      => array('url' => $file['drawn'], 'width' => (int) $file['width'], 'height' => (int) $file['height']),
             'display'    => (int) $display,
             'edge'       => (bool) $edge,
             'square'     => (bool) $square,
