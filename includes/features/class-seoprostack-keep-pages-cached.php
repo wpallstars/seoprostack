@@ -289,6 +289,8 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
         $last = get_option(self::HELD, array());
         $was  = is_array($last) && isset($last['held']) ? (bool) $last['held'] : null;
         if (null === $held || $held === $was) {
+            // Used CSS lost on the cached home page (GitHub issue #1603): purged once, never in a loop.
+            SEOProStack_Keep_Cached_Requests::refresh_if_unoptimised();
             return;
         }
         // Stored only when it changes: no write every five minutes.
@@ -316,10 +318,11 @@ class SEOProStack_Keep_Pages_Cached extends SEOProStack_Feature {
             $held = self::look();
         }
         $last = get_option(self::HELD, array());
-        if (true !== $held || (is_array($last) && !empty($last['held']))) {
-            return;
+        if (true === $held && !(is_array($last) && !empty($last['held']))) {
+            update_option(self::HELD, array('held' => true, 'since' => time()), false);
         }
-        update_option(self::HELD, array('held' => true, 'since' => time()), false);
+        // After the fill, also check the cached home page carries Used CSS (GitHub issue #1603).
+        SEOProStack_Keep_Cached_Requests::refresh_if_unoptimised(true);
     }
 
     /**

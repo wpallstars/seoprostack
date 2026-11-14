@@ -64,6 +64,9 @@ final class SEOProStack_Used_Css_Page {
     /** Bytes of the stylesheets changed. */
     private $full = 0;
 
+    /** Why stylesheets were left as they were for a reason that may not repeat: reason => count. */
+    private $failed = array();
+
     /**
      * Put each handled stylesheet's used rules in the page and load it
      * without blocking (an output buffer callback).
@@ -72,13 +75,24 @@ final class SEOProStack_Used_Css_Page {
      * @return string
      */
     public static function rewrite($html) {
-        if (false === stripos($html, '<link') || !self::is_html($html) || !SEOProStack_Used_Css_Policy::allows($html)) {
+        if (false === stripos($html, '<link') || !self::is_html($html)) {
             return $html;
+        }
+        if (!SEOProStack_Used_Css_Policy::allows($html)) {
+            // Left as it is on purpose: no short cache time, only the reason.
+            return $html . SEOProStack_Used_Css_Policy::marker('Used CSS', 'a content security policy blocks inline code');
         }
         $page = new self($html, SEOProStack_Used_Css_Policy::allows($html, true));
         $out  = preg_replace_callback(self::TAGS, array($page, 'tag'), $html);
+        if (!is_string($out)) {
+            $page->fail('the regular expression hit a PCRE limit');
+        }
+        if ($page->failed) {
+            // A reason that may not repeat: the next build should replace this page (GitHub issue #1603).
+            SEOProStack_Used_Css_Policy::degraded('Used CSS skipped: ' . implode(', ', array_keys($page->failed)));
+        }
         if (!is_string($out) || $out === $html) {
-            return $html; // Unchanged, or the regex hit a PCRE limit.
+            return $page->failed ? $html . $page->summary() : $html; // Unchanged, or the regex hit a PCRE limit.
         }
         if ($page->later && $page->sheets) {
             $out = self::before_body_end($out, '<script id="seoprostack-used-css-later">' . self::later_js() . '</script>');
@@ -169,6 +183,7 @@ final class SEOProStack_Used_Css_Page {
         try {
             return $script ? $this->script($m[0]) : $this->link($m[0]);
         } catch (Throwable $e) {
+            $this->fail('an error while reading a stylesheet');
             if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                 // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 error_log('[SEO Pro Stack] Used CSS left a stylesheet as it was: ' . $e->getMessage());
@@ -191,11 +206,20 @@ final class SEOProStack_Used_Css_Page {
             return $tag;
         }
         $file = SEOProStack_Used_Css_Links::file($attrs['href'], $attrs);
-        if ('' === $file || SEOProStack_Used_Css_Links::kept($attrs, $file)) {
+        if ('' === $file) {
+            if (SEOProStack_Used_Css_Links::missing($attrs['href'], $attrs)) {
+                $this->fail('a stylesheet file was not found');
+            }
+            return $tag;
+        }
+        if (SEOProStack_Used_Css_Links::kept($attrs, $file)) {
             return $tag;
         }
         $rules = SEOProStack_Used_Css_Sheet::rules($file, $attrs['href']);
         if (null === $rules) {
+            if (!is_readable($file) || (int) filesize($file) < 1) {
+                $this->fail('a stylesheet file was empty or unreadable');
+            }
             return $tag;
         }
         $css = $this->match->used($rules);
@@ -223,13 +247,26 @@ final class SEOProStack_Used_Css_Page {
      * @return string
      */
     private function summary() {
-        return sprintf(
+        $out = sprintf(
             "\n<!-- SEO Pro Stack Used CSS: %d stylesheets, %s of %s in the page%s -->",
             $this->sheets,
             size_format($this->used, 1),
             size_format($this->full, 1),
             $this->later ? ', the full stylesheets once it has loaded' : ''
         );
+        if ($this->failed) {
+            $out .= SEOProStack_Used_Css_Policy::marker('Used CSS', implode(', ', array_keys($this->failed)));
+        }
+        return $out;
+    }
+
+    /**
+     * Note a stylesheet left as it was for a reason that may not repeat.
+     *
+     * @param string $reason Why.
+     */
+    private function fail($reason) {
+        $this->failed[$reason] = isset($this->failed[$reason]) ? $this->failed[$reason] + 1 : 1;
     }
 
     /**
