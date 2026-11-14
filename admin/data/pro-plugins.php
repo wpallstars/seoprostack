@@ -13,6 +13,8 @@ if (!defined('ABSPATH')) {
 }
 
 // FlyingPress and Link Whisper are not recommended, at the owner's request.
+// Complianz Privacy Suite is not listed: SEO Pro Cookie Consent replaces it
+// (GitHub issue #1657).
  function seoprostack_get_pro_plugins() {
     $plugins = array(
         'admin-columns' => array(
@@ -95,7 +97,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'code-snippets'
         ),
-        // Complianz Privacy Suite: replaced by SEO Pro Cookie Consent (#1657).
         // Disable Bloat PRO: replaced by Tidy WooCommerce admin, Lighter
         // WooCommerce pages, Remove WordPress extras, Tidy the login screen,
         // Tidy admin screens and Simpler block editor.
@@ -295,8 +296,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'seo-by-rank-math'
         ),
-        // The address SEO Pro Analytics itself links
-        // (SEOProAnalytics_Connections::CONNECT_URL).
         'scalability-pro' => array(
             'name' => 'Scalability Pro',
             'description' => 'Advanced performance optimization and scaling tools.',
