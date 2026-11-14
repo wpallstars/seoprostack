@@ -109,6 +109,7 @@
 		if ('https:' !== target.protocol && 'http:' !== target.protocol) {
 			return Promise.reject(new Error('Not a web address'));
 		}
+		// nosemgrep -- runs in the visitor's browser (not a server request), reading the page's own logo and @font-face files.
 		return fetch(target.href, { credentials: 'same-origin' }).then(function (r) {
 			if (!r.ok) {
 				throw new Error(r.status);
