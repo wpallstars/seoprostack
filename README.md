@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.215-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.216-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.215
+Version: 1.3.216
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2717,8 +2717,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.216
 
+- Fixed (**FluentCart styled by Kadence**; #1630): FluentCart product pages are laid out as Kadence lays out WooCommerce products. No box around the page (Kadence's product content style, unboxed by default), text sizes in proportion to the site's body text instead of FluentCart's fixed small sizes, the description and reviews at Kadence's narrow content width, and the review summary above the list. Review blocks and shortcodes keep their own layout.
+- Fixed (**Clear Cloudflare's copies of pages**; #1602): sites without a LiteSpeed Cache or WP-Optimize page cache kept the previous version's pages at Cloudflare after an update or a design change. Cloudflare is now emptied then too, once per site.
+- Fixed (**Brand assets page** → **Link it from the footer**; #1624): a footer About link that points somewhere other than /about is now found by its text.
 - Fixed (**Load the CSS each page uses first**, **Font fallbacks**, **Keep pages cached**; #1603): a page built while a stylesheet or the font measurements could not be read is no longer cached for the page cache’s whole lifetime. Where a rewrite is skipped for a reason that may not repeat (a stylesheet file missing, empty or unreadable, the font measurements unreadable, a regex limit), the page gets a short cache time (LiteSpeed Cache’s custom TTL of 5 minutes; other page caches are told not to store it) and a comment at its end names the cause. Keep pages cached also checks, after a fill and in its five-minute check (at most hourly), that the cached home page carries Used CSS, and if not purges it once (at most once every 6 hours) and fills it again. Normal pages are unchanged.
 
 ### 1.3.215
