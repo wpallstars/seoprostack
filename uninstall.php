@@ -81,6 +81,7 @@ function seoprostack_uninstall_site() {
 
     $options[] = 'seoprostack_dashboard_widgets';
     $options[] = 'seoprostack_brand_assets_page';
+    $options[] = 'seoprostack_brand_assets_pngs';
     $options[] = 'seoprostack_nextgen_synced';
     $options[] = 'seoprostack_nextgen_restart';
     $options[] = 'seoprostack_watermark_dir';
@@ -411,9 +412,10 @@ function seoprostack_uninstall_site() {
 
     // Generated avatars, and on the main site uploaded profile pictures;
     // Dark mode's copies of other plugins' stylesheets (SEOProStack_Dark_Fallback);
-    // and Used CSS's parsed stylesheets (SEOProStack_Used_Css_Sheet).
+    // Used CSS's parsed stylesheets (SEOProStack_Used_Css_Sheet); and the
+    // Brand assets block's PNG files for links (SEOProStack_Brand_Assets).
     $uploads = wp_get_upload_dir();
-    foreach (array('seoprostack-avatars', 'seoprostack-dark', 'seoprostack-used-css') as $folder) {
+    foreach (array('seoprostack-avatars', 'seoprostack-dark', 'seoprostack-used-css', 'seoprostack-brand-assets') as $folder) {
         if (empty($uploads['error']) && !empty($uploads['basedir']) && is_dir($uploads['basedir'] . '/' . $folder)) {
             require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
             require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
