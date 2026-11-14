@@ -75,6 +75,22 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     const BULK_REMOVE = 'seoprostack_watermark_remove';
 
+    /** Cron hook: take the mark off product pictures (retried while a batch runs). */
+    const PRODUCTS_HOOK = 'seoprostack_watermark_unmark_products';
+
+    /** Post types whose pictures Leave product pictures unmarked covers. */
+    const PRODUCT_TYPES = array('fluent-products', 'product', 'product_variation');
+
+    /** Post meta naming a product's pictures: featured image and galleries. */
+    const PRODUCT_KEYS = array('_thumbnail_id', '_product_image_gallery', 'fluent-products-gallery-image');
+
+    /**
+     * Product pictures' IDs (as keys) for this request, or null until read.
+     *
+     * @var array<int,true>|null
+     */
+    private static $product_pictures = null;
+
     /** Seconds a bulk action or background batch part may run. */
     const BUDGET = 20;
 
@@ -252,6 +268,14 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 'label'       => __('Mark new uploads', 'seoprostack'),
                 'description' => __('Turn off to mark only the pictures you choose in Media → Library.', 'seoprostack'),
             ),
+            // Off: it takes marks off pictures a site has already marked.
+            'watermark_images_products' => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Leave product pictures unmarked', 'seoprostack'),
+                'description' => __('For shop pictures that already carry your brand. Pictures used as a FluentCart or WooCommerce product’s image, gallery or variation picture, or uploaded on a product’s screen, are not marked. Turning this on takes the mark off product pictures already marked, from their kept originals, in the background; so does adding a marked picture to a product later.', 'seoprostack'),
+            ),
             'watermark_images_keep' => array(
                 'type'        => 'bool',
                 'default'     => true,
@@ -328,6 +352,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         add_action('seoprostack_watermark_restore_chosen', array(__CLASS__, 'restore_chosen_image'), 10, 2);
         add_action('added_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
         add_action('updated_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'products_setting_changed'), 10, 2);
+        add_action(self::PRODUCTS_HOOK, array(__CLASS__, 'unmark_products'));
+        add_action('added_post_meta', array(__CLASS__, 'product_picture_meta'), 10, 4);
+        add_action('updated_post_meta', array(__CLASS__, 'product_picture_meta'), 10, 4);
         // Also when switched off, so watermarks can still be removed.
         add_action(self::HOOK, array(__CLASS__, 'run_batch'));
         if (is_admin()) {
@@ -416,6 +444,155 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return;
         }
         self::restore_site_image($id);
+    }
+
+    /**
+     * Whether Leave product pictures unmarked is on.
+     *
+     * @return bool
+     */
+    public static function products_left() {
+        return (bool) SEOProStack_Settings::get('watermark_images_products');
+    }
+
+    /**
+     * Whether a picture is a product's: its image, gallery or variation
+     * picture in FluentCart or WooCommerce, or uploaded on a product's screen.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return bool
+     */
+    public static function product_picture($attachment_id) {
+        return isset(self::product_pictures()[(int) $attachment_id]);
+    }
+
+    /**
+     * Every product picture's ID, read once per request.
+     *
+     * @return array<int,true>
+     */
+    private static function product_pictures() {
+        if (null !== self::$product_pictures) {
+            return self::$product_pictures;
+        }
+        global $wpdb;
+        $types = implode(', ', array_fill(0, count(self::PRODUCT_TYPES), '%s'));
+        $keys  = implode(', ', array_fill(0, count(self::PRODUCT_KEYS), '%s'));
+        $ids   = array();
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- one read of every product's pictures per request; placeholders built from constants.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT m.meta_key, m.meta_value FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_type IN ($types) AND m.meta_key IN ($keys)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            array_merge(self::PRODUCT_TYPES, self::PRODUCT_KEYS)
+        ));
+        foreach ((array) $rows as $row) {
+            foreach (self::picture_ids($row->meta_key, maybe_unserialize($row->meta_value)) as $id) {
+                $ids[$id] = true;
+            }
+        }
+        $uploaded = $wpdb->get_col($wpdb->prepare(
+            "SELECT a.ID FROM {$wpdb->posts} a JOIN {$wpdb->posts} p ON p.ID = a.post_parent WHERE a.post_type = 'attachment' AND p.post_type IN ($types)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            self::PRODUCT_TYPES
+        ));
+        if (defined('FLUENTCART_VERSION')) {
+            // A variation's own picture; the table exists only with FluentCart.
+            $suppress  = $wpdb->suppress_errors(true);
+            $variation = $wpdb->get_col("SELECT DISTINCT media_id FROM {$wpdb->prefix}fct_product_variations WHERE media_id > 0");
+            $wpdb->suppress_errors($suppress);
+            $uploaded = array_merge((array) $uploaded, (array) $variation);
+        }
+        // phpcs:enable
+        foreach ((array) $uploaded as $id) {
+            if ((int) $id > 0) {
+                $ids[(int) $id] = true;
+            }
+        }
+        self::$product_pictures = $ids;
+        return $ids;
+    }
+
+    /**
+     * The attachment IDs a product meta value names.
+     *
+     * @param string $key   Meta key (one of PRODUCT_KEYS).
+     * @param mixed  $value Meta value, unserialized.
+     * @return int[]
+     */
+    private static function picture_ids($key, $value) {
+        if ('fluent-products-gallery-image' === $key) {
+            $ids = array();
+            foreach ((array) $value as $item) {
+                if (is_array($item) && isset($item['id'])) {
+                    $ids[] = (int) $item['id'];
+                }
+            }
+        } elseif ('_product_image_gallery' === $key) {
+            $ids = array_map('intval', explode(',', (string) $value));
+        } else {
+            $ids = array(is_scalar($value) ? (int) $value : 0);
+        }
+        return array_values(array_filter($ids, function ($id) {
+            return $id > 0;
+        }));
+    }
+
+    /**
+     * Leave product pictures unmarked was turned on: take the mark off the
+     * product pictures already marked.
+     *
+     * @param array $old Previous settings.
+     * @param array $new Current settings.
+     */
+    public static function products_setting_changed($old, $new) {
+        if (!empty($new['watermark_images_products']) && empty($old['watermark_images_products'])) {
+            self::unmark_products();
+        }
+    }
+
+    /**
+     * A product's image or gallery changed: a marked picture added to it
+     * loses its mark, in the background so the product saves at once.
+     *
+     * @param int    $meta_id   Meta row ID.
+     * @param int    $object_id Post ID.
+     * @param string $key       Meta key.
+     * @param mixed  $value     Saved value.
+     */
+    public static function product_picture_meta($meta_id, $object_id, $key, $value) {
+        if (!in_array($key, self::PRODUCT_KEYS, true) || !self::products_left() || !in_array(get_post_type((int) $object_id), self::PRODUCT_TYPES, true)) {
+            return;
+        }
+        self::$product_pictures = null;
+        foreach (self::picture_ids($key, maybe_unserialize($value)) as $id) {
+            if (self::record($id)) {
+                if (!wp_next_scheduled(self::PRODUCTS_HOOK)) {
+                    wp_schedule_single_event(time(), self::PRODUCTS_HOOK);
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * Queue the removal of the mark from every marked product picture; while
+     * another batch runs, try again in five minutes.
+     */
+    public static function unmark_products() {
+        if (!self::products_left()) {
+            return;
+        }
+        global $wpdb;
+        self::$product_pictures = null;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- marked pictures, read once when the setting is turned on or a product changes.
+        $marked = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s", self::META));
+        $ids    = array();
+        foreach (array_map('intval', (array) $marked) as $id) {
+            if (self::product_picture($id) && self::record($id)) {
+                $ids[] = $id;
+            }
+        }
+        if ($ids && !self::queue('remove', $ids) && !wp_next_scheduled(self::PRODUCTS_HOOK)) {
+            wp_schedule_single_event(time() + 300, self::PRODUCTS_HOOK);
+        }
     }
 
     /**
@@ -1064,6 +1241,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         // cloud storage only to be left alone.
         if (self::skipped($attachment_id)) {
             return new WP_Error('watermark_never', __('Its details say “Never watermark”.', 'seoprostack'));
+        }
+        if (self::products_left() && self::product_picture($attachment_id)) {
+            return new WP_Error('watermark_product', __('It is a product picture, and “Leave product pictures unmarked” is on.', 'seoprostack'));
         }
         // Media in cloud storage may have removed the local files: bring
         // them back to mark them; a Media Library row only lists them.
@@ -2452,6 +2632,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function deactivate($network_wide = false) {
         self::stop();
+        wp_clear_scheduled_hook(self::PRODUCTS_HOOK);
     }
 
     /**
