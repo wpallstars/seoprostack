@@ -212,7 +212,7 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         $why              = '';
         if (empty(self::metrics()['fonts'])) {
             $why = 'the font measurements could not be read';
-        } elseif (self::$unreadable) {
+        } elseif (self::font_stylesheet_missing()) {
             $why = 'a font stylesheet file was not found';
         }
         if ('' !== $why) {
@@ -464,6 +464,16 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         return $size > 0 && $size <= self::MAX_BYTES
             ? self::font_faces((string) file_get_contents($file)) // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local stylesheet.
             : array();
+    }
+
+    /**
+     * Whether a font stylesheet on this site was named on this page but its
+     * file was not there (set by font_file()).
+     *
+     * @return bool
+     */
+    private static function font_stylesheet_missing() {
+        return self::$unreadable;
     }
 
     /**
