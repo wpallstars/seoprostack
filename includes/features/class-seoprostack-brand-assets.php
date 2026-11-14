@@ -286,21 +286,6 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     }
 
     /**
-     * Relative luminance of a hex colour (WCAG).
-     *
-     * @param string $hex #rrggbb.
-     * @return float
-     */
-    private static function luminance($hex) {
-        $sum = 0.0;
-        foreach (array(1 => 0.2126, 3 => 0.7152, 5 => 0.0722) as $at => $weight) {
-            $c    = hexdec(substr($hex, $at, 2)) / 255;
-            $sum += $weight * ($c <= 0.03928 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4));
-        }
-        return $sum;
-    }
-
-    /**
      * The logo files: main, dark-mode and mobile logos and the site icon,
      * each with its address, original file, type and size.
      *
@@ -661,6 +646,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $html     = '';
         if ($attributes['showLogos']) {
             $html .= self::render_logos($palettes);
+            $html .= self::render_icons($palettes);
+            $html .= self::render_email($palettes);
         }
         if ($attributes['showColours'] && $palettes) {
             $html .= self::render_colours($palettes);
@@ -688,24 +675,20 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $c       = 'wp-block-seoprostack-brand-assets';
         $logos   = self::logos();
         $light   = isset($palettes['light']) ? $palettes['light'] : array();
-        $dark    = isset($palettes['dark']) ? $palettes['dark'] : self::inverted($light);
         $schemes = array(
-            'light' => array(__('On light backgrounds', 'seoprostack'), self::lockup('light', $light, $logos)),
-            'dark'  => array(__('On dark backgrounds', 'seoprostack'), self::lockup('dark', $dark, $logos)),
+            'light' => array(__('On light backgrounds', 'seoprostack'), $light),
+            'dark'  => array(__('On dark backgrounds', 'seoprostack'), isset($palettes['dark']) ? $palettes['dark'] : self::inverted($light)),
         );
-        $html = '<h2 class="' . $c . '__title">' . esc_html__('Logos', 'seoprostack') . '</h2>';
-        $html .= '<div class="' . $c . '__grid ' . $c . '__grid--two">';
+        $cards = '';
         foreach ($schemes as $scheme => $item) {
-            list($label, $lockup) = $item;
+            list($label, $palette) = $item;
+            $lockup = self::lockup($scheme, $palette, $logos);
             if (!$lockup['logo'] && '' === $lockup['title']) {
                 continue;
             }
-            $html .= '<figure class="' . $c . '__card">';
-            $html .= '<div class="' . $c . '__stage" style="background-color:' . esc_attr($lockup['background']) . '">' . self::lockup_html($lockup) . '</div>';
-            $html .= '<figcaption class="' . $c . '__caption"><strong>' . esc_html($label) . '</strong>';
             $links = array();
-            // The dark card offers a file only when the dark logo is its own.
-            $file = 'dark' === $scheme ? (isset($logos['dark']) ? $logos['dark'] : null) : (isset($logos['logo']) ? $logos['logo'] : null);
+            // Each card offers the logo file its header shows: the dark logo, where the site has one.
+            $file = 'dark' === $scheme && isset($logos['dark']) ? $logos['dark'] : (isset($logos['logo']) ? $logos['logo'] : null);
             if ($file && $lockup['logo']) {
                 /* translators: %s: file type, such as SVG or PNG. */
                 $links[] = self::download_link($file['file'], sprintf(__('Logo (%s)', 'seoprostack'), $file['type']));
@@ -715,35 +698,188 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 $links[] = self::make_button('svg', $json, $lockup['logo'] ? __('Logo with name (SVG)', 'seoprostack') : __('Name (SVG)', 'seoprostack'));
                 $links[] = self::make_button('png', $json, $lockup['logo'] ? __('Logo with name (PNG)', 'seoprostack') : __('Name (PNG)', 'seoprostack'));
             }
-            if (is_string($json) && 'light' === $scheme) {
-                $links[] = self::make_button('email', $json, __('Email signature banner (PNG, 600 × 150)', 'seoprostack'));
-            }
-            if ($links) {
-                $html .= '<span class="' . $c . '__links">' . implode(' ', $links) . '</span>';
-            }
-            $html .= '</figcaption></figure>';
+            $cards .= self::card(self::lockup_html($lockup), self::stage_style($palette, $lockup['background']), $label, $links);
         }
-        foreach (array('mobile' => __('Small logo', 'seoprostack'), 'icon' => __('Site icon', 'seoprostack')) as $kind => $label) {
-            if (!isset($logos[$kind])) {
-                continue;
-            }
-            $file  = $logos[$kind];
-            $html .= '<figure class="' . $c . '__card">';
-            $html .= '<div class="' . $c . '__stage" style="background-color:' . esc_attr(self::resolve('palette9', $light, '#ffffff')) . '"><img class="' . $c . '__square" src="' . esc_url($file['url']) . '" alt="' . esc_attr('' !== $file['alt'] ? $file['alt'] : $label) . '" loading="lazy" decoding="async"' . ($file['width'] ? ' width="' . (int) $file['width'] . '" height="' . (int) $file['height'] . '"' : '') . '></div>';
-            $html .= '<figcaption class="' . $c . '__caption"><strong>' . esc_html($label) . '</strong>';
-            $links = array(self::download_link($file['file'], $file['type'] . ($file['width'] ? ', ' . (int) $file['width'] . ' × ' . (int) $file['height'] : '')));
-            if ('icon' === $kind) {
-                $big = get_site_icon_url(512);
-                if ($big && $big !== $file['file']) {
-                    $links[] = self::download_link($big, '512 × 512');
-                }
-            }
-            $html .= '<span class="' . $c . '__links">' . implode(' ', $links) . '</span>';
-            $html .= '</figcaption></figure>';
+        if ('' === $cards) {
+            return '';
         }
-        $html .= '</div>';
+        $html  = '<h2 class="' . $c . '__title">' . esc_html__('Logos', 'seoprostack') . '</h2>';
+        $html .= '<div class="' . $c . '__grid ' . $c . '__grid--two">' . $cards . '</div>';
         $html .= '<p class="' . $c . '__note">' . esc_html__('Please keep clear space around the logo, and do not stretch, recolour or add effects to it. Use the version made for the background it sits on.', 'seoprostack') . '</p>';
         return $html;
+    }
+
+    /**
+     * Icons: the small logo (the header's on phones) and the site icon.
+     *
+     * @param array $palettes Palettes.
+     * @return string
+     */
+    private static function render_icons(array $palettes) {
+        $c     = 'wp-block-seoprostack-brand-assets';
+        $logos = self::logos();
+        $light = isset($palettes['light']) ? $palettes['light'] : array();
+        $dark  = isset($palettes['dark']) ? $palettes['dark'] : self::inverted($light);
+        $cards = '';
+        if (isset($logos['mobile'])) {
+            $file   = $logos['mobile'];
+            $cards .= self::card(
+                self::icon_img($file['url'], $file, __('Small logo', 'seoprostack'), true),
+                self::stage_style($light, self::resolve('palette9', $light, '#ffffff')),
+                __('Small logo', 'seoprostack'),
+                array(self::download_link($file['file'], self::size_label($file['type'], $file['width'], $file['height']))),
+                __('The header’s logo on phones.', 'seoprostack')
+            );
+        }
+        if (isset($logos['icon'])) {
+            $file  = $logos['icon'];
+            $shown = get_site_icon_url(192);
+            $shown = $shown ? $shown : $file['url'];
+            $stage = '';
+            foreach (array($light, $dark) as $palette) {
+                $stage .= '<span class="' . $c . '__half" style="' . esc_attr(self::stage_style($palette, self::resolve('palette9', $palette, '#ffffff'))) . '">' . self::icon_img($shown, $file, __('Site icon', 'seoprostack'), false) . '</span>';
+            }
+            $cards .= self::card($stage, '', __('Site icon', 'seoprostack'), self::icon_links($file), __('Browser tabs, bookmarks and phone home screens.', 'seoprostack'), 'halves');
+        }
+        if ('' === $cards) {
+            return current_user_can('edit_theme_options') ? '<p class="' . $c . '__note">' . esc_html__('Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this).', 'seoprostack') . '</p>' : '';
+        }
+        return '<h2 class="' . $c . '__title">' . esc_html__('Icons', 'seoprostack') . '</h2><div class="' . $c . '__grid ' . $c . '__grid--two">' . $cards . '</div>';
+    }
+
+    /**
+     * An icon picture.
+     *
+     * @param string $url  Address shown.
+     * @param array  $file Logo file.
+     * @param string $alt  Text when the file has none.
+     * @param bool   $edge Give it the effect the theme gives the header's logo.
+     * @return string
+     */
+    private static function icon_img($url, array $file, $alt, $edge) {
+        return '<img class="wp-block-seoprostack-brand-assets__icon" src="' . esc_url($url) . '" alt="' . esc_attr('' !== $file['alt'] ? $file['alt'] : $alt) . '"' . ($edge ? ' data-sps-brand-edge' : '') . ' loading="lazy" decoding="async">';
+    }
+
+    /**
+     * The site icon's downloads: the original and the sizes WordPress makes.
+     *
+     * @param array $file Site icon file.
+     * @return string[]
+     */
+    private static function icon_links(array $file) {
+        $links = array(self::download_link($file['file'], self::size_label($file['type'], $file['width'], $file['height'])));
+        $seen  = array($file['file'] => true);
+        $sizes = array(
+            192 => '',
+            /* translators: the icon an iPhone or iPad shows on its home screen. */
+            180 => __('Apple', 'seoprostack'),
+            /* translators: the icon a browser shows in its tab. */
+            32  => __('browser tab', 'seoprostack'),
+        );
+        foreach ($sizes as $size => $use) {
+            $url = get_site_icon_url($size);
+            if (!$url || isset($seen[$url])) {
+                continue;
+            }
+            $seen[$url] = true;
+            $label      = self::size_label(self::url_type($url), $size, $size);
+            $links[]    = self::download_link($url, '' !== $use ? $label . ' (' . $use . ')' : $label);
+        }
+        return $links;
+    }
+
+    /**
+     * A file's type and size: "PNG, 512 × 512".
+     *
+     * @param string $type   File type.
+     * @param int    $width  Width, or 0.
+     * @param int    $height Height.
+     * @return string
+     */
+    private static function size_label($type, $width, $height) {
+        return $type . ($width ? ', ' . (int) $width . ' × ' . (int) $height : '');
+    }
+
+    /**
+     * A file's type from its address: PNG, SVG, WEBP.
+     *
+     * @param string $url Address.
+     * @return string
+     */
+    private static function url_type($url) {
+        $type = strtoupper((string) pathinfo((string) wp_parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        return 'JPEG' === $type ? 'JPG' : $type;
+    }
+
+    /**
+     * Email signature: the logo with the name in a 600 × 150 banner.
+     *
+     * @param array $palettes Palettes.
+     * @return string
+     */
+    private static function render_email(array $palettes) {
+        $c      = 'wp-block-seoprostack-brand-assets';
+        $light  = isset($palettes['light']) ? $palettes['light'] : array();
+        $lockup = self::lockup('light', $light, self::logos());
+        $json   = wp_json_encode($lockup);
+        if ((!$lockup['logo'] && '' === $lockup['title']) || !is_string($json)) {
+            return '';
+        }
+        $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+        $card = self::card(
+            self::lockup_html($lockup),
+            self::stage_style($light, $lockup['background']),
+            __('Email signature banner', 'seoprostack'),
+            array(self::make_button('email', $json, __('Download (PNG, 600 × 150)', 'seoprostack'))),
+            /* translators: %s: the site's address, such as example.com. */
+            sprintf(__('Add it to your email signature as a picture, 600 pixels wide, linked to %s.', 'seoprostack'), preg_replace('/^www\./', '', $host)),
+            'banner'
+        );
+        return '<h2 class="' . $c . '__title">' . esc_html__('Email signature', 'seoprostack') . '</h2><div class="' . $c . '__grid ' . $c . '__grid--two">' . $card . '</div>';
+    }
+
+    /**
+     * A card: a stage, then its label, a note and its links.
+     *
+     * @param string   $stage    Stage HTML.
+     * @param string   $style    Stage CSS (background and palette).
+     * @param string   $label    Label.
+     * @param string[] $links    Links and buttons (HTML).
+     * @param string   $note     Text under the label.
+     * @param string   $modifier Stage modifier: halves or banner.
+     * @return string
+     */
+    private static function card($stage, $style, $label, array $links, $note = '', $modifier = '') {
+        $c     = 'wp-block-seoprostack-brand-assets';
+        $html  = '<figure class="' . $c . '__card">';
+        $html .= '<div class="' . $c . '__stage' . ('' !== $modifier ? ' ' . $c . '__stage--' . $modifier : '') . '" data-sps-brand-stage' . ('' !== $style ? ' style="' . esc_attr($style) . '"' : '') . '>' . $stage . '</div>';
+        $html .= '<figcaption class="' . $c . '__caption"><strong>' . esc_html($label) . '</strong>';
+        if ('' !== $note) {
+            $html .= '<span>' . esc_html($note) . '</span>';
+        }
+        if ($links) {
+            $html .= '<span class="' . $c . '__links">' . implode(' ', $links) . '</span>';
+        }
+        return $html . '</figcaption></figure>';
+    }
+
+    /**
+     * A stage's CSS: its background and its scheme's palette as Kadence's
+     * variables, so the theme's own styles inside it take that scheme.
+     *
+     * @param array  $palette    Slot => colour.
+     * @param string $background Background colour.
+     * @return string
+     */
+    private static function stage_style(array $palette, $background) {
+        $css = array('background-color:' . $background);
+        foreach ($palette as $slot => $item) {
+            $hex = self::hex($item['color']);
+            if ('' !== $hex && preg_match('/^palette\d+$/', (string) $slot)) {
+                $css[] = '--global-' . $slot . ':' . $hex;
+            }
+        }
+        return implode(';', $css);
     }
 
     /**
@@ -775,7 +911,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $html = '<span class="' . $c . '__lockup" style="flex-direction:' . esc_attr($lockup['direction']) . ';gap:' . esc_attr((string) $lockup['gap']) . 'px">';
         if ($lockup['logo']) {
             $height = $lockup['logo']['ratio'] ? (int) round($lockup['logo']['width'] * $lockup['logo']['ratio']) : 0;
-            $html  .= '<img src="' . esc_url($lockup['logo']['url']) . '" alt="' . esc_attr($lockup['logo']['alt']) . '" width="' . (int) $lockup['logo']['width'] . '"' . ($height ? ' height="' . $height . '"' : '') . ' style="width:' . (int) $lockup['logo']['width'] . 'px;max-width:100%;height:auto" loading="lazy" decoding="async">';
+            $html  .= '<img data-sps-brand-edge src="' . esc_url($lockup['logo']['url']) . '" alt="' . esc_attr($lockup['logo']['alt']) . '" width="' . (int) $lockup['logo']['width'] . '"' . ($height ? ' height="' . $height . '"' : '') . ' style="width:' . (int) $lockup['logo']['width'] . 'px;max-width:100%;height:auto" loading="lazy" decoding="async">';
         }
         if ('' !== $lockup['title']) {
             $html .= '<span class="' . $c . '__name"><span style="' . esc_attr(self::text_style($lockup['titleFont'])) . '">' . esc_html($lockup['title']) . '</span>';
@@ -829,14 +965,12 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     private static function render_colours(array $palettes) {
         $c     = 'wp-block-seoprostack-brand-assets';
         $names = array(
-            'light' => __('Light colour scheme', 'seoprostack'),
-            'dark'  => __('Dark colour scheme', 'seoprostack'),
+            'light' => __('Light mode', 'seoprostack'),
+            'dark'  => __('Dark mode', 'seoprostack'),
         );
         $html = '<h2 class="' . $c . '__title">' . esc_html__('Colours', 'seoprostack') . '</h2>';
         foreach ($palettes as $mode => $palette) {
-            if (count($palettes) > 1) {
-                $html .= '<h3 class="' . $c . '__subtitle">' . esc_html($names[$mode]) . '</h3>';
-            }
+            $html .= '<h3 class="' . $c . '__subtitle">' . esc_html($names[$mode]) . '</h3>';
             $html .= '<ul class="' . $c . '__grid ' . $c . '__swatches">';
             foreach ($palette as $slot => $item) {
                 $hex = self::hex($item['color']);
@@ -844,21 +978,35 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                     continue;
                 }
                 $values = self::values($hex);
-                // Black or white, whichever contrasts more.
-                $text   = self::luminance($hex) > 0.179 ? '#000000' : '#ffffff';
                 $html  .= '<li class="' . $c . '__swatch">';
-                $html  .= '<span class="' . $c . '__chip" style="background-color:' . esc_attr($hex) . ';color:' . esc_attr($text) . '">' . esc_html(strtoupper($hex)) . '</span>';
+                $html  .= '<span class="' . $c . '__chip" style="background-color:' . esc_attr($hex) . '"></span>';
                 $html  .= '<span class="' . $c . '__swatch-text"><strong>' . esc_html(self::role($slot, $item['name'])) . '</strong>';
-                $html  .= '<span>RGB ' . esc_html($values['rgb']) . '</span>';
-                /* translators: %s: CMYK values, such as 100, 45, 0, 20. */
-                $html  .= '<span>' . esc_html(sprintf(__('CMYK %s (approx.)', 'seoprostack'), $values['cmyk'])) . '</span>';
-                /* translators: %s: colour, such as #0070CC. */
-                $html  .= '<button type="button" class="' . $c . '__copy" data-sps-brand-copy="' . esc_attr(strtoupper($hex)) . '" aria-label="' . esc_attr(sprintf(__('Copy %s', 'seoprostack'), strtoupper($hex))) . '">' . esc_html__('Copy', 'seoprostack') . '</button>';
+                $html  .= self::value_row('HEX', strtoupper($hex));
+                $html  .= self::value_row('RGB', $values['rgb']);
+                $html  .= self::value_row('CMYK', $values['cmyk']);
                 $html  .= '</span></li>';
             }
             $html .= '</ul>';
         }
         return $html;
+    }
+
+    /**
+     * One colour value with a button that copies it, as shown.
+     *
+     * @param string $format HEX, RGB or CMYK.
+     * @param string $value  Value.
+     * @return string
+     */
+    private static function value_row($format, $value) {
+        $c    = 'wp-block-seoprostack-brand-assets';
+        $icon = '<svg class="%s" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">%s</svg>';
+        $copy = sprintf($icon, $c . '__copy-icon', '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>');
+        $done = sprintf($icon, $c . '__done-icon', '<path d="M5 12.5l4.5 4.5L19 7.5"/>');
+        /* translators: 1: colour format, such as HEX; 2: its value, such as #0070CC. */
+        $label = sprintf(__('Copy %1$s %2$s', 'seoprostack'), $format, $value);
+        return '<span class="' . $c . '__value"><span class="' . $c . '__value-label">' . esc_html($format) . '</span><span class="' . $c . '__value-text">' . esc_html($value) . '</span>'
+            . '<button type="button" class="' . $c . '__copy" data-sps-brand-copy="' . esc_attr($value) . '" aria-label="' . esc_attr($label) . '" title="' . esc_attr__('Copy', 'seoprostack') . '">' . $copy . $done . '</button></span>';
     }
 
     /**
@@ -952,7 +1100,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * @return string
      */
     public static function page_content() {
-        return "<!-- wp:paragraph -->\n<p>" . esc_html__('Our logo, colours and fonts, for anyone writing about us, printing for us or designing for us. They come from the site’s own settings, so they are always the current ones.', 'seoprostack') . "</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:" . self::BLOCK . " /-->";
+        return "<!-- wp:paragraph -->\n<p>" . esc_html__('Our logo, colours and fonts, for anyone writing about us, printing for us or designing for us.', 'seoprostack') . "</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:" . self::BLOCK . " /-->";
     }
 
     /**

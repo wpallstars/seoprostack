@@ -39,13 +39,57 @@
 	border-radius: 8px;
 }
 
+/* Two classes, to win over the theme's figure, list and list item margins in the content. */
+.wp-block-seoprostack-brand-assets .wp-block-seoprostack-brand-assets__card,
+.wp-block-seoprostack-brand-assets .wp-block-seoprostack-brand-assets__swatch {
+	margin: 0;
+}
+
+.wp-block-seoprostack-brand-assets .wp-block-seoprostack-brand-assets__grid {
+	margin: 1em 0 1.5em;
+	padding: 0;
+}
+
 .wp-block-seoprostack-brand-assets__stage {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	min-height: 10rem;
 	padding: 2rem 1.5rem;
 	border-bottom: 1px solid rgb(127 127 127 / 30%);
+}
+
+/* The site icon on the light and the dark background, side by side. */
+.wp-block-seoprostack-brand-assets__stage--halves {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	padding: 0;
+}
+
+.wp-block-seoprostack-brand-assets__half {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem 1rem;
+}
+
+/* An email signature banner is 600 × 150. */
+.wp-block-seoprostack-brand-assets__stage--banner {
+	min-height: 0;
+	aspect-ratio: 4 / 1;
+	padding: 1rem 1.5rem;
+}
+
+.wp-block-seoprostack-brand-assets__icon {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	height: 6rem;
+}
+
+.wp-block-seoprostack-brand-assets__half .wp-block-seoprostack-brand-assets__icon {
+	height: 4rem;
 }
 
 /* Like Kadence's header branding; on narrow cards the name goes under the logo. */
@@ -70,13 +114,6 @@
 	display: block;
 	max-width: 100%;
 	overflow-wrap: break-word;
-}
-
-.wp-block-seoprostack-brand-assets__square {
-	display: block;
-	width: 6rem;
-	max-width: 100%;
-	height: auto;
 }
 
 .wp-block-seoprostack-brand-assets__caption,
@@ -112,6 +149,53 @@
 	cursor: pointer;
 }
 
+/* A square icon button; the tick shows for a moment once the value is copied. */
+.wp-block-seoprostack-brand-assets__copy {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+}
+
+.wp-block-seoprostack-brand-assets__copy svg {
+	display: block;
+	width: 1rem;
+	height: 1rem;
+}
+
+.wp-block-seoprostack-brand-assets__done-icon,
+.wp-block-seoprostack-brand-assets__copy.is-copied .wp-block-seoprostack-brand-assets__copy-icon {
+	display: none;
+}
+
+.wp-block-seoprostack-brand-assets__copy.is-copied .wp-block-seoprostack-brand-assets__done-icon {
+	display: block;
+}
+
+.wp-block-seoprostack-brand-assets__value {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.wp-block-seoprostack-brand-assets__value-label {
+	flex: none;
+	width: 3em;
+	font-size: 0.8em;
+	letter-spacing: 0.04em;
+	opacity: 0.8;
+}
+
+.wp-block-seoprostack-brand-assets__value-text {
+	flex: 1;
+	min-width: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	overflow-wrap: anywhere;
+}
+
 .wp-block-seoprostack-brand-assets__download:hover,
 .wp-block-seoprostack-brand-assets__download:focus-visible,
 .wp-block-seoprostack-brand-assets__copy:hover,
@@ -126,19 +210,10 @@
 	cursor: progress;
 }
 
-.wp-block-seoprostack-brand-assets__copy {
-	align-self: flex-start;
-	margin-top: 0.25em;
-}
-
 .wp-block-seoprostack-brand-assets__chip {
-	display: flex;
-	align-items: flex-end;
-	min-height: 6rem;
-	padding: 0.75rem 1rem;
+	display: block;
+	min-height: 5rem;
 	border-bottom: 1px solid rgb(127 127 127 / 30%);
-	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-	font-size: 0.9em;
 }
 
 .wp-block-seoprostack-brand-assets__specimen {

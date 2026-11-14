@@ -26,15 +26,14 @@
 		}
 	}
 
-	/* Copy a colour. */
+	/* Copy a colour value, as shown beside the button. */
 	function copy(button) {
 		var value = button.getAttribute('data-sps-brand-copy');
-		var label = button.textContent;
 		var done = function () {
-			button.textContent = 'Copied';
+			button.classList.add('is-copied');
 			say(button, value + ' copied');
 			window.setTimeout(function () {
-				button.textContent = label;
+				button.classList.remove('is-copied');
 			}, 1500);
 		};
 		if (navigator.clipboard && window.isSecureContext) {
@@ -57,6 +56,116 @@
 			say(button, value);
 		}
 		document.body.removeChild(field);
+	}
+
+	/*
+	 * The effect the theme gives the header's logo (Kadence's markup:
+	 * .site-branding .brand img.custom-logo), such as an edge that keeps a
+	 * white flag's shape on a white header, worked out inside a stage so it
+	 * takes that stage's colours. '' when there is none.
+	 */
+	function headerEffect(stage) {
+		var probe = document.createElement('span');
+		var brand = document.createElement('span');
+		var img = document.createElement('img');
+		probe.className = 'site-branding';
+		probe.setAttribute('aria-hidden', 'true');
+		probe.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;overflow:hidden;visibility:hidden';
+		brand.className = 'brand';
+		img.className = 'custom-logo';
+		img.alt = '';
+		brand.appendChild(img);
+		probe.appendChild(brand);
+		stage.appendChild(probe);
+		var filter = window.getComputedStyle(img).filter;
+		stage.removeChild(probe);
+		return filter && 'none' !== filter ? filter : '';
+	}
+
+	/* Give the stages' logos the header logo's effect, and keep it for the files. */
+	function applyEffects() {
+		Array.prototype.forEach.call(document.querySelectorAll(ROOT + ' [data-sps-brand-stage]'), function (stage) {
+			var logos = stage.querySelectorAll('[data-sps-brand-edge]');
+			var filter = logos.length ? headerEffect(stage) : '';
+			if (!filter) {
+				return;
+			}
+			stage.setAttribute('data-sps-brand-filter', filter);
+			Array.prototype.forEach.call(logos, function (img) {
+				img.style.filter = filter;
+			});
+		});
+	}
+
+	/* A CSS colour as rgb() and an opacity, read back from a pixel. */
+	function rgba(colour) {
+		var ctx = document.createElement('canvas').getContext('2d');
+		ctx.fillStyle = colour;
+		ctx.fillRect(0, 0, 1, 1);
+		var d = ctx.getImageData(0, 0, 1, 1).data;
+		return { colour: 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')', opacity: Math.round(d[3] / 255 * 1000) / 1000 };
+	}
+
+	/* One drop-shadow()'s inside: a colour and two or three lengths, in any order. */
+	function shadow(inner) {
+		var lengths = [];
+		var colour = inner.replace(/(^|\s)(-?\d*\.?\d+)px(?=\s|$)/g, function (all, space, n) {
+			lengths.push(parseFloat(n));
+			return space;
+		}).trim();
+		if (lengths.length < 2) {
+			return null;
+		}
+		var c = rgba(colour || 'black');
+		return { x: lengths[0], y: lengths[1], blur: lengths[2] || 0, colour: c.colour, opacity: c.opacity };
+	}
+
+	/* The drop-shadow()s of a CSS filter, or null if it has anything else. */
+	function shadows(filter) {
+		var out = [];
+		var at = 0;
+		var name = 'drop-shadow(';
+		while (at < filter.length) {
+			if (filter.indexOf(name, at) !== at) {
+				return null;
+			}
+			var start = at + name.length;
+			var depth = 1;
+			var i = start;
+			for (; i < filter.length && depth; i++) {
+				depth += '(' === filter[i] ? 1 : (')' === filter[i] ? -1 : 0);
+			}
+			var one = shadow(filter.slice(start, i - 1));
+			if (!one) {
+				return null;
+			}
+			out.push(one);
+			at = i;
+			while (' ' === filter[at]) {
+				at++;
+			}
+		}
+		return out.length ? out : null;
+	}
+
+	/* The effect as an SVG filter (id sps-edge), or '' if SVG cannot say it. */
+	function svgFilter(filter) {
+		var list = filter ? shadows(filter) : null;
+		if (!list) {
+			return '';
+		}
+		var out = '<filter id="sps-edge" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">';
+		list.forEach(function (s, i) {
+			out += '<feDropShadow' + (i ? ' in="s' + (i - 1) + '"' : '') + ' result="s' + i + '" dx="' + s.x + '" dy="' + s.y + '" stdDeviation="' + (s.blur / 2) + '" flood-color="' + s.colour + '" flood-opacity="' + s.opacity + '"/>';
+		});
+		return out + '</filter>';
+	}
+
+	/* A CSS filter with its lengths multiplied, for a canvas drawn larger. */
+	function scaleFilter(filter, scale) {
+		return filter.replace(/(-?\d*\.?\d+)px/g, function (all, n) {
+			return (parseFloat(n) * scale) + 'px';
+		});
 	}
 
 	/* A CSS font family with any var() read from the page. */
@@ -206,7 +315,10 @@
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 		}
 		if (parts.logo) {
+			// The header logo's effect; browsers without canvas filters draw the logo plain.
+			ctx.filter = lockup.filter ? scaleFilter(lockup.filter, scale) : 'none';
 			ctx.drawImage(lockup.img, (offsetX + parts.logo.x) * scale, (offsetY + parts.logo.y) * scale, parts.logo.width * scale, parts.logo.height * scale);
+			ctx.filter = 'none';
 		}
 		ctx.textBaseline = 'middle';
 		parts.lines.forEach(function (line) {
@@ -287,8 +399,12 @@
 			if (style) {
 				out += '<style>' + style + '</style>';
 			}
+			var effect = parts.logo ? svgFilter(lockup.filter) : '';
+			if (effect) {
+				out += '<defs>' + effect + '</defs>';
+			}
 			if (parts.logo) {
-				out += '<image href="' + logoData + '" x="' + (pad + parts.logo.x).toFixed(2) + '" y="' + (pad + parts.logo.y).toFixed(2) + '" width="' + parts.logo.width.toFixed(2) + '" height="' + parts.logo.height.toFixed(2) + '"/>';
+				out += '<image' + (effect ? ' filter="url(#sps-edge)"' : '') + ' href="' + logoData + '" x="' + (pad + parts.logo.x).toFixed(2) + '" y="' + (pad + parts.logo.y).toFixed(2) + '" width="' + parts.logo.width.toFixed(2) + '" height="' + parts.logo.height.toFixed(2) + '"/>';
 			}
 			parts.lines.forEach(function (line) {
 				out += '<text x="' + (pad + line.x).toFixed(2) + '" y="' + (pad + line.y).toFixed(2) + '" dominant-baseline="central" font-family="' + escapeXml(family(line.font.family)) + '" font-weight="' + line.font.weight + '" font-style="' + line.font.style + '" font-size="' + line.font.size + '" fill="' + escapeXml(line.font.color) + '">' + escapeXml(line.text) + '</text>';
@@ -344,6 +460,9 @@
 		} catch (e) {
 			return;
 		}
+		var card = button.closest(ROOT + '__card');
+		var stage = card && card.querySelector('[data-sps-brand-stage]');
+		lockup.filter = stage ? stage.getAttribute('data-sps-brand-filter') || '' : '';
 		button.disabled = true;
 		say(button, 'Making the file…');
 		var fonts = [lockup.titleFont, lockup.tagFont].map(function (font) {
@@ -388,4 +507,10 @@
 			make(button);
 		}
 	});
+
+	if ('loading' === document.readyState) {
+		document.addEventListener('DOMContentLoaded', applyEffects);
+	} else {
+		applyEffects();
+	}
 })();
