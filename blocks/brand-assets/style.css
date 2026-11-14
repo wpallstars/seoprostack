@@ -177,6 +177,15 @@
 	display: block;
 }
 
+/* A link that opens another site in a new tab: the icon after its text. */
+.wp-block-seoprostack-brand-assets__external-icon {
+	display: inline-block;
+	width: 0.85em;
+	height: 0.85em;
+	margin-left: 0.3em;
+	vertical-align: -0.05em;
+}
+
 .wp-block-seoprostack-brand-assets__value {
 	display: flex;
 	align-items: center;
@@ -210,6 +219,87 @@
 
 .wp-block-seoprostack-brand-assets__download[disabled] {
 	opacity: 0.6;
+	cursor: progress;
+}
+
+/* The card's text fills it, so the PNG links line up at the foot of cards side by side. */
+.wp-block-seoprostack-brand-assets__card .wp-block-seoprostack-brand-assets__caption {
+	flex: 1;
+}
+
+.wp-block-seoprostack-brand-assets__png {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	margin-top: auto;
+	padding-top: 0.75em;
+	border-top: 1px solid rgb(127 127 127 / 20%);
+}
+
+/* Room above the rule, where the cards are the same height and auto gives none. */
+.wp-block-seoprostack-brand-assets__card .wp-block-seoprostack-brand-assets__links {
+	margin-bottom: 0.5em;
+}
+
+.wp-block-seoprostack-brand-assets__png-title {
+	font-size: 0.85em;
+	opacity: 0.8;
+}
+
+.wp-block-seoprostack-brand-assets__png-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.wp-block-seoprostack-brand-assets__png-label {
+	flex: 0 0 8.5em;
+	min-width: 0;
+}
+
+/* A link icon and its variant; the tick shows for a moment once the link is copied. */
+.wp-block-seoprostack-brand-assets__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4em;
+	margin: 0;
+	padding: 0.35em 0.7em;
+	border: 1px solid rgb(127 127 127 / 50%);
+	border-radius: 4px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 0.9em;
+	line-height: 1.4;
+	cursor: pointer;
+}
+
+.wp-block-seoprostack-brand-assets__link svg {
+	display: block;
+	flex: none;
+	width: 1em;
+	height: 1em;
+}
+
+.wp-block-seoprostack-brand-assets__link .wp-block-seoprostack-brand-assets__done-icon,
+.wp-block-seoprostack-brand-assets__link.is-copied .wp-block-seoprostack-brand-assets__copy-icon {
+	display: none;
+}
+
+.wp-block-seoprostack-brand-assets__link.is-copied .wp-block-seoprostack-brand-assets__done-icon {
+	display: block;
+}
+
+.wp-block-seoprostack-brand-assets__link:hover,
+.wp-block-seoprostack-brand-assets__link:focus-visible {
+	background: rgb(127 127 127 / 12%);
+	color: inherit;
+}
+
+/* Editors only: the file is still being made. */
+.wp-block-seoprostack-brand-assets__link[disabled] {
+	opacity: 0.5;
 	cursor: progress;
 }
 

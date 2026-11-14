@@ -2,7 +2,9 @@
  * seoprostack/brand-assets: copy colours, and make the logo with the site
  * title (as in the header) as SVG and PNG files and an email signature
  * banner. Files are made in the browser from the page's own fonts and logo,
- * so nothing is stored and no other site is asked.
+ * and no other site is asked. For someone who can edit the theme, it also
+ * draws each picture as PNG files and saves them to the site, so visitors
+ * can copy links to them (makePngs()).
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -26,12 +28,16 @@
 		}
 	}
 
-	/* Copy a colour value, as shown beside the button. */
+	/* Copy a colour value, as shown beside the button, or a PNG file's link. */
 	function copy(button) {
 		var value = button.getAttribute('data-sps-brand-copy');
+		if (!value) {
+			return;
+		}
+		var copied = button.getAttribute('data-sps-brand-copied') || value + ' copied';
 		var done = function () {
 			button.classList.add('is-copied');
-			say(button, value + ' copied');
+			say(button, copied);
 			window.setTimeout(function () {
 				button.classList.remove('is-copied');
 			}, 1500);
@@ -480,7 +486,7 @@
 	}
 
 	/* The lockup on the light background, fitted inside a 600 by 150 banner. */
-	function banner(lockup, parts) {
+	function bannerCanvas(lockup, parts) {
 		var inner = { width: BANNER.width - 48, height: BANNER.height - 32 };
 		var fit = Math.min(1, inner.width / parts.width, inner.height / parts.height);
 		var canvas = document.createElement('canvas');
@@ -490,8 +496,25 @@
 		var offsetX = (BANNER.width / fit - parts.width) / 2;
 		var offsetY = (BANNER.height / fit - parts.height) / 2;
 		draw(lockup, parts, canvas, scale, offsetX, offsetY, lockup.background);
+		return canvas;
+	}
+
+	function banner(lockup, parts) {
+		var canvas = bannerCanvas(lockup, parts);
 		return new Promise(function (resolve) {
 			canvas.toBlob(resolve, 'image/png');
+		});
+	}
+
+	/* Load the lockup's fonts and logo, then lay it out. */
+	function prepare(lockup) {
+		var fonts = [lockup.titleFont, lockup.tagFont].map(function (font) {
+			return document.fonts && document.fonts.load ? document.fonts.load(fontString(font, 1)).catch(function () {}) : Promise.resolve();
+		});
+		var image = lockup.logo ? loadImage(lockup.logo.url) : Promise.resolve(null);
+		return Promise.all([image].concat(fonts)).then(function (loaded) {
+			lockup.img = loaded[0];
+			return layout(lockup, document.createElement('canvas').getContext('2d'));
 		});
 	}
 
@@ -521,13 +544,7 @@
 		lockup.filter = stage ? stage.getAttribute('data-sps-brand-filter') || '' : '';
 		button.disabled = true;
 		say(button, 'Making the file…');
-		var fonts = [lockup.titleFont, lockup.tagFont].map(function (font) {
-			return document.fonts && document.fonts.load ? document.fonts.load(fontString(font, 1)).catch(function () {}) : Promise.resolve();
-		});
-		var image = lockup.logo ? loadImage(lockup.logo.url) : Promise.resolve(null);
-		Promise.all([image].concat(fonts)).then(function (loaded) {
-			lockup.img = loaded[0];
-			var parts = layout(lockup, document.createElement('canvas').getContext('2d'));
+		prepare(lockup).then(function (parts) {
 			var base = lockup.file + '-logo-' + lockup.scheme;
 			if ('svg' === kind) {
 				return svg(lockup, parts).then(function (blob) {
@@ -551,6 +568,154 @@
 		});
 	}
 
+	/*
+	 * PNG files for links. For someone who can edit the theme, the block
+	 * lists the files that are missing or out of date; they are drawn here,
+	 * one at a time, and saved to the site, whose answer gives the link.
+	 */
+	var PNG = {
+		/** Space around a padded picture, as a share of its longest side. */
+		pad: 0.125,
+		/** Longest side of a bitmap logo's file (never enlarged), and of an SVG logo's. */
+		maxSide: 2048,
+		svgSide: 1200
+	};
+
+	/* The buttons of one file, such as logo-light/padded. */
+	function pngButtons(id) {
+		return document.querySelectorAll(ROOT + ' [data-sps-brand-png="' + id + '"]');
+	}
+
+	/* The header logo's effect on the picture's card, or ''. */
+	function cardFilter(id) {
+		var button = pngButtons(id)[0];
+		var card = button && button.closest(ROOT + '__card');
+		var stage = card && card.querySelector('[data-sps-brand-stage]');
+		return stage ? stage.getAttribute('data-sps-brand-filter') || '' : '';
+	}
+
+	/* How far the effect's shadows reach beyond the picture, in CSS pixels. */
+	function filterReach(filter) {
+		var list = filter ? shadows(filter) : null;
+		return (list || []).reduce(function (most, s) {
+			return Math.max(most, Math.max(Math.abs(s.x), Math.abs(s.y)) + s.blur);
+		}, 0);
+	}
+
+	/* A logo or icon from the Media Library, padded on its background or on transparent. */
+	function imageCanvas(target, variant, img, filter) {
+		var w = img.naturalWidth || target.image.width || 512;
+		var h = img.naturalHeight || target.image.height || 512;
+		var svgFile = '.svg' === String(target.image.url).split('?')[0].slice(-4).toLowerCase();
+		var fit = svgFile ? PNG.svgSide / Math.max(w, h) : Math.min(1, PNG.maxSide / Math.max(w, h));
+		w = Math.round(w * fit);
+		h = Math.round(h * fit);
+		// The effect's lengths are for the picture at the size the page shows it.
+		var unit = target.display ? w / target.display : h / 96;
+		var effect = target.edge && filter ? scaleFilter(filter, unit) : '';
+		var reach = effect ? Math.ceil(filterReach(filter) * unit) : 0;
+		var padded = 'padded' === variant;
+		var pad = padded ? Math.round(Math.max(w, h) * PNG.pad) : reach;
+		var canvas = document.createElement('canvas');
+		canvas.width = w + pad * 2;
+		canvas.height = h + pad * 2;
+		if (padded && target.square) {
+			canvas.width = canvas.height = Math.max(canvas.width, canvas.height);
+		}
+		var ctx = canvas.getContext('2d');
+		if (padded) {
+			ctx.fillStyle = target.background;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+		}
+		ctx.filter = effect || 'none';
+		ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+		ctx.filter = 'none';
+		return canvas;
+	}
+
+	/* The logo with the name, padded on its background or on transparent. */
+	function lockupCanvas(variant, lockup, parts) {
+		var padded = 'padded' === variant;
+		var pad = padded ? Math.max(parts.width, parts.height) * PNG.pad : Math.max(2, filterReach(lockup.filter));
+		var canvas = document.createElement('canvas');
+		canvas.width = Math.ceil((parts.width + pad * 2) * SCALE);
+		canvas.height = Math.ceil((parts.height + pad * 2) * SCALE);
+		draw(lockup, parts, canvas, SCALE, pad, pad, padded ? lockup.background : null);
+		return canvas;
+	}
+
+	/* One job's file as a data: URL. */
+	function drawJob(job) {
+		var target = job.target;
+		var filter = cardFilter(job.id);
+		if ('image' === target.kind) {
+			return loadImage(target.image.url).then(function (img) {
+				return imageCanvas(target, job.variant, img, filter).toDataURL('image/png');
+			});
+		}
+		var lockup = JSON.parse(JSON.stringify(target.lockup));
+		lockup.filter = filter;
+		return prepare(lockup).then(function (parts) {
+			var canvas = 'banner' === target.kind ? bannerCanvas(lockup, parts) : lockupCanvas(job.variant, lockup, parts);
+			return canvas.toDataURL('image/png');
+		});
+	}
+
+	function pngReady(id, saved) {
+		Array.prototype.forEach.call(pngButtons(id), function (button) {
+			button.setAttribute('data-sps-brand-copy', saved.url);
+			button.title = saved.url + ' (' + saved.width + ' × ' + saved.height + ')';
+			button.classList.remove('is-pending');
+			button.disabled = false;
+		});
+	}
+
+	function pngFailed(id) {
+		Array.prototype.forEach.call(pngButtons(id), function (button) {
+			// An older file still has a link; a missing one says why it has none.
+			if (!button.getAttribute('data-sps-brand-copy')) {
+				button.title = 'The file could not be made. Reload the page to try again.';
+			}
+		});
+	}
+
+	function makePngs() {
+		var holder = document.querySelector(ROOT + '__png-jobs');
+		var data;
+		if (!holder || !window.fetch) {
+			return;
+		}
+		try {
+			data = JSON.parse(holder.textContent);
+		} catch (e) {
+			return;
+		}
+		var jobs = Array.isArray(data.jobs) ? data.jobs : [];
+		var chain = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+		jobs.forEach(function (job, i) {
+			chain = chain.then(function () {
+				return drawJob(job).then(function (png) {
+					// nosemgrep -- the site's own REST route, with the editor's nonce.
+					return fetch(data.endpoint, {
+						method: 'POST',
+						credentials: 'same-origin',
+						headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': data.nonce },
+						body: JSON.stringify({ key: job.key, variant: job.variant, hash: job.hash, png: png, last: i === jobs.length - 1 })
+					});
+				}).then(function (response) {
+					if (!response.ok) {
+						throw new Error(response.status);
+					}
+					return response.json();
+				}).then(function (saved) {
+					pngReady(job.id, saved);
+				}).catch(function () {
+					pngFailed(job.id);
+				});
+			});
+		});
+	}
+
 	document.addEventListener('click', function (event) {
 		var button = event.target.closest && event.target.closest(ROOT + ' [data-sps-brand-copy], ' + ROOT + ' [data-sps-brand-make]');
 		if (!button) {
@@ -564,9 +729,14 @@
 		}
 	});
 
-	if ('loading' === document.readyState) {
-		document.addEventListener('DOMContentLoaded', applyEffects);
-	} else {
+	function start() {
 		applyEffects();
+		makePngs();
+	}
+
+	if ('loading' === document.readyState) {
+		document.addEventListener('DOMContentLoaded', start);
+	} else {
+		start();
 	}
 })();
