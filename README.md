@@ -2732,6 +2732,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 Ã— 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
+- New (**Brand assets page**, #1651): a site with a dark mode logo also gets an email signature banner for dark backgrounds, with its own download and PNG link.
+- Fixed (**Brand assets page**, #1632): `wp seoprostack brand-assets create --replace` shows Kadence's page title and the space above the content, even when the old page hid them.
 
 ### 1.3.218
 
