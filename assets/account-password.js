@@ -1,10 +1,13 @@
 /**
- * My Account without WooCommerce (SEOProStack_Account): the password
- * strength meter of the sign-up, reset and account details forms, as
- * WooCommerce's: the strength under the new password, a hint while it is
- * weak, and the form's button off until it is strong enough (a password
- * manager's weak password still shows its strength). WordPress's meter
- * (wp.passwordStrength, zxcvbn) does the measuring.
+ * My Account without WooCommerce (SEOProStack_Account): WooCommerce's
+ * show-password button on every password field (woocommerce.js: the field
+ * wrapped in span.password-input, with a button.show-password-input that
+ * the theme's WooCommerce styles draw as an eye), and, where a password is
+ * chosen, the password strength meter of the sign-up, reset and account
+ * details forms, as WooCommerce's: the strength under the new password, a
+ * hint while it is weak, and the form's button off until it is strong
+ * enough (a password manager's weak password still shows its strength).
+ * WordPress's meter (wp.passwordStrength, zxcvbn) does the measuring.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -16,7 +19,9 @@
 
 	var config = window.seoprostackAccountPassword || {};
 	var labels = window.pwsL10n || {};
-	var min = typeof config.min === 'number' ? config.min : 3;
+	// wp_localize_script() passes values as strings.
+	var min = parseInt(config.min, 10);
+	min = isNaN(min) ? 3 : min;
 	var FORMS = 'form.register, form.edit-account, form.lost_reset_password';
 	var FIELDS = '#reg_password, #account_password, #password_1';
 
@@ -89,6 +94,45 @@
 		}
 	}
 
-	document.addEventListener('input', onInput);
-	document.addEventListener('change', onInput);
+	function showPasswordButtons() {
+		var show = config.show || 'Show password';
+		var hide = config.hide || 'Hide password';
+		document.querySelectorAll('.woocommerce form .woocommerce-Input[type="password"]').forEach(function (input) {
+			var wrap = input.parentElement;
+			if (!wrap || !wrap.classList.contains('password-input')) {
+				wrap = document.createElement('span');
+				wrap.className = 'password-input';
+				input.parentNode.insertBefore(wrap, input);
+				wrap.appendChild(input);
+			}
+			if (wrap.querySelector('.show-password-input')) {
+				return;
+			}
+			var button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'show-password-input';
+			button.setAttribute('aria-label', show);
+			if (input.id) {
+				button.setAttribute('aria-describedby', input.id);
+			}
+			button.addEventListener('click', function (event) {
+				event.preventDefault();
+				var shown = button.classList.toggle('display-password');
+				button.setAttribute('aria-label', shown ? hide : show);
+				input.type = shown ? 'text' : 'password';
+				input.focus();
+			});
+			wrap.appendChild(button);
+		});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', showPasswordButtons);
+	} else {
+		showPasswordButtons();
+	}
+	if (config.meter) {
+		document.addEventListener('input', onInput);
+		document.addEventListener('change', onInput);
+	}
 }());

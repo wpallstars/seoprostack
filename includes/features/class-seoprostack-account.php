@@ -597,7 +597,8 @@ class SEOProStack_Account extends SEOProStack_Feature {
     }
 
     /**
-     * The password strength meter where a password is chosen.
+     * WooCommerce's show-password buttons on the account page, and its
+     * password strength meter where a password is chosen.
      */
     public static function enqueue() {
         if (!self::is_account_page()) {
@@ -606,14 +607,14 @@ class SEOProStack_Account extends SEOProStack_Feature {
         $endpoint = self::current_endpoint();
         $choosing = is_user_logged_in() ? in_array($endpoint, array('edit-account', 'lost-password'), true)
             : ('lost-password' === $endpoint || (self::signups_open() && !self::generates_password()));
-        if (!$choosing) {
-            return;
-        }
-        wp_enqueue_script(self::METER, SEOProStack::asset_url('assets/account-password.js'), array('password-strength-meter'), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
+        wp_enqueue_script(self::METER, SEOProStack::asset_url('assets/account-password.js'), $choosing ? array('password-strength-meter') : array(), SEOPROSTACK_VERSION, array('strategy' => 'defer', 'in_footer' => true));
         wp_localize_script(
             self::METER,
             'seoprostackAccountPassword',
             array(
+                'meter' => $choosing,
+                'show'  => __('Show password', 'seoprostack'),
+                'hide'  => __('Hide password', 'seoprostack'),
                 /**
                  * Filter the strength (0 to 4, from WordPress's meter) a new
                  * password on My Account needs before its form can be sent.
