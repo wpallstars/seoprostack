@@ -17294,7 +17294,3 @@ msgstr "Die Datei ist kein PNG-Bild."
 #: includes/features/class-seoprostack-brand-assets.php:1475
 msgid "The file is too large."
 msgstr "Die Datei ist zu gross."
-
-#, php-format
-#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
-#~ msgstr "Fügen Sie es als Bild mit 600 Pixeln Breite Ihrer E-Mail-Signatur hinzu und verlinken Sie es auf %s."

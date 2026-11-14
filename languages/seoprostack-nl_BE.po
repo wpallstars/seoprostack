@@ -17432,7 +17432,3 @@ msgstr "Het bestand is geen PNG-afbeelding."
 #: includes/features/class-seoprostack-brand-assets.php:1475
 msgid "The file is too large."
 msgstr "Het bestand is te groot."
-
-#, php-format
-#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
-#~ msgstr "Voeg het toe aan je e-mailhandtekening als afbeelding, 600 pixels breed, gelinkt naar %s."

@@ -15654,7 +15654,3 @@ msgstr "Soubor není obrázek PNG."
 #: includes/features/class-seoprostack-brand-assets.php:1475
 msgid "The file is too large."
 msgstr "Soubor je příliš velký."
-
-#, php-format
-#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
-#~ msgstr "Přidejte ho do e-mailového podpisu jako obrázek široký 600 pixelů s odkazem na %s."

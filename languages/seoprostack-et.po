@@ -18361,7 +18361,3 @@ msgstr "Fail ei ole PNG-pilt."
 #: includes/features/class-seoprostack-brand-assets.php:1475
 msgid "The file is too large."
 msgstr "Fail on liiga suur."
-
-#, php-format
-#~ msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
-#~ msgstr "Lisage see oma e-posti allkirjale 600 piksli laiuse pildina, lingiga aadressile %s."
