@@ -147,6 +147,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Database_Cleanup',
         'SEOProStack_Autoload_Options',
         'SEOProStack_Woo_Light',
+        'SEOProStack_Account',
         'SEOProStack_Tutor_Light',
         'SEOProStack_Kadence_Library',
         'SEOProStack_Kadence_Icon_Picker',
@@ -292,8 +293,11 @@ final class SEOProStack_Setup {
      * v35: Simpler block editor's Advanced Text for new lines is switched
      *      off once, so core's Paragraph, with its typing shortcuts ("* "
      *      for a list), is what typing makes again (#978).
+     * v36: My Account without WooCommerce takes WooCommerce's "Allow
+     *      customers to create an account on the My account page" as its
+     *      People can sign up, where WooCommerce stored it (#1644).
      */
-    const DB_VERSION = 35;
+    const DB_VERSION = 36;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
