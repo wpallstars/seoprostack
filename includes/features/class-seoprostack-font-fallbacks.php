@@ -100,6 +100,9 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
      */
     private static $metrics = null;
 
+    /** Whether a font stylesheet on this site was named but its file was not there, on this page. */
+    private static $unreadable = false;
+
     /**
      * Settings.
      *
@@ -203,9 +206,25 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         if (false === stripos($html, '</head>') || false === stripos(ltrim(substr($html, 0, 500)), '<')) {
             return $html; // Not an HTML page.
         }
-        $families = self::web_fonts($html);
-        if (!$families || !SEOProStack_Used_Css_Policy::allows($html, true)) {
-            return $html;
+        self::$unreadable = false;
+        $families         = self::web_fonts($html);
+        $note             = '';
+        $why              = '';
+        if (empty(self::metrics()['fonts'])) {
+            $why = 'the font measurements could not be read';
+        } elseif (self::font_stylesheet_missing()) {
+            $why = 'a font stylesheet file was not found';
+        }
+        if ('' !== $why) {
+            // A reason that may not repeat: the next build should replace this page (GitHub issue #1603).
+            SEOProStack_Used_Css_Policy::degraded('Font fallbacks skipped: ' . $why);
+            $note = SEOProStack_Used_Css_Policy::marker('Font fallbacks', $why);
+        }
+        if (!$families) {
+            return $html . $note;
+        }
+        if (!SEOProStack_Used_Css_Policy::allows($html, true)) {
+            return $html . $note . SEOProStack_Used_Css_Policy::marker('Font fallbacks', 'a content security policy blocks inline code');
         }
         $count = 0;
         $out   = preg_replace_callback('#(<style\b[^>]*>)(.*?)(</style>)#is', function ($m) use ($families, &$count) {
@@ -214,8 +233,12 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
             }, $m[2]);
             return null === $body ? $m[0] : $m[1] . $body . $m[3];
         }, $html);
-        if (null === $out || !$count) {
-            return $html; // No stack names them, or the regex hit a PCRE limit.
+        if (null === $out) {
+            SEOProStack_Used_Css_Policy::degraded('Font fallbacks skipped: the regular expression hit a PCRE limit');
+            return $html . $note . SEOProStack_Used_Css_Policy::marker('Font fallbacks', 'the regular expression hit a PCRE limit');
+        }
+        if (!$count) {
+            return $html . $note; // No stack names them.
         }
         $tag = self::tag($families);
         // After the charset tag, which belongs in the first 1,024 bytes.
@@ -224,9 +247,9 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         } elseif (preg_match('#<head\b[^>]*>#i', $out, $found, PREG_OFFSET_CAPTURE)) {
             $at = (int) $found[0][1] + strlen($found[0][0]);
         } else {
-            return $html;
+            return $html . $note;
         }
-        return substr_replace($out, $tag, $at, 0);
+        return substr_replace($out, $tag, $at, 0) . $note;
     }
 
     /**
@@ -444,6 +467,16 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
     }
 
     /**
+     * Whether a font stylesheet on this site was named on this page but its
+     * file was not there (set by font_file()).
+     *
+     * @return bool
+     */
+    private static function font_stylesheet_missing() {
+        return self::$unreadable;
+    }
+
+    /**
      * The fonts to leave as they are, lower case.
      *
      * @return string[]
@@ -508,7 +541,14 @@ class SEOProStack_Font_Fallbacks extends SEOProStack_Feature {
         $upload  = untrailingslashit((string) wp_parse_url(isset($uploads['baseurl']) ? $uploads['baseurl'] : '', PHP_URL_PATH));
         $fonts   = 0 === strpos($path, $content . '/fonts/') || ('' !== $upload && 0 === strpos($path, $upload . '/'))
             || false !== stripos(basename($path), 'font');
-        return $fonts ? SEOProStack_Used_Css_Links::stylesheet_file($href) : '';
+        if (!$fonts) {
+            return '';
+        }
+        $file = SEOProStack_Used_Css_Links::stylesheet_file($href);
+        if ('' === $file && '.css' === strtolower(substr($path, -4))) {
+            self::$unreadable = true; // Named as a font stylesheet on this site, but not there (GitHub issue #1603).
+        }
+        return $file;
     }
 
     /**
