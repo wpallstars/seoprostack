@@ -97,8 +97,23 @@
 		});
 	}
 
-	/* A CSS colour as rgb() and an opacity, read back from a pixel. */
+	/*
+	 * A CSS colour as rgb() and an opacity. Computed colours (color(srgb …)
+	 * or rgb()) are read exactly; others from a pixel, which rounds a
+	 * see-through colour.
+	 */
 	function rgba(colour) {
+		var num = '(-?\\d*\\.?\\d+(?:e-?\\d+)?)';
+		var srgb = new RegExp('^color\\(srgb ' + num + ' ' + num + ' ' + num + '(?: / ' + num + ')?\\)$').exec(colour);
+		var rgb = new RegExp('^rgba?\\(' + num + ',\\s*' + num + ',\\s*' + num + '(?:,\\s*' + num + ')?\\)$').exec(colour);
+		var found = srgb || rgb;
+		if (found) {
+			var unit = srgb ? 255 : 1;
+			var channels = [1, 2, 3].map(function (i) {
+				return Math.max(0, Math.min(255, Math.round(parseFloat(found[i]) * unit)));
+			});
+			return { colour: 'rgb(' + channels.join(',') + ')', opacity: undefined === found[4] ? 1 : Math.round(parseFloat(found[4]) * 1000) / 1000 };
+		}
 		var ctx = document.createElement('canvas').getContext('2d');
 		ctx.fillStyle = colour;
 		ctx.fillRect(0, 0, 1, 1);

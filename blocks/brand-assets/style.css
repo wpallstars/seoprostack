@@ -25,9 +25,9 @@
 	list-style: none;
 }
 
-/* auto-fill, so a card on its own keeps the width of one beside another. */
+/* Two columns, or one where two would be narrower than 22rem; a card on its own keeps one column's width. */
 .wp-block-seoprostack-brand-assets__grid--two {
-	grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, max(22rem, calc(50% - 0.5rem))), 1fr));
 }
 
 .wp-block-seoprostack-brand-assets__card,
