@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.214-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.215-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.214
+Version: 1.3.215
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2716,7 +2716,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.215
 
 - Fixed (**Load plugins only where needed**; #1615): an add-on with no admin page of its own was skipped on the pages of the plugin it needs, so what it adds there was missing. SEO Pro Analytics Connect, for example, was left out of SEO Pro Analytics’ Connections tab, which then asked for the add-on although its licence was valid. Add-ons now load on the menu pages of the plugin they need.
 - New (**Watermark pictures** → **Leave product pictures unmarked**, off by default; #1614): pictures of FluentCart and WooCommerce products are not marked, for shop artwork that already carries the brand. Turning it on takes the mark off product pictures already marked, from their kept originals.
