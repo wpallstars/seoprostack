@@ -314,30 +314,46 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
         if (isset($active[self::IWMFS]) && in_array($lower, self::IWMFS_KEYS, true)) {
             $owner['slug'] = self::IWMFS;
         } else {
-            foreach (self::PREFIXES as $prefix => $slug) {
-                if (0 === strpos($lower, $prefix)) {
-                    $owner['slug'] = $slug;
-                    break;
-                }
-            }
-            foreach (self::SEARCHED as $prefix) {
-                if ('' === $owner['slug'] && 0 === strpos($lower, $prefix)) {
-                    $owner['searched'] = true;
-                    $slug              = self::prefix_plugin($prefix);
-                    if (is_string($slug)) {
-                        $owner['slug'] = $slug;
-                    } elseif (false === $slug) {
-                        $owner['name'] = __('Unknown: no installed plugin uses this prefix', 'seoprostack');
-                    } else {
-                        $owner['name']    = __('Unknown: the search of installed plugins did not finish', 'seoprostack');
-                        $owner['unknown'] = true;
-                    }
-                }
-            }
+            $owner = self::prefix_owner($owner, $lower);
         }
         if ('' !== $owner['slug']) {
             $owner['active'] = isset($active[$owner['slug']]);
             $owner['name']   = self::plugin_name($owner['slug']);
+        }
+        return $owner;
+    }
+
+    /**
+     * The plugin a key's name prefix belongs to: a known prefix, or a
+     * search of installed plugins for the others.
+     *
+     * @param array{name:string,slug:string,active:bool,core:bool,searched:bool,unknown:bool,fast:bool} $owner owner() result so far.
+     * @param string                                                                                   $lower Lowercase key name.
+     * @return array{name:string,slug:string,active:bool,core:bool,searched:bool,unknown:bool,fast:bool}
+     */
+    private static function prefix_owner(array $owner, $lower) {
+        foreach (self::PREFIXES as $prefix => $slug) {
+            if (0 === strpos($lower, $prefix)) {
+                $owner['slug'] = $slug;
+                return $owner;
+            }
+        }
+        foreach (self::SEARCHED as $prefix) {
+            if (0 !== strpos($lower, $prefix)) {
+                continue;
+            }
+            $owner['searched'] = true;
+            $slug              = self::prefix_plugin($prefix);
+            if (is_string($slug)) {
+                $owner['slug'] = $slug;
+                return $owner;
+            }
+            if (false === $slug) {
+                $owner['name'] = __('Unknown: no installed plugin uses this prefix', 'seoprostack');
+            } else {
+                $owner['name']    = __('Unknown: the search of installed plugins did not finish', 'seoprostack');
+                $owner['unknown'] = true;
+            }
         }
         return $owner;
     }
