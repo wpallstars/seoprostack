@@ -1272,6 +1272,59 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     }
 
     /**
+     * Whether link text starts with "About", or the site's word for it.
+     *
+     * @param string $text Link text, with or without markup.
+     * @return bool
+     */
+    private static function about_text($text) {
+        $text  = trim(html_entity_decode(wp_strip_all_tags((string) $text), ENT_QUOTES, 'UTF-8'));
+        // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WordPress's own translation of the word.
+        $words = array_unique(array('About', (string) __('About', 'default')));
+        foreach ($words as $word) {
+            if ('' !== $word && 1 === preg_match('/^' . preg_quote($word, '/') . '(?![\p{L}\p{N}])/iu', $text)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether a link is the About link: an About path, or text starting
+     * with "About".
+     *
+     * @param string   $href  Link address.
+     * @param string   $text  Link text.
+     * @param string[] $about About paths.
+     * @return bool
+     */
+    private static function is_about_link($href, $text, array $about) {
+        return in_array(self::path($href), $about, true) || self::about_text($text);
+    }
+
+    /**
+     * Whether a menu item is the About link: by address or title, or a
+     * page whose slug starts with "about".
+     *
+     * @param object   $item  Menu item.
+     * @param string[] $about About paths.
+     * @return bool
+     */
+    private static function is_about_item($item, array $about) {
+        $fields = get_object_vars($item);
+        $url    = isset($fields['url']) ? (string) $fields['url'] : '';
+        $title  = isset($fields['title']) ? (string) $fields['title'] : '';
+        $object = isset($fields['object_id']) ? (int) $fields['object_id'] : 0;
+        if (self::is_about_link($url, $title, $about)) {
+            return true;
+        }
+        if (isset($fields['object']) && 'page' === $fields['object'] && $object > 0) {
+            return 0 === strpos((string) get_post_field('post_name', $object), 'about');
+        }
+        return false;
+    }
+
+    /**
      * The footer's places for links: block widgets and nav menus in the
      * footer widget areas, and the footer menu location.
      *
@@ -1325,21 +1378,21 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 if (((int) $item->object_id === (int) $page->ID && 'page' === $item->object) || self::path($item->url) === $target) {
                     return array('status' => 'exists', 'message' => sprintf('The footer menu "%s" already links to the page.', self::menu_name($menu)));
                 }
-                if (!$found && in_array(self::path($item->url), $about, true)) {
+                if (!$found && self::is_about_item($item, $about)) {
                     $found = array('menu', $menu, $item);
                 }
             }
         }
         foreach ($places['blocks'] as $number) {
             $content = isset($blocks[$number]['content']) ? (string) $blocks[$number]['content'] : '';
-            if (preg_match_all('/<a\b[^>]*\bhref=(["\'])(.*?)\1/i', $content, $links)) {
+            if (preg_match_all('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', $content, $links)) {
                 foreach ($links[2] as $href) {
                     if (self::path($href) === $target) {
                         return array('status' => 'exists', 'message' => sprintf('The footer widget block-%d already links to the page.', $number));
                     }
                 }
-                foreach ($links[2] as $href) {
-                    if (!$found && in_array(self::path($href), $about, true)) {
+                foreach ($links[2] as $at => $href) {
+                    if (!$found && self::is_about_link($href, $links[3][$at], $about)) {
                         $found = array('block', $number, null);
                     }
                 }
@@ -1448,7 +1501,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             }
             $html = isset($block['innerHTML']) ? (string) $block['innerHTML'] : '';
             // Only a block holding the one link (a paragraph or list item) is copied, never classic HTML.
-            if (empty($block['blockName']) || in_array($block['blockName'], array('core/html', 'core/freeform', 'core/shortcode'), true) || 1 !== preg_match_all('/<a\b/i', $html) || !preg_match('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>.*?<\/a>/is', $html, $m) || !in_array(self::path($m[2]), $about, true)) {
+            if (empty($block['blockName']) || in_array($block['blockName'], array('core/html', 'core/freeform', 'core/shortcode'), true) || 1 !== preg_match_all('/<a\b/i', $html) || !preg_match('/<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', $html, $m) || !self::is_about_link($m[2], $m[3], $about)) {
                 continue;
             }
             $link = '<a href="' . esc_url($href) . '">' . esc_html($label) . '</a>';
