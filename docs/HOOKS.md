@@ -55,6 +55,10 @@ README.md → Extending describes the most used ones in words.
 
 | Hook | Type | Status | Since | Feature | Arguments |
 |---|---|---|---|---|---|
+| `seoprostack_account_min_password_strength` | filter | supported | 1.3.218 | account | `3` |
+| `seoprostack_account_page` | filter | supported | 1.3.218 | account | `$id` |
+| `seoprostack_account_password_line` | filter | supported | 1.3.218 | account forms | `__('A link to set a new password will be sent to your email address.', 'seoprostack')` |
+| `seoprostack_account_role` | filter | supported | 1.3.218 | account forms | `$role` |
 | `seoprostack_admin_bar_more_items` | filter | supported | 0.5.0 | admin bar more | `$move`; `$wp_admin_bar` |
 | `seoprostack_admin_bar_star` | filter | supported | 0.5.0 | admin bar | `true` |
 | `seoprostack_admin_dark_contrast_guard` | filter | supported | 1.3.35 | admin whole theme | `true`; `$screen` |

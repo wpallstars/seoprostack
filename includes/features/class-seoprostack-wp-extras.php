@@ -206,7 +206,7 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
      */
     public static function password_meter() {
         $setting = isset($_GET['action']) && in_array($_GET['action'], array('lostpassword', 'rp', 'resetpass', 'register'), true); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared.
-        if ($setting || (function_exists('is_account_page') && is_account_page()) || (function_exists('is_checkout') && is_checkout())) {
+        if ($setting || (function_exists('is_account_page') && is_account_page()) || SEOProStack_Account::is_account_page() || (function_exists('is_checkout') && is_checkout())) {
             return;
         }
         foreach (array('wc-password-strength-meter', 'password-strength-meter', 'zxcvbn-async') as $handle) {

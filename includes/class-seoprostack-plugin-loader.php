@@ -807,7 +807,7 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         $front = get_option(self::FRONT, array());
-        if (!empty($front['failed']) || ($logged_in && empty($options[self::FRONT_USERS_KEY]))) {
+        if (!empty($front['failed']) || ($logged_in && empty($options[self::FRONT_USERS_KEY])) || self::account_request($front)) {
             return;
         }
         $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
@@ -866,6 +866,13 @@ final class SEOProStack_Plugin_Loader {
             $chosen = array_diff(array_unique(array_merge($chosen, $candidates, $verified)), $keep);
             $needed = array_merge((array) ($page['needs'] ?? array()), $content);
             if (!empty($context['id']) && in_array((int) $context['id'], (array) ($front['woo_pages'] ?? array()), true)) {
+                $network = is_multisite() ? (array) get_site_option('active_sitewide_plugins', array()) : array();
+                if (!in_array('woocommerce/woocommerce.php', self::$raw, true) && !isset($network['woocommerce/woocommerce.php'])) {
+                    // My Account without WooCommerce (SEOProStack_Account):
+                    // plugins add its tabs and form fields with hooks no
+                    // learning sees, so it loads every plugin.
+                    return;
+                }
                 $needed[] = 'woocommerce/woocommerce.php';
             }
             do {
@@ -1258,6 +1265,35 @@ final class SEOProStack_Plugin_Loader {
             }
         }
         return false;
+    }
+
+    /**
+     * A request for My Account without WooCommerce (any tab, any visitor,
+     * forms too), which loads every plugin: other plugins add its tabs and
+     * form checks with hooks no learning sees. The learned map has the
+     * account page's path and tab slugs (SEOProStack_Account::loader_paths()).
+     *
+     * @param array $front Learned map.
+     * @return bool
+     */
+    private static function account_request(array $front) {
+        $account = (array) ($front['account'] ?? array());
+        if (!isset($account['path']) || !is_string($account['path'])) {
+            return false;
+        }
+        $uri  = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared with a path only.
+        $path = (string) wp_parse_url($uri, PHP_URL_PATH);
+        $home = trailingslashit((string) wp_parse_url((string) get_option('home'), PHP_URL_PATH));
+        if (0 !== strpos(trailingslashit($path), $home)) {
+            return false;
+        }
+        $path = trim((string) substr($path, strlen($home)), '/');
+        $page = trim($account['path'], '/');
+        if ('' !== $page) {
+            return 0 === strpos($path . '/', $page . '/');
+        }
+        // The front page: its tabs are at the root (/edit-account/).
+        return '' === $path || in_array(strtok($path, '/'), (array) ($account['slugs'] ?? array()), true);
     }
 
     /**

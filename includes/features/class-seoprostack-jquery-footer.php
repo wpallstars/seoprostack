@@ -122,7 +122,8 @@ class SEOProStack_Jquery_Footer extends SEOProStack_Feature {
         }
         if ((function_exists('is_cart') && is_cart())
             || (function_exists('is_checkout') && is_checkout())
-            || (function_exists('is_account_page') && is_account_page())) {
+            || (function_exists('is_account_page') && is_account_page())
+            || SEOProStack_Account::is_account_page()) {
             return false;
         }
         /**
