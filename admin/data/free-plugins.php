@@ -232,7 +232,7 @@ function seoprostack_get_own_plugins() {
             'description' => __('Change how your theme and plugins behave when their settings can\'t, without waiting on their makers: one small file per change, in your own copy.', 'seoprostack'),
         ),
     );
-    foreach ($plugins as $slug => $plugin) {
+    foreach (array_keys($plugins) as $slug) {
         $plugins[$slug] += array(
             'author'       => 'wpallstars',
             'url'          => 'https://github.com/wpallstars/' . $slug,

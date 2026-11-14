@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 
 // FlyingPress and Link Whisper are not recommended, at the owner's request.
  function seoprostack_get_pro_plugins() {
-    return array(
+    $plugins = array(
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',
             'description' => 'Advanced admin columns management with sorting, filtering, and editing capabilities.',
@@ -297,13 +297,6 @@ if (!defined('ABSPATH')) {
         ),
         // The address SEO Pro Analytics itself links
         // (SEOProAnalytics_Connections::CONNECT_URL).
-        // One page, so one Learn more button (SEOProStack_Link_Cards).
-        'seoproanalytics-connect' => array(
-            'name' => 'SEO Pro Analytics Connect',
-            'description' => 'The add-on for SEO Pro Analytics that connects services needing an outside account, such as Google Search Console and the Chrome UX Report, into the same reports.',
-            'url' => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics-connect/',
-            'free_slug' => 'seoproanalytics'
-        ),
         'scalability-pro' => array(
             'name' => 'Scalability Pro',
             'description' => 'Advanced performance optimization and scaling tools.',
@@ -702,4 +695,16 @@ if (!defined('ABSPATH')) {
             )
         )
     );
+
+    // Our own add-on, at the address SEO Pro Analytics itself links
+    // (SEOProAnalytics_Connections::CONNECT_URL): one page, so one Learn
+    // more button (SEOProStack_Link_Cards).
+    $plugins['seoproanalytics-connect'] = array(
+        'name'        => 'SEO Pro Analytics Connect',
+        'description' => 'The add-on for SEO Pro Analytics that connects services needing an outside account, such as Google Search Console and the Chrome UX Report, into the same reports.',
+        'url'         => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics-connect/',
+        'free_slug'   => 'seoproanalytics',
+    );
+
+    return $plugins;
 }
