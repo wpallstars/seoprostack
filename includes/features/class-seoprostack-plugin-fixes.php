@@ -284,6 +284,22 @@
  * page). The decoded value is kept for the rest of the request and given
  * through the option's own filters; a changed stored value is decoded again.
  *
+ * The Kadence theme's and Kadence Blocks' Load Google Fonts locally (WPTT's
+ * web font loader, checked with Kadence 1.5.2) keeps each font file's
+ * absolute path in the downloaded_font_files option and, when it writes a
+ * stylesheet to wp-content/fonts/, turns each path into an address by
+ * replacing this install's wp-content path with its address. It trusts a
+ * stored path whenever the file is at today's path, so a path that names
+ * another folder stays: after a search-replace of the site's address where
+ * the hosting folder is named after it (as on Hostinger), or a database
+ * copied from another install (#1577). The replace then misses and the
+ * stylesheet, kept until the file is deleted, gives the server path as each
+ * font's address: every font 404s and headings lose their font (#1638).
+ * While it reads the option, entries outside this install's wp-content (or
+ * WPTT's filtered base path) are left out, so it stores this install's path
+ * for a font file that is there and downloads a missing one. A stylesheet
+ * written before stays until `wp seoprostack health --repair` removes it.
+ *
  * Image Copytrack 1.2.4's vendor script uses regeneratorRuntime but declares
  * only wp-element and wp-i18n as dependencies. On screens where no other
  * plugin loads the runtime first, including Add Plugins and View details,
@@ -553,7 +569,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot, and its ADHD Friendly profile and Reading Mask no longer cover the whole page, taking every click, when no reading mask height is saved. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired, and so does removing a file attached to a Fluent Forms upload field ("Security check failed" before). Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot, and its ADHD Friendly profile and Reading Mask no longer cover the whole page, taking every click, when no reading mask height is saved. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load, and the web server answers its push notification worker as a file instead of starting WordPress each time a browser checks it; once its Notifications add-on is off, browsers remove the worker. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page, and its Contact Support email gets the client\'s address as Reply-To, so replies reach them when your mail plugin sends from the site\'s address. On LiteSpeed servers, all requests, including visitor pages, WordPress cron and Action Scheduler, keep running after a disconnect, within normal PHP and server time limits, through a few lines at the top of .htaccess. Abandoned requests still use CPU. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Scheduled tasks are much less likely to be lost or copied when requests overlap, extra copies (AI Engine, Link Whisper, Freemius, MainWP Child) are removed in each cron run, and AI Engine no longer reschedules its task runner from visitors\' page loads when it is late. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo, and colours chosen from Kadence Blocks\' Style Library change with it. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Pages with a Kadence Blocks Pro query loop no longer start every plugin\'s REST API to run it, and the Kadence theme decodes its settings once per page instead of over a thousand times. After a site moves to a new address or server, Kadence\'s local Google Fonts keep working instead of giving server folder paths as font addresses, which fail to load. On pages cached for over a day, Kadence\'s query loop filters and further pages, and other plugins\' requests from the page, keep working for visitors who are not logged in, instead of failing with "Cookie check failed" once the page\'s security code has expired, and so does removing a file attached to a Fluent Forms upload field ("Security check failed" before). Hreflang Manager no longer moves the fields in block settings away from their unit boxes and labels, and Kadence Blocks\' link fields show their whole Submit icon, level with the buttons beside them. With Lasso Lite, EventON\'s hidden tooltip icons no longer animate on every frame and slow down the whole block editor. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -622,6 +638,10 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             // Last, so a value another filter gives is kept.
             add_filter('pre_option_theme_mods_' . get_stylesheet(), array(__CLASS__, 'kadence_theme_mods'), PHP_INT_MAX, 2);
         }
+        // WPTT's web font loader (the Kadence theme, Kadence Blocks and other
+        // themes): get_network_option() applies it on single sites too. Last,
+        // so it sees the value other filters give.
+        add_filter('site_option_downloaded_font_files', array(__CLASS__, 'wptt_font_cache'), PHP_INT_MAX);
         // After core's nonce check (rest_cookie_check_errors, priority 100).
         add_filter('rest_authentication_errors', array(__CLASS__, 'rest_anonymous_nonce'), 101);
         if (wp_doing_ajax()) {
@@ -1568,6 +1588,46 @@ JS;
         }
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own option_{name} filter, which get_option() skips for a value from pre_option.
         return apply_filters("option_{$option}", self::$kadence_theme_mods[$key][1], $option);
+    }
+
+    /**
+     * Leave out the local Google Fonts cache entries (WPTT's
+     * downloaded_font_files: font address => file path) whose file path is
+     * not in this install's wp-content folder (see the file docblock). WPTT
+     * then stores this install's path for each font file that is there, or
+     * downloads a missing one, instead of writing a server path into the
+     * stylesheet. Read only while a stylesheet is made, so it costs nothing
+     * on other requests.
+     *
+     * @param mixed $stored The stored cache.
+     * @return mixed
+     */
+    public static function wptt_font_cache($stored) {
+        if (!is_array($stored) || !$stored) {
+            return $stored;
+        }
+        // With FTP or SSH file access WPTT's base path is the remote one.
+        // WPTT has loaded wp-admin/includes/file.php and checked the method
+        // (WP_Filesystem()) by the time it reads the cache.
+        if (function_exists('get_filesystem_method') && 'direct' !== get_filesystem_method()) {
+            return $stored;
+        }
+        $roots = array(trailingslashit(wp_normalize_path(WP_CONTENT_DIR)));
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WPTT's own filter, read to match its base path.
+        $base = apply_filters('wptt_get_local_fonts_base_path', WP_CONTENT_DIR);
+        if (is_string($base) && '' !== $base) {
+            $roots[] = trailingslashit(wp_normalize_path($base));
+        }
+        foreach ($stored as $url => $path) {
+            $inside = false;
+            foreach (is_string($path) ? $roots : array() as $root) {
+                $inside = $inside || 0 === strpos(wp_normalize_path($path), $root);
+            }
+            if (!$inside) {
+                unset($stored[$url]);
+            }
+        }
+        return $stored;
     }
 
     /**
