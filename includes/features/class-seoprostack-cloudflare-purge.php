@@ -221,6 +221,9 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
         add_action('litespeed_purged_all', array(__CLASS__, 'litespeed_purged_all'));
         add_action('litespeed_purged_all_lscache', array(__CLASS__, 'litespeed_purged_all'));
         add_action('litespeed_purged_post', array(__CLASS__, 'litespeed_purged_post'), 10, 1);
+        // After an update or a design change, also on sites with no page cache plugin.
+        add_action('seoprostack_page_cache_purge', array(__CLASS__, 'site_changed'));
+        add_action('seoprostack_page_cache_purge_all', array(__CLASS__, 'site_changed'));
         add_action('wpo_cache_flush', array(__CLASS__, 'wp_optimize_purged'));
         add_action('transition_post_status', array(__CLASS__, 'post_changed'), 10, 3);
         add_action('post_updated', array(__CLASS__, 'post_moved'), 10, 3);
@@ -351,7 +354,7 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
      * already emptied the whole zone.
      */
     public static function litespeed_purged_all() {
-        if (SEOProStack_Litespeed::conf('cdn-cloudflare', false) && SEOProStack_Litespeed::conf('cdn-cloudflare_clear', false)) {
+        if (self::litespeed_clears_zone()) {
             return;
         }
         if (SEOProStack_Keep_Pages_Cached::network_purge()) {
@@ -359,6 +362,33 @@ class SEOProStack_Cloudflare_Purge extends SEOProStack_Feature {
             return;
         }
         self::site();
+    }
+
+    /**
+     * SEO Pro Stack updated, or a setting changed every page: empty this
+     * site at Cloudflare, whether or not a page cache plugin is active. The
+     * queue holds one entry per site, so a LiteSpeed Cache purge in the same
+     * request adds no second request. Not when LiteSpeed Cache's own Clear
+     * Cloudflare cache is on.
+     */
+    public static function site_changed() {
+        if (self::litespeed_clears_zone()) {
+            return;
+        }
+        self::site();
+    }
+
+    /**
+     * Whether LiteSpeed Cache's own Clear Cloudflare cache is on, which
+     * empties the whole zone itself.
+     *
+     * @return bool
+     */
+    private static function litespeed_clears_zone() {
+        if (!SEOProStack_Litespeed::running()) {
+            return false;
+        }
+        return (bool) (SEOProStack_Litespeed::effective_conf('cdn-cloudflare', false) && SEOProStack_Litespeed::effective_conf('cdn-cloudflare_clear', false));
     }
 
     /**
