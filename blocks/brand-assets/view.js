@@ -103,8 +103,13 @@
 		});
 	}
 
+	/* A file of this page (the logo, a font) as a data: URL; web addresses only. */
 	function dataUrl(url) {
-		return fetch(url, { credentials: 'same-origin' }).then(function (r) {
+		var target = new URL(url, window.location.href);
+		if ('https:' !== target.protocol && 'http:' !== target.protocol) {
+			return Promise.reject(new Error('Not a web address'));
+		}
+		return fetch(target.href, { credentials: 'same-origin' }).then(function (r) {
 			if (!r.ok) {
 				throw new Error(r.status);
 			}
@@ -262,21 +267,19 @@
 				fonts[key] = { name: name, weight: line.font.weight, url: fontFile(name, line.font.weight) };
 			}
 		});
-		var jobs = Object.keys(fonts).map(function (key) {
-			var font = fonts[key];
-			return font.url ? dataUrl(font.url).then(function (data) {
-				font.data = data;
-			}, function () {}) : Promise.resolve();
+		var keys = Object.keys(fonts);
+		/* A font file that cannot be read leaves the font named only; the logo must be read. */
+		var jobs = keys.map(function (key) {
+			return fonts[key].url ? dataUrl(fonts[key].url).catch(function () {
+				return '';
+			}) : Promise.resolve('');
 		});
-		jobs.push(parts.logo ? dataUrl(lockup.logo.url).then(function (data) {
-			parts.logo.data = data;
-		}) : Promise.resolve());
-		return Promise.all(jobs).then(function () {
-			var style = Object.keys(fonts).filter(function (key) {
-				return fonts[key].data;
-			}).map(function (key) {
+		jobs.push(parts.logo ? dataUrl(lockup.logo.url) : Promise.resolve(''));
+		return Promise.all(jobs).then(function (files) {
+			var logoData = files.pop();
+			var style = keys.map(function (key, i) {
 				var font = fonts[key];
-				return '@font-face{font-family:"' + font.name + '";font-weight:' + font.weight + ';src:url(' + font.data + ')}';
+				return files[i] ? '@font-face{font-family:"' + font.name + '";font-weight:' + font.weight + ';src:url(' + files[i] + ')}' : '';
 			}).join('');
 			var out = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">';
 			out += '<title>' + escapeXml(lockup.title || lockup.logo.alt) + '</title>';
@@ -284,7 +287,7 @@
 				out += '<style>' + style + '</style>';
 			}
 			if (parts.logo) {
-				out += '<image href="' + parts.logo.data + '" x="' + (pad + parts.logo.x).toFixed(2) + '" y="' + (pad + parts.logo.y).toFixed(2) + '" width="' + parts.logo.width.toFixed(2) + '" height="' + parts.logo.height.toFixed(2) + '"/>';
+				out += '<image href="' + logoData + '" x="' + (pad + parts.logo.x).toFixed(2) + '" y="' + (pad + parts.logo.y).toFixed(2) + '" width="' + parts.logo.width.toFixed(2) + '" height="' + parts.logo.height.toFixed(2) + '"/>';
 			}
 			parts.lines.forEach(function (line) {
 				out += '<text x="' + (pad + line.x).toFixed(2) + '" y="' + (pad + line.y).toFixed(2) + '" dominant-baseline="central" font-family="' + escapeXml(family(line.font.family)) + '" font-weight="' + line.font.weight + '" font-style="' + line.font.style + '" font-size="' + line.font.size + '" fill="' + escapeXml(line.font.color) + '">' + escapeXml(line.text) + '</text>';
@@ -345,10 +348,9 @@
 		var fonts = [lockup.titleFont, lockup.tagFont].map(function (font) {
 			return document.fonts && document.fonts.load ? document.fonts.load(fontString(font, 1)).catch(function () {}) : Promise.resolve();
 		});
-		var image = lockup.logo ? loadImage(lockup.logo.url).then(function (img) {
-			lockup.img = img;
-		}) : Promise.resolve();
-		Promise.all(fonts.concat([image])).then(function () {
+		var image = lockup.logo ? loadImage(lockup.logo.url) : Promise.resolve(null);
+		Promise.all([image].concat(fonts)).then(function (loaded) {
+			lockup.img = loaded[0];
 			var parts = layout(lockup, document.createElement('canvas').getContext('2d'));
 			var base = lockup.file + '-logo-' + lockup.scheme;
 			if ('svg' === kind) {

@@ -35,7 +35,7 @@
 	flex-direction: column;
 	margin: 0;
 	overflow: hidden;
-	border: 1px solid rgba(127, 127, 127, 0.3);
+	border: 1px solid rgb(127 127 127 / 30%);
 	border-radius: 8px;
 }
 
@@ -45,7 +45,7 @@
 	justify-content: center;
 	min-height: 10rem;
 	padding: 2rem 1.5rem;
-	border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+	border-bottom: 1px solid rgb(127 127 127 / 30%);
 }
 
 /* Like Kadence's header branding; on narrow cards the name goes under the logo. */
@@ -101,7 +101,7 @@
 	display: inline-block;
 	margin: 0;
 	padding: 0.35em 0.75em;
-	border: 1px solid rgba(127, 127, 127, 0.5);
+	border: 1px solid rgb(127 127 127 / 50%);
 	border-radius: 4px;
 	background: transparent;
 	color: inherit;
@@ -116,7 +116,7 @@
 .wp-block-seoprostack-brand-assets__download:focus-visible,
 .wp-block-seoprostack-brand-assets__copy:hover,
 .wp-block-seoprostack-brand-assets__copy:focus-visible {
-	background: rgba(127, 127, 127, 0.12);
+	background: rgb(127 127 127 / 12%);
 	color: inherit;
 	text-decoration: none;
 }
@@ -136,7 +136,7 @@
 	align-items: flex-end;
 	min-height: 6rem;
 	padding: 0.75rem 1rem;
-	border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+	border-bottom: 1px solid rgb(127 127 127 / 30%);
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	font-size: 0.9em;
 }
@@ -144,7 +144,7 @@
 .wp-block-seoprostack-brand-assets__specimen {
 	margin: 0;
 	padding: 1.5rem 1rem;
-	border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+	border-bottom: 1px solid rgb(127 127 127 / 30%);
 	font-size: 2.5em;
 	line-height: 1.2;
 }
@@ -155,7 +155,7 @@
 
 .wp-block-seoprostack-brand-assets__sample {
 	padding: 0.75rem 0;
-	border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+	border-bottom: 1px solid rgb(127 127 127 / 20%);
 }
 
 /* Two classes, to win over the theme's paragraph margins in the content. */
