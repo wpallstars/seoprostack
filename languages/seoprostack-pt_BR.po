@@ -17894,3 +17894,329 @@ msgstr "índice"
 msgctxt "block keyword"
 msgid "a-z"
 msgstr "az"
+
+#: includes/features/class-seoprostack-brand-assets.php:78
+msgid "Brand assets page"
+msgstr "Página de recursos da marca"
+
+#: includes/features/class-seoprostack-brand-assets.php:79
+msgid "Adds a Brand assets block that shows your logos, colours, fonts and text styles from the Kadence theme’s Customizer settings, so it stays up to date when they change. Visitors can download the logos, copy colours and, where the header shows the site title, download the logo with the title as SVG or PNG and an email signature banner. The card can make the page and link it from the footer, after About."
+msgstr "Adiciona um bloco de Recursos da marca que mostra seus logotipos, cores, fontes e estilos de texto a partir das configurações do Personalizador do tema Kadence, para se manter atualizado quando elas mudam. Os visitantes podem baixar os logotipos, copiar as cores e, onde o cabeçalho mostra o título do site, baixar o logotipo com o título em SVG ou PNG e um banner para a assinatura de e-mail. O cartão pode criar a página e linká-la a partir do rodapé, depois de Sobre."
+
+#: includes/features/class-seoprostack-brand-assets.php:445
+msgid "The visitor’s system font"
+msgstr "A fonte do sistema do visitante"
+
+#. translators: %s: font size on phones, such as 36px.
+#: includes/features/class-seoprostack-brand-assets.php:559
+#, php-format
+msgid "(%s on phones)"
+msgstr "(%s em celulares)"
+
+#: includes/features/class-seoprostack-brand-assets.php:667
+msgid "The Brand assets block reads the Kadence theme’s settings, and Kadence is not the active theme."
+msgstr "O bloco Recursos da marca lê as configurações do tema Kadence, e o Kadence não é o tema ativo."
+
+#: includes/features/class-seoprostack-brand-assets.php:703
+msgid "On light backgrounds"
+msgstr "Em fundos claros"
+
+#: includes/features/class-seoprostack-brand-assets.php:704
+msgid "On dark backgrounds"
+msgstr "Em fundos escuros"
+
+#. translators: %s: file type, such as SVG or PNG.
+#: includes/features/class-seoprostack-brand-assets.php:718
+#, php-format
+msgid "Logo (%s)"
+msgstr "Logotipo (%s)"
+
+#: includes/features/class-seoprostack-brand-assets.php:722
+msgid "Logo with name (SVG)"
+msgstr "Logotipo com nome (SVG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:722
+msgid "Name (SVG)"
+msgstr "Nome (SVG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:723
+msgid "Logo with name (PNG)"
+msgstr "Logotipo com nome (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:723
+msgid "Name (PNG)"
+msgstr "Nome (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:730
+#: blocks/brand-assets/index.js:26
+msgid "Logos"
+msgstr "Logotipos"
+
+#: includes/features/class-seoprostack-brand-assets.php:732
+msgid "Please keep clear space around the logo, and do not stretch, recolour or add effects to it. Use the version made for the background it sits on."
+msgstr "Deixe espaço livre ao redor do logotipo e não o estique, não mude sua cor nem adicione efeitos. Use a versão feita para o fundo em que ele está."
+
+#: includes/features/class-seoprostack-brand-assets.php:751
+#: includes/features/class-seoprostack-brand-assets.php:753
+msgid "Small logo"
+msgstr "Logotipo pequeno"
+
+#: includes/features/class-seoprostack-brand-assets.php:755
+msgid "The header’s logo on phones."
+msgstr "O logotipo do cabeçalho em celulares."
+
+#: includes/features/class-seoprostack-brand-assets.php:766
+msgid "Browser tabs, bookmarks and phone home screens."
+msgstr "Abas do navegador, favoritos e telas inicial dos celulares."
+
+#: includes/features/class-seoprostack-brand-assets.php:769
+msgid "Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this)."
+msgstr "Defina um ícone do site em Aparência → Personalizar → Identidade do site para mostrá-lo aqui (somente editores do site veem isto)."
+
+#: includes/features/class-seoprostack-brand-assets.php:771
+msgid "Icons"
+msgstr "Ícones"
+
+#. translators: the icon an iPhone or iPad shows on its home screen.
+#: includes/features/class-seoprostack-brand-assets.php:799
+msgid "Apple"
+msgstr "Apple"
+
+#. translators: the icon a browser shows in its tab.
+#: includes/features/class-seoprostack-brand-assets.php:801
+msgid "browser tab"
+msgstr "aba do navegador"
+
+#: includes/features/class-seoprostack-brand-assets.php:856
+msgid "Email signature banner"
+msgstr "Banner para a assinatura de e-mail"
+
+#: includes/features/class-seoprostack-brand-assets.php:857
+msgid "Download (PNG, 600 × 150)"
+msgstr "Baixar (PNG, 600 × 150)"
+
+#. translators: %s: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:859
+#, php-format
+msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
+msgstr "Adicione-o à sua assinatura de e-mail como imagem de 600 pixels de largura, com link para %s."
+
+#: includes/features/class-seoprostack-brand-assets.php:862
+msgid "Email signature"
+msgstr "Assinatura de e-mail"
+
+#: includes/features/class-seoprostack-brand-assets.php:992
+msgid "Light mode"
+msgstr "Modo claro"
+
+#: includes/features/class-seoprostack-brand-assets.php:995
+#: blocks/brand-assets/index.js:27
+msgid "Colours"
+msgstr "Cores"
+
+#. translators: 1: colour format, such as HEX; 2: its value, such as #0070CC.
+#: includes/features/class-seoprostack-brand-assets.php:1031
+#, php-format
+msgid "Copy %1$s %2$s"
+msgstr "Copiar %1$s %2$s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1033
+msgid "Copy"
+msgstr "Copiar"
+
+#: includes/features/class-seoprostack-brand-assets.php:1044
+msgid "Body text"
+msgstr "Texto do corpo"
+
+#: includes/features/class-seoprostack-brand-assets.php:1045
+#: blocks/brand-assets/index.js:28
+msgid "Fonts"
+msgstr "Fontes"
+
+#. translators: %s: font weights, such as 400, 700.
+#: includes/features/class-seoprostack-brand-assets.php:1054
+#, php-format
+msgid "Weights: %s"
+msgstr "Pesos: %s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1057
+msgid "Get it from Google Fonts (free)"
+msgstr "Obtenha no Google Fonts (grátis)"
+
+#: includes/features/class-seoprostack-brand-assets.php:1073
+#: blocks/brand-assets/index.js:29
+msgid "Formatting"
+msgstr "Formatação"
+
+#: includes/features/class-seoprostack-brand-assets.php:1076
+msgid "Page title"
+msgstr "Título da página"
+
+#: includes/features/class-seoprostack-brand-assets.php:1077
+msgid "Heading 2"
+msgstr "Título 2"
+
+#: includes/features/class-seoprostack-brand-assets.php:1078
+msgid "Heading 3"
+msgstr "Título 3"
+
+#: includes/features/class-seoprostack-brand-assets.php:1079
+msgid "Heading 4"
+msgstr "Título 4"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "Body text is set like this, with"
+msgstr "O texto do corpo fica assim, com"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "links"
+msgstr "links"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "in the accent colour and"
+msgstr "na cor de destaque e"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "bold text"
+msgstr "texto em negrito"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "for emphasis."
+msgstr "para dar ênfase."
+
+#: includes/features/class-seoprostack-brand-assets.php:1095
+msgid "Quotes stand out from the text around them."
+msgstr "As citações se destacam do texto ao redor."
+
+#: includes/features/class-seoprostack-brand-assets.php:1096
+msgid "Button"
+msgstr "Botão"
+
+#: includes/features/class-seoprostack-brand-assets.php:1127
+msgid "Our logos, colours and fonts, for press, print and design."
+msgstr "Nossos logotipos, cores e fontes, para imprensa, impressão e design."
+
+#: includes/features/class-seoprostack-brand-assets.php:1204
+#: includes/features/class-seoprostack-brand-assets.php:1351
+msgid "Brand assets"
+msgstr "Recursos da marca"
+
+#: includes/features/class-seoprostack-brand-assets.php:1504
+msgid "The block reads the Kadence theme’s settings, and Kadence is not the active theme."
+msgstr "O bloco lê as configurações do tema Kadence, e o Kadence não é o tema ativo."
+
+#: includes/features/class-seoprostack-brand-assets.php:1510
+msgid "The Brand assets page is published."
+msgstr "A página de Recursos da marca está publicada."
+
+#: includes/features/class-seoprostack-brand-assets.php:1511
+msgid "The Brand assets page already shows the block."
+msgstr "A página de Recursos da marca já mostra o bloco."
+
+#: includes/features/class-seoprostack-brand-assets.php:1512
+msgid "A page at /brand-assets/ exists without the block, so it was left as it is. Add the Brand assets block to it in the editor."
+msgstr "Existe uma página em /brand-assets/ sem o bloco, então ela foi deixada como está. Adicione o bloco Recursos da marca a ela no editor."
+
+#: includes/features/class-seoprostack-brand-assets.php:1513
+#: includes/features/class-seoprostack-brand-assets.php:1518
+msgid "That could not be saved. Please try again."
+msgstr "Não foi possível salvar. Tente novamente."
+
+#: includes/features/class-seoprostack-brand-assets.php:1514
+msgid "The footer now links to the Brand assets page, after About."
+msgstr "O rodapé agora tem link para a página de Recursos da marca, depois de Sobre."
+
+#: includes/features/class-seoprostack-brand-assets.php:1515
+msgid "The footer already links to the Brand assets page."
+msgstr "O rodapé já tem link para a página de Recursos da marca."
+
+#: includes/features/class-seoprostack-brand-assets.php:1516
+msgid "No About link was found in the footer, so nothing was added. Add the link where it fits."
+msgstr "Nenhum link Sobre foi encontrado no rodapé, então nada foi adicionado. Adicione o link onde fizer sentido."
+
+#: includes/features/class-seoprostack-brand-assets.php:1517
+msgid "Make the page first."
+msgstr "Crie a página primeiro."
+
+#: includes/features/class-seoprostack-brand-assets.php:1525
+msgid "Page:"
+msgstr "Página:"
+
+#: includes/features/class-seoprostack-brand-assets.php:1528
+msgid "edit"
+msgstr "editar"
+
+#: includes/features/class-seoprostack-brand-assets.php:1534
+msgid "Make the Brand assets page"
+msgstr "Criar a página de Recursos da marca"
+
+#: includes/features/class-seoprostack-brand-assets.php:1537
+msgid "Link it from the footer"
+msgstr "Linkar a partir do rodapé"
+
+#: includes/features/class-seoprostack-brand-assets.php:1540
+msgid "The footer link goes after the About link in the footer’s widgets or menu, and is not added twice."
+msgstr "O link do rodapé fica depois do link Sobre nos widgets ou no menu do rodapé e não é adicionado duas vezes."
+
+#: includes/features/class-seoprostack-brand-assets.php:1559
+msgid "You cannot change this site’s pages."
+msgstr "Você não pode alterar as páginas deste site."
+
+#: blocks/brand-assets/index.js:26
+msgid "Logo files, the logo with the site title where the header shows it, icons and the email signature banner."
+msgstr "Arquivos do logotipo, o logotipo com o título do site onde o cabeçalho o mostra, ícones e o banner para a assinatura de e-mail."
+
+#: blocks/brand-assets/index.js:27
+msgid "Light mode colours, and dark mode colours when dark mode is on."
+msgstr "Cores do modo claro e, quando o modo escuro está ativo, do modo escuro."
+
+#: blocks/brand-assets/index.js:28
+msgid "Heading and body fonts."
+msgstr "Fontes dos títulos e do corpo do texto."
+
+#: blocks/brand-assets/index.js:29
+msgid "Heading, text, quote and button styles."
+msgstr "Estilos de títulos, texto, citações e botões."
+
+#: blocks/brand-assets/index.js:54
+msgid "Where it comes from"
+msgstr "De onde vem"
+
+#: blocks/brand-assets/index.js:55
+msgid "Change the logo, colours and fonts in Appearance → Customize (Header → Logo, Colors & Fonts). This block shows them as they are."
+msgstr "Altere o logotipo, as cores e as fontes em Aparência → Personalizar (Cabeçalho → Logotipo, Cores e fontes). Este bloco os mostra como estão."
+
+#: blocks/brand-assets/block.json
+msgctxt "block title"
+msgid "Brand assets"
+msgstr "Recursos da marca"
+
+#: blocks/brand-assets/block.json
+msgctxt "block description"
+msgid "The site's logos, colours, fonts and text styles from the Kadence theme's Customizer settings, with downloads, so it stays current when they change."
+msgstr "Os logotipos, cores, fontes e estilos de texto do site a partir das configurações do Personalizador do tema Kadence, com downloads, para se manter atualizado quando elas mudam."
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "colours"
+msgstr "cores"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "colors"
+msgstr "colors"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "fonts"
+msgstr "fontes"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "press"
+msgstr "imprensa"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "media kit"
+msgstr "kit de imprensa"

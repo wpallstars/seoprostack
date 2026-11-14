@@ -1288,7 +1288,7 @@ msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:466
 msgid "Headings"
-msgstr ""
+msgstr "Nadpisy"
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:467
 #: includes/features/class-seoprostack-field-content.php:74
@@ -4244,7 +4244,7 @@ msgstr ""
 #: includes/features/class-seoprostack-dark-image-contrast.php:153
 #: includes/features/class-seoprostack-dark-image-contrast.php:282
 msgid "Dark mode"
-msgstr ""
+msgstr "Tmavý režim"
 
 #: includes/features/class-seoprostack-dark-image-contrast.php:156
 msgid "Shown as it is in dark mode wherever it is used, also as a background."
@@ -11964,7 +11964,7 @@ msgstr ""
 #: includes/features/class-seoprostack-social-sharing.php:961
 #: blocks/client-dashboard/index.js:32
 msgid "Show"
-msgstr ""
+msgstr "Zobrazit"
 
 #: includes/features/class-seoprostack-spectra-blocks.php:63
 msgid "Spectra block replacements"
@@ -12682,7 +12682,7 @@ msgstr ""
 
 #: includes/features/class-seoprostack-watermark-images.php:146
 msgid "Site icon"
-msgstr ""
+msgstr "Ikona webu"
 
 #: includes/features/class-seoprostack-watermark-images.php:147
 msgid "Site logo"
@@ -14763,12 +14763,12 @@ msgstr ""
 #: blocks/brand-icon/block.json
 msgctxt "block keyword"
 msgid "brand"
-msgstr ""
+msgstr "značka"
 
 #: blocks/brand-icon/block.json
 msgctxt "block keyword"
 msgid "logo"
-msgstr ""
+msgstr "logo"
 
 #: blocks/brand-icon/block.json
 msgctxt "block keyword"
@@ -15244,3 +15244,329 @@ msgstr ""
 msgctxt "block keyword"
 msgid "a-z"
 msgstr ""
+
+#: includes/features/class-seoprostack-brand-assets.php:78
+msgid "Brand assets page"
+msgstr "Stránka s materiály značky"
+
+#: includes/features/class-seoprostack-brand-assets.php:79
+msgid "Adds a Brand assets block that shows your logos, colours, fonts and text styles from the Kadence theme’s Customizer settings, so it stays up to date when they change. Visitors can download the logos, copy colours and, where the header shows the site title, download the logo with the title as SVG or PNG and an email signature banner. The card can make the page and link it from the footer, after About."
+msgstr "Přidá blok Materiály značky, který zobrazuje loga, barvy, písma a styly textu z nastavení Přizpůsobení motivu Kadence, takže zůstává aktuální, když se změní. Návštěvníci si mohou stáhnout loga, zkopírovat barvy a tam, kde hlavička zobrazuje název webu, stáhnout logo s názvem jako SVG nebo PNG a banner pro e-mailový podpis. Karta může vytvořit stránku a odkázat na ni z patičky, za O nás."
+
+#: includes/features/class-seoprostack-brand-assets.php:445
+msgid "The visitor’s system font"
+msgstr "Systémové písmo návštěvníka"
+
+#. translators: %s: font size on phones, such as 36px.
+#: includes/features/class-seoprostack-brand-assets.php:559
+#, php-format
+msgid "(%s on phones)"
+msgstr "(%s v telefonech)"
+
+#: includes/features/class-seoprostack-brand-assets.php:667
+msgid "The Brand assets block reads the Kadence theme’s settings, and Kadence is not the active theme."
+msgstr "Blok Materiály značky čte nastavení motivu Kadence a Kadence není aktivní motiv."
+
+#: includes/features/class-seoprostack-brand-assets.php:703
+msgid "On light backgrounds"
+msgstr "Na světlém pozadí"
+
+#: includes/features/class-seoprostack-brand-assets.php:704
+msgid "On dark backgrounds"
+msgstr "Na tmavém pozadí"
+
+#. translators: %s: file type, such as SVG or PNG.
+#: includes/features/class-seoprostack-brand-assets.php:718
+#, php-format
+msgid "Logo (%s)"
+msgstr "Logo (%s)"
+
+#: includes/features/class-seoprostack-brand-assets.php:722
+msgid "Logo with name (SVG)"
+msgstr "Logo s názvem (SVG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:722
+msgid "Name (SVG)"
+msgstr "Název (SVG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:723
+msgid "Logo with name (PNG)"
+msgstr "Logo s názvem (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:723
+msgid "Name (PNG)"
+msgstr "Název (PNG)"
+
+#: includes/features/class-seoprostack-brand-assets.php:730
+#: blocks/brand-assets/index.js:26
+msgid "Logos"
+msgstr "Loga"
+
+#: includes/features/class-seoprostack-brand-assets.php:732
+msgid "Please keep clear space around the logo, and do not stretch, recolour or add effects to it. Use the version made for the background it sits on."
+msgstr "Nechte kolem loga volný prostor a neroztahujte ho, nepřebarvujte ani nepřidávejte efekty. Použijte verzi určenou pro pozadí, na kterém je umístěno."
+
+#: includes/features/class-seoprostack-brand-assets.php:751
+#: includes/features/class-seoprostack-brand-assets.php:753
+msgid "Small logo"
+msgstr "Malé logo"
+
+#: includes/features/class-seoprostack-brand-assets.php:755
+msgid "The header’s logo on phones."
+msgstr "Logo hlavičky v telefonech."
+
+#: includes/features/class-seoprostack-brand-assets.php:766
+msgid "Browser tabs, bookmarks and phone home screens."
+msgstr "Karty prohlížeče, záložky a domovské obrazovky telefonů."
+
+#: includes/features/class-seoprostack-brand-assets.php:769
+msgid "Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this)."
+msgstr "Nastavte ikonu webu v Vzhled → Přizpůsobit → Identita webu, aby se zde zobrazila (toto vidí jen editoři webu)."
+
+#: includes/features/class-seoprostack-brand-assets.php:771
+msgid "Icons"
+msgstr "Ikony"
+
+#. translators: the icon an iPhone or iPad shows on its home screen.
+#: includes/features/class-seoprostack-brand-assets.php:799
+msgid "Apple"
+msgstr "Apple"
+
+#. translators: the icon a browser shows in its tab.
+#: includes/features/class-seoprostack-brand-assets.php:801
+msgid "browser tab"
+msgstr "karta prohlížeče"
+
+#: includes/features/class-seoprostack-brand-assets.php:856
+msgid "Email signature banner"
+msgstr "Banner pro e-mailový podpis"
+
+#: includes/features/class-seoprostack-brand-assets.php:857
+msgid "Download (PNG, 600 × 150)"
+msgstr "Stáhnout (PNG, 600 × 150)"
+
+#. translators: %s: the site's address, such as example.com.
+#: includes/features/class-seoprostack-brand-assets.php:859
+#, php-format
+msgid "Add it to your email signature as a picture, 600 pixels wide, linked to %s."
+msgstr "Přidejte ho do e-mailového podpisu jako obrázek široký 600 pixelů s odkazem na %s."
+
+#: includes/features/class-seoprostack-brand-assets.php:862
+msgid "Email signature"
+msgstr "E-mailový podpis"
+
+#: includes/features/class-seoprostack-brand-assets.php:992
+msgid "Light mode"
+msgstr "Světlý režim"
+
+#: includes/features/class-seoprostack-brand-assets.php:995
+#: blocks/brand-assets/index.js:27
+msgid "Colours"
+msgstr "Barvy"
+
+#. translators: 1: colour format, such as HEX; 2: its value, such as #0070CC.
+#: includes/features/class-seoprostack-brand-assets.php:1031
+#, php-format
+msgid "Copy %1$s %2$s"
+msgstr "Kopírovat %1$s %2$s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1033
+msgid "Copy"
+msgstr "Kopírovat"
+
+#: includes/features/class-seoprostack-brand-assets.php:1044
+msgid "Body text"
+msgstr "Základní text"
+
+#: includes/features/class-seoprostack-brand-assets.php:1045
+#: blocks/brand-assets/index.js:28
+msgid "Fonts"
+msgstr "Písma"
+
+#. translators: %s: font weights, such as 400, 700.
+#: includes/features/class-seoprostack-brand-assets.php:1054
+#, php-format
+msgid "Weights: %s"
+msgstr "Tloušťky: %s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1057
+msgid "Get it from Google Fonts (free)"
+msgstr "Získejte ho na Google Fonts (zdarma)"
+
+#: includes/features/class-seoprostack-brand-assets.php:1073
+#: blocks/brand-assets/index.js:29
+msgid "Formatting"
+msgstr "Formátování"
+
+#: includes/features/class-seoprostack-brand-assets.php:1076
+msgid "Page title"
+msgstr "Název stránky"
+
+#: includes/features/class-seoprostack-brand-assets.php:1077
+msgid "Heading 2"
+msgstr "Nadpis 2"
+
+#: includes/features/class-seoprostack-brand-assets.php:1078
+msgid "Heading 3"
+msgstr "Nadpis 3"
+
+#: includes/features/class-seoprostack-brand-assets.php:1079
+msgid "Heading 4"
+msgstr "Nadpis 4"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "Body text is set like this, with"
+msgstr "Základní text vypadá takto, s"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "links"
+msgstr "odkazy"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "in the accent colour and"
+msgstr "v barvě zvýraznění a"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "bold text"
+msgstr "tučným textem"
+
+#: includes/features/class-seoprostack-brand-assets.php:1092
+msgid "for emphasis."
+msgstr "pro zdůraznění."
+
+#: includes/features/class-seoprostack-brand-assets.php:1095
+msgid "Quotes stand out from the text around them."
+msgstr "Citace vyniknou nad okolním textem."
+
+#: includes/features/class-seoprostack-brand-assets.php:1096
+msgid "Button"
+msgstr "Tlačítko"
+
+#: includes/features/class-seoprostack-brand-assets.php:1127
+msgid "Our logos, colours and fonts, for press, print and design."
+msgstr "Naše loga, barvy a písma pro tisk, média a design."
+
+#: includes/features/class-seoprostack-brand-assets.php:1204
+#: includes/features/class-seoprostack-brand-assets.php:1351
+msgid "Brand assets"
+msgstr "Materiály značky"
+
+#: includes/features/class-seoprostack-brand-assets.php:1504
+msgid "The block reads the Kadence theme’s settings, and Kadence is not the active theme."
+msgstr "Blok čte nastavení motivu Kadence a Kadence není aktivní motiv."
+
+#: includes/features/class-seoprostack-brand-assets.php:1510
+msgid "The Brand assets page is published."
+msgstr "Stránka Materiály značky je zveřejněna."
+
+#: includes/features/class-seoprostack-brand-assets.php:1511
+msgid "The Brand assets page already shows the block."
+msgstr "Stránka Materiály značky už blok zobrazuje."
+
+#: includes/features/class-seoprostack-brand-assets.php:1512
+msgid "A page at /brand-assets/ exists without the block, so it was left as it is. Add the Brand assets block to it in the editor."
+msgstr "Stránka na adrese /brand-assets/ existuje bez bloku, proto byla ponechána beze změny. Přidejte do ní blok Materiály značky v editoru."
+
+#: includes/features/class-seoprostack-brand-assets.php:1513
+#: includes/features/class-seoprostack-brand-assets.php:1518
+msgid "That could not be saved. Please try again."
+msgstr "Nepodařilo se to uložit. Zkuste to prosím znovu."
+
+#: includes/features/class-seoprostack-brand-assets.php:1514
+msgid "The footer now links to the Brand assets page, after About."
+msgstr "Patička teď odkazuje na stránku Materiály značky, za O nás."
+
+#: includes/features/class-seoprostack-brand-assets.php:1515
+msgid "The footer already links to the Brand assets page."
+msgstr "Patička už odkazuje na stránku Materiály značky."
+
+#: includes/features/class-seoprostack-brand-assets.php:1516
+msgid "No About link was found in the footer, so nothing was added. Add the link where it fits."
+msgstr "V patičce nebyl nalezen odkaz O nás, takže nebylo nic přidáno. Přidejte odkaz tam, kde se hodí."
+
+#: includes/features/class-seoprostack-brand-assets.php:1517
+msgid "Make the page first."
+msgstr "Nejdřív vytvořte stránku."
+
+#: includes/features/class-seoprostack-brand-assets.php:1525
+msgid "Page:"
+msgstr "Stránka:"
+
+#: includes/features/class-seoprostack-brand-assets.php:1528
+msgid "edit"
+msgstr "upravit"
+
+#: includes/features/class-seoprostack-brand-assets.php:1534
+msgid "Make the Brand assets page"
+msgstr "Vytvořit stránku Materiály značky"
+
+#: includes/features/class-seoprostack-brand-assets.php:1537
+msgid "Link it from the footer"
+msgstr "Odkázat z patičky"
+
+#: includes/features/class-seoprostack-brand-assets.php:1540
+msgid "The footer link goes after the About link in the footer’s widgets or menu, and is not added twice."
+msgstr "Odkaz v patičce se přidá za odkaz O nás ve widgetech nebo menu patičky a nepřidá se dvakrát."
+
+#: includes/features/class-seoprostack-brand-assets.php:1559
+msgid "You cannot change this site’s pages."
+msgstr "Stránky tohoto webu nemůžete měnit."
+
+#: blocks/brand-assets/index.js:26
+msgid "Logo files, the logo with the site title where the header shows it, icons and the email signature banner."
+msgstr "Soubory loga, logo s názvem webu tam, kde ho hlavička zobrazuje, ikony a banner pro e-mailový podpis."
+
+#: blocks/brand-assets/index.js:27
+msgid "Light mode colours, and dark mode colours when dark mode is on."
+msgstr "Barvy světlého režimu a, když je zapnutý tmavý režim, i tmavého režimu."
+
+#: blocks/brand-assets/index.js:28
+msgid "Heading and body fonts."
+msgstr "Písma nadpisů a základního textu."
+
+#: blocks/brand-assets/index.js:29
+msgid "Heading, text, quote and button styles."
+msgstr "Styly nadpisů, textu, citací a tlačítek."
+
+#: blocks/brand-assets/index.js:54
+msgid "Where it comes from"
+msgstr "Odkud pochází"
+
+#: blocks/brand-assets/index.js:55
+msgid "Change the logo, colours and fonts in Appearance → Customize (Header → Logo, Colors & Fonts). This block shows them as they are."
+msgstr "Logo, barvy a písma změníte v Vzhled → Přizpůsobit (Hlavička → Logo, Barvy a písma). Tento blok je zobrazuje tak, jak jsou."
+
+#: blocks/brand-assets/block.json
+msgctxt "block title"
+msgid "Brand assets"
+msgstr "Materiály značky"
+
+#: blocks/brand-assets/block.json
+msgctxt "block description"
+msgid "The site's logos, colours, fonts and text styles from the Kadence theme's Customizer settings, with downloads, so it stays current when they change."
+msgstr "Loga, barvy, písma a styly textu webu z nastavení Přizpůsobení motivu Kadence, se stahováním, takže zůstávají aktuální, když se změní."
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "colours"
+msgstr "barvy"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "colors"
+msgstr "colors"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "fonts"
+msgstr "písma"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "press"
+msgstr "tisk"
+
+#: blocks/brand-assets/block.json
+msgctxt "block keyword"
+msgid "media kit"
+msgstr "mediální kit"
