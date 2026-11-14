@@ -50,8 +50,11 @@
 		document.body.appendChild(field);
 		field.select();
 		try {
-			document.execCommand('copy');
-			done();
+			if (document.execCommand('copy')) {
+				done();
+			} else {
+				say(button, value);
+			}
 		} catch (e) {
 			say(button, value);
 		}
