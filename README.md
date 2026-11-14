@@ -2717,6 +2717,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fixed (**Load the CSS each page uses first**, **Font fallbacks**, **Keep pages cached**; #1603): a page built while a stylesheet or the font measurements could not be read is no longer cached for the page cache’s whole lifetime. Where a rewrite is skipped for a reason that may not repeat (a stylesheet file missing, empty or unreadable, the font measurements unreadable, a regex limit), the page gets a short cache time (LiteSpeed Cache’s custom TTL of 5 minutes; other page caches are told not to store it) and a comment at its end names the cause. Keep pages cached also checks, after a fill and in its five-minute check (at most hourly), that the cached home page carries Used CSS, and if not purges it once (at most once every 6 hours) and fills it again. Normal pages are unchanged.
+
 ### 1.3.215
 
 - Fixed (**Load plugins only where needed**; #1615): an add-on with no admin page of its own was skipped on the pages of the plugin it needs, so what it adds there was missing. SEO Pro Analytics Connect, for example, was left out of SEO Pro Analytics’ Connections tab, which then asked for the add-on although its licence was valid. Add-ons now load on the menu pages of the plugin they need.

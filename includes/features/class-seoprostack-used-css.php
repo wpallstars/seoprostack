@@ -293,7 +293,7 @@ class SEOProStack_Used_Css extends SEOProStack_Feature {
      *
      * @return bool
      */
-    private static function litespeed_css() {
+    public static function litespeed_css() {
         if (!defined('LSCWP_V')) {
             return false;
         }
