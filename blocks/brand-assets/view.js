@@ -564,7 +564,7 @@
 			}
 			if ('email' === kind) {
 				return banner(lockup, parts).then(function (blob) {
-					save(blob, lockup.file + '-email-signature.png');
+					save(blob, lockup.file + '-email-signature' + ('dark' === lockup.scheme ? '-dark' : '') + '.png');
 				});
 			}
 			return png(lockup, parts).then(function (blob) {
