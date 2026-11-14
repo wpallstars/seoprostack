@@ -151,7 +151,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
         add_filter('the_title', array(__CLASS__, 'page_title'), 10, 2);
         add_filter('document_title_parts', array(__CLASS__, 'document_title'));
         add_action('wp_enqueue_scripts', array(__CLASS__, 'enqueue'));
-        if ('kadence' === get_template() && function_exists('kadence')) {
+        if ('kadence' === get_template() && function_exists('Kadence\kadence')) {
             self::boot_kadence();
         }
         self::boot_turnstile();
@@ -745,7 +745,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
      * @return mixed
      */
     private static function kadence_option($name) {
-        $theme = kadence();
+        $theme = \Kadence\kadence();
         return is_object($theme) && method_exists($theme, 'option') ? $theme->option($name) : null;
     }
 

@@ -471,12 +471,22 @@ final class SEOProStack_Account_Forms {
     }
 
     /**
+     * The reset cookie's name, WooCommerce's (wp-resetpass- and the site's
+     * cookie hash, which WordPress defines before plugins load).
+     *
+     * @return string
+     */
+    private static function reset_cookie_name() {
+        return self::RESET_COOKIE . (defined('COOKIEHASH') ? COOKIEHASH : md5(site_url()));
+    }
+
+    /**
      * The reset cookie's user ID and key.
      *
      * @return array{0:int,1:string}
      */
     private static function reset_cookie() {
-        $name  = self::RESET_COOKIE . COOKIEHASH;
+        $name  = self::reset_cookie_name();
         $value = isset($_COOKIE[$name]) ? sanitize_text_field(wp_unslash((string) $_COOKIE[$name])) : '';
         if (0 < (int) strpos($value, ':')) {
             list($id, $key) = explode(':', $value, 2);
@@ -491,7 +501,7 @@ final class SEOProStack_Account_Forms {
      * @param string $value user ID:key, or '' to clear.
      */
     private static function set_reset_cookie($value = '') {
-        $name = self::RESET_COOKIE . COOKIEHASH;
+        $name = self::reset_cookie_name();
         $path = isset($_SERVER['REQUEST_URI']) ? (string) current(explode('?', sanitize_text_field(wp_unslash((string) $_SERVER['REQUEST_URI'])))) : '';
         if ('' !== $value) {
             setcookie($name, $value, 0, $path, COOKIE_DOMAIN, is_ssl(), true);
@@ -947,10 +957,8 @@ final class SEOProStack_Account_Forms {
         }
         $errors = new WP_Error();
         do_action_ref_array('woocommerce_save_account_details_errors', array(&$errors, &$user));
-        if ($errors instanceof WP_Error) {
-            foreach ($errors->get_error_messages() as $message) {
-                SEOProStack_Account::add_notice($message, 'error');
-            }
+        foreach ($errors->get_error_messages() as $message) {
+            SEOProStack_Account::add_notice($message, 'error');
         }
         if (SEOProStack_Account::notice_count('error') > 0) {
             return;
