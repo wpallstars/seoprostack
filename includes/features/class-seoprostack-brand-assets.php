@@ -1172,13 +1172,28 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             if ($dry_run) {
                 return array('status' => 'would-replace', 'id' => (int) $page->ID, 'message' => sprintf('Would replace the content of %s with the block (a revision keeps the old content).', get_permalink($page)));
             }
+            // Keep the old content even when Limit post revisions is 0: force one revision with the limit lifted.
+            $lift = function () {
+                return -1;
+            };
+            add_filter('wp_revisions_to_keep', $lift, PHP_INT_MAX);
+            $revision = wp_save_post_revision((int) $page->ID);
+            remove_filter('wp_revisions_to_keep', $lift, PHP_INT_MAX);
+            if (!$revision || is_wp_error($revision)) {
+                // A revision is skipped when the content is unchanged since the last one; look for one that holds it.
+                $revisions = wp_get_post_revisions((int) $page->ID, array('numberposts' => 1));
+                $revision  = $revisions ? (int) key($revisions) : 0;
+            }
+            if (!$revision) {
+                return array('status' => 'error', 'id' => (int) $page->ID, 'message' => 'Could not save the old content as a revision, so the page was left as it is.');
+            }
             $saved = wp_update_post(array('ID' => (int) $page->ID, 'post_content' => self::page_content()), true);
             if (is_wp_error($saved)) {
                 return array('status' => 'error', 'id' => (int) $page->ID, 'message' => $saved->get_error_message());
             }
             update_option(self::PAGE_OPTION, (int) $page->ID, false);
             self::kadence_layout((int) $page->ID);
-            return array('status' => 'replaced', 'id' => (int) $page->ID, 'message' => sprintf('Replaced the content of %s with the block.', get_permalink($page)));
+            return array('status' => 'replaced', 'id' => (int) $page->ID, 'message' => sprintf('Replaced the content of %s with the block. The old content is saved as revision %d: restore it from the page\'s Revisions panel in the editor.', get_permalink($page), (int) $revision));
         }
         if ($dry_run) {
             return array('status' => 'would-create', 'id' => 0, 'message' => sprintf('Would publish a Brand assets page at %s.', home_url('/' . self::SLUG . '/')));
@@ -1227,7 +1242,17 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if ('' !== $base && 0 === strpos($path, $base . '/')) {
             $path = substr($path, strlen($base));
         }
-        return strtolower('/' . trim($path, '/'));
+        $path = strtolower('/' . trim($path, '/'));
+        // Plain permalinks name the page in the query, so keep that part.
+        if (!empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+            foreach (array('page_id', 'p') as $key) {
+                if (isset($query[$key]) && is_scalar($query[$key]) && ctype_digit((string) $query[$key])) {
+                    return $path . '?' . $key . '=' . (int) $query[$key];
+                }
+            }
+        }
+        return $path;
     }
 
     /**
