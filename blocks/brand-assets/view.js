@@ -350,9 +350,35 @@
 		});
 	}
 
-	/* The @font-face file of a family and weight in the page's own stylesheets. */
-	function fontFile(name, weight) {
-		var best = null;
+	/* Whether a CSS unicode-range covers any character of the text (no range covers all). */
+	function coversText(range, text) {
+		if (!range) {
+			return true;
+		}
+		var spans = range.split(',').map(function (part) {
+			var m = /U\+([0-9a-f?]+)(?:-([0-9a-f]+))?/i.exec(part);
+			if (!m) {
+				return null;
+			}
+			if (m[1].indexOf('?') > -1) {
+				return [parseInt(m[1].replace(/\?/g, '0'), 16), parseInt(m[1].replace(/\?/g, 'F'), 16)];
+			}
+			return [parseInt(m[1], 16), parseInt(m[2] || m[1], 16)];
+		});
+		return Array.from(text).some(function (ch) {
+			var code = ch.codePointAt(0);
+			return spans.some(function (span) {
+				return span && code >= span[0] && code <= span[1];
+			});
+		});
+	}
+
+	/*
+	 * The @font-face files of a family, weight and style in the page's own
+	 * stylesheets: every subset whose unicode-range covers the text.
+	 */
+	function fontFiles(name, weight, style, text) {
+		var found = [];
 		Array.prototype.forEach.call(document.styleSheets, function (sheet) {
 			var rules;
 			try {
@@ -365,7 +391,9 @@
 					return;
 				}
 				var fam = rule.style.getPropertyValue('font-family').trim().replace(/^["']|["']$/g, '');
-				if (fam.toLowerCase() !== name.toLowerCase() || 'italic' === rule.style.getPropertyValue('font-style')) {
+				var faceStyle = rule.style.getPropertyValue('font-style').trim() || 'normal';
+				var italic = /^(italic|oblique)/.test(style);
+				if (fam.toLowerCase() !== name.toLowerCase() || /^(italic|oblique)/.test(faceStyle) !== italic) {
 					return;
 				}
 				var src = /url\((["']?)([^"')]+)\1\)/.exec(rule.style.getPropertyValue('src'));
@@ -375,13 +403,12 @@
 				var weights = rule.style.getPropertyValue('font-weight').split(/\s+/).map(Number);
 				var range = rule.style.getPropertyValue('unicode-range');
 				var fits = weights.length > 1 ? (weight >= weights[0] && weight <= weights[1]) : weights[0] === Number(weight);
-				var latin = !range || /U\+0(000)?-0?0?FF/i.test(range);
-				if (fits && (!best || latin)) {
-					best = new URL(src[2], sheet.href || window.location.href).href;
+				if (fits && coversText(range, text)) {
+					found.push({ url: new URL(src[2], sheet.href || window.location.href).href, range: range });
 				}
 			});
 		});
-		return best;
+		return found;
 	}
 
 	function escapeXml(text) {
@@ -397,24 +424,31 @@
 		var fonts = {};
 		parts.lines.forEach(function (line) {
 			var name = firstFamily(line.font.family);
-			var key = name + ' ' + line.font.weight;
+			var key = name + ' ' + line.font.weight + ' ' + line.font.style;
 			if (!fonts[key]) {
-				fonts[key] = { name: name, weight: line.font.weight, url: fontFile(name, line.font.weight) };
+				fonts[key] = { name: name, weight: line.font.weight, style: line.font.style, text: '' };
 			}
+			fonts[key].text += line.text;
 		});
-		var keys = Object.keys(fonts);
+		var faces = [];
+		Object.keys(fonts).forEach(function (key) {
+			var font = fonts[key];
+			fontFiles(font.name, font.weight, font.style, font.text).forEach(function (face) {
+				faces.push({ font: font, range: face.range, url: face.url });
+			});
+		});
 		/* A font file that cannot be read leaves the font named only; the logo must be read. */
-		var jobs = keys.map(function (key) {
-			return fonts[key].url ? dataUrl(fonts[key].url).catch(function () {
+		var jobs = faces.map(function (face) {
+			return dataUrl(face.url).catch(function () {
 				return '';
-			}) : Promise.resolve('');
+			});
 		});
 		jobs.push(parts.logo ? dataUrl(lockup.logo.url) : Promise.resolve(''));
 		return Promise.all(jobs).then(function (files) {
 			var logoData = files.pop();
-			var style = keys.map(function (key, i) {
-				var font = fonts[key];
-				return files[i] ? '@font-face{font-family:"' + font.name + '";font-weight:' + font.weight + ';src:url(' + files[i] + ')}' : '';
+			var style = faces.map(function (face, i) {
+				var font = face.font;
+				return files[i] ? '@font-face{font-family:"' + font.name + '";font-weight:' + font.weight + ';font-style:' + font.style + ';' + (face.range ? 'unicode-range:' + face.range + ';' : '') + 'src:url(' + files[i] + ')}' : '';
 			}).join('');
 			var out = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">';
 			out += '<title>' + escapeXml(lockup.title || lockup.logo.alt) + '</title>';
