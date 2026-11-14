@@ -1642,7 +1642,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!$backup || !is_file($backup)) {
             return new WP_Error('watermark_no_original', __('No unmarked original was kept for this picture.', 'seoprostack'));
         }
-        if (!self::record_current($attachment_id, $record)) {
+        if (!self::record_current($attachment_id, $record) && ($keep_original || !self::restore_done($attachment_id, $backup))) {
             return new WP_Error('watermark_changed', __('This picture was edited or replaced after it was marked, so the kept original is out of date.', 'seoprostack'));
         }
         if ($keep_original) {
@@ -1832,6 +1832,24 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             }
         }
         return true;
+    }
+
+    /**
+     * Whether an interrupted unmarking already put the kept original back:
+     * the attached file is byte-identical to it, so the run can carry on.
+     *
+     * @param int    $attachment_id Attachment ID.
+     * @param string $backup        Kept original path.
+     * @return bool
+     */
+    private static function restore_done($attachment_id, $backup) {
+        $file = get_attached_file($attachment_id);
+        clearstatcache();
+        if (!$file || !is_file($file) || (int) filesize($file) !== (int) filesize($backup)) {
+            return false;
+        }
+        $have = hash_file('sha256', $file);
+        return false !== $have && hash_equals((string) hash_file('sha256', $backup), $have);
     }
 
     /**
