@@ -704,7 +704,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             $html .= '<div class="' . $c . '__stage" style="background-color:' . esc_attr($lockup['background']) . '">' . self::lockup_html($lockup) . '</div>';
             $html .= '<figcaption class="' . $c . '__caption"><strong>' . esc_html($label) . '</strong>';
             $links = array();
-            $file  = 'dark' === $scheme && isset($logos['dark']) ? $logos['dark'] : (isset($logos['logo']) ? $logos['logo'] : null);
+            // The dark card offers a file only when the dark logo is its own.
+            $file = 'dark' === $scheme ? (isset($logos['dark']) ? $logos['dark'] : null) : (isset($logos['logo']) ? $logos['logo'] : null);
             if ($file && $lockup['logo']) {
                 /* translators: %s: file type, such as SVG or PNG. */
                 $links[] = self::download_link($file['file'], sprintf(__('Logo (%s)', 'seoprostack'), $file['type']));
