@@ -1268,7 +1268,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if ('' === $buttons) {
             return '';
         }
-        return '<span class="' . $c . '__png-row"><span class="' . $c . '__png-label">' . esc_html($label) . '</span>' . $buttons . '</span>';
+        return '<span class="' . $c . '__png-row"><span class="' . $c . '__png-label">' . esc_html($label) . '</span><span class="' . $c . '__png-buttons">' . $buttons . '</span></span>';
     }
 
     /**
