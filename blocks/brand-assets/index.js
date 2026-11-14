@@ -23,8 +23,8 @@
 	var Disabled = components.Disabled;
 
 	var SECTIONS = [
-		['showLogos', __('Logos', 'seoprostack'), __('Logo files, and the logo with the site title where the header shows it.', 'seoprostack')],
-		['showColours', __('Colours', 'seoprostack'), __('The palette, and the dark palette when dark mode is on.', 'seoprostack')],
+		['showLogos', __('Logos', 'seoprostack'), __('Logo files, the logo with the site title where the header shows it, icons and the email signature banner.', 'seoprostack')],
+		['showColours', __('Colours', 'seoprostack'), __('Light mode colours, and dark mode colours when dark mode is on.', 'seoprostack')],
 		['showFonts', __('Fonts', 'seoprostack'), __('Heading and body fonts.', 'seoprostack')],
 		['showFormatting', __('Formatting', 'seoprostack'), __('Heading, text, quote and button styles.', 'seoprostack')]
 	];
