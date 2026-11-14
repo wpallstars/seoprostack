@@ -297,16 +297,11 @@ if (!defined('ABSPATH')) {
         ),
         // The address SEO Pro Analytics itself links
         // (SEOProAnalytics_Connections::CONNECT_URL).
+        // One page, so one Learn more button (SEOProStack_Link_Cards).
         'seoproanalytics-connect' => array(
             'name' => 'SEO Pro Analytics Connect',
             'description' => 'The add-on for SEO Pro Analytics that connects services needing an outside account, such as Google Search Console and the Chrome UX Report, into the same reports.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics-connect/',
-                    'primary' => true
-                )
-            ),
+            'url' => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics-connect/',
             'free_slug' => 'seoproanalytics'
         ),
         'scalability-pro' => array(
