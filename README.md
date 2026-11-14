@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.212-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.213-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.212
+Version: 1.3.213
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2049,6 +2049,7 @@ Every account this site needs, and the task on this board that sets it up. Open 
 - **Domain and DNS:** a domain registrar and Cloudflare (Setup Cloudflare). The same Cloudflare account gives the cache token (Clear Cloudflare's cache with LiteSpeed Cache), Turnstile spam protection for forms and logins, and R2 file storage.
 - **Email:** mailboxes people write to, such as hello@ and support@ (Setup Business Email), and Amazon SES for the emails the site sends (Setup Email Sending).
 - **Google:** one Google account for the business, with a Google Cloud project and billing (Setup Google Cloud) for the Google APIs the site uses, such as Cloud Translation on a site in more than one language; and Search Console (Setup Google Search Console).
+- **Bing:** Bing Webmaster Tools, signed in with that Google account or a Microsoft account the business keeps (Setup Bing Webmaster Tools).
 - **Payments:** Stripe, PayPal, Paddle or Polar (Setup Payment Processing).
 - **Other plugins** add tasks for their own accounts to this board, such as SEO Pro Directory's Google Maps Platform and Outscraper.
 
@@ -2200,9 +2201,20 @@ Done when the project exists with billing and a budget alert.
 3. Open **Sitemaps** and submit the site's sitemap address (with Rank Math, `sitemap_index.xml`).
 4. Give the team access under **Settings → Users and permissions**, rather than sharing a login.
 
-Bing Webmaster Tools can import the site from Search Console, for Bing and the search engines it supplies. Done when the property is verified and the sitemap shows **Success**.
+Bing has its own task, next. Done when the property is verified and the sitemap shows **Success**.
 
-##### 14. Setup Google Translation (Cloud Translation API)
+##### 14. Setup Bing Webmaster Tools
+
+[Bing Webmaster Tools](https://www.bing.com/webmasters/about) does for Bing what Search Console does for Google: the searches the site appears in, the pages Bing cannot index and why, and a place to submit the sitemap. Bing's results also appear in other search engines, such as DuckDuckGo, Yahoo and Ecosia, and in Microsoft Copilot. It is free. Do it after Setup Google Search Console, once the site is on its own domain and open to search engines (**Settings → Reading**).
+
+1. Open Bing Webmaster Tools and sign in with the business's Google account (or a Microsoft account the business keeps).
+2. Choose **Import your sites from GSC** and allow it to read Search Console: it adds the site, already verified, with the sitemaps submitted there. Without Search Console, choose **Add your site manually**, enter the site's address and verify it with the **CNAME** record Bing shows, added in Cloudflare → DNS with the proxy (orange cloud) off.
+3. Open **Sitemaps**. If the sitemap is not listed, choose **Submit sitemap** and enter its full address (with Rank Math, `https://<domain>/sitemap_index.xml`).
+4. Give the team access under **User management** (in Settings), rather than sharing a login.
+
+Optional, with Rank Math: turn on its **Instant Indexing** module, which tells Bing at once when a page is published or changed (IndexNow). Done when the site shows as verified and the sitemap's status is **Success**.
+
+##### 15. Setup Google Translation (Cloud Translation API)
 
 *Added on sites where the `translatepress-multilingual` plugin is active.*
 
@@ -2216,7 +2228,7 @@ TranslatePress translates the site's pages into its other languages automaticall
 
 A site copied from another one has that site's key here: replace it with yours. Never paste the key into a task or comment. Done when a new page translates and the key comes from your own project.
 
-##### 15. Setup Payment Processing
+##### 16. Setup Payment Processing
 
 Choose who takes card payments. You can use more than one.
 
@@ -2230,7 +2242,7 @@ Choose who takes card payments. You can use more than one.
 
 Done when a live payment reaches your account and its receipt email arrives.
 
-##### 16. Setup Backups, Updates and Uptime Alerts
+##### 17. Setup Backups, Updates and Uptime Alerts
 
 Keeps the site safe to change and tells you when it is down, before your customers do. The steps are for Hostinger; other hosts have the same three things under other names.
 
@@ -2679,6 +2691,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New (**Brand assets page**, Content, off by default; #1604): a Brand assets block and page with the site’s logos, colours, fonts and text styles, read from the Kadence Customizer each time, so the page stays current. Where the header shows the site title beside the logo, visitors can download the same logo-and-title lockup as SVG or PNG for light and dark backgrounds, and an email signature banner. The card can publish the page at `/brand-assets/` and link it from the footer after About; `wp seoprostack brand-assets create --footer` does the same from WP-CLI.
+
+### 1.3.213
+
+- Added (Fluent Boards starter data, **Website Setup** board; #1607): a **Setup Bing Webmaster Tools** task after Setup Google Search Console, with its own steps (import the site from Search Console or add and verify it, submit the sitemap, give the team access) and its own Done when. Before, Bing was one sentence at the end of the Search Console task. **Add starter data** adds it to existing boards; the Accounts and Keys Checklist names Bing too.
 
 ### 1.3.212
 
