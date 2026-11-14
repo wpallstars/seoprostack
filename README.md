@@ -2746,11 +2746,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New (Server; on by default, single sites; #1649): **Faster database keys** gives WordPress's and WooCommerce's posts, custom field, comment, settings, users and order meta tables the keys Index WP MySQL For Speed adds, in the background and online, and keeps them after WordPress, WooCommerce and plugin updates, so nobody has to rebuild them by hand. It replaces Index WP MySQL For Speed (except its query monitor): while that is active, this waits; once it is deactivated, its keys are kept as they are. Turning it off or deleting SEO Pro Stack puts WordPress's own keys back. Free Plugins no longer lists Index WP MySQL For Speed. New `wp seoprostack fast-keys status|apply|undo`.
+- Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 × 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
 
 ### 1.3.218
 
 - New (Content; on by default; #1644): **My Account without WooCommerce** keeps My Account (log in, sign up, lost password, account details and the tabs other plugins add) working when WooCommerce is deactivated, on the same page and addresses, with WooCommerce's markup, form fields and hooks and the Kadence theme's layout, so a site that sells nothing no longer loads WooCommerce for it. Settings version 36 imports WooCommerce's "Allow customers to create an account on the My account page" as **People can sign up**. Keep pages cached, Load jQuery at the end of the page, Remove WordPress extras' password meter, Your lists' Register link, Block dashboard access's default and Load plugins only where needed (which loads every plugin on that page) know the page.
-- Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 × 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
 - Fixed (**Watermark pictures**, #1621): an unmarking run stopped part-way no longer leaves the picture refusing every retry.
 
 ### 1.3.217
