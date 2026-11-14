@@ -83,6 +83,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
 * **Faster page counts on long lists** (off).
+* **Faster database keys**, kept after updates (single sites).
 * **Database key cleanup** with restore SQL. **Add database keys** (off).
 * **Database character set**: opt-in utf8mb4 for emoji.
 * **Load plugins only where needed**.

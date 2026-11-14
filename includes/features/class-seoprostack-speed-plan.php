@@ -167,6 +167,7 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
             'quick_404'                 => array(true, ''),
             'database_cleanup'          => array(true, ''),
             'autoload_options'          => array(!is_multisite(), __('For single sites.', 'seoprostack')),
+            'fast_keys'                 => array(!is_multisite(), __('For single sites.', 'seoprostack')),
         );
         foreach ($defaults as $key => $applies) {
             if (!$applies[0]) {

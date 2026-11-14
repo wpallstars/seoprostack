@@ -67,6 +67,8 @@ if (!defined('ABSPATH')) {
 // access, Tidy the login screen, Tidy admin screens and Remove WordPress
 // extras its basic hardening; FluentAuth (fluent-security, under Admin) has
 // its login protection (GitHub issue #698).
+// Index WP MySQL For Speed is not listed: Faster database keys replaces it,
+// adding the same keys and keeping them after updates (GitHub issue #1649).
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -167,7 +169,6 @@ function seoprostack_get_free_plugins() {
             'wp-social-reviews'
         ),
         'speed' => array(
-            'index-wp-mysql-for-speed',
             'litespeed-cache',
             'wp-optimize'
         ),
