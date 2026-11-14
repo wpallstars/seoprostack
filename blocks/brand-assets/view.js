@@ -120,22 +120,20 @@
 		});
 	}
 
-	/*
-	 * Work out where everything goes, at scale 1, like Kadence's header:
-	 * logo and name side by side (or stacked), a 1em gap, centred.
-	 */
-	function layout(lockup, ctx) {
-		var parts = { logo: null, lines: [] };
-		var logoW = 0;
-		var logoH = 0;
-		if (lockup.logo && lockup.img) {
-			var ratio = lockup.logo.ratio || (lockup.img.naturalWidth ? lockup.img.naturalHeight / lockup.img.naturalWidth : 1);
-			logoW = lockup.logo.width;
-			logoH = logoW * ratio;
+	/* The logo's size at scale 1, or 0 by 0 when there is none. */
+	function logoBox(lockup) {
+		if (!lockup.logo || !lockup.img) {
+			return { width: 0, height: 0 };
 		}
-		var textW = 0;
-		var textH = 0;
-		[[lockup.title, lockup.titleFont], [lockup.tagline, lockup.tagFont]].forEach(function (line, i) {
+		var natural = lockup.img.naturalWidth ? lockup.img.naturalHeight / lockup.img.naturalWidth : 1;
+		var ratio = lockup.logo.ratio || natural;
+		return { width: lockup.logo.width, height: lockup.logo.width * ratio };
+	}
+
+	/* The site title and tagline lines, measured and stacked, at scale 1. */
+	function textBox(lockup, ctx) {
+		var box = { width: 0, height: 0, lines: [] };
+		[[lockup.title, lockup.titleFont], [lockup.tagline, lockup.tagFont]].forEach(function (line) {
 			if (!line[0]) {
 				return;
 			}
@@ -143,48 +141,56 @@
 			ctx.font = fontString(line[1], 1);
 			var width = ctx.measureText(text).width;
 			var height = line[1].size * line[1].lineHeight;
-			var gap = i && parts.lines.length ? line[1].size * 0.4375 : 0;
-			parts.lines.push({ text: text, font: line[1], width: width, height: height, top: textH + gap });
-			textW = Math.max(textW, width);
-			textH += gap + height;
+			var gap = box.lines.length ? line[1].size * 0.4375 : 0;
+			box.lines.push({ text: text, font: line[1], width: width, height: height, top: box.height + gap });
+			box.width = Math.max(box.width, width);
+			box.height += gap + height;
 		});
-		var gap = logoW && textW ? lockup.gap : 0;
+		return box;
+	}
+
+	/* Where the logo and the text start: side by side, centred on the height. */
+	function placeRow(direction, logo, text, gap, size) {
+		var logoFirst = 'row' === direction;
+		return {
+			logo: { x: logoFirst ? 0 : text.width + gap, y: (size.height - logo.height) / 2 },
+			text: { x: logoFirst ? logo.width + gap : 0, y: (size.height - text.height) / 2 }
+		};
+	}
+
+	/* Where the logo and the text start: stacked, centred on the width. */
+	function placeColumn(direction, logo, text, gap, size) {
+		var logoFirst = 'column' === direction;
+		return {
+			logo: { x: (size.width - logo.width) / 2, y: logoFirst ? 0 : text.height + gap },
+			text: { x: (size.width - text.width) / 2, y: logoFirst ? logo.height + gap : 0 }
+		};
+	}
+
+	/*
+	 * Work out where everything goes, at scale 1, like Kadence's header:
+	 * logo and name side by side (or stacked), a 1em gap, centred.
+	 */
+	function layout(lockup, ctx) {
+		var logo = logoBox(lockup);
+		var text = textBox(lockup, ctx);
+		var gap = logo.width && text.width ? lockup.gap : 0;
 		var row = 'row' === lockup.direction || 'row-reverse' === lockup.direction;
-		var width = row ? logoW + gap + textW : Math.max(logoW, textW);
-		var height = row ? Math.max(logoH, textH) : logoH + gap + textH;
-		var logoX = 0;
-		var logoY = 0;
-		var textX = 0;
-		var textY = 0;
-		if (row) {
-			logoY = (height - logoH) / 2;
-			textY = (height - textH) / 2;
-			if ('row' === lockup.direction) {
-				textX = logoW + gap;
-			} else {
-				logoX = textW + gap;
-			}
-		} else {
-			logoX = (width - logoW) / 2;
-			textX = (width - textW) / 2;
-			if ('column' === lockup.direction) {
-				textY = logoH + gap;
-			} else {
-				logoY = textH + gap;
-			}
-		}
-		parts.lines.forEach(function (line) {
-			line.x = textX + (row ? 0 : (textW - line.width) / 2);
-			line.y = textY + line.top + line.height / 2;
+		var size = row
+			? { width: logo.width + gap + text.width, height: Math.max(logo.height, text.height) }
+			: { width: Math.max(logo.width, text.width), height: logo.height + gap + text.height };
+		var at = (row ? placeRow : placeColumn)(lockup.direction, logo, text, gap, size);
+		text.lines.forEach(function (line) {
+			line.x = at.text.x + (row ? 0 : (text.width - line.width) / 2);
+			line.y = at.text.y + line.top + line.height / 2;
 		});
-		if (logoW) {
-			parts.logo = { x: logoX, y: logoY, width: logoW, height: logoH };
-		}
-		var pad = Math.round(lockup.titleFont.size * 0.5);
-		parts.width = width;
-		parts.height = height;
-		parts.pad = pad;
-		return parts;
+		return {
+			logo: logo.width ? { x: at.logo.x, y: at.logo.y, width: logo.width, height: logo.height } : null,
+			lines: text.lines,
+			width: size.width,
+			height: size.height,
+			pad: Math.round(lockup.titleFont.size * 0.5)
+		};
 	}
 
 	function draw(lockup, parts, canvas, scale, offsetX, offsetY, background) {
