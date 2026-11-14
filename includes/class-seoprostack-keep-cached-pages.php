@@ -661,13 +661,16 @@ final class SEOProStack_Keep_Cached_Pages {
 
     /**
      * WooCommerce's basket, checkout and account pages, which page caches
-     * leave out.
+     * leave out, and My Account without WooCommerce (SEOProStack_Account).
      *
      * @return array<string,true> Address without the trailing slash => true.
      */
     private static function uncached_pages() {
         $skip = array();
         if (!function_exists('wc_get_page_id')) {
+            if (SEOProStack_Account::available()) {
+                $skip[untrailingslashit(SEOProStack_Account::page_url())] = true;
+            }
             return $skip;
         }
         foreach (array('cart', 'checkout', 'myaccount') as $page) {

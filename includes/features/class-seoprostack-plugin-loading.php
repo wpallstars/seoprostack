@@ -1631,6 +1631,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'woo_pages' => array_values(array_filter(array_map('intval', array(
                 get_option('woocommerce_shop_page_id'), get_option('woocommerce_cart_page_id'),
                 get_option('woocommerce_checkout_page_id'), get_option('woocommerce_myaccount_page_id'),
+                SEOProStack_Account::available() ? SEOProStack_Account::page_id() : 0,
             )))),
             'candidates' => array_values(array_unique($candidates)),
         ), true);

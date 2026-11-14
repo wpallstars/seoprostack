@@ -866,6 +866,13 @@ final class SEOProStack_Plugin_Loader {
             $chosen = array_diff(array_unique(array_merge($chosen, $candidates, $verified)), $keep);
             $needed = array_merge((array) ($page['needs'] ?? array()), $content);
             if (!empty($context['id']) && in_array((int) $context['id'], (array) ($front['woo_pages'] ?? array()), true)) {
+                $network = is_multisite() ? (array) get_site_option('active_sitewide_plugins', array()) : array();
+                if (!in_array('woocommerce/woocommerce.php', self::$raw, true) && !isset($network['woocommerce/woocommerce.php'])) {
+                    // My Account without WooCommerce (SEOProStack_Account):
+                    // plugins add its tabs and form fields with hooks no
+                    // learning sees, so it loads every plugin.
+                    return;
+                }
                 $needed[] = 'woocommerce/woocommerce.php';
             }
             do {

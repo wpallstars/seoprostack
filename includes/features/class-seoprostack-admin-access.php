@@ -225,7 +225,8 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
         if ('' !== (string) SEOProStack_Settings::get('restrict_dashboard_redirect')) {
             return true;
         }
-        $page = (int) get_option('woocommerce_myaccount_page_id');
+        // WooCommerce's page, or My Account without WooCommerce's.
+        $page = SEOProStack_Account::page_id();
         if (!$page || 'publish' !== get_post_status($page)) {
             // WooCommerce may still be making its pages; try again later.
             return false;
