@@ -17,7 +17,7 @@
 	var ROOT = '.wp-block-seoprostack-brand-assets';
 	/** PNG files are drawn at this many times the header's size. */
 	var SCALE = 3;
-	/** Email signature banner, in CSS pixels; drawn at twice the size. */
+	/** Email signature banner's largest size, in CSS pixels; drawn at twice the size. */
 	var BANNER = { width: 600, height: 150, scale: 2 };
 
 	function say(button, text) {
@@ -485,16 +485,24 @@
 		});
 	}
 
-	/* The lockup on the light background, fitted inside a 600 by 150 banner. */
+	/*
+	 * The lockup on the light background, fitted inside a 600 by 150 banner
+	 * (never enlarged), then cropped so the space around it is the same on
+	 * every side: the smaller of the space above it and beside it.
+	 */
 	function bannerCanvas(lockup, parts) {
 		var inner = { width: BANNER.width - 48, height: BANNER.height - 32 };
 		var fit = Math.min(1, inner.width / parts.width, inner.height / parts.height);
+		var drawn = { width: parts.width * fit, height: parts.height * fit };
+		var pad = Math.min((BANNER.width - drawn.width) / 2, (BANNER.height - drawn.height) / 2);
+		var width = Math.min(BANNER.width, Math.round(drawn.width + pad * 2));
+		var height = Math.min(BANNER.height, Math.round(drawn.height + pad * 2));
 		var canvas = document.createElement('canvas');
-		canvas.width = BANNER.width * BANNER.scale;
-		canvas.height = BANNER.height * BANNER.scale;
+		canvas.width = width * BANNER.scale;
+		canvas.height = height * BANNER.scale;
 		var scale = fit * BANNER.scale;
-		var offsetX = (BANNER.width / fit - parts.width) / 2;
-		var offsetY = (BANNER.height / fit - parts.height) / 2;
+		var offsetX = (width / fit - parts.width) / 2;
+		var offsetY = (height / fit - parts.height) / 2;
 		draw(lockup, parts, canvas, scale, offsetX, offsetY, lockup.background);
 		return canvas;
 	}

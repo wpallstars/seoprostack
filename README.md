@@ -1554,7 +1554,7 @@ A **Brand assets** block, and a page holding it, for anyone writing about the bu
 - **Logo with the site title**: where the header shows the site title beside the logo (or the title alone), as on sites whose logo is a flag or a symbol, the block draws the same lockup as the header, in the header's site title font, size, weight and colour, and offers it as SVG and PNG files for light and dark backgrounds. The files are made in the visitor's browser from the page's own logo and fonts (the SVG holds the font when it is a file on this site, such as Kadence's local Google Fonts), so nothing is stored and no host is asked beyond those the page already loads them from (a logo on a CDN or media bucket is fetched from there again).
 - **The header logo's look**: an effect the theme gives the header's logo (Kadence's `.site-branding .brand img.custom-logo`), such as the edge that keeps a white flag's shape on a white header, is shown on the logo cards in each card's colours and kept in the SVG (as an SVG filter, for drop shadows) and PNG files.
 - **Icons**: the small (mobile) logo and the site icon, shown on the light and dark backgrounds, with the original file and the sizes WordPress makes (192, Apple 180, browser tab 32).
-- **Email signature banner**: a 600 × 150 PNG (drawn at twice that size, for sharp screens) of the logo, or the logo with the site title, on the light background.
+- **Email signature banner**: a PNG of the logo, or the logo with the site title, on the light background, with the same space on every side, up to 600 × 150 (drawn at twice that size, for sharp screens). The card says how many pixels wide to show it in an email.
 - **Colours**: under **Light mode** the active palette and, while Kadence Pro's dark mode is on, under **Dark mode** the dark palette, with each colour's role (the name given in the Customizer, or Kadence's own: Accent, Strongest text, Page background…) and its HEX, RGB and CMYK values, each with a copy button that copies that value as shown, to paste into a design app.
 - **Fonts**: the heading and body fonts with their weights, and a link to Google Fonts for Google fonts (in a new tab).
 - **Links to PNG files**: each logo card, the small logo, the site icon and the email banner have copy-link buttons for a PNG file of that picture, for forms that ask for a logo or profile picture by its address: **Padded** (on the card's background colour, with space around it) and **Transparent** (no background, cropped to the picture). The files are saved in `uploads/seoprostack-brand-assets/`, named after the site. They are drawn by the browser of someone who can edit the theme when they open the page, and drawn again when the logo, palette, fonts, Customizer settings or theme version change; until then visitors see no button for a file not yet made. `wp seoprostack brand-assets status` counts them. Uninstalling the plugin deletes the folder.
@@ -2718,6 +2718,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 × 150 banner with wide space at the sides; the card says how wide to show it in an email.
+- Fixed (**Watermark pictures**, #1621): an unmarking run stopped part-way no longer leaves the picture refusing every retry.
 
 ### 1.3.217
 
