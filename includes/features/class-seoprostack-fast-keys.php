@@ -6,13 +6,15 @@
  *
  * Only keys named in the running WordPress (or WooCommerce) schema, or in
  * the target set, are changed; other plugins' keys stay. Each table changes
- * in one online ALTER TABLE (SEOProStack_Fast_Keys_Table). Tables that are
- * not InnoDB with a DYNAMIC or COMPRESSED row format, have NULL in a new
- * primary key column, or are large (left to WP-CLI) are skipped. Tables
- * already keyed this way (by Index WP MySQL For Speed) are adopted as they
- * are. The key sets are in SEOProStack_Fast_Keys_Schema, the comparison in
- * SEOProStack_Fast_Keys_Plan, the panel and WP-CLI in
- * SEOProStack_Fast_Keys_Admin.
+ * in one online ALTER TABLE. Tables that are not InnoDB with a DYNAMIC or
+ * COMPRESSED row format, have NULL in a new primary key column, or are
+ * large (left to WP-CLI) are skipped. Tables already keyed this way (by
+ * Index WP MySQL For Speed) are adopted as they are.
+ *
+ * Parts: the key sets (SEOProStack_Fast_Keys_Schema), the comparison
+ * (_Plan), one table (_Table, _Alter), a run over the tables (_Run),
+ * dbDelta() (_Dbdelta), the must-use file (_Mu_File), the panel (_Admin)
+ * and WP-CLI (_Cli).
  *
  * Updates: dbdelta_queries gets this plugin's keys for the tables it keeps,
  * so dbDelta() adds no standard key back and logs no duplicate-key errors,
@@ -38,6 +40,10 @@ if (!defined('ABSPATH')) {
 require_once __DIR__ . '/class-seoprostack-fast-keys-schema.php';
 require_once __DIR__ . '/class-seoprostack-fast-keys-plan.php';
 require_once __DIR__ . '/class-seoprostack-fast-keys-table.php';
+require_once __DIR__ . '/class-seoprostack-fast-keys-alter.php';
+require_once __DIR__ . '/class-seoprostack-fast-keys-run.php';
+require_once __DIR__ . '/class-seoprostack-fast-keys-dbdelta.php';
+require_once __DIR__ . '/class-seoprostack-fast-keys-mu-file.php';
 
 /**
  * WordPress calls each hook's callback by name, so they are public.
@@ -56,16 +62,6 @@ class SEOProStack_Fast_Keys extends SEOProStack_Feature {
 
     /** One check soon: after updates, setting changes and Check now. */
     const SOON = 'seoprostack_fast_keys_soon';
-
-    /** Must-use file that adds the dbDelta filter to upgrade.php. */
-    const FILE = 'seoprostack-fast-keys.php';
-    const MARKER = 'SEO Pro Stack faster database keys';
-
-    /** Seconds a background run may start new tables for. */
-    const BUDGET = 20;
-
-    /** Log entries kept. */
-    const LOG_MAX = 30;
 
     /** The plugin this replaces. */
     const REPLACES = array('index-wp-mysql-for-speed' => 'Index WP MySQL For Speed');
@@ -107,9 +103,13 @@ class SEOProStack_Fast_Keys extends SEOProStack_Feature {
         add_action('deactivated_plugin', array(__CLASS__, 'plugin_deactivated'), 10, 1);
         add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_changed'), 10, 2);
         register_deactivation_hook(SEOPROSTACK_FILE, array(__CLASS__, 'deactivate'));
-        if (is_admin() || (defined('WP_CLI') && WP_CLI)) {
+        if (is_admin()) {
             require_once __DIR__ . '/class-seoprostack-fast-keys-admin.php';
             SEOProStack_Fast_Keys_Admin::boot();
+        }
+        if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
+            require_once __DIR__ . '/class-seoprostack-fast-keys-cli.php';
+            WP_CLI::add_command('seoprostack fast-keys', array('SEOProStack_Fast_Keys_Cli', 'run'));
         }
     }
 
@@ -118,7 +118,7 @@ class SEOProStack_Fast_Keys extends SEOProStack_Feature {
      * file calls this in wp-admin/upgrade.php).
      */
     public static function early() {
-        add_filter('dbdelta_queries', array(__CLASS__, 'dbdelta'), 20);
+        add_filter('dbdelta_queries', array('SEOProStack_Fast_Keys_Dbdelta', 'filter'), 20);
         add_action('wp_upgrade', array(__CLASS__, 'soon'), 10, 0);
     }
 
@@ -128,18 +128,12 @@ class SEOProStack_Fast_Keys extends SEOProStack_Feature {
      * @return array{owned:array<string,int>,tables:array<string,array>,log:array}
      */
     public static function state() {
-        $state = get_option(self::STATE, array());
-        $state = is_array($state) ? $state : array();
-        return array(
-            'owned'  => isset($state['owned']) && is_array($state['owned']) ? $state['owned'] : array(),
-            'tables' => isset($state['tables']) && is_array($state['tables']) ? $state['tables'] : array(),
-            'log'    => isset($state['log']) && is_array($state['log']) ? $state['log'] : array(),
-        );
-    }
-
-    private static function save(array $state) {
-        $state['log'] = array_slice($state['log'], -self::LOG_MAX);
-        update_option(self::STATE, $state, false);
+        $stored = get_option(self::STATE, array());
+        $state  = array();
+        foreach (array('owned', 'tables', 'log') as $part) {
+            $state[$part] = is_array($stored) && isset($stored[$part]) && is_array($stored[$part]) ? $stored[$part] : array();
+        }
+        return $state;
     }
 
     /**
@@ -176,7 +170,7 @@ class SEOProStack_Fast_Keys extends SEOProStack_Feature {
         if ($on && !$scheduled) {
             wp_schedule_event(time() + 5 * MINUTE_IN_SECONDS, 'daily', self::HOOK);
             self::soon();
-            self::sync_file(true);
+            SEOProStack_Fast_Keys_Mu_File::sync(true);
         } elseif (!$on && $scheduled) {
             // Put the standard keys back, then stop.
             wp_clear_scheduled_hook(self::HOOK);
@@ -203,211 +197,22 @@ class SEOProStack_Fast_Keys extends SEOProStack_Feature {
     public static function deactivate() {
         wp_clear_scheduled_hook(self::HOOK);
         wp_clear_scheduled_hook(self::SOON);
-        self::sync_file(false);
+        SEOProStack_Fast_Keys_Mu_File::sync(false);
     }
 
     /**
      * Background run: daily, or soon after a change.
      */
     public static function run_scheduled() {
-        self::run(false);
-    }
-
-    /**
-     * Give the tables their keys (on) or WordPress's (off) where needed.
-     *
-     * @param bool        $cli   From WP-CLI: no size limit, no retry wait, no time budget.
-     * @param string|null $force 'apply' or 'undo' from WP-CLI.
-     * @return array<string,array> Results per table.
-     */
-    public static function run($cli = false, $force = null) {
-        global $wpdb;
-        if (is_multisite()) {
-            return array();
-        }
-        $undo = 'undo' === $force || (null === $force && !self::switched_on());
-        if (!$undo && !self::enabled()) {
-            return array(); // Waiting for Index WP MySQL For Speed to be deactivated.
-        }
-        $lock = 'sps_fast_keys_' . substr(hash('sha256', DB_NAME . $wpdb->prefix), 0, 30);
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- connection-owned advisory lock.
-        if ('1' !== (string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', $lock))) {
-            return array();
-        }
-        $results = array();
-        $state   = self::state();
-        try {
-            $results = self::run_tables($state, $undo, $cli);
-            self::save($state);
-        } finally {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- release our connection-owned lock.
-            $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock));
-        }
-        if (!$cli) {
-            self::sync_file(!$undo || !empty($state['owned']));
-        }
-        return $results;
-    }
-
-    /**
-     * Each table in turn, within the time budget (none from WP-CLI).
-     *
-     * @param array $state Stored state, updated.
-     * @param bool  $undo  Restoring WordPress's keys.
-     * @param bool  $cli   From WP-CLI.
-     * @return array<string,array> Results per table.
-     */
-    private static function run_tables(array &$state, $undo, $cli) {
-        $results = array();
-        $start   = microtime(true);
-        foreach (SEOProStack_Fast_Keys_Schema::targets() as $suffix => $target) {
-            $base = SEOProStack_Fast_Keys_Schema::standard_for($suffix);
-            if ($undo && (!isset($state['owned'][$suffix]) || !$base['keys'])) {
-                continue;
-            }
-            if (!$cli && !self::more_time($start, self::BUDGET)) {
-                self::soon();
-                break;
-            }
-            $fast             = SEOProStack_Fast_Keys_Plan::combined($target, $base);
-            $last             = isset($state['tables'][$suffix]) ? $state['tables'][$suffix] : array();
-            $results[$suffix] = SEOProStack_Fast_Keys_Table::run($suffix, $undo ? $base : $fast, $undo ? $fast : $base, $undo, $cli, $last);
-            self::record($state, $suffix, $results[$suffix], $undo);
-        }
-        if ($undo) {
-            $state['tables'] = array_intersect_key($state['tables'], $state['owned']);
-        }
-        return $results;
-    }
-
-    /**
-     * Store one table's result: whether it is kept, and a log line when the
-     * table was changed.
-     *
-     * @param array  $state  Stored state, updated.
-     * @param string $suffix Table without prefix.
-     * @param array  $result Its result.
-     * @param bool   $undo   Restoring WordPress's keys.
-     */
-    private static function record(array &$state, $suffix, array $result, $undo) {
-        $stored = $result;
-        unset($stored['sql']);
-        $state['tables'][$suffix] = $stored;
-        if ('missing' === $result['status'] || ($undo && 'done' === $result['status'])) {
-            unset($state['owned'][$suffix]);
-        } elseif ('done' === $result['status'] && !isset($state['owned'][$suffix])) {
-            $state['owned'][$suffix] = time();
-        }
-        if (!empty($result['sql'])) {
-            $state['log'][] = array(
-                'time'   => time(),
-                'table'  => SEOProStack_Fast_Keys_Schema::table($suffix),
-                'action' => $undo ? 'undo' : 'apply',
-                'result' => 'done' === $result['status'] ? 'done' : 'failed: ' . $result['note'],
-            );
-        }
-    }
-
-    /**
-     * dbDelta(): for the tables this keeps, swap the key lines WordPress or
-     * WooCommerce would compare for this plugin's keys, so no standard key
-     * is added back and no duplicate-key error is logged. Other lines,
-     * including new columns and new keys, pass unchanged; primary key
-     * columns stay NOT NULL if a column type changes.
-     *
-     * @param mixed $queries Queries.
-     * @return mixed
-     */
-    public static function dbdelta($queries) {
-        if (!is_array($queries) || is_multisite()) {
-            return $queries;
-        }
-        $tables = self::owned_tables();
-        if (!$tables) {
-            return $queries;
-        }
-        $targets = SEOProStack_Fast_Keys_Schema::targets();
-        foreach ($queries as $i => $query) {
-            if (!is_string($query) || !preg_match('/^\s*CREATE TABLE\s+`?([^\s`(]+)`?\s*\((.*)\)([^)]*)$/is', $query, $match)) {
-                continue;
-            }
-            $suffix = isset($tables[strtolower($match[1])]) ? $tables[strtolower($match[1])] : '';
-            if ('' !== $suffix) {
-                $queries[$i] = SEOProStack_Fast_Keys_Plan::rewrite($query, $match, $targets[$suffix], SEOProStack_Fast_Keys_Schema::standard_for($suffix));
-            }
-        }
-        return $queries;
-    }
-
-    /**
-     * Tables this keeps: lowercase full name => suffix.
-     *
-     * @return array<string,string>
-     */
-    private static function owned_tables() {
-        $targets = SEOProStack_Fast_Keys_Schema::targets();
-        $tables  = array();
-        foreach (array_keys(self::state()['owned']) as $suffix) {
-            if (isset($targets[$suffix])) {
-                $tables[strtolower(SEOProStack_Fast_Keys_Schema::table($suffix))] = $suffix;
-            }
-        }
-        return $tables;
-    }
-
-    /**
-     * Install, update or remove the must-use file. Only our own marked file
-     * is ever written or removed.
-     *
-     * @param bool $on Whether it should be there.
-     */
-    private static function sync_file($on) {
-        // Uninstall removes it without loading the main plugin file.
-        if (!defined('WPMU_PLUGIN_DIR') || ($on && !defined('SEOPROSTACK_FILE'))) {
-            return;
-        }
-        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
-        $fs   = new WP_Filesystem_Direct(null);
-        $path = WPMU_PLUGIN_DIR . '/' . self::FILE;
-        $old  = is_file($path) ? (string) $fs->get_contents($path) : '';
-        if ('' !== $old && false === strpos($old, self::MARKER)) {
-            return; // Not ours.
-        }
-        if (!$on) {
-            if ('' !== $old) {
-                $fs->delete($path);
-            }
-            return;
-        }
-        $code = self::file_code();
-        if ($old !== $code && wp_mkdir_p(WPMU_PLUGIN_DIR)) {
-            $fs->put_contents($path, $code, 0644);
-        }
-    }
-
-    /**
-     * The must-use file's code.
-     *
-     * @return string
-     */
-    private static function file_code() {
-        $base = WP_PLUGIN_DIR . '/' . dirname(plugin_basename(SEOPROSTACK_FILE)) . '/includes/';
-        // phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_var_export -- generates PHP string literals.
-        return "<?php\n// " . self::MARKER . ": keeps its keys when wp-admin/upgrade.php updates the database (plugins do not load there).\n"
-            . 'if (defined(\'ABSPATH\') && !is_multisite() && is_file(' . var_export($base . 'features/class-seoprostack-fast-keys.php', true) . ")) {\n"
-            . '    require_once ' . var_export($base . 'class-seoprostack-feature.php', true) . ";\n"
-            . '    require_once ' . var_export($base . 'features/class-seoprostack-fast-keys.php', true) . ";\n"
-            . "    SEOProStack_Fast_Keys::early();\n}\n";
-        // phpcs:enable
+        SEOProStack_Fast_Keys_Run::run(false);
     }
 
     /**
      * Put WordPress's keys back and remove the file (uninstall).
      */
     public static function remove_all() {
-        self::run(true, 'undo');
-        self::sync_file(false);
+        SEOProStack_Fast_Keys_Run::run(true, 'undo');
+        SEOProStack_Fast_Keys_Mu_File::sync(false);
         delete_option(self::STATE);
     }
 

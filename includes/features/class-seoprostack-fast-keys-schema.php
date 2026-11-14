@@ -2,7 +2,8 @@
 /**
  * Faster database keys: the key sets. The target keys (Index WP MySQL For
  * Speed 1.6, Barracuda) and WordPress's and WooCommerce's own keys for the
- * same tables, read from the running version's schema.
+ * same tables, read from the running version's schema, and the two
+ * combined.
  *
  * A key set is array('keys' => name => (column => prefix length, 0 for the
  * whole column), 'unique' => names). 'PRIMARY' is the primary key.
@@ -230,6 +231,78 @@ final class SEOProStack_Fast_Keys_Schema {
             return null;
         }
         return array('name' => $name, 'columns' => $columns, 'unique' => !$primary && 0 === stripos($match[1], 'UNIQUE'));
+    }
+
+    /**
+     * The keys a table gets when switched on: the target keys, plus
+     * WordPress's (or WooCommerce's) own keys that no target key covers,
+     * such as keys a newer version adds. A unique key is covered only by a
+     * unique key or primary key on exactly its columns.
+     *
+     * @param array $target Target keys.
+     * @param array $base   Standard keys.
+     * @return array{keys:array<string,array<string,int>>,unique:string[]}
+     */
+    public static function combined(array $target, array $base) {
+        $keys   = $target['keys'];
+        $unique = $target['unique'];
+        $names  = SEOProStack_Fast_Keys_Plan::names($keys);
+        foreach ($base['keys'] as $name => $columns) {
+            $is_unique = in_array($name, $base['unique'], true);
+            if (in_array(strtolower((string) $name), $names, true) || self::covered($target, $columns, $is_unique || 'PRIMARY' === $name)) {
+                continue;
+            }
+            $keys[$name] = $columns;
+            if ($is_unique) {
+                $unique[] = $name;
+            }
+        }
+        return array('keys' => $keys, 'unique' => $unique);
+    }
+
+    /**
+     * Whether a target key covers a key's columns.
+     *
+     * @param array $target    Target keys.
+     * @param array $columns   The key's columns => prefix length.
+     * @param bool  $is_unique The key is unique (or primary).
+     * @return bool
+     */
+    private static function covered(array $target, array $columns, $is_unique) {
+        foreach ($target['keys'] as $other => $other_columns) {
+            $other_unique = 'PRIMARY' === $other || in_array($other, $target['unique'], true);
+            if ($is_unique && (!$other_unique || count($other_columns) !== count($columns))) {
+                continue;
+            }
+            if (self::covers($other_columns, $columns)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether $other starts with $key's columns, each at least as long (0
+     * for the whole column).
+     *
+     * @param array $other Columns => prefix length.
+     * @param array $key   Columns => prefix length.
+     * @return bool
+     */
+    private static function covers(array $other, array $key) {
+        $other = array_values(array_map(null, array_map('strtolower', array_keys($other)), array_values($other)));
+        $i     = 0;
+        foreach ($key as $column => $length) {
+            if (!isset($other[$i]) || $other[$i][0] !== strtolower($column)) {
+                return false;
+            }
+            $have = (int) $other[$i][1];
+            if (0 !== $have && (0 === (int) $length || $have < (int) $length)) {
+                return false;
+            }
+            $i++;
+        }
+        return true;
     }
 
     /**

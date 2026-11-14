@@ -1,7 +1,7 @@
 <?php
 /**
- * Faster database keys: the settings panel, Check now, the Plugins screen's
- * note on Index WP MySQL For Speed and `wp seoprostack fast-keys`.
+ * Faster database keys: the settings panel, Check now and the Plugins
+ * screen's note on Index WP MySQL For Speed.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -21,19 +21,14 @@ final class SEOProStack_Fast_Keys_Admin {
     const ACTION = 'seoprostack_fast_keys_check';
 
     /**
-     * Register hooks (admin and WP-CLI).
+     * Register hooks (wp-admin).
      */
     public static function boot() {
-        if (is_admin()) {
-            add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'extras'), 10, 2);
-        }
-        if (is_admin() && !wp_doing_ajax()) {
+        add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'extras'), 10, 2);
+        if (!wp_doing_ajax()) {
             add_action('admin_init', array('SEOProStack_Fast_Keys', 'sync_schedule'));
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'));
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'check_now'));
-        }
-        if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
-            WP_CLI::add_command('seoprostack fast-keys', array(__CLASS__, 'cli'));
         }
     }
 
@@ -174,72 +169,5 @@ final class SEOProStack_Fast_Keys_Admin {
             return __('Faster keys in place.', 'seoprostack');
         }
         return $known ? '' : __('Faster keys in place; an update changed some, and the next background check puts them back.', 'seoprostack');
-    }
-
-    /**
-     * Shows, applies or undoes faster database keys.
-     *
-     * ## OPTIONS
-     *
-     * [<command>]
-     * : status (default), apply or undo.
-     *
-     * @param array $args Positional arguments.
-     */
-    public static function cli($args) {
-        $command = isset($args[0]) ? (string) $args[0] : 'status';
-        $items   = array();
-        foreach (self::cli_results($command) as $suffix => $result) {
-            $items[] = array('table' => SEOProStack_Fast_Keys_Schema::table($suffix), 'status' => $result['status'], 'note' => $result['note']);
-        }
-        WP_CLI\Utils\format_items('table', $items, array('table', 'status', 'note'));
-    }
-
-    /**
-     * Results per table for a WP-CLI command.
-     *
-     * @param string $command status, apply or undo.
-     * @return array<string,array>
-     */
-    private static function cli_results($command) {
-        if ('status' === $command) {
-            return self::cli_status();
-        }
-        if ('apply' === $command && !SEOProStack_Fast_Keys::enabled()) {
-            WP_CLI::error('Turn on Faster database keys (Server tab) and deactivate Index WP MySQL For Speed first.');
-        }
-        if ('undo' === $command && SEOProStack_Fast_Keys::switched_on()) {
-            WP_CLI::error('Turn off Faster database keys (Server tab) first, or it adds them again.');
-        }
-        if (in_array($command, array('apply', 'undo'), true)) {
-            return SEOProStack_Fast_Keys::run(true, $command);
-        }
-        WP_CLI::error('Usage: wp seoprostack fast-keys [status|apply|undo]');
-        return array();
-    }
-
-    /**
-     * The changes each table needs to get the faster keys.
-     *
-     * @return array<string,array{status:string,note:string}>
-     */
-    private static function cli_status() {
-        $results = array();
-        $state   = SEOProStack_Fast_Keys::state();
-        foreach (SEOProStack_Fast_Keys_Schema::targets() as $suffix => $target) {
-            $current = SEOProStack_Fast_Keys_Table::inspect($suffix);
-            if (null === $current || is_wp_error($current)) {
-                continue;
-            }
-            $base = SEOProStack_Fast_Keys_Schema::standard_for($suffix);
-            $plan = SEOProStack_Fast_Keys_Plan::plan($current, SEOProStack_Fast_Keys_Plan::combined($target, $base), $base);
-            if (!$plan) {
-                $results[$suffix] = array('status' => 'done', 'note' => isset($state['owned'][$suffix]) ? 'kept' : 'not kept');
-                continue;
-            }
-            $note             = empty($state['tables'][$suffix]['note']) ? '' : ' (' . $state['tables'][$suffix]['note'] . ')';
-            $results[$suffix] = array('status' => 'to change', 'note' => implode(', ', $plan) . $note);
-        }
-        return $results;
     }
 }
