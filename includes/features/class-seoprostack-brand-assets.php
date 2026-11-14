@@ -1411,7 +1411,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * @param array    $parent The parent block, whose innerContent follows.
      * @return array
      */
-    private static function insert_in(array $blocks, array $about, $href, $label, &$done, array &$parent = null) {
+    private static function insert_in(array $blocks, array $about, $href, $label, &$done, ?array &$parent = null) {
         foreach ($blocks as $i => $block) {
             if ($done) {
                 break;
