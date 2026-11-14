@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.216-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.217-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.216
+Version: 1.3.217
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2719,7 +2719,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.217
 
 - Fixed (**Fixes for other plugins**, on by default; #1638): after a site moves to a new address or server, or its database is copied to another install, Kadence’s local Google Fonts no longer give a server folder path as each font’s address, which made every font file 404 and headings lose their font. Font cache entries naming a folder outside this install are left out when Kadence makes a stylesheet, so it uses this install’s files.
 - New (**Brand assets page**): each logo, the logo with the site title, the small logo, the site icon and the email banner has buttons that copy a link to a PNG file of it, for forms that ask for a logo or profile picture by its address: one on the card's background colour with space around it, and one on a transparent background with none. The files are saved in the site's uploads, made by the browser of a theme editor who opens the page, and made again when the logo, colours, fonts or theme change.
