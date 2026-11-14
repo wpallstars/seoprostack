@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/brand-assets",
+	"version": "1.3.213",
+	"title": "Brand assets",
+	"category": "widgets",
+	"icon": "art",
+	"description": "The site's logos, colours, fonts and text styles from the Kadence theme's Customizer settings, with downloads, so it stays current when they change.",
+	"keywords": [ "brand", "logo", "colours", "colors", "fonts", "press", "media kit" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"showLogos": { "type": "boolean", "default": true },
+		"showColours": { "type": "boolean", "default": true },
+		"showFonts": { "type": "boolean", "default": true },
+		"showFormatting": { "type": "boolean", "default": true }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"spacing": { "margin": true }
+	},
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}

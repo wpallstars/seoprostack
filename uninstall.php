@@ -80,6 +80,7 @@ function seoprostack_uninstall_site() {
     );
 
     $options[] = 'seoprostack_dashboard_widgets';
+    $options[] = 'seoprostack_brand_assets_page';
     $options[] = 'seoprostack_nextgen_synced';
     $options[] = 'seoprostack_nextgen_restart';
     $options[] = 'seoprostack_watermark_dir';

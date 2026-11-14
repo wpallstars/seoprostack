@@ -101,6 +101,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Post_Reactions',
         'SEOProStack_Social_Sharing',
         'SEOProStack_Brand_Icons',
+        'SEOProStack_Brand_Assets',
         'SEOProStack_Spectra_Blocks',
         'SEOProStack_Term_Displays',
         'SEOProStack_Kadence_Filters',

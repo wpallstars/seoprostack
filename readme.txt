@@ -49,6 +49,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Custom fields to content**: ACF/SCF text and terms, including excerpts.
 * **Restrict content** by membership/role. **Menu item visibility** by login/role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
+* **Brand assets page**: logos, colours and fonts from the Kadence Customizer, with logo, name and email signature downloads.
 * **Named lists and Saved panel**.
 * **Spectra block replacements**, **TranslatePress colours**, a **flag language switcher** beside Kadence's dark mode switch, and **Kadence query filters**.
 * **WP Grid Builder colours** in Kadence dark mode; **palette colours for its switch**.
