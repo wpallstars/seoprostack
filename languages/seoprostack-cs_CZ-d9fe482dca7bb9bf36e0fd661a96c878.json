@@ -1,0 +1,45 @@
+{
+    "translation-revision-date": "2026-11-07 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-assets\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "cs_CZ",
+                "plural-forms": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
+            },
+            "Logos": [
+                "Loga"
+            ],
+            "Colours": [
+                "Barvy"
+            ],
+            "Fonts": [
+                "P\u00edsma"
+            ],
+            "Formatting": [
+                "Form\u00e1tov\u00e1n\u00ed"
+            ],
+            "Logo files, the logo with the site title where the header shows it, icons and the email signature banner.": [
+                "Soubory loga, logo s n\u00e1zvem webu tam, kde ho hlavi\u010dka zobrazuje, ikony a banner pro e-mailov\u00fd podpis."
+            ],
+            "Light mode colours, and dark mode colours when dark mode is on.": [
+                "Barvy sv\u011btl\u00e9ho re\u017eimu a, kdy\u017e je zapnut\u00fd tmav\u00fd re\u017eim, i tmav\u00e9ho re\u017eimu."
+            ],
+            "Heading and body fonts.": [
+                "P\u00edsma nadpis\u016f a z\u00e1kladn\u00edho textu."
+            ],
+            "Heading, text, quote and button styles.": [
+                "Styly nadpis\u016f, textu, citac\u00ed a tla\u010d\u00edtek."
+            ],
+            "Where it comes from": [
+                "Odkud poch\u00e1z\u00ed"
+            ],
+            "Change the logo, colours and fonts in Appearance \u2192 Customize (Header \u2192 Logo, Colors & Fonts). This block shows them as they are.": [
+                "Logo, barvy a p\u00edsma zm\u011bn\u00edte v Vzhled \u2192 P\u0159izp\u016fsobit (Hlavi\u010dka \u2192 Logo, Barvy a p\u00edsma). Tento blok je zobrazuje tak, jak jsou."
+            ]
+        }
+    }
+}

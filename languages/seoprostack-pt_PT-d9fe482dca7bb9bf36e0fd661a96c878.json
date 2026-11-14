@@ -1,0 +1,45 @@
+{
+    "translation-revision-date": "2026-11-01 00:00+0000",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "blocks\/brand-assets\/index.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "pt_PT",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Logos": [
+                "Log\u00f3tipos"
+            ],
+            "Colours": [
+                "Cores"
+            ],
+            "Fonts": [
+                "Tipos de letra"
+            ],
+            "Formatting": [
+                "Formata\u00e7\u00e3o"
+            ],
+            "Logo files, the logo with the site title where the header shows it, icons and the email signature banner.": [
+                "Ficheiros do log\u00f3tipo, o log\u00f3tipo com o t\u00edtulo do site onde o cabe\u00e7alho o mostra, \u00edcones e o banner para a assinatura de e-mail."
+            ],
+            "Light mode colours, and dark mode colours when dark mode is on.": [
+                "Cores do modo claro e, quando o modo escuro est\u00e1 ativo, do modo escuro."
+            ],
+            "Heading and body fonts.": [
+                "Tipos de letra dos t\u00edtulos e do corpo do texto."
+            ],
+            "Heading, text, quote and button styles.": [
+                "Estilos de t\u00edtulos, texto, cita\u00e7\u00f5es e bot\u00f5es."
+            ],
+            "Where it comes from": [
+                "De onde vem"
+            ],
+            "Change the logo, colours and fonts in Appearance \u2192 Customize (Header \u2192 Logo, Colors & Fonts). This block shows them as they are.": [
+                "Altere o log\u00f3tipo, as cores e os tipos de letra em Apar\u00eancia \u2192 Personalizar (Cabe\u00e7alho \u2192 Log\u00f3tipo, Cores e tipos de letra). Este bloco mostra-os tal como est\u00e3o."
+            ]
+        }
+    }
+}
