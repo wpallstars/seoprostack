@@ -131,7 +131,7 @@ msgstr ""
 #: includes/class-seoprostack-form-policy-links.php:81
 #: includes/class-seoprostack-review-links.php:150
 #: includes/features/class-seoprostack-admin-menu.php:2293
-#: includes/features/class-seoprostack-brand-assets.php:1680
+#: includes/features/class-seoprostack-brand-assets.php:1721
 #: includes/features/class-seoprostack-https-check.php:536
 #: includes/features/class-seoprostack-https-check.php:642
 #: includes/features/class-seoprostack-replace-media.php:204
@@ -142,10 +142,12 @@ msgstr ""
 #. translators: 1: form, such as Quote Request, 2: name or email
 #. translators: 1: form, such as Support Request, 2: name or email
 #. translators: 1: service, 2: client name or email
+#. translators: 1: table, 2: state
 #: admin/includes/class-admin-page.php:170
 #: includes/features/class-seoprostack-agency-orders.php:342
 #: includes/features/class-seoprostack-agency-orders.php:362
 #: includes/features/class-seoprostack-agency-orders.php:434
+#: includes/features/class-seoprostack-fast-keys-admin.php:122
 #, php-format
 msgid "%1$s: %2$s"
 msgstr ""
@@ -246,7 +248,7 @@ msgstr ""
 
 #: admin/includes/class-agency-examples.php:183
 #: admin/includes/class-plugin-manager.php:220
-#: includes/features/class-seoprostack-speed-plan.php:411
+#: includes/features/class-seoprostack-speed-plan.php:412
 msgid "Unknown action."
 msgstr ""
 
@@ -461,7 +463,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: admin/includes/class-link-cards.php:67
-#: includes/class-seoprostack-setup.php:820
+#: includes/class-seoprostack-setup.php:821
 msgid "No matches."
 msgstr ""
 
@@ -570,7 +572,7 @@ msgid "Minimal"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:57
-#: includes/class-seoprostack-setup.php:619
+#: includes/class-seoprostack-setup.php:620
 #: includes/features/class-seoprostack-admin-menu.php:479
 #: includes/features/class-seoprostack-hosting-needs.php:545
 msgid "Admin"
@@ -609,7 +611,7 @@ msgid "LMS"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:66
-#: includes/class-seoprostack-setup.php:631
+#: includes/class-seoprostack-setup.php:632
 #: includes/features/class-seoprostack-plugin-sizes.php:332
 msgid "Media"
 msgstr ""
@@ -632,7 +634,7 @@ msgid "Social"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:71
-#: includes/class-seoprostack-setup.php:639
+#: includes/class-seoprostack-setup.php:640
 msgid "Speed"
 msgstr ""
 
@@ -837,7 +839,7 @@ msgid "Last updated in July 2022: check compatibility before using it."
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:1069
-#: includes/features/class-seoprostack-database-keys.php:657
+#: includes/features/class-seoprostack-database-keys.php:681
 msgid "Unavailable"
 msgstr ""
 
@@ -1065,7 +1067,7 @@ msgid "for %s"
 msgstr ""
 
 #: admin/includes/class-settings-manager.php:291
-#: includes/features/class-seoprostack-speed-plan.php:266
+#: includes/features/class-seoprostack-speed-plan.php:267
 msgid "The network administrator sets this for every site."
 msgstr ""
 
@@ -1578,7 +1580,7 @@ msgid "Content background"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:466
-#: includes/features/class-seoprostack-brand-assets.php:1664
+#: includes/features/class-seoprostack-brand-assets.php:1705
 msgid "Headings"
 msgstr ""
 
@@ -1588,7 +1590,7 @@ msgid "Text"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:468
-#: includes/class-seoprostack-setup.php:635
+#: includes/class-seoprostack-setup.php:636
 #: includes/features/class-seoprostack-linking.php:117
 #: includes/features/class-seoprostack-linking.php:236
 msgid "Links"
@@ -2127,7 +2129,7 @@ msgid "Integrity: %s"
 msgstr ""
 
 #: includes/class-seoprostack-integrity-report.php:132
-#: includes/class-seoprostack-setup.php:623
+#: includes/class-seoprostack-setup.php:624
 #: includes/class-seoprostack-vulnerability-feed-report.php:101
 #: includes/features/class-seoprostack-github-updates.php:319
 #: includes/features/class-seoprostack-hardening.php:859
@@ -2457,8 +2459,9 @@ msgstr ""
 #: includes/features/class-seoprostack-added-keys.php:287
 #: includes/features/class-seoprostack-database-charset.php:399
 #: includes/features/class-seoprostack-database-charset.php:445
-#: includes/features/class-seoprostack-database-keys.php:536
-#: includes/features/class-seoprostack-database-keys.php:620
+#: includes/features/class-seoprostack-database-keys.php:560
+#: includes/features/class-seoprostack-database-keys.php:644
+#: includes/features/class-seoprostack-fast-keys-admin.php:61
 #: includes/features/class-seoprostack-hosting-needs.php:2665
 #: includes/features/class-seoprostack-hosting-needs.php:2689
 #: includes/features/class-seoprostack-hosting-needs.php:2790
@@ -2515,7 +2518,7 @@ msgstr ""
 
 #: includes/class-seoprostack-litespeed-crawler.php:715
 #: includes/features/class-seoprostack-database-charset.php:579
-#: includes/features/class-seoprostack-database-keys.php:718
+#: includes/features/class-seoprostack-database-keys.php:742
 #: includes/features/class-seoprostack-hosting-needs.php:923
 #: includes/features/class-seoprostack-hosting-needs.php:3068
 #: includes/features/class-seoprostack-hosting-needs.php:3208
@@ -2662,7 +2665,7 @@ msgstr ""
 #: includes/class-seoprostack-network-settings.php:253
 #: includes/class-seoprostack-settings.php:396
 #: includes/class-seoprostack-settings.php:412
-#: includes/features/class-seoprostack-speed-plan.php:532
+#: includes/features/class-seoprostack-speed-plan.php:533
 msgid "The setting could not be saved. Please try again."
 msgstr ""
 
@@ -2966,7 +2969,7 @@ msgid "The network administrator sets this for every site, so it cannot be chang
 msgstr ""
 
 #: includes/class-seoprostack-settings.php:1058
-#: includes/features/class-seoprostack-speed-plan.php:415
+#: includes/features/class-seoprostack-speed-plan.php:416
 msgid "You are not allowed to change these settings."
 msgstr ""
 
@@ -2974,101 +2977,101 @@ msgstr ""
 msgid "Saved. Reload the page to see the change."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:620
+#: includes/class-seoprostack-setup.php:621
 msgid "The dashboard, admin bar, logins and emails."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:624
+#: includes/class-seoprostack-setup.php:625
 msgid "HTTPS, passwords, remote access and known vulnerabilities. Two-step login and login limits are FluentAuth’s."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:627
+#: includes/class-seoprostack-setup.php:628
 #: includes/features/class-seoprostack-admin-menu.php:475
 msgid "Content"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:628
+#: includes/class-seoprostack-setup.php:629
 msgid "Writing, editing and publishing posts."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:632
+#: includes/class-seoprostack-setup.php:633
 msgid "Images and other uploads."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:636
+#: includes/class-seoprostack-setup.php:637
 msgid "Redirects, removed pages and short links."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:640
+#: includes/class-seoprostack-setup.php:641
 msgid "Loading pages faster, for visitors and in the editor."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:643
+#: includes/class-seoprostack-setup.php:644
 msgid "Server"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:644
+#: includes/class-seoprostack-setup.php:645
 msgid "The database, server load, PHP memory and calls to other sites."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:647
+#: includes/class-seoprostack-setup.php:648
 #: includes/features/class-seoprostack-editor-access.php:164
 #: includes/features/class-seoprostack-vulnerability-report.php:53
 msgid "Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:648
+#: includes/class-seoprostack-setup.php:649
 msgid "The Plugins screen and plugin settings."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:651
+#: includes/class-seoprostack-setup.php:652
 msgid "Agency"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:652
+#: includes/class-seoprostack-setup.php:653
 msgid "Selling services and apps: orders, client updates and a client dashboard, with Fluent Forms, Fluent Boards, Fluent Support and friends."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:655
+#: includes/class-seoprostack-setup.php:656
 msgid "Maintenance"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:656
+#: includes/class-seoprostack-setup.php:657
 msgid "Updates, repairs and housekeeping."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:748
-#: includes/features/class-seoprostack-speed-plan.php:436
+#: includes/class-seoprostack-setup.php:749
+#: includes/features/class-seoprostack-speed-plan.php:437
 msgid "Recommended"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:751
+#: includes/class-seoprostack-setup.php:752
 msgid "Theme"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:758
+#: includes/class-seoprostack-setup.php:759
 msgid "Free Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:768
+#: includes/class-seoprostack-setup.php:769
 msgid "Pro Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:775
+#: includes/class-seoprostack-setup.php:776
 #: includes/features/class-seoprostack-hosting-needs.php:2569
 #: includes/features/class-seoprostack-hosting-needs.php:2577
 msgid "Hosting"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:782
+#: includes/class-seoprostack-setup.php:783
 msgid "Tools"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:819
+#: includes/class-seoprostack-setup.php:820
 msgid "Could not load this list. Please reload the page."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:821
+#: includes/class-seoprostack-setup.php:822
 msgid "Activated"
 msgstr ""
 
@@ -3513,7 +3516,7 @@ msgid "A database key (index) lets the database find rows without reading the wh
 msgstr ""
 
 #: includes/features/class-seoprostack-added-keys.php:300
-#: includes/features/class-seoprostack-database-keys.php:646
+#: includes/features/class-seoprostack-database-keys.php:670
 msgid "Table / key"
 msgstr ""
 
@@ -3532,7 +3535,7 @@ msgstr ""
 
 #: includes/features/class-seoprostack-added-keys.php:300
 #: includes/features/class-seoprostack-database-charset.php:507
-#: includes/features/class-seoprostack-database-keys.php:646
+#: includes/features/class-seoprostack-database-keys.php:670
 msgid "Action"
 msgstr ""
 
@@ -4523,371 +4526,373 @@ msgstr ""
 msgid "Adds a Brand assets block that shows your logos, colours, fonts and text styles from the Kadence theme’s Customizer settings, so it stays up to date when they change. Visitors can download the logos, copy colours and, where the header shows the site title, download the logo with the title as SVG or PNG and an email signature banner. The card can make the page and link it from the footer, after About."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:473
+#: includes/features/class-seoprostack-brand-assets.php:478
 msgid "The visitor’s system font"
 msgstr ""
 
 #. translators: %s: font size on phones, such as 36px.
-#: includes/features/class-seoprostack-brand-assets.php:587
+#: includes/features/class-seoprostack-brand-assets.php:592
 #, php-format
 msgid "(%s on phones)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:695
+#: includes/features/class-seoprostack-brand-assets.php:700
 msgid "The Brand assets block reads the Kadence theme’s settings, and Kadence is not the active theme."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:735
+#: includes/features/class-seoprostack-brand-assets.php:740
+#: includes/features/class-seoprostack-brand-assets.php:891
 msgid "On light backgrounds"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:736
+#: includes/features/class-seoprostack-brand-assets.php:741
+#: includes/features/class-seoprostack-brand-assets.php:893
 msgid "On dark backgrounds"
 msgstr ""
 
 #. translators: %s: file type, such as SVG or PNG.
-#: includes/features/class-seoprostack-brand-assets.php:750
+#: includes/features/class-seoprostack-brand-assets.php:755
 #, php-format
 msgid "Logo (%s)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:754
+#: includes/features/class-seoprostack-brand-assets.php:759
 msgid "Logo with name (SVG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:754
+#: includes/features/class-seoprostack-brand-assets.php:759
 msgid "Name (SVG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:755
+#: includes/features/class-seoprostack-brand-assets.php:760
 msgid "Logo with name (PNG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:755
+#: includes/features/class-seoprostack-brand-assets.php:760
 msgid "Name (PNG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:757
+#: includes/features/class-seoprostack-brand-assets.php:762
 msgid "Logo"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:758
+#: includes/features/class-seoprostack-brand-assets.php:763
 msgid "Logo with name"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:758
+#: includes/features/class-seoprostack-brand-assets.php:763
 #: blocks/term-list/index.js:44
 msgid "Name"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:764
+#: includes/features/class-seoprostack-brand-assets.php:769
 #: blocks/brand-assets/index.js:26
 msgid "Logos"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:766
+#: includes/features/class-seoprostack-brand-assets.php:771
 msgid "Please keep clear space around the logo, and do not stretch, recolour or add effects to it. Use the version made for the background it sits on."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:785
-#: includes/features/class-seoprostack-brand-assets.php:787
-#: includes/features/class-seoprostack-brand-assets.php:791
+#: includes/features/class-seoprostack-brand-assets.php:790
+#: includes/features/class-seoprostack-brand-assets.php:792
+#: includes/features/class-seoprostack-brand-assets.php:796
 msgid "Small logo"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:789
+#: includes/features/class-seoprostack-brand-assets.php:794
 msgid "The header’s logo on phones."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:800
-#: includes/features/class-seoprostack-brand-assets.php:802
+#: includes/features/class-seoprostack-brand-assets.php:805
+#: includes/features/class-seoprostack-brand-assets.php:807
 #: includes/features/class-seoprostack-watermark-images.php:195
 msgid "Site icon"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:802
+#: includes/features/class-seoprostack-brand-assets.php:807
 msgid "Browser tabs, bookmarks and phone home screens."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:802
+#: includes/features/class-seoprostack-brand-assets.php:807
 #: blocks/brand-icon/index.js:155
 msgid "Icon"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:805
+#: includes/features/class-seoprostack-brand-assets.php:810
 msgid "Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this)."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:807
+#: includes/features/class-seoprostack-brand-assets.php:812
 msgid "Icons"
 msgstr ""
 
 #. translators: the icon an iPhone or iPad shows on its home screen.
-#: includes/features/class-seoprostack-brand-assets.php:835
+#: includes/features/class-seoprostack-brand-assets.php:840
 msgid "Apple"
 msgstr ""
 
 #. translators: the icon a browser shows in its tab.
-#: includes/features/class-seoprostack-brand-assets.php:837
+#: includes/features/class-seoprostack-brand-assets.php:842
 msgid "browser tab"
 msgstr ""
 
 #. translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com.
-#: includes/features/class-seoprostack-brand-assets.php:892
+#: includes/features/class-seoprostack-brand-assets.php:906
 #, php-format
 msgid "Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s."
 msgstr ""
 
 #. translators: %s: the site's address, such as example.com.
-#: includes/features/class-seoprostack-brand-assets.php:895
+#: includes/features/class-seoprostack-brand-assets.php:909
 #, php-format
 msgid "Add it to your email signature as a picture, up to 600 pixels wide, linked to %s."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:900
+#: includes/features/class-seoprostack-brand-assets.php:914
 msgid "Email signature banner"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:901
+#: includes/features/class-seoprostack-brand-assets.php:915
 msgid "Download (PNG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:904
+#: includes/features/class-seoprostack-brand-assets.php:918
 msgid "Banner"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:906
+#: includes/features/class-seoprostack-brand-assets.php:924
 msgid "Email signature"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:951
+#: includes/features/class-seoprostack-brand-assets.php:992
 msgid "Copy a link to a PNG"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1301
+#: includes/features/class-seoprostack-brand-assets.php:1342
 msgid "Making the file…"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1309
+#: includes/features/class-seoprostack-brand-assets.php:1350
 #: includes/features/class-seoprostack-post-reactions.php:399
 #: includes/features/class-seoprostack-social-sharing.php:895
 msgid "Link copied"
 msgstr ""
 
 #. translators: %s: the picture, such as Banner.
-#: includes/features/class-seoprostack-brand-assets.php:1325
+#: includes/features/class-seoprostack-brand-assets.php:1366
 #: includes/features/class-seoprostack-preview-links.php:263
 msgid "Copy link"
 msgstr ""
 
 #. translators: %s: the picture, such as Banner.
-#: includes/features/class-seoprostack-brand-assets.php:1325
+#: includes/features/class-seoprostack-brand-assets.php:1366
 #, php-format
 msgid "Copy the link to the %s PNG"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1329
+#: includes/features/class-seoprostack-brand-assets.php:1370
 msgid "Padded"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1329
+#: includes/features/class-seoprostack-brand-assets.php:1370
 #, php-format
 msgid "Copy the link to the %s PNG with space around it, on its background colour"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1332
+#: includes/features/class-seoprostack-brand-assets.php:1373
 msgid "Transparent"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1332
+#: includes/features/class-seoprostack-brand-assets.php:1373
 #, php-format
 msgid "Copy the link to the %s PNG with no space around it, on a transparent background"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1398
+#: includes/features/class-seoprostack-brand-assets.php:1439
 msgid "The uploads folder cannot be written to."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1430
+#: includes/features/class-seoprostack-brand-assets.php:1471
 msgid "The block does not offer that picture."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1434
+#: includes/features/class-seoprostack-brand-assets.php:1475
 msgid "The brand changed while the file was made. Reload the page to make it again."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1469
+#: includes/features/class-seoprostack-brand-assets.php:1510
 msgid "The file is not a PNG picture."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1475
+#: includes/features/class-seoprostack-brand-assets.php:1516
 msgid "The file is too large."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1612
+#: includes/features/class-seoprostack-brand-assets.php:1653
 msgid "Light mode"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1613
+#: includes/features/class-seoprostack-brand-assets.php:1654
 #: includes/features/class-seoprostack-dark-image-contrast.php:178
 #: includes/features/class-seoprostack-dark-image-contrast.php:307
 msgid "Dark mode"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1615
+#: includes/features/class-seoprostack-brand-assets.php:1656
 #: blocks/brand-assets/index.js:27
 msgid "Colours"
 msgstr ""
 
 #. translators: 1: colour format, such as HEX; 2: its value, such as #0070CC.
-#: includes/features/class-seoprostack-brand-assets.php:1651
+#: includes/features/class-seoprostack-brand-assets.php:1692
 #, php-format
 msgid "Copy %1$s %2$s"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1653
+#: includes/features/class-seoprostack-brand-assets.php:1694
 msgid "Copy"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1664
+#: includes/features/class-seoprostack-brand-assets.php:1705
 msgid "Body text"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1665
+#: includes/features/class-seoprostack-brand-assets.php:1706
 #: blocks/brand-assets/index.js:28
 msgid "Fonts"
 msgstr ""
 
 #. translators: %s: font weights, such as 400, 700.
-#: includes/features/class-seoprostack-brand-assets.php:1674
+#: includes/features/class-seoprostack-brand-assets.php:1715
 #, php-format
 msgid "Weights: %s"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1679
+#: includes/features/class-seoprostack-brand-assets.php:1720
 msgid "Get it from Google Fonts (free)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1696
+#: includes/features/class-seoprostack-brand-assets.php:1737
 #: blocks/brand-assets/index.js:29
 msgid "Formatting"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1699
+#: includes/features/class-seoprostack-brand-assets.php:1740
 msgid "Page title"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1700
+#: includes/features/class-seoprostack-brand-assets.php:1741
 msgid "Heading 2"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1701
+#: includes/features/class-seoprostack-brand-assets.php:1742
 msgid "Heading 3"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1702
+#: includes/features/class-seoprostack-brand-assets.php:1743
 msgid "Heading 4"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1715
+#: includes/features/class-seoprostack-brand-assets.php:1756
 msgid "Body text is set like this, with"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1715
+#: includes/features/class-seoprostack-brand-assets.php:1756
 msgid "links"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1715
+#: includes/features/class-seoprostack-brand-assets.php:1756
 msgid "in the accent colour and"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1715
+#: includes/features/class-seoprostack-brand-assets.php:1756
 msgid "bold text"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1715
+#: includes/features/class-seoprostack-brand-assets.php:1756
 msgid "for emphasis."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1718
+#: includes/features/class-seoprostack-brand-assets.php:1759
 msgid "Quotes stand out from the text around them."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1719
+#: includes/features/class-seoprostack-brand-assets.php:1760
 msgid "Button"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1750
+#: includes/features/class-seoprostack-brand-assets.php:1791
 msgid "Our logos, colours and fonts, for press, print and design."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1827
-#: includes/features/class-seoprostack-brand-assets.php:2027
+#: includes/features/class-seoprostack-brand-assets.php:1871
+#: includes/features/class-seoprostack-brand-assets.php:2071
 msgid "Brand assets"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2180
+#: includes/features/class-seoprostack-brand-assets.php:2224
 msgid "The block reads the Kadence theme’s settings, and Kadence is not the active theme."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2186
+#: includes/features/class-seoprostack-brand-assets.php:2230
 msgid "The Brand assets page is published."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2187
+#: includes/features/class-seoprostack-brand-assets.php:2231
 msgid "The Brand assets page already shows the block."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2188
+#: includes/features/class-seoprostack-brand-assets.php:2232
 msgid "A page at /brand-assets/ exists without the block, so it was left as it is. Add the Brand assets block to it in the editor."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2189
-#: includes/features/class-seoprostack-brand-assets.php:2194
+#: includes/features/class-seoprostack-brand-assets.php:2233
+#: includes/features/class-seoprostack-brand-assets.php:2238
 msgid "That could not be saved. Please try again."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2190
+#: includes/features/class-seoprostack-brand-assets.php:2234
 msgid "The footer now links to the Brand assets page, after About."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2191
+#: includes/features/class-seoprostack-brand-assets.php:2235
 msgid "The footer already links to the Brand assets page."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2192
+#: includes/features/class-seoprostack-brand-assets.php:2236
 msgid "No About link was found in the footer, so nothing was added. Add the link where it fits."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2193
+#: includes/features/class-seoprostack-brand-assets.php:2237
 msgid "Make the page first."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2201
+#: includes/features/class-seoprostack-brand-assets.php:2245
 msgid "Page:"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2204
+#: includes/features/class-seoprostack-brand-assets.php:2248
 msgid "edit"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2210
+#: includes/features/class-seoprostack-brand-assets.php:2254
 msgid "Make the Brand assets page"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2213
+#: includes/features/class-seoprostack-brand-assets.php:2257
 msgid "Link it from the footer"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2216
+#: includes/features/class-seoprostack-brand-assets.php:2260
 msgid "The footer link goes after the About link in the footer’s widgets or menu, and is not added twice."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2235
+#: includes/features/class-seoprostack-brand-assets.php:2279
 msgid "You cannot change this site’s pages."
 msgstr ""
 
@@ -5393,7 +5398,7 @@ msgid "You cannot change these settings."
 msgstr ""
 
 #: includes/features/class-seoprostack-database-keys.php:64
-#: includes/features/class-seoprostack-database-keys.php:756
+#: includes/features/class-seoprostack-database-keys.php:780
 msgid "Database key cleanup"
 msgstr ""
 
@@ -5402,7 +5407,7 @@ msgid "Review leftover and duplicate database indexes under Tools → Database k
 msgstr ""
 
 #: includes/features/class-seoprostack-database-keys.php:84
-#: includes/features/class-seoprostack-database-keys.php:633
+#: includes/features/class-seoprostack-database-keys.php:657
 msgid "Database keys"
 msgstr ""
 
@@ -5410,267 +5415,275 @@ msgstr ""
 msgid "Unsupported expression"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:300
+#: includes/features/class-seoprostack-database-keys.php:299
+msgid "SEO Pro Stack (Faster database keys)"
+msgstr ""
+
+#: includes/features/class-seoprostack-database-keys.php:306
 msgid "WordPress (Index WP MySQL For Speed rebuilds core keys)"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:301
+#: includes/features/class-seoprostack-database-keys.php:307
 #: includes/features/class-seoprostack-outbound-calls.php:978
 #: includes/features/class-seoprostack-vulnerability-report.php:52
 msgid "WordPress"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:305
+#: includes/features/class-seoprostack-database-keys.php:311
 msgid "SEO Pro Stack (Add database keys)"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:324
+#: includes/features/class-seoprostack-database-keys.php:352
 msgid "Unknown: no installed plugin uses this prefix"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:326
+#: includes/features/class-seoprostack-database-keys.php:354
 msgid "Unknown: the search of installed plugins did not finish"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:361
+#: includes/features/class-seoprostack-database-keys.php:383
 msgid "The core table schema could not be read. No keys can be removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:369
+#: includes/features/class-seoprostack-database-keys.php:391
 msgid "The database did not allow reading index metadata. No keys can be removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:375
+#: includes/features/class-seoprostack-database-keys.php:397
 msgid "The database did not allow checking foreign keys. No keys can be removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:392
+#: includes/features/class-seoprostack-database-keys.php:414
 msgid "it is on a table the whole network shares, and a plugin on another site may use it."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:394
+#: includes/features/class-seoprostack-database-keys.php:416
 msgid "it is a WordPress core key."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:396
+#: includes/features/class-seoprostack-database-keys.php:418
+msgid "SEO Pro Stack keeps it (Faster database keys on the Server tab)."
+msgstr ""
+
+#: includes/features/class-seoprostack-database-keys.php:420
 msgid "it is a unique, full-text, spatial or other special key."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:398
+#: includes/features/class-seoprostack-database-keys.php:422
 msgid "it holds a column of a foreign key."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:400
+#: includes/features/class-seoprostack-database-keys.php:424
 msgid "SEO Pro Stack added it. Remove it under Tools → Add database keys (turn on Add database keys on the Server tab first)."
 msgstr ""
 
 #. translators: %s: plugin name
-#: includes/features/class-seoprostack-database-keys.php:403
+#: includes/features/class-seoprostack-database-keys.php:427
 #, php-format
 msgid "%s is active and re-creates this key."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:405
+#: includes/features/class-seoprostack-database-keys.php:429
 msgid "Index WP MySQL For Speed keeps it to protect its changes."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:407
+#: includes/features/class-seoprostack-database-keys.php:431
 msgid "SEO Pro Stack could not finish checking which plugin added it. Open this page again to finish."
 msgstr ""
 
 #. translators: %s: covering database index name.
-#: includes/features/class-seoprostack-database-keys.php:413
+#: includes/features/class-seoprostack-database-keys.php:437
 #, php-format
 msgid "Redundant: %s covers its columns."
 msgstr ""
 
 #. translators: %s: plugin name
-#: includes/features/class-seoprostack-database-keys.php:416
+#: includes/features/class-seoprostack-database-keys.php:440
 #, php-format
 msgid "Added by %s, which is not active."
 msgstr ""
 
 #. translators: 1: covering database index name, 2: why the key is kept
-#: includes/features/class-seoprostack-database-keys.php:421
+#: includes/features/class-seoprostack-database-keys.php:445
 #, php-format
 msgid "Duplicate: %1$s covers its columns, but it is kept because %2$s"
 msgstr ""
 
 #. translators: %s: plugin name
-#: includes/features/class-seoprostack-database-keys.php:424
+#: includes/features/class-seoprostack-database-keys.php:448
 #, php-format
 msgid "Check what else %s does for this site, deactivate it, then remove this key here."
 msgstr ""
 
 #. translators: %s: plugin name or "Unknown: …"
-#: includes/features/class-seoprostack-database-keys.php:429
+#: includes/features/class-seoprostack-database-keys.php:453
 #, php-format
 msgid "Leftover (%s), not covered by another key: no plugin maintains it. Keep it unless you know it is unused."
 msgstr ""
 
 #. translators: %s: why the key is kept
-#: includes/features/class-seoprostack-database-keys.php:433
+#: includes/features/class-seoprostack-database-keys.php:457
 #, php-format
 msgid "Protected: %s"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:436
+#: includes/features/class-seoprostack-database-keys.php:460
 msgid "Not covered by another key."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:490
+#: includes/features/class-seoprostack-database-keys.php:514
 msgid "Another cleanup is running, or the database cannot lock this operation. Nothing was removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:508
+#: includes/features/class-seoprostack-database-keys.php:532
 msgid "The key changed or is no longer eligible. Review the list again."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:516
+#: includes/features/class-seoprostack-database-keys.php:540
 msgid "The restore statement could not be saved. Nothing was removed."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:524
+#: includes/features/class-seoprostack-database-keys.php:548
 msgid "The database refused to remove the key. The restore statement is kept in the log."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:552
-#: includes/features/class-seoprostack-database-keys.php:628
+#: includes/features/class-seoprostack-database-keys.php:576
+#: includes/features/class-seoprostack-database-keys.php:652
 msgid "This key cannot be removed. Review the list again."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:561
+#: includes/features/class-seoprostack-database-keys.php:585
 msgid "Confirm key removal"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:562
+#: includes/features/class-seoprostack-database-keys.php:586
 msgid "Back up your database first. This changes only the chosen index, not rows, but can slow queries and briefly block database writes. Run during a quiet period."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:565
+#: includes/features/class-seoprostack-database-keys.php:589
 msgid "No other key covers this one, so queries that use it may get slower."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:567
+#: includes/features/class-seoprostack-database-keys.php:591
 msgid "Save this restore statement. Run it through your database tool if you need to put the key back:"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:569
+#: includes/features/class-seoprostack-database-keys.php:593
 #: includes/features/class-seoprostack-plugin-presets.php:351
 #: includes/features/class-seoprostack-post-reactions.php:365
 #: blocks/link-card/index.js:288
 msgid "Cancel"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:582
+#: includes/features/class-seoprostack-database-keys.php:606
 msgid "Remove this key"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:582
+#: includes/features/class-seoprostack-database-keys.php:606
 msgid "Review removal"
 msgstr ""
 
 #. translators: %d: number of keys
-#: includes/features/class-seoprostack-database-keys.php:608
+#: includes/features/class-seoprostack-database-keys.php:632
 #, php-format
 msgid "Index WP MySQL For Speed and Scalability Pro overlap on indexes: %d Scalability Pro key repeats one that is already there. Index WP MySQL For Speed covers the core tables. Check which other Scalability Pro features this site uses (many are WooCommerce and admin count caches), consider deactivating it, then remove its duplicate keys here."
 msgid_plural "Index WP MySQL For Speed and Scalability Pro overlap on indexes: %d Scalability Pro keys repeat ones that are already there. Index WP MySQL For Speed covers the core tables. Check which other Scalability Pro features this site uses (many are WooCommerce and admin count caches), consider deactivating it, then remove its duplicate keys here."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/features/class-seoprostack-database-keys.php:615
+#: includes/features/class-seoprostack-database-keys.php:639
 msgid "Scalability Pro on the Plugins screen"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:633
+#: includes/features/class-seoprostack-database-keys.php:657
 msgid "Only this site’s core tables are scanned. Shared multisite tables are shown only to super admins. Removing indexes does not remove rows. Back up first; each removal needs confirmation. Estimated sizes may be unavailable or out of date."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:642
+#: includes/features/class-seoprostack-database-keys.php:666
 msgid "Leftover keys nothing covers can be removed too."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:642
+#: includes/features/class-seoprostack-database-keys.php:666
 msgid "Offer only redundant keys"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:643
+#: includes/features/class-seoprostack-database-keys.php:667
 msgid "Leftover keys that no plugin maintains and no other key covers are listed but not offered: queries may still use them."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:643
+#: includes/features/class-seoprostack-database-keys.php:667
 msgid "Offer leftover keys too"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:646
+#: includes/features/class-seoprostack-database-keys.php:670
 #: blocks/related-posts/index.js:81 blocks/term-list/index.js:169
 msgid "Columns"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:646
+#: includes/features/class-seoprostack-database-keys.php:670
 msgid "Added by"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:646
+#: includes/features/class-seoprostack-database-keys.php:670
 msgid "Why"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:646
+#: includes/features/class-seoprostack-database-keys.php:670
 msgid "Estimated size"
 msgstr ""
 
 #. translators: %s: size of all the table's keys
-#: includes/features/class-seoprostack-database-keys.php:655
+#: includes/features/class-seoprostack-database-keys.php:679
 #, php-format
 msgid "Unavailable (all this table’s keys but the primary key: %s)"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:661
+#: includes/features/class-seoprostack-database-keys.php:685
 msgid "active"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:661
+#: includes/features/class-seoprostack-database-keys.php:685
 msgid "not active"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:671
+#: includes/features/class-seoprostack-database-keys.php:695
 msgid "Removal log and restore statements"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:671
+#: includes/features/class-seoprostack-database-keys.php:695
 msgid "Pending means the request stopped before the result was recorded: check whether the key still exists before restoring it. Copy this log before deleting SEO Pro Stack; uninstall removes it, not the database changes."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:690
+#: includes/features/class-seoprostack-database-keys.php:714
 msgid "Duplicate database keys"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:715
+#: includes/features/class-seoprostack-database-keys.php:739
 msgid "No duplicate database keys on the core tables"
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:721
+#: includes/features/class-seoprostack-database-keys.php:745
 msgid "A database key (index) that repeats the start of another key speeds up nothing, but every write to its table updates it. Plugins that add keys, such as Scalability Pro and Index WP MySQL For Speed, can repeat each other’s or WordPress’s."
 msgstr ""
 
-#: includes/features/class-seoprostack-database-keys.php:727
+#: includes/features/class-seoprostack-database-keys.php:751
 msgid "Database keys could not be checked"
 msgstr ""
 
 #. translators: %d: number of keys
-#: includes/features/class-seoprostack-database-keys.php:743
+#: includes/features/class-seoprostack-database-keys.php:767
 #, php-format
 msgid "%d duplicate database key"
 msgid_plural "%d duplicate database keys"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/features/class-seoprostack-database-keys.php:752
+#: includes/features/class-seoprostack-database-keys.php:776
 msgid "Review them in Tools → Database keys"
 msgstr ""
 
 #. translators: %s: link to the setting
-#: includes/features/class-seoprostack-database-keys.php:755
+#: includes/features/class-seoprostack-database-keys.php:779
 #, php-format
 msgid "Turn on %s in SEO Pro Stack to review and remove them one at a time, with a restore statement for each."
 msgstr ""
@@ -6135,6 +6148,85 @@ msgstr ""
 
 #: includes/features/class-seoprostack-external-links.php:43
 msgid "One domain per line, including its subdomains. Use this for related websites you want to treat as internal."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:51
+msgid "its query monitor, with logs saved here that deleting it removes"
+msgstr ""
+
+#. translators: 1: date and time, 2: table, 3: result
+#: includes/features/class-seoprostack-fast-keys-admin.php:94
+#, php-format
+msgid "Last change %1$s: %2$s, %3$s."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:96
+#: includes/features/class-seoprostack-https-check.php:639
+msgid "Check now"
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:97
+msgid "WP-CLI: wp seoprostack fast-keys status, apply (also large tables) or undo (when switched off)."
+msgstr ""
+
+#. translators: 1: table, 2: number of rows, 3: state
+#: includes/features/class-seoprostack-fast-keys-admin.php:119
+#, php-format
+msgid "%1$s (%2$s rows): %3$s"
+msgstr ""
+
+#. translators: %s: reason
+#: includes/features/class-seoprostack-fast-keys-admin.php:151
+#, php-format
+msgid "Not changed: %s"
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:153
+msgid "Waiting for the background check."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:166
+msgid "Faster keys in place; WordPress’s keys go back at the next background check."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:169
+msgid "Faster keys in place."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-admin.php:171
+msgid "Faster keys in place; an update changed some, and the next background check puts them back."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-table.php:149
+msgid "Large table: change it with WP-CLI (wp seoprostack fast-keys apply), as a web request may stop first."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-table.php:163
+msgid "The table is not InnoDB."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys-table.php:166
+msgid "The table’s row format is too old for long keys (it needs DYNAMIC)."
+msgstr ""
+
+#. translators: %s: column name
+#: includes/features/class-seoprostack-fast-keys-table.php:183
+#, php-format
+msgid "The table has no %s column."
+msgstr ""
+
+#. translators: %s: column name
+#: includes/features/class-seoprostack-fast-keys-table.php:209
+#, php-format
+msgid "Some rows have no %s, so it cannot be part of the primary key. Nothing was changed."
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys.php:84
+msgid "Faster database keys"
+msgstr ""
+
+#: includes/features/class-seoprostack-fast-keys.php:85
+msgid "Give WordPress’s posts, custom fields, comments, settings and people tables (and WooCommerce’s order details) the database keys Index WP MySQL For Speed adds, in the background, and keep them after WordPress and plugin updates. Other plugins’ keys stay. The tables stay usable while it works. Turning this off puts WordPress’s own keys back. Single sites only."
 msgstr ""
 
 #: includes/features/class-seoprostack-field-content.php:36
@@ -7164,7 +7256,7 @@ msgid "OPcache"
 msgstr ""
 
 #: includes/features/class-seoprostack-hosting-needs.php:1922
-#: includes/features/class-seoprostack-speed-plan.php:437
+#: includes/features/class-seoprostack-speed-plan.php:438
 msgid "On"
 msgstr ""
 
@@ -7980,10 +8072,6 @@ msgstr ""
 
 #: includes/features/class-seoprostack-https-check.php:634
 msgid "Not checked yet. Site Health checks it too."
-msgstr ""
-
-#: includes/features/class-seoprostack-https-check.php:639
-msgid "Check now"
 msgstr ""
 
 #: includes/features/class-seoprostack-https-check.php:652
@@ -13068,7 +13156,7 @@ msgid "Showing the %d newest."
 msgstr ""
 
 #: includes/features/class-seoprostack-speed-plan.php:64
-#: includes/features/class-seoprostack-speed-plan.php:445
+#: includes/features/class-seoprostack-speed-plan.php:446
 msgid "Recommended speed settings"
 msgstr ""
 
@@ -13098,7 +13186,7 @@ msgid "For Rank Math, which is not active."
 msgstr ""
 
 #: includes/features/class-seoprostack-speed-plan.php:159
-#: includes/features/class-seoprostack-speed-plan.php:326
+#: includes/features/class-seoprostack-speed-plan.php:327
 msgid "For Fluent Forms, which is not active."
 msgstr ""
 
@@ -13119,156 +13207,157 @@ msgid "For the Kadence theme, which is not active."
 msgstr ""
 
 #: includes/features/class-seoprostack-speed-plan.php:169
+#: includes/features/class-seoprostack-speed-plan.php:170
 msgid "For single sites."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:178
+#: includes/features/class-seoprostack-speed-plan.php:179
 msgid "On by default, as it is safe on any site, but off here. If it was turned off because something stopped working, leave it off or ask for help first."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:188
+#: includes/features/class-seoprostack-speed-plan.php:189
 msgid "Not needed: the persistent object cache already keeps these counts."
 msgstr ""
 
 #. translators: 1: number of comments; 2: number of rows in the posts table
-#: includes/features/class-seoprostack-speed-plan.php:192
+#: includes/features/class-seoprostack-speed-plan.php:193
 #, php-format
 msgid "About %1$s comments and %2$s posts, pages, revisions and other entries are counted on admin screens, with no persistent object cache to keep the counts."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:193
+#: includes/features/class-seoprostack-speed-plan.php:194
 msgid "Counts changed straight in the database, not through WordPress, can be up to an hour old."
 msgstr ""
 
 #. translators: 1: number of comments; 2: number of rows in the posts table; 3: threshold
-#: includes/features/class-seoprostack-speed-plan.php:200
+#: includes/features/class-seoprostack-speed-plan.php:201
 #, php-format
 msgid "Not needed yet: about %1$s comments and %2$s entries in the posts table. Recommended from about %3$s."
 msgstr ""
 
 #. translators: %s: number of rows in the posts table
-#: includes/features/class-seoprostack-speed-plan.php:209
+#: includes/features/class-seoprostack-speed-plan.php:210
 #, php-format
 msgid "About %s entries in the posts table: archives, searches and admin lists count every match while fetching one page."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:210
+#: includes/features/class-seoprostack-speed-plan.php:211
 msgid "Each page of results runs a second, lighter count query. Totals and page numbers stay exact."
 msgstr ""
 
 #. translators: 1: number of rows in the posts table; 2: threshold
-#: includes/features/class-seoprostack-speed-plan.php:216
+#: includes/features/class-seoprostack-speed-plan.php:217
 #, php-format
 msgid "Not needed yet: about %1$s entries in the posts table. Recommended from about %2$s."
 msgstr ""
 
 #. translators: 1: number of products; 2: number of category and tag links
-#: includes/features/class-seoprostack-speed-plan.php:227
+#: includes/features/class-seoprostack-speed-plan.php:228
 #, php-format
 msgid "%1$s products and about %2$s category and tag links: every save, import and deletion recounts the categories and tags it touches."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:228
+#: includes/features/class-seoprostack-speed-plan.php:229
 msgid "Counts in widgets and term lists can be a few minutes behind."
 msgstr ""
 
 #. translators: 1: number of products; 2: number of category and tag links; 3: products threshold; 4: links threshold
-#: includes/features/class-seoprostack-speed-plan.php:234
+#: includes/features/class-seoprostack-speed-plan.php:235
 #, php-format
 msgid "Not needed yet: %1$s products and about %2$s category and tag links. Recommended from %3$s products or about %4$s links, or before a large import."
 msgstr ""
 
 #. translators: %s: number of rows
-#: includes/features/class-seoprostack-speed-plan.php:247
+#: includes/features/class-seoprostack-speed-plan.php:248
 #, php-format
 msgid "About %s custom field rows: finding posts or people by a field’s value reads many of them."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:248
+#: includes/features/class-seoprostack-speed-plan.php:249
 msgid "Turning it on only offers the keys, under Tools → Add database keys; each is added when you click there. Back up the database first."
 msgstr ""
 
 #. translators: 1: number of rows; 2: threshold
-#: includes/features/class-seoprostack-speed-plan.php:254
+#: includes/features/class-seoprostack-speed-plan.php:255
 #, php-format
 msgid "Not needed yet: about %1$s custom field rows. Recommended from about %2$s."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:281
+#: includes/features/class-seoprostack-speed-plan.php:282
 msgid "That setting is not recommended now, so nothing changed. Look at the plan again."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:305
-#: includes/features/class-seoprostack-speed-plan.php:529
+#: includes/features/class-seoprostack-speed-plan.php:306
+#: includes/features/class-seoprostack-speed-plan.php:530
 msgid "That setting was changed since, or already undone, so nothing changed."
 msgstr ""
 
 #. translators: %s: Fluent Forms version, such as 6.2.17.
-#: includes/features/class-seoprostack-speed-plan.php:331
+#: includes/features/class-seoprostack-speed-plan.php:332
 #, php-format
 msgid "For Fluent Forms %s or later: update Fluent Forms first."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:438
+#: includes/features/class-seoprostack-speed-plan.php:439
 msgid "Not recommended here"
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:447
+#: includes/features/class-seoprostack-speed-plan.php:448
 msgid "From this site’s own size and plugins. Each button turns on one setting, as its switch would; try the site after each change. Undo puts it back while it is still as the plan left it."
 msgstr ""
 
 #. translators: %s: the trade-off
-#: includes/features/class-seoprostack-speed-plan.php:459
+#: includes/features/class-seoprostack-speed-plan.php:460
 #, php-format
 msgid "Trade-off: %s"
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:462
+#: includes/features/class-seoprostack-speed-plan.php:463
 msgid "Turn on"
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:464
+#: includes/features/class-seoprostack-speed-plan.php:465
 msgid "Undo"
 msgstr ""
 
 #. translators: %s: setting names
-#: includes/features/class-seoprostack-speed-plan.php:477
+#: includes/features/class-seoprostack-speed-plan.php:478
 #, php-format
 msgid "Not in the plan, as they need your choices: %s."
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:481
+#: includes/features/class-seoprostack-speed-plan.php:482
 msgid "Changes made from this plan"
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:485
+#: includes/features/class-seoprostack-speed-plan.php:486
 msgid "turned on"
 msgstr ""
 
 #. translators: %s: person's name
-#: includes/features/class-seoprostack-speed-plan.php:487
+#: includes/features/class-seoprostack-speed-plan.php:488
 #, php-format
 msgid "by %s"
 msgstr ""
 
 #. translators: %s: date
-#: includes/features/class-seoprostack-speed-plan.php:490
+#: includes/features/class-seoprostack-speed-plan.php:491
 #, php-format
 msgid "undone %s"
 msgstr ""
 
-#: includes/features/class-seoprostack-speed-plan.php:528
+#: includes/features/class-seoprostack-speed-plan.php:529
 msgid "That setting is not recommended now, so nothing changed."
 msgstr ""
 
 #. translators: %s: setting name
-#: includes/features/class-seoprostack-speed-plan.php:541
+#: includes/features/class-seoprostack-speed-plan.php:542
 #, php-format
 msgid "%s is on. Try a few pages of the site now."
 msgstr ""
 
 #. translators: %s: setting name
-#: includes/features/class-seoprostack-speed-plan.php:541
+#: includes/features/class-seoprostack-speed-plan.php:542
 #, php-format
 msgid "%s is back as it was."
 msgstr ""
