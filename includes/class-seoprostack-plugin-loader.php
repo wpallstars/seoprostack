@@ -26,6 +26,8 @@
  * A ticked plugin loads:
  * - on its own screens: pages it added to the menu, and the posts and
  *   terms of post types and taxonomies it registered;
+ * - on the menu pages of a plugin it needs (as below), to which add-ons add
+ *   tabs, cards and settings through that plugin's hooks;
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
  *   profile fields (learned per screen with every plugin loaded); on post
@@ -2025,6 +2027,10 @@ final class SEOProStack_Plugin_Loader {
                 return null;
             }
             $wanted = (array) $map['pages'][$name];
+            // Add-ons of the page's plugin add tabs, cards and settings to
+            // its page through its hooks, with no menu item of their own
+            // (GitHub issue #1615).
+            $wanted = array_merge($wanted, self::addons_of($wanted, $deps));
             if (self::SETTINGS_PAGE === $name) {
                 $wanted = array_merge($wanted, self::settings_plugins($map));
             }
@@ -2089,6 +2095,32 @@ final class SEOProStack_Plugin_Loader {
         } while ($added);
 
         return array_keys($loaded);
+    }
+
+    /**
+     * Active plugins that need one of the given plugins, and their own
+     * add-ons in turn (`Requires Plugins` and the other needs in the map's
+     * deps).
+     *
+     * @param string[]                $parents Plugin files.
+     * @param array<string,string[]>  $deps    Learned needs: plugin => plugins it needs.
+     * @return string[]
+     */
+    private static function addons_of(array $parents, array $deps) {
+        $seen  = array_fill_keys($parents, true);
+        $found = array();
+        do {
+            $added = false;
+            foreach (self::$raw as $file) {
+                if (isset($seen[$file]) || empty($deps[$file]) || !array_intersect((array) $deps[$file], array_keys($seen))) {
+                    continue;
+                }
+                $seen[$file] = true;
+                $found[]     = $file;
+                $added       = true;
+            }
+        } while ($added);
+        return $found;
     }
 
     /**
