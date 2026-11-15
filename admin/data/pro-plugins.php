@@ -13,8 +13,10 @@ if (!defined('ABSPATH')) {
 }
 
 // FlyingPress and Link Whisper are not recommended, at the owner's request.
+// Complianz Privacy Suite is not listed: SEO Pro Cookie Consent replaces it
+// (GitHub issue #1657).
  function seoprostack_get_pro_plugins() {
-    return array(
+    $plugins = array(
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',
             'description' => 'Advanced admin columns management with sorting, filtering, and editing capabilities.',
@@ -94,22 +96,6 @@ if (!defined('ABSPATH')) {
                 )
             ),
             'free_slug' => 'code-snippets'
-        ),
-        'complianz-gdpr' => array(
-            'name' => 'Complianz Privacy Suite',
-            'description' => 'Complete GDPR/CCPA compliance solution with advanced features.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://complianz.io/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://complianz.io/pricing/'
-                )
-            ),
-            'free_slug' => 'complianz-gdpr'
         ),
         // Disable Bloat PRO: replaced by Tidy WooCommerce admin, Lighter
         // WooCommerce pages, Remove WordPress extras, Tidy the login screen,
@@ -708,4 +694,16 @@ if (!defined('ABSPATH')) {
             )
         )
     );
+
+    // Our own add-on, at the address SEO Pro Analytics itself links
+    // (SEOProAnalytics_Connections::CONNECT_URL): one page, so one Learn
+    // more button (SEOProStack_Link_Cards).
+    $plugins['seoproanalytics-connect'] = array(
+        'name'        => 'SEO Pro Analytics Connect',
+        'description' => 'The add-on for SEO Pro Analytics that connects services needing an outside account, such as Google Search Console and the Chrome UX Report, into the same reports.',
+        'url'         => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics-connect/',
+        'free_slug'   => 'seoproanalytics',
+    );
+
+    return $plugins;
 }

@@ -35,7 +35,10 @@ final class SEOProStack_Used_Css_Links {
      * Consent and SEO Pro Directory). Owner's decisions, GitHub issues #1260
      * and #1377, replacing the shorter list of issue #1194. Not for other
      * themes and plugins: support would have no end (filter
-     * seoprostack_used_css_sources, unsupported).
+     * seoprostack_used_css_sources, unsupported). Complianz and Burst
+     * Statistics stay while sites move to SEO Pro Cookie Consent and SEO Pro
+     * Analytics, which replace them (#1657). SEO Pro Custom is left out: its
+     * stylesheets are each site's own changes.
      */
     const PLUGINS = array(
         // Kadence.
@@ -58,7 +61,7 @@ final class SEOProStack_Used_Css_Links {
         // Content, code, events, reviews, statistics and the IndieWeb.
         'seo-by-rank-math', 'seo-by-rank-math-pro', 'code-block-pro', 'code-snippets', 'code-snippets-pro', 'ics-calendar', 'eventon-lite',
         'easy-video-reviews', 'custom-feed-for-tiktok', 'simple-cloudflare-turnstile', 'syndication-links', 'webmention',
-        'indieweb', 'readabler', 'wp-grid-builder', 'burst-statistics', 'seoprodirectory',
+        'indieweb', 'readabler', 'wp-grid-builder', 'burst-statistics', 'seoproanalytics', 'seoprodirectory',
         // Site building: front-end forms and visual styling.
         'secure-custom-fields', 'yellow-pencil-visual-theme-customizer', 'waspthemes-yellow-pencil',
     );
