@@ -79,7 +79,7 @@ README.md → Extending describes the most used ones in words.
 | `seoprostack_auto_upload_limit` | filter | supported | 0.3.0 | auto upload | `10` |
 | `seoprostack_auto_upload_process_post` | filter | supported | 0.3.0 | auto upload | `true`; `$data` |
 | `seoprostack_block_visible` | filter | supported | 0.11.0 | restrict content | `$visible`; `$block`, `$rule` |
-| `seoprostack_brand_assets_lockup` | filter | supported | 1.3.222 | brand assets | `$lockup`; `$scheme` |
+| `seoprostack_brand_assets_lockup` | filter | supported | 1.3.221 | brand assets | `$lockup`; `$scheme` |
 | `seoprostack_can_change_settings` | filter | supported | 0.5.0 | settings | `true` |
 | `seoprostack_can_see_content` | filter | supported | 0.11.0 | restrict content | `$allowed`; `$post_id`, `$rules` |
 | `seoprostack_cloudflare_edge_time` | filter | supported | 1.3.204 | cloudflare purge | `(int) $seconds` |

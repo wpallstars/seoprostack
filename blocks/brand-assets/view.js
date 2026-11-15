@@ -276,7 +276,7 @@
 		return { width: lockup.logo.width, height: lockup.logo.width * ratio };
 	}
 
-	/* A font's letter spacing in pixels at scale 1 (lockups before 1.3.222 have none). */
+	/* A font's letter spacing in pixels at scale 1 (lockups before 1.3.221 have none). */
 	function spacing(font) {
 		return (Number(font.letterSpacing) || 0) * font.size;
 	}

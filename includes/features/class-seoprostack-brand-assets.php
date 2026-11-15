@@ -699,7 +699,7 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
          * Other keys are kept as built. The PNG files are drawn again when
          * the filtered lockup changes.
          *
-         * @since 1.3.222
+         * @since 1.3.221
          *
          * @param array  $lockup The lockup.
          * @param string $scheme light or dark.
