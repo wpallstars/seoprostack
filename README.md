@@ -2747,12 +2747,15 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Changed (**Free Plugins**; #1673): our own plugins' cards show their icons and By WPALLSTARS, and their name and author link to the plugin's page on wpallstars.com; More Details still opens its GitHub repository.
+
 ### 1.3.221
 
 - New (**Brand assets page**; #1664): filter `seoprostack_brand_assets_lockup` lets a theme add to the logo with the name that the page, the SVG and PNG files and the email banners draw, such as a line under the site title that is not Kadence's tagline, with its letter spacing and gap, and sized so its letters span the title's exactly (`tagFit`). The PNG files are drawn again when it changes.
 - Fixed (**Brand assets page**): colour values (HEX, RGB, CMYK) no longer wrap onto two lines on sites with a large text size or a narrow content column, and the Fonts cards' specimen gets smaller on a narrow card instead of wrapping.
 - Fixed (blocks; #1666): a release that changes a block's script or style now reaches browsers and Cloudflare: every block in the plugin takes the plugin's version, so its files' addresses change with each release.
-- Changed (**Free Plugins**; #1673): our own plugins' cards show their icons and By WPALLSTARS, and their name and author link to the plugin's page on wpallstars.com; More Details still opens its GitHub repository.
 
 ### 1.3.220
 
