@@ -655,12 +655,13 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
                 'lineHeight' => round($height, 3),
                 'transform'  => isset($font['transform']) && is_string($font['transform']) ? $font['transform'] : '',
                 'color'      => self::resolve(isset($font['color']) ? $font['color'] : '', $palette, $default_colour),
+                'letterSpacing' => 0.0,
             );
         };
         $strong = self::resolve('palette3', $palette, '#000000');
         $medium = self::resolve('palette5', $palette, $strong);
         $gap    = self::desktop($base, 'size');
-        return array(
+        $lockup = array(
             'scheme'    => $scheme,
             'direction' => $branding['direction'],
             'gap'       => '' !== $gap ? (float) $gap : 16,
@@ -675,8 +676,82 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             'titleFont' => $text_font($brand, 26.0, $strong),
             'tagline'   => in_array('tagline', $branding['parts'], true) ? wp_strip_all_tags(get_bloginfo('description')) : '',
             'tagFont'   => $text_font($tag, 16.0, $medium),
+            'tagGap'    => 0.4375,
+            'tagFit'    => null,
             'file'      => sanitize_title(get_bloginfo('name')) ? sanitize_title(get_bloginfo('name')) : 'logo',
         );
+        /**
+         * Filters the logo with the name, as the page, the SVG and PNG files
+         * and the email banners draw it, for a theme that adds to Kadence's
+         * header branding (a line under the title that is not Kadence's
+         * tagline). Keys a filter may change:
+         *
+         * - title, tagline: text ('' leaves the line out).
+         * - titleFont, tagFont: family (CSS), weight, style, size (px),
+         *   lineHeight (multiple of the size), transform (CSS
+         *   text-transform), color, letterSpacing (em).
+         * - tagGap: space above the tagline, in em of its size.
+         * - tagFit: null, or the tagline sized so its letters are exactly as
+         *   wide as the title's: min (smallest size, share of the title's),
+         *   minPx (smallest size in px) and grow (most a title is enlarged
+         *   when the tagline at its smallest is wider; 1 never).
+         *
+         * Other keys are kept as built. The PNG files are drawn again when
+         * the filtered lockup changes.
+         *
+         * @since 1.3.222
+         *
+         * @param array  $lockup The lockup.
+         * @param string $scheme light or dark.
+         */
+        $filtered = apply_filters('seoprostack_brand_assets_lockup', $lockup, $scheme);
+        return is_array($filtered) ? self::clean_lockup($filtered, $lockup) : $lockup;
+    }
+
+    /**
+     * A filtered lockup with the keys the drawings read, each of its type;
+     * anything missing or of the wrong type is taken from the built one.
+     *
+     * @param array $lockup Filtered lockup.
+     * @param array $built  The lockup as built.
+     * @return array
+     */
+    private static function clean_lockup(array $lockup, array $built) {
+        $out = $built;
+        foreach (array('title', 'tagline') as $key) {
+            if (isset($lockup[$key]) && is_scalar($lockup[$key])) {
+                $out[$key] = wp_strip_all_tags((string) $lockup[$key]);
+            }
+        }
+        foreach (array('titleFont', 'tagFont') as $key) {
+            if (!isset($lockup[$key]) || !is_array($lockup[$key])) {
+                continue;
+            }
+            $font = $lockup[$key];
+            foreach (array('family', 'weight', 'style', 'transform', 'color') as $text) {
+                if (isset($font[$text]) && is_scalar($font[$text])) {
+                    $out[$key][$text] = wp_strip_all_tags((string) $font[$text]);
+                }
+            }
+            foreach (array('size', 'lineHeight', 'letterSpacing') as $number) {
+                if (isset($font[$number]) && is_numeric($font[$number])) {
+                    $out[$key][$number] = round((float) $font[$number], 3);
+                }
+            }
+        }
+        if (isset($lockup['tagGap']) && is_numeric($lockup['tagGap']) && $lockup['tagGap'] >= 0) {
+            $out['tagGap'] = round((float) $lockup['tagGap'], 4);
+        }
+        $out['tagFit'] = null;
+        if (isset($lockup['tagFit']) && is_array($lockup['tagFit'])) {
+            $fit = $lockup['tagFit'];
+            $out['tagFit'] = array(
+                'min'   => isset($fit['min']) && is_numeric($fit['min']) ? max(0.0, (float) $fit['min']) : 0.0,
+                'minPx' => isset($fit['minPx']) && is_numeric($fit['minPx']) ? max(0.0, (float) $fit['minPx']) : 0.0,
+                'grow'  => isset($fit['grow']) && is_numeric($fit['grow']) ? max(1.0, (float) $fit['grow']) : 1.0,
+            );
+        }
+        return $out;
     }
 
     /* ---------------------------------------------------------------------
@@ -1045,9 +1120,11 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             $html  .= '<img data-sps-brand-edge src="' . esc_url($lockup['logo']['url']) . '" alt="' . esc_attr($lockup['logo']['alt']) . '" width="' . (int) $lockup['logo']['width'] . '"' . ($height ? ' height="' . $height . '"' : '') . ' style="width:' . (int) $lockup['logo']['width'] . 'px;max-width:100%;height:auto" loading="lazy" decoding="async">';
         }
         if ('' !== $lockup['title']) {
-            $html .= '<span class="' . $c . '__name"><span style="' . esc_attr(self::text_style($lockup['titleFont'])) . '">' . esc_html($lockup['title']) . '</span>';
+            // With tagFit, view.js sizes and lines up both lines (data-sps-brand-line).
+            $fit   = '' !== $lockup['tagline'] && $lockup['tagFit'];
+            $html .= '<span class="' . $c . '__name"><span' . ($fit ? ' data-sps-brand-line="title"' : '') . ' style="' . esc_attr(self::text_style($lockup['titleFont'])) . '">' . esc_html($lockup['title']) . '</span>';
             if ('' !== $lockup['tagline']) {
-                $html .= '<span style="' . esc_attr(self::text_style($lockup['tagFont'])) . ';margin-top:.4375em">' . esc_html($lockup['tagline']) . '</span>';
+                $html .= '<span' . ($fit ? ' data-sps-brand-line="tag"' : '') . ' style="' . esc_attr(self::text_style($lockup['tagFont'])) . ';margin-top:' . esc_attr((string) $lockup['tagGap']) . 'em">' . esc_html($lockup['tagline']) . '</span>';
             }
             $html .= '</span>';
         }
@@ -1061,7 +1138,12 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
      * @return string
      */
     private static function text_style(array $font) {
-        return 'display:block;font-family:' . $font['family'] . ';font-weight:' . $font['weight'] . ';font-style:' . $font['style'] . ';font-size:' . $font['size'] . 'px;line-height:' . $font['lineHeight'] . ';color:' . $font['color'] . ($font['transform'] ? ';text-transform:' . $font['transform'] : '');
+        $css = 'display:block;font-family:' . $font['family'] . ';font-weight:' . $font['weight'] . ';font-style:' . $font['style'] . ';font-size:' . $font['size'] . 'px;line-height:' . $font['lineHeight'] . ';color:' . $font['color'] . ($font['transform'] ? ';text-transform:' . $font['transform'] : '');
+        // Letter spacing follows the last letter too; the margin takes it back.
+        if (!empty($font['letterSpacing'])) {
+            $css .= ';letter-spacing:' . $font['letterSpacing'] . 'em;margin-right:' . (-$font['letterSpacing']) . 'em';
+        }
+        return $css;
     }
 
     /**

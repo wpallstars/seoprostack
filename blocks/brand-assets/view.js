@@ -276,21 +276,95 @@
 		return { width: lockup.logo.width, height: lockup.logo.width * ratio };
 	}
 
+	/* A font's letter spacing in pixels at scale 1 (lockups before 1.3.222 have none). */
+	function spacing(font) {
+		return (Number(font.letterSpacing) || 0) * font.size;
+	}
+
+	/*
+	 * A line at scale 1: its width (without the letter spacing after its
+	 * last letter) and where its ink starts and ends from where it is
+	 * drawn. A letter's side bearing grows with its size, so text lined up
+	 * by its boxes is not lined up by its letters.
+	 */
+	function measure(ctx, text, font) {
+		ctx.font = fontString(font, 1);
+		if ('letterSpacing' in ctx) {
+			ctx.letterSpacing = '0px';
+		}
+		var m = ctx.measureText(text);
+		var extra = spacing(font) * Math.max(0, Array.from(text).length - 1);
+		var ink = 'number' === typeof m.actualBoundingBoxLeft;
+		return {
+			width: m.width + extra,
+			inkLeft: ink ? -m.actualBoundingBoxLeft : 0,
+			inkRight: (ink ? m.actualBoundingBoxRight : m.width) + extra
+		};
+	}
+
+	function resized(font, size) {
+		var out = Object.assign({}, font);
+		out.size = size;
+		return out;
+	}
+
+	/*
+	 * With tagFit, the title's and tagline's fonts sized so the tagline's
+	 * letters span the title's exactly, as a theme's header does it. Below
+	 * its smallest size the tagline stays there and the title grows, by at
+	 * most tagFit.grow.
+	 */
+	function fitted(lockup, ctx) {
+		var fonts = { title: lockup.titleFont, tag: lockup.tagFont };
+		var fit = lockup.tagFit;
+		if (!fit || !lockup.title || !lockup.tagline) {
+			return fonts;
+		}
+		var title = measure(ctx, transform(lockup.title, fonts.title.transform), fonts.title);
+		var tag = measure(ctx, transform(lockup.tagline, fonts.tag.transform), resized(fonts.tag, 100));
+		var titleInk = title.inkRight - title.inkLeft;
+		var perPx = (tag.inkRight - tag.inkLeft) / 100;
+		if (!(titleInk > 0) || !(perPx > 0)) {
+			return fonts;
+		}
+		var target = titleInk / perPx;
+		var least = Math.max(fit.minPx || 0, fonts.title.size * (fit.min || 0));
+		if (target < least) {
+			var grow = Math.max(1, Math.min(fit.grow || 1, least * perPx / titleInk));
+			fonts.title = resized(fonts.title, fonts.title.size * grow);
+			target = Math.max(fit.minPx || 0, Math.min(least, titleInk * grow / perPx));
+		}
+		fonts.tag = resized(fonts.tag, target);
+		return fonts;
+	}
+
 	/* The site title and tagline lines, measured and stacked, at scale 1. */
 	function textBox(lockup, ctx) {
-		var box = { width: 0, height: 0, lines: [] };
-		[[lockup.title, lockup.titleFont], [lockup.tagline, lockup.tagFont]].forEach(function (line) {
+		var box = { width: 0, height: 0, lines: [], aligned: !!(lockup.tagFit && lockup.title && lockup.tagline) };
+		var fonts = fitted(lockup, ctx);
+		var gapEm = 'number' === typeof lockup.tagGap ? lockup.tagGap : 0.4375;
+		[[lockup.title, fonts.title], [lockup.tagline, fonts.tag]].forEach(function (line) {
 			if (!line[0]) {
 				return;
 			}
 			var text = transform(line[0], line[1].transform);
-			ctx.font = fontString(line[1], 1);
-			var width = ctx.measureText(text).width;
+			var m = measure(ctx, text, line[1]);
 			var height = line[1].size * line[1].lineHeight;
-			var gap = box.lines.length ? line[1].size * 0.4375 : 0;
-			box.lines.push({ text: text, font: line[1], width: width, height: height, top: box.height + gap });
-			box.width = Math.max(box.width, width);
+			var gap = box.lines.length ? line[1].size * gapEm : 0;
+			box.lines.push({ text: text, font: line[1], width: m.width, inkLeft: m.inkLeft, shift: 0, height: height, top: box.height + gap });
 			box.height += gap + height;
+		});
+		// Fitted lines start at the same ink, not the same box.
+		if (box.aligned) {
+			var start = Math.max.apply(null, box.lines.map(function (line) {
+				return line.inkLeft;
+			}));
+			box.lines.forEach(function (line) {
+				line.shift = start - line.inkLeft;
+			});
+		}
+		box.lines.forEach(function (line) {
+			box.width = Math.max(box.width, line.shift + line.width);
 		});
 		return box;
 	}
@@ -327,7 +401,8 @@
 			: { width: Math.max(logo.width, text.width), height: logo.height + gap + text.height };
 		var at = (row ? placeRow : placeColumn)(lockup.direction, logo, text, gap, size);
 		text.lines.forEach(function (line) {
-			line.x = at.text.x + (row ? 0 : (text.width - line.width) / 2);
+			// Lines lined up with each other keep that when stacked and centred.
+			line.x = at.text.x + (row || text.aligned ? line.shift : (text.width - line.width) / 2);
 			line.y = at.text.y + line.top + line.height / 2;
 		});
 		return {
@@ -355,7 +430,26 @@
 		parts.lines.forEach(function (line) {
 			ctx.font = fontString(line.font, scale);
 			ctx.fillStyle = line.font.color;
-			ctx.fillText(line.text, (offsetX + line.x) * scale, (offsetY + line.y) * scale);
+			fillSpaced(ctx, line.text, (offsetX + line.x) * scale, (offsetY + line.y) * scale, spacing(line.font) * scale);
+		});
+	}
+
+	/* Text with letter spacing; letter by letter where canvas has no letterSpacing. */
+	function fillSpaced(ctx, text, x, y, space) {
+		if (!space) {
+			ctx.fillText(text, x, y);
+			return;
+		}
+		if ('letterSpacing' in ctx) {
+			ctx.letterSpacing = space + 'px';
+			ctx.fillText(text, x, y);
+			ctx.letterSpacing = '0px';
+			return;
+		}
+		var before = '';
+		Array.from(text).forEach(function (letter, i) {
+			ctx.fillText(letter, x + ctx.measureText(before).width + space * i, y);
+			before += letter;
 		});
 	}
 
@@ -472,7 +566,8 @@
 				out += '<image' + (effect ? ' filter="url(#sps-edge)"' : '') + ' href="' + logoData + '" x="' + (pad + parts.logo.x).toFixed(2) + '" y="' + (pad + parts.logo.y).toFixed(2) + '" width="' + parts.logo.width.toFixed(2) + '" height="' + parts.logo.height.toFixed(2) + '"/>';
 			}
 			parts.lines.forEach(function (line) {
-				out += '<text x="' + (pad + line.x).toFixed(2) + '" y="' + (pad + line.y).toFixed(2) + '" dominant-baseline="central" font-family="' + escapeXml(family(line.font.family)) + '" font-weight="' + line.font.weight + '" font-style="' + line.font.style + '" font-size="' + line.font.size + '" fill="' + escapeXml(line.font.color) + '">' + escapeXml(line.text) + '</text>';
+				var space = spacing(line.font);
+				out += '<text x="' + (pad + line.x).toFixed(2) + '" y="' + (pad + line.y).toFixed(2) + '" dominant-baseline="central" font-family="' + escapeXml(family(line.font.family)) + '" font-weight="' + line.font.weight + '" font-style="' + line.font.style + '" font-size="' + line.font.size + '"' + (space ? ' letter-spacing="' + space.toFixed(3) + '"' : '') + ' fill="' + escapeXml(line.font.color) + '">' + escapeXml(line.text) + '</text>';
 			});
 			return new Blob([out + '</svg>'], { type: 'image/svg+xml' });
 		});
@@ -740,8 +835,42 @@
 		}
 	});
 
+	/*
+	 * The cards' lockups with tagFit (data-sps-brand-line), sized and lined
+	 * up as the files draw them, once their fonts have loaded.
+	 */
+	function fitStages() {
+		Array.prototype.forEach.call(document.querySelectorAll(ROOT + ' [data-sps-brand-line="title"]'), function (titleEl) {
+			var name = titleEl.parentElement;
+			var tagEl = name && name.querySelector('[data-sps-brand-line="tag"]');
+			var card = titleEl.closest(ROOT + '__card');
+			var button = card && card.querySelector('[data-sps-brand-lockup]');
+			var lockup;
+			if (!tagEl || !button) {
+				return;
+			}
+			try {
+				lockup = JSON.parse(button.getAttribute('data-sps-brand-lockup'));
+			} catch (e) {
+				return;
+			}
+			var loads = [lockup.titleFont, lockup.tagFont].map(function (font) {
+				return document.fonts && document.fonts.load ? document.fonts.load(fontString(font, 1)).catch(function () {}) : Promise.resolve();
+			});
+			Promise.all(loads).then(function () {
+				var box = textBox(lockup, document.createElement('canvas').getContext('2d'));
+				[titleEl, tagEl].forEach(function (el, i) {
+					var line = box.lines[i];
+					el.style.fontSize = line.font.size + 'px';
+					el.style.marginLeft = line.shift ? line.shift + 'px' : '';
+				});
+			});
+		});
+	}
+
 	function start() {
 		applyEffects();
+		fitStages();
 		makePngs();
 	}
 
