@@ -2747,6 +2747,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New (**Brand assets page**; #1664): filter `seoprostack_brand_assets_lockup` lets a theme add to the logo with the name that the page, the SVG and PNG files and the email banners draw, such as a line under the site title that is not Kadence's tagline, with its letter spacing and gap, and sized so its letters span the title's exactly (`tagFit`). The PNG files are drawn again when it changes.
+- Fixed (**Brand assets page**): colour values (HEX, RGB, CMYK) no longer wrap onto two lines on sites with a large text size or a narrow content column, and the Fonts cards' specimen gets smaller on a narrow card instead of wrapping.
+- Fixed (blocks; #1666): a release that changes a block's script or style now reaches browsers and Cloudflare: every block in the plugin takes the plugin's version, so its files' addresses change with each release.
+
 ### 1.3.220
 
 - Changed (**Free Plugins**, **Pro Plugins**; #1657): our own plugins are recommended: SEO Pro Stack in Minimal, SEO Pro Cookie Consent in Compliance, SEO Pro Analytics in SEO, SEO Pro Custom in Advanced and SEO Pro Analytics Connect in Pro Plugins, with links to GitHub until they are on WordPress.org. Complianz, Complianz Terms & Conditions and Burst Statistics, which they replace, are no longer listed. **Load the CSS each page uses first** covers SEO Pro Analytics' stylesheets.
