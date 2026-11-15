@@ -194,11 +194,27 @@
 	opacity: 0.8;
 }
 
+/*
+ * Each value stays on one line. The longest, CMYK "100, 100, 100, 100", is
+ * about 11em of monospace; beside the label (3rem), the copy button (2rem)
+ * and the gaps, the text gets smaller only on a card too narrow for it.
+ */
 .wp-block-seoprostack-brand-assets__value-text {
 	flex: 1;
 	min-width: 0;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-	overflow-wrap: anywhere;
+	font-size: 0.9em;
+	font-size: min(0.9em, calc((100cqi - 6rem) / 11));
+	white-space: nowrap;
+}
+
+/* Colour cards: wide enough for the values at the theme's own text size. */
+.wp-block-seoprostack-brand-assets .wp-block-seoprostack-brand-assets__swatches {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+}
+
+.wp-block-seoprostack-brand-assets__swatch-text {
+	container-type: inline-size;
 }
 
 .wp-block-seoprostack-brand-assets__download:hover,
