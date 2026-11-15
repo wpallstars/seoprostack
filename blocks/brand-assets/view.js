@@ -319,8 +319,10 @@
 	/*
 	 * With tagFit, the title's and tagline's fonts sized so the tagline's
 	 * letters span the title's exactly, as a theme's header does it. Below
-	 * its smallest size the tagline stays there and the title grows, by at
-	 * most tagFit.grow.
+	 * its smallest fitted size (min, minPx) the title grows instead, by at
+	 * most tagFit.grow; where that is not enough, the tagline fits the
+	 * grown title down to minPx, its hard floor (wider than the title only
+	 * below it), as the PSD theme's brand-fit.js does.
 	 */
 	function fitted(lockup, ctx) {
 		var fonts = { title: lockup.titleFont, tag: lockup.tagFont };
@@ -621,13 +623,27 @@
 		});
 	}
 
+	/*
+	 * Load the faces the lockup's title and tagline use. Given the text, the
+	 * browser picks the faces with its letters (a font split into Unicode
+	 * subsets loads only the Latin one for the default space).
+	 */
+	function loadFonts(lockup) {
+		return Promise.all([
+			{ text: lockup.title, font: lockup.titleFont },
+			{ text: lockup.tagline, font: lockup.tagFont }
+		].map(function (part) {
+			if (!part.text || !document.fonts || !document.fonts.load) {
+				return Promise.resolve();
+			}
+			return document.fonts.load(fontString(part.font, 1), transform(part.text, part.font.transform)).catch(function () {});
+		}));
+	}
+
 	/* Load the lockup's fonts and logo, then lay it out. */
 	function prepare(lockup) {
-		var fonts = [lockup.titleFont, lockup.tagFont].map(function (font) {
-			return document.fonts && document.fonts.load ? document.fonts.load(fontString(font, 1)).catch(function () {}) : Promise.resolve();
-		});
 		var image = lockup.logo ? loadImage(lockup.logo.url) : Promise.resolve(null);
-		return Promise.all([image].concat(fonts)).then(function (loaded) {
+		return Promise.all([image, loadFonts(lockup)]).then(function (loaded) {
 			lockup.img = loaded[0];
 			return layout(lockup, document.createElement('canvas').getContext('2d'));
 		});
@@ -863,15 +879,15 @@
 			} catch (e) {
 				return;
 			}
-			var loads = [lockup.titleFont, lockup.tagFont].map(function (font) {
-				return document.fonts && document.fonts.load ? document.fonts.load(fontString(font, 1)).catch(function () {}) : Promise.resolve();
-			});
-			Promise.all(loads).then(function () {
+			loadFonts(lockup).then(function () {
 				var box = textBox(lockup, document.createElement('canvas').getContext('2d'));
 				[titleEl, tagEl].forEach(function (el, i) {
 					var line = box.lines[i];
 					el.style.fontSize = line.font.size + 'px';
 					el.style.marginLeft = line.shift ? line.shift + 'px' : '';
+					// Lined up by their ink from the left, as the files draw
+					// them, also in a centred (column) lockup.
+					el.style.textAlign = 'left';
 				});
 			});
 		});

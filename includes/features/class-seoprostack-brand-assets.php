@@ -692,9 +692,13 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
          *   text-transform), color, letterSpacing (em).
          * - tagGap: space above the tagline, in em of its size.
          * - tagFit: null, or the tagline sized so its letters are exactly as
-         *   wide as the title's: min (smallest size, share of the title's),
-         *   minPx (smallest size in px) and grow (most a title is enlarged
-         *   when the tagline at its smallest is wider; 1 never).
+         *   wide as the title's: min (share of the title's size) and minPx
+         *   (px), the larger of which is the smallest the fit goes to
+         *   before the title is enlarged; grow, the most the title is
+         *   enlarged then (1 never). Where that is not enough, the tagline
+         *   is fitted to the enlarged title down to minPx, its hard floor,
+         *   and is wider than the title only below it (as the PSD theme's
+         *   header does).
          *
          * Other keys are kept as built. The PNG files are drawn again when
          * the filtered lockup changes.
