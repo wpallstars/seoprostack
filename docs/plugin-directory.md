@@ -35,3 +35,16 @@ Plugins and Pro Plugins (`admin/data/free-plugins.php`,
   2026-10-17).
 - A plugin that a feature replaces leaves the list: see `AGENTS.md` →
   Features.
+- Recommend our own plugins (owner's request, GitHub issue #1657): SEO Pro
+  Stack in Minimal (though installed wherever the list shows), SEO Pro
+  Cookie Consent in Compliance, SEO Pro Analytics in SEO, SEO Pro Custom in
+  Advanced, and SEO Pro Analytics Connect in Pro Plugins. A plugin one of
+  them replaces leaves the list too: Complianz (free and Privacy Suite),
+  Complianz Terms & Conditions and Burst Statistics. Keep their presets,
+  fixes and Used CSS entries while sites still use them. SEO Pro Directory
+  is private, so it is not listed.
+- Until they are on WordPress.org, our own plugins' cards come from
+  `seoprostack_get_own_plugins()` (`admin/data/free-plugins.php`) through
+  `seoprostack_external_plugins`: links to their GitHub repositories and
+  Activate once installed. When one reaches WordPress.org, remove it there
+  so its card comes from WordPress.org.
