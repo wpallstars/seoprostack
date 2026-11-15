@@ -10,14 +10,17 @@
                 "lang": "es_MX",
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
-            "Terms": [
-                "T\u00e9rminos"
-            ],
             "None": [
                 "Ninguno"
             ],
+            "Name": [
+                "Nombre"
+            ],
             "Columns": [
                 "Columnas"
+            ],
+            "Terms": [
+                "T\u00e9rminos"
             ],
             "Link": [
                 "Enlace"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "T\u00e9rminos de esta publicaci\u00f3n"
-            ],
-            "Name": [
-                "Nombre"
             ],
             "Most posts first": [
                 "La mayor\u00eda de las publicaciones primero"

@@ -13,6 +13,9 @@
             "Settings": [
                 "Param\u00e8tres"
             ],
+            "Icon": [
+                "Ic\u00f4ne"
+            ],
             "Brand icons": [
                 "Ic\u00f4nes de marque"
             ],
@@ -27,9 +30,6 @@
             ],
             "No icons found.": [
                 "Aucune ic\u00f4ne trouv\u00e9e."
-            ],
-            "Icon": [
-                "Ic\u00f4ne"
             ],
             "Brand colour": [
                 "Couleur de la marque"

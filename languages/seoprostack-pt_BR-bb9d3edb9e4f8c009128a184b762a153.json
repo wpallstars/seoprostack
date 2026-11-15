@@ -13,6 +13,9 @@
             "Settings": [
                 "Configura\u00e7\u00f5es"
             ],
+            "Icon": [
+                "\u00cdcone"
+            ],
             "Brand icons": [
                 "\u00cdcones da marca"
             ],
@@ -27,9 +30,6 @@
             ],
             "No icons found.": [
                 "Nenhum \u00edcone encontrado."
-            ],
-            "Icon": [
-                "\u00cdcone"
             ],
             "Brand colour": [
                 "Cor da marca"

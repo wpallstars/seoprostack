@@ -10,14 +10,17 @@
                 "lang": "nl_BE",
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
-            "Terms": [
-                "Termen"
-            ],
             "None": [
                 "Geen"
             ],
+            "Name": [
+                "Naam"
+            ],
             "Columns": [
                 "Kolommen"
+            ],
+            "Terms": [
+                "Termen"
             ],
             "Link": [
                 "Link"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "Termen van dit bericht"
-            ],
-            "Name": [
-                "Naam"
             ],
             "Most posts first": [
                 "De meeste berichten eerst"

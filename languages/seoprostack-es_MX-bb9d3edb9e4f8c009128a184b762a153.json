@@ -13,6 +13,9 @@
             "Settings": [
                 "Ajustes"
             ],
+            "Icon": [
+                "Icono"
+            ],
             "Brand icons": [
                 "iconos de marca"
             ],
@@ -27,9 +30,6 @@
             ],
             "No icons found.": [
                 "No se encontraron iconos."
-            ],
-            "Icon": [
-                "Icono"
             ],
             "Brand colour": [
                 "Color de la marca"

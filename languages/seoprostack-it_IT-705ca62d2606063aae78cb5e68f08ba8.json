@@ -10,14 +10,17 @@
                 "lang": "it_IT",
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
-            "Terms": [
-                "Informazioni"
-            ],
             "None": [
                 "Nessuno"
             ],
+            "Name": [
+                "Nome"
+            ],
             "Columns": [
                 "Colonne"
+            ],
+            "Terms": [
+                "Informazioni"
             ],
             "Link": [
                 "Collegamento"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "Termini di questo post"
-            ],
-            "Name": [
-                "Nome"
             ],
             "Most posts first": [
                 "I post pi\u00f9 importanti prima"

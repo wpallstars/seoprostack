@@ -13,6 +13,9 @@
             "Settings": [
                 "Iestat\u012bjumi"
             ],
+            "Icon": [
+                "Ikona"
+            ],
             "Brand icons": [
                 "Z\u012bmola ikonas"
             ],
@@ -27,9 +30,6 @@
             ],
             "No icons found.": [
                 "Nav atrastas ikonas."
-            ],
-            "Icon": [
-                "Ikona"
             ],
             "Brand colour": [
                 "Z\u012bmola kr\u0101sa"
