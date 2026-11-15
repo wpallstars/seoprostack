@@ -413,9 +413,39 @@ final class SEOProStack_Setup {
         // On every request, so deactivating from WP-CLI also removes them.
         register_deactivation_hook(SEOPROSTACK_FILE, array(__CLASS__, 'remove_dark_copies'));
 
+        // Our blocks' scripts and styles carry the plugin's version, so a
+        // release that changes one reaches browsers and caches (GH#1666).
+        add_filter('block_type_metadata', array(__CLASS__, 'block_version'));
+
         if (is_admin()) {
             self::prime_admin_options();
         }
+    }
+
+    /**
+     * Give SEO Pro Stack's blocks the plugin's version (block_type_metadata).
+     * WordPress adds it to the address of each block's scripts and styles,
+     * which browsers and Cloudflare keep for a year, so a changed file needs
+     * a new version. The blocks' *.asset.php files list only dependencies,
+     * so their scripts take this version too; version in block.json is not
+     * used.
+     *
+     * @param mixed $metadata Block metadata from block.json, with its file.
+     * @return mixed
+     */
+    public static function block_version($metadata) {
+        if (!is_array($metadata) || empty($metadata['file']) || !is_string($metadata['file'])) {
+            return $metadata;
+        }
+        static $blocks = null;
+        if (null === $blocks) {
+            $real   = realpath(SEOPROSTACK_DIR . 'blocks');
+            $blocks = $real ? trailingslashit(wp_normalize_path($real)) : '';
+        }
+        if ('' !== $blocks && 0 === strpos(wp_normalize_path($metadata['file']), $blocks)) {
+            $metadata['version'] = SEOPROSTACK_VERSION;
+        }
+        return $metadata;
     }
 
     /**
