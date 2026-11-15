@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.220
+Stable tag: 1.3.221
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -156,8 +156,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.220 =
-* Added: Support tab in My Account without WooCommerce.
-* Changed: our own plugins recommended in Free and Pro Plugins.
+= 1.3.221 =
+* Added: theme filter for the Brand assets logos.
+* Fixed: Brand assets colour values wrapping; block files cached across releases.
 
 Older: `changelog.txt`.
