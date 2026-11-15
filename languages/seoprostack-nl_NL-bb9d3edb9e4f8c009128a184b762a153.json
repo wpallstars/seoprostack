@@ -13,6 +13,9 @@
             "Settings": [
                 "Instellingen"
             ],
+            "Icon": [
+                "Icon"
+            ],
             "Brand icons": [
                 "Merkpictogrammen"
             ],
@@ -27,9 +30,6 @@
             ],
             "No icons found.": [
                 "Geen pictogrammen gevonden."
-            ],
-            "Icon": [
-                "Icon"
             ],
             "Brand colour": [
                 "Merk kleur"

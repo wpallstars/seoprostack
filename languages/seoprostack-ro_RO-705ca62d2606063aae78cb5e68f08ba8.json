@@ -10,14 +10,17 @@
                 "lang": "ro_RO",
                 "plural-forms": "nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;"
             },
-            "Terms": [
-                "Termeni"
-            ],
             "None": [
                 "Nici unul"
             ],
+            "Name": [
+                "Nume"
+            ],
             "Columns": [
                 "Coloane"
+            ],
+            "Terms": [
+                "Termeni"
             ],
             "Link": [
                 "Leg\u0103tur\u0103"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "Termenii acestei post\u0103ri"
-            ],
-            "Name": [
-                "Nume"
             ],
             "Most posts first": [
                 "Majoritatea post\u0103rilor mai \u00eent\u00e2i"

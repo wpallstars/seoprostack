@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SEO Pro Stack 1.3.218\n"
+"Project-Id-Version: SEO Pro Stack 1.3.222\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/seoprostack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,13 +29,29 @@ msgid "SEO Pro Stack"
 msgstr ""
 
 #. Description of the plugin
-#: seoprostack.php
+#: seoprostack.php admin/data/free-plugins.php:230
 msgid "One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on."
 msgstr ""
 
 #. Author of the plugin
 #: seoprostack.php
 msgid "Marcus Quinn"
+msgstr ""
+
+#: admin/data/free-plugins.php:224
+msgid "From GitHub, by the makers of SEO Pro Stack."
+msgstr ""
+
+#: admin/data/free-plugins.php:237
+msgid "Simple, light cookie consent: blocks scripts until consent, asks only where the law and the page need it, and fits your theme. Cookie, privacy and terms pages included; imports Complianz and 11 other consent plugins."
+msgstr ""
+
+#: admin/data/free-plugins.php:245
+msgid "Private, cookie-free statistics with search rankings and sales, connected to your content. Imports the history of Burst Statistics and other statistics plugins."
+msgstr ""
+
+#: admin/data/free-plugins.php:252
+msgid "Change how your theme and plugins behave when their settings can't, without waiting on their makers: one small file per change, in your own copy."
 msgstr ""
 
 #: admin/data/readme.php:32 admin/includes/class-admin-manager.php:175
@@ -115,6 +131,7 @@ msgid "Visit website"
 msgstr ""
 
 #: admin/includes/class-admin-page.php:98
+#: includes/account/class-seoprostack-account-fluent-support.php:152
 msgid "Support"
 msgstr ""
 
@@ -124,14 +141,15 @@ msgstr ""
 
 #. translators: accessibility text
 #: admin/includes/class-admin-page.php:117
-#: admin/includes/class-plugin-manager.php:706
-#: admin/includes/class-plugin-manager.php:882
+#: admin/includes/class-plugin-manager.php:732
+#: admin/includes/class-plugin-manager.php:763
+#: admin/includes/class-plugin-manager.php:928
 #: admin/partials/theme-panel.php:83 admin/partials/theme-panel.php:89
 #: admin/partials/theme-panel.php:91
 #: includes/class-seoprostack-form-policy-links.php:81
 #: includes/class-seoprostack-review-links.php:150
 #: includes/features/class-seoprostack-admin-menu.php:2293
-#: includes/features/class-seoprostack-brand-assets.php:1721
+#: includes/features/class-seoprostack-brand-assets.php:1807
 #: includes/features/class-seoprostack-https-check.php:536
 #: includes/features/class-seoprostack-https-check.php:642
 #: includes/features/class-seoprostack-replace-media.php:204
@@ -321,7 +339,7 @@ msgstr ""
 #: admin/includes/class-core-plugins.php:159
 #: admin/includes/class-free-plugins-manager.php:94
 #: admin/includes/class-host-plugins.php:107
-#: admin/includes/class-plugin-manager.php:1108
+#: admin/includes/class-plugin-manager.php:1154
 msgid "Deactivate"
 msgstr ""
 
@@ -360,14 +378,14 @@ msgstr ""
 
 #. translators: %s: plugin name
 #: admin/includes/class-free-plugins-manager.php:93
-#: admin/includes/class-plugin-manager.php:664
-#: admin/includes/class-plugin-manager.php:1123
+#: admin/includes/class-plugin-manager.php:672
+#: admin/includes/class-plugin-manager.php:1169
 #: admin/partials/theme-panel.php:73 admin/js/seoprostack-tabs.js:828
 msgid "Activate"
 msgstr ""
 
 #: admin/includes/class-free-plugins-manager.php:99
-#: admin/includes/class-plugin-manager.php:1135
+#: admin/includes/class-plugin-manager.php:1181
 msgid "Uninstall"
 msgstr ""
 
@@ -463,7 +481,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: admin/includes/class-link-cards.php:67
-#: includes/class-seoprostack-setup.php:821
+#: includes/class-seoprostack-setup.php:851
 msgid "No matches."
 msgstr ""
 
@@ -474,9 +492,9 @@ msgstr ""
 #. translators: %s: item name
 #. translators: %s: plugin name
 #: admin/includes/class-link-cards.php:108
-#: admin/includes/class-plugin-manager.php:583
-#: admin/includes/class-plugin-manager.php:718
-#: admin/includes/class-plugin-manager.php:1159
+#: admin/includes/class-plugin-manager.php:591
+#: admin/includes/class-plugin-manager.php:751
+#: admin/includes/class-plugin-manager.php:1205
 #, php-format
 msgid "for %s (opens in a new tab)"
 msgstr ""
@@ -572,7 +590,7 @@ msgid "Minimal"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:57
-#: includes/class-seoprostack-setup.php:620
+#: includes/class-seoprostack-setup.php:650
 #: includes/features/class-seoprostack-admin-menu.php:479
 #: includes/features/class-seoprostack-hosting-needs.php:545
 msgid "Admin"
@@ -611,7 +629,7 @@ msgid "LMS"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:66
-#: includes/class-seoprostack-setup.php:632
+#: includes/class-seoprostack-setup.php:662
 #: includes/features/class-seoprostack-plugin-sizes.php:332
 msgid "Media"
 msgstr ""
@@ -634,7 +652,7 @@ msgid "Social"
 msgstr ""
 
 #: admin/includes/class-plugin-manager.php:71
-#: includes/class-seoprostack-setup.php:640
+#: includes/class-seoprostack-setup.php:670
 msgid "Speed"
 msgstr ""
 
@@ -698,103 +716,103 @@ msgstr ""
 msgid "%1$s Reason: %2$s"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:533
+#: admin/includes/class-plugin-manager.php:541
 msgid "Not installed"
 msgstr ""
 
 #. translators: %s: closure date
-#: admin/includes/class-plugin-manager.php:566
+#: admin/includes/class-plugin-manager.php:574
 #, php-format
 msgid "Removed from WordPress.org on %s."
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:570
+#: admin/includes/class-plugin-manager.php:578
 msgid "Not currently available from WordPress.org."
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:583
+#: admin/includes/class-plugin-manager.php:591
 msgid "Vendor Site"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:602
+#: admin/includes/class-plugin-manager.php:610
 msgid "It will not receive updates; plan a replacement."
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:654
-#: admin/includes/class-plugin-manager.php:1114
+#: admin/includes/class-plugin-manager.php:662
+#: admin/includes/class-plugin-manager.php:1160
 msgctxt "plugin"
 msgid "Active"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:656
+#: admin/includes/class-plugin-manager.php:664
 msgid "Cannot Activate"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:656
+#: admin/includes/class-plugin-manager.php:664
 msgid "Cannot Install"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:663
-#: admin/includes/class-plugin-manager.php:1124
+#: admin/includes/class-plugin-manager.php:671
+#: admin/includes/class-plugin-manager.php:1170
 #, php-format
 msgctxt "plugin"
 msgid "Activate %s"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:664
+#: admin/includes/class-plugin-manager.php:672
 msgid "Network Activate"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:667
-#: admin/includes/class-plugin-manager.php:1129
+#: admin/includes/class-plugin-manager.php:675
+#: admin/includes/class-plugin-manager.php:1175
 msgctxt "plugin"
 msgid "Installed"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:672
-#: admin/includes/class-plugin-manager.php:1079
+#: admin/includes/class-plugin-manager.php:680
+#: admin/includes/class-plugin-manager.php:1125
 #, php-format
 msgctxt "plugin"
 msgid "Install %s now"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:673
-#: admin/includes/class-plugin-manager.php:1078
+#: admin/includes/class-plugin-manager.php:681
+#: admin/includes/class-plugin-manager.php:1124
 msgctxt "plugin"
 msgid "Install Now"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:718
-#: admin/includes/class-plugin-manager.php:808
+#: admin/includes/class-plugin-manager.php:751
+#: admin/includes/class-plugin-manager.php:847
 msgid "More Details"
 msgstr ""
 
 #. translators: %s: author
-#: admin/includes/class-plugin-manager.php:727
-#: admin/includes/class-plugin-manager.php:820
+#: admin/includes/class-plugin-manager.php:766
+#: admin/includes/class-plugin-manager.php:859
 #: admin/partials/theme-panel.php:62
 #, php-format
 msgid "By %s"
 msgstr ""
 
 #. translators: 1: PHP version the plugin needs, 2: this server's PHP version
-#: admin/includes/class-plugin-manager.php:741
+#: admin/includes/class-plugin-manager.php:780
 #, php-format
 msgid "Needs PHP %1$s or later; this site runs PHP %2$s."
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:807
+#: admin/includes/class-plugin-manager.php:846
 #, php-format
 msgid "More information about %s"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:840
+#: admin/includes/class-plugin-manager.php:879
 msgid "Last Updated:"
 msgstr ""
 
@@ -803,7 +821,7 @@ msgstr ""
 #. translators: %s: time ago, such as "3 days"
 #. translators: %s: time ago
 #. translators: %s: time since the check, such as "5 mins"
-#: admin/includes/class-plugin-manager.php:841
+#: admin/includes/class-plugin-manager.php:880
 #: includes/features/class-seoprostack-licence-calls.php:985
 #: includes/features/class-seoprostack-old-slugs.php:504
 #: includes/features/class-seoprostack-outbound-calls.php:897
@@ -812,77 +830,77 @@ msgstr ""
 msgid "%s ago"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:848
+#: admin/includes/class-plugin-manager.php:887
 msgid "Incompatible with your version of WordPress"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:850
+#: admin/includes/class-plugin-manager.php:889
 msgid "Untested with your version of WordPress"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:852
+#: admin/includes/class-plugin-manager.php:891
 msgid "<strong>Compatible</strong> with your version of WordPress"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:939
+#: admin/includes/class-plugin-manager.php:985
 #, php-format
 msgid "Select %s"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:998
+#: admin/includes/class-plugin-manager.php:1044
 msgid "Not needed day to day: deactivate when not using, so the site runs at full speed, and activate only when you need it to look into a problem or work on maintenance."
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:1001
+#: admin/includes/class-plugin-manager.php:1047
 msgid "Last updated in July 2022: check compatibility before using it."
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:1069
+#: admin/includes/class-plugin-manager.php:1115
 #: includes/features/class-seoprostack-database-keys.php:681
 msgid "Unavailable"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:1072
+#: admin/includes/class-plugin-manager.php:1118
 msgctxt "plugin"
 msgid "Cannot Install"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:1092
+#: admin/includes/class-plugin-manager.php:1138
 #, php-format
 msgid "Update %s now"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:1094
+#: admin/includes/class-plugin-manager.php:1140
 msgid "Update Now"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:1100
+#: admin/includes/class-plugin-manager.php:1146
 msgctxt "plugin"
 msgid "Network Active"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:1109
+#: admin/includes/class-plugin-manager.php:1155
 #, php-format
 msgctxt "plugin"
 msgid "Deactivate %s"
 msgstr ""
 
 #. translators: %s: plugin name
-#: admin/includes/class-plugin-manager.php:1136
+#: admin/includes/class-plugin-manager.php:1182
 #, php-format
 msgctxt "plugin"
 msgid "Uninstall %s"
 msgstr ""
 
-#: admin/includes/class-plugin-manager.php:1158
+#: admin/includes/class-plugin-manager.php:1204
 msgid "Go Pro"
 msgstr ""
 
 #. translators: %s: number of millions
-#: admin/includes/class-plugin-manager.php:1173
+#: admin/includes/class-plugin-manager.php:1219
 #, php-format
 msgctxt "Active plugin installations"
 msgid "%s+ Million Active Installation"
@@ -890,13 +908,13 @@ msgid_plural "%s+ Million Active Installations"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/includes/class-plugin-manager.php:1176
+#: admin/includes/class-plugin-manager.php:1222
 msgctxt "Active plugin installations"
 msgid "Less Than 10 Active Installations"
 msgstr ""
 
 #. translators: %s: number of installs
-#: admin/includes/class-plugin-manager.php:1179
+#: admin/includes/class-plugin-manager.php:1225
 #, php-format
 msgid "%s+ Active Installation"
 msgid_plural "%s+ Active Installations"
@@ -1580,7 +1598,7 @@ msgid "Content background"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:466
-#: includes/features/class-seoprostack-brand-assets.php:1705
+#: includes/features/class-seoprostack-brand-assets.php:1791
 msgid "Headings"
 msgstr ""
 
@@ -1590,7 +1608,7 @@ msgid "Text"
 msgstr ""
 
 #: includes/admin/class-seoprostack-admin-whole-theme.php:468
-#: includes/class-seoprostack-setup.php:636
+#: includes/class-seoprostack-setup.php:666
 #: includes/features/class-seoprostack-linking.php:117
 #: includes/features/class-seoprostack-linking.php:236
 msgid "Links"
@@ -2129,7 +2147,7 @@ msgid "Integrity: %s"
 msgstr ""
 
 #: includes/class-seoprostack-integrity-report.php:132
-#: includes/class-seoprostack-setup.php:624
+#: includes/class-seoprostack-setup.php:654
 #: includes/class-seoprostack-vulnerability-feed-report.php:101
 #: includes/features/class-seoprostack-github-updates.php:319
 #: includes/features/class-seoprostack-hardening.php:859
@@ -2977,101 +2995,101 @@ msgstr ""
 msgid "Saved. Reload the page to see the change."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:621
+#: includes/class-seoprostack-setup.php:651
 msgid "The dashboard, admin bar, logins and emails."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:625
+#: includes/class-seoprostack-setup.php:655
 msgid "HTTPS, passwords, remote access and known vulnerabilities. Two-step login and login limits are FluentAuth’s."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:628
+#: includes/class-seoprostack-setup.php:658
 #: includes/features/class-seoprostack-admin-menu.php:475
 msgid "Content"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:629
+#: includes/class-seoprostack-setup.php:659
 msgid "Writing, editing and publishing posts."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:633
+#: includes/class-seoprostack-setup.php:663
 msgid "Images and other uploads."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:637
+#: includes/class-seoprostack-setup.php:667
 msgid "Redirects, removed pages and short links."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:641
+#: includes/class-seoprostack-setup.php:671
 msgid "Loading pages faster, for visitors and in the editor."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:644
+#: includes/class-seoprostack-setup.php:674
 msgid "Server"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:645
+#: includes/class-seoprostack-setup.php:675
 msgid "The database, server load, PHP memory and calls to other sites."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:648
+#: includes/class-seoprostack-setup.php:678
 #: includes/features/class-seoprostack-editor-access.php:164
 #: includes/features/class-seoprostack-vulnerability-report.php:53
 msgid "Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:649
+#: includes/class-seoprostack-setup.php:679
 msgid "The Plugins screen and plugin settings."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:652
+#: includes/class-seoprostack-setup.php:682
 msgid "Agency"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:653
+#: includes/class-seoprostack-setup.php:683
 msgid "Selling services and apps: orders, client updates and a client dashboard, with Fluent Forms, Fluent Boards, Fluent Support and friends."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:656
+#: includes/class-seoprostack-setup.php:686
 msgid "Maintenance"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:657
+#: includes/class-seoprostack-setup.php:687
 msgid "Updates, repairs and housekeeping."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:749
+#: includes/class-seoprostack-setup.php:779
 #: includes/features/class-seoprostack-speed-plan.php:437
 msgid "Recommended"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:752
+#: includes/class-seoprostack-setup.php:782
 msgid "Theme"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:759
+#: includes/class-seoprostack-setup.php:789
 msgid "Free Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:769
+#: includes/class-seoprostack-setup.php:799
 msgid "Pro Plugins"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:776
+#: includes/class-seoprostack-setup.php:806
 #: includes/features/class-seoprostack-hosting-needs.php:2569
 #: includes/features/class-seoprostack-hosting-needs.php:2577
 msgid "Hosting"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:783
+#: includes/class-seoprostack-setup.php:813
 msgid "Tools"
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:820
+#: includes/class-seoprostack-setup.php:850
 msgid "Could not load this list. Please reload the page."
 msgstr ""
 
-#: includes/class-seoprostack-setup.php:822
+#: includes/class-seoprostack-setup.php:852
 msgid "Activated"
 msgstr ""
 
@@ -3442,19 +3460,19 @@ msgid_plural "API key found. Last check: %1$s, %2$d known vulnerabilities."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/features/class-seoprostack-account.php:82
+#: includes/features/class-seoprostack-account.php:84
 msgid "My Account without WooCommerce"
 msgstr ""
 
-#: includes/features/class-seoprostack-account.php:83
+#: includes/features/class-seoprostack-account.php:85
 msgid "Keeps My Account working when WooCommerce is not active: log in, sign up, lost password, account details and the tabs other plugins add, with WooCommerce’s layout, on the page WooCommerce made (or a page with the [seoprostack_account] shortcode). So a site that has no shop no longer needs WooCommerce for it. Orders, Downloads and Addresses are the shop’s and need WooCommerce. Does nothing while WooCommerce is active."
 msgstr ""
 
-#: includes/features/class-seoprostack-account.php:89
+#: includes/features/class-seoprostack-account.php:91
 msgid "People can sign up"
 msgstr ""
 
-#: includes/features/class-seoprostack-account.php:90
+#: includes/features/class-seoprostack-account.php:92
 msgid "My Account shows a sign-up form beside the login form. Starts as WooCommerce’s “Allow customers to create an account on the My account page”."
 msgstr ""
 
@@ -4536,363 +4554,363 @@ msgstr ""
 msgid "(%s on phones)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:700
+#: includes/features/class-seoprostack-brand-assets.php:779
 msgid "The Brand assets block reads the Kadence theme’s settings, and Kadence is not the active theme."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:740
-#: includes/features/class-seoprostack-brand-assets.php:891
+#: includes/features/class-seoprostack-brand-assets.php:819
+#: includes/features/class-seoprostack-brand-assets.php:970
 msgid "On light backgrounds"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:741
-#: includes/features/class-seoprostack-brand-assets.php:893
+#: includes/features/class-seoprostack-brand-assets.php:820
+#: includes/features/class-seoprostack-brand-assets.php:972
 msgid "On dark backgrounds"
 msgstr ""
 
 #. translators: %s: file type, such as SVG or PNG.
-#: includes/features/class-seoprostack-brand-assets.php:755
+#: includes/features/class-seoprostack-brand-assets.php:834
 #, php-format
 msgid "Logo (%s)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:759
+#: includes/features/class-seoprostack-brand-assets.php:838
 msgid "Logo with name (SVG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:759
+#: includes/features/class-seoprostack-brand-assets.php:838
 msgid "Name (SVG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:760
+#: includes/features/class-seoprostack-brand-assets.php:839
 msgid "Logo with name (PNG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:760
+#: includes/features/class-seoprostack-brand-assets.php:839
 msgid "Name (PNG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:762
+#: includes/features/class-seoprostack-brand-assets.php:841
 msgid "Logo"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:763
+#: includes/features/class-seoprostack-brand-assets.php:842
 msgid "Logo with name"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:763
+#: includes/features/class-seoprostack-brand-assets.php:842
 #: blocks/term-list/index.js:44
 msgid "Name"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:769
+#: includes/features/class-seoprostack-brand-assets.php:848
 #: blocks/brand-assets/index.js:26
 msgid "Logos"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:771
+#: includes/features/class-seoprostack-brand-assets.php:850
 msgid "Please keep clear space around the logo, and do not stretch, recolour or add effects to it. Use the version made for the background it sits on."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:790
-#: includes/features/class-seoprostack-brand-assets.php:792
-#: includes/features/class-seoprostack-brand-assets.php:796
+#: includes/features/class-seoprostack-brand-assets.php:869
+#: includes/features/class-seoprostack-brand-assets.php:871
+#: includes/features/class-seoprostack-brand-assets.php:875
 msgid "Small logo"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:794
+#: includes/features/class-seoprostack-brand-assets.php:873
 msgid "The header’s logo on phones."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:805
-#: includes/features/class-seoprostack-brand-assets.php:807
+#: includes/features/class-seoprostack-brand-assets.php:884
+#: includes/features/class-seoprostack-brand-assets.php:886
 #: includes/features/class-seoprostack-watermark-images.php:195
 msgid "Site icon"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:807
+#: includes/features/class-seoprostack-brand-assets.php:886
 msgid "Browser tabs, bookmarks and phone home screens."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:807
+#: includes/features/class-seoprostack-brand-assets.php:886
 #: blocks/brand-icon/index.js:155
 msgid "Icon"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:810
+#: includes/features/class-seoprostack-brand-assets.php:889
 msgid "Set a site icon in Appearance → Customize → Site Identity to show it here (only editors of the site see this)."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:812
+#: includes/features/class-seoprostack-brand-assets.php:891
 msgid "Icons"
 msgstr ""
 
 #. translators: the icon an iPhone or iPad shows on its home screen.
-#: includes/features/class-seoprostack-brand-assets.php:840
+#: includes/features/class-seoprostack-brand-assets.php:919
 msgid "Apple"
 msgstr ""
 
 #. translators: the icon a browser shows in its tab.
-#: includes/features/class-seoprostack-brand-assets.php:842
+#: includes/features/class-seoprostack-brand-assets.php:921
 msgid "browser tab"
 msgstr ""
 
 #. translators: 1: width in pixels, such as 480, 2: the site's address, such as example.com.
-#: includes/features/class-seoprostack-brand-assets.php:906
+#: includes/features/class-seoprostack-brand-assets.php:985
 #, php-format
 msgid "Add it to your email signature as a picture, %1$d pixels wide, linked to %2$s."
 msgstr ""
 
 #. translators: %s: the site's address, such as example.com.
-#: includes/features/class-seoprostack-brand-assets.php:909
+#: includes/features/class-seoprostack-brand-assets.php:988
 #, php-format
 msgid "Add it to your email signature as a picture, up to 600 pixels wide, linked to %s."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:914
+#: includes/features/class-seoprostack-brand-assets.php:993
 msgid "Email signature banner"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:915
+#: includes/features/class-seoprostack-brand-assets.php:994
 msgid "Download (PNG)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:918
+#: includes/features/class-seoprostack-brand-assets.php:997
 msgid "Banner"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:924
+#: includes/features/class-seoprostack-brand-assets.php:1003
 msgid "Email signature"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:992
+#: includes/features/class-seoprostack-brand-assets.php:1071
 msgid "Copy a link to a PNG"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1342
+#: includes/features/class-seoprostack-brand-assets.php:1428
 msgid "Making the file…"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1350
+#: includes/features/class-seoprostack-brand-assets.php:1436
 #: includes/features/class-seoprostack-post-reactions.php:399
 #: includes/features/class-seoprostack-social-sharing.php:895
 msgid "Link copied"
 msgstr ""
 
 #. translators: %s: the picture, such as Banner.
-#: includes/features/class-seoprostack-brand-assets.php:1366
+#: includes/features/class-seoprostack-brand-assets.php:1452
 #: includes/features/class-seoprostack-preview-links.php:263
 msgid "Copy link"
 msgstr ""
 
 #. translators: %s: the picture, such as Banner.
-#: includes/features/class-seoprostack-brand-assets.php:1366
+#: includes/features/class-seoprostack-brand-assets.php:1452
 #, php-format
 msgid "Copy the link to the %s PNG"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1370
+#: includes/features/class-seoprostack-brand-assets.php:1456
 msgid "Padded"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1370
+#: includes/features/class-seoprostack-brand-assets.php:1456
 #, php-format
 msgid "Copy the link to the %s PNG with space around it, on its background colour"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1373
+#: includes/features/class-seoprostack-brand-assets.php:1459
 msgid "Transparent"
 msgstr ""
 
 #. translators: %s: the picture, such as Logo.
-#: includes/features/class-seoprostack-brand-assets.php:1373
+#: includes/features/class-seoprostack-brand-assets.php:1459
 #, php-format
 msgid "Copy the link to the %s PNG with no space around it, on a transparent background"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1439
+#: includes/features/class-seoprostack-brand-assets.php:1525
 msgid "The uploads folder cannot be written to."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1471
+#: includes/features/class-seoprostack-brand-assets.php:1557
 msgid "The block does not offer that picture."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1475
+#: includes/features/class-seoprostack-brand-assets.php:1561
 msgid "The brand changed while the file was made. Reload the page to make it again."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1510
+#: includes/features/class-seoprostack-brand-assets.php:1596
 msgid "The file is not a PNG picture."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1516
+#: includes/features/class-seoprostack-brand-assets.php:1602
 msgid "The file is too large."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1653
+#: includes/features/class-seoprostack-brand-assets.php:1739
 msgid "Light mode"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1654
+#: includes/features/class-seoprostack-brand-assets.php:1740
 #: includes/features/class-seoprostack-dark-image-contrast.php:178
 #: includes/features/class-seoprostack-dark-image-contrast.php:307
 msgid "Dark mode"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1656
+#: includes/features/class-seoprostack-brand-assets.php:1742
 #: blocks/brand-assets/index.js:27
 msgid "Colours"
 msgstr ""
 
 #. translators: 1: colour format, such as HEX; 2: its value, such as #0070CC.
-#: includes/features/class-seoprostack-brand-assets.php:1692
+#: includes/features/class-seoprostack-brand-assets.php:1778
 #, php-format
 msgid "Copy %1$s %2$s"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1694
+#: includes/features/class-seoprostack-brand-assets.php:1780
 msgid "Copy"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1705
+#: includes/features/class-seoprostack-brand-assets.php:1791
 msgid "Body text"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1706
+#: includes/features/class-seoprostack-brand-assets.php:1792
 #: blocks/brand-assets/index.js:28
 msgid "Fonts"
 msgstr ""
 
 #. translators: %s: font weights, such as 400, 700.
-#: includes/features/class-seoprostack-brand-assets.php:1715
+#: includes/features/class-seoprostack-brand-assets.php:1801
 #, php-format
 msgid "Weights: %s"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1720
+#: includes/features/class-seoprostack-brand-assets.php:1806
 msgid "Get it from Google Fonts (free)"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1737
+#: includes/features/class-seoprostack-brand-assets.php:1823
 #: blocks/brand-assets/index.js:29
 msgid "Formatting"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1740
+#: includes/features/class-seoprostack-brand-assets.php:1826
 msgid "Page title"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1741
+#: includes/features/class-seoprostack-brand-assets.php:1827
 msgid "Heading 2"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1742
+#: includes/features/class-seoprostack-brand-assets.php:1828
 msgid "Heading 3"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1743
+#: includes/features/class-seoprostack-brand-assets.php:1829
 msgid "Heading 4"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1756
+#: includes/features/class-seoprostack-brand-assets.php:1842
 msgid "Body text is set like this, with"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1756
+#: includes/features/class-seoprostack-brand-assets.php:1842
 msgid "links"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1756
+#: includes/features/class-seoprostack-brand-assets.php:1842
 msgid "in the accent colour and"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1756
+#: includes/features/class-seoprostack-brand-assets.php:1842
 msgid "bold text"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1756
+#: includes/features/class-seoprostack-brand-assets.php:1842
 msgid "for emphasis."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1759
+#: includes/features/class-seoprostack-brand-assets.php:1845
 msgid "Quotes stand out from the text around them."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1760
+#: includes/features/class-seoprostack-brand-assets.php:1846
 msgid "Button"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1791
+#: includes/features/class-seoprostack-brand-assets.php:1877
 msgid "Our logos, colours and fonts, for press, print and design."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:1871
-#: includes/features/class-seoprostack-brand-assets.php:2071
+#: includes/features/class-seoprostack-brand-assets.php:1957
+#: includes/features/class-seoprostack-brand-assets.php:2157
 msgid "Brand assets"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2224
+#: includes/features/class-seoprostack-brand-assets.php:2310
 msgid "The block reads the Kadence theme’s settings, and Kadence is not the active theme."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2230
+#: includes/features/class-seoprostack-brand-assets.php:2316
 msgid "The Brand assets page is published."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2231
+#: includes/features/class-seoprostack-brand-assets.php:2317
 msgid "The Brand assets page already shows the block."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2232
+#: includes/features/class-seoprostack-brand-assets.php:2318
 msgid "A page at /brand-assets/ exists without the block, so it was left as it is. Add the Brand assets block to it in the editor."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2233
-#: includes/features/class-seoprostack-brand-assets.php:2238
+#: includes/features/class-seoprostack-brand-assets.php:2319
+#: includes/features/class-seoprostack-brand-assets.php:2324
 msgid "That could not be saved. Please try again."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2234
+#: includes/features/class-seoprostack-brand-assets.php:2320
 msgid "The footer now links to the Brand assets page, after About."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2235
+#: includes/features/class-seoprostack-brand-assets.php:2321
 msgid "The footer already links to the Brand assets page."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2236
+#: includes/features/class-seoprostack-brand-assets.php:2322
 msgid "No About link was found in the footer, so nothing was added. Add the link where it fits."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2237
+#: includes/features/class-seoprostack-brand-assets.php:2323
 msgid "Make the page first."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2245
+#: includes/features/class-seoprostack-brand-assets.php:2331
 msgid "Page:"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2248
+#: includes/features/class-seoprostack-brand-assets.php:2334
 msgid "edit"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2254
+#: includes/features/class-seoprostack-brand-assets.php:2340
 msgid "Make the Brand assets page"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2257
+#: includes/features/class-seoprostack-brand-assets.php:2343
 msgid "Link it from the footer"
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2260
+#: includes/features/class-seoprostack-brand-assets.php:2346
 msgid "The footer link goes after the About link in the footer’s widgets or menu, and is not added twice."
 msgstr ""
 
-#: includes/features/class-seoprostack-brand-assets.php:2279
+#: includes/features/class-seoprostack-brand-assets.php:2365
 msgid "You cannot change this site’s pages."
 msgstr ""
 

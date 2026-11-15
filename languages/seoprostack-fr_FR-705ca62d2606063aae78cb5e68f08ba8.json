@@ -10,14 +10,17 @@
                 "lang": "fr_FR",
                 "plural-forms": "nplurals=2; plural=(n > 1);"
             },
-            "Terms": [
-                "Termes"
-            ],
             "None": [
                 "Aucun"
             ],
+            "Name": [
+                "Nom"
+            ],
             "Columns": [
                 "Colonnes"
+            ],
+            "Terms": [
+                "Termes"
             ],
             "Link": [
                 "Lien"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "Conditions d'utilisation de cet article"
-            ],
-            "Name": [
-                "Nom"
             ],
             "Most posts first": [
                 "La plupart des messages en premier"

@@ -10,14 +10,17 @@
                 "lang": "lv",
                 "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
             },
-            "Terms": [
-                "Noteikumi"
-            ],
             "None": [
                 "Neviens"
             ],
+            "Name": [
+                "V\u0101rds"
+            ],
             "Columns": [
                 "Kolonnas"
+            ],
+            "Terms": [
+                "Noteikumi"
             ],
             "Link": [
                 "Saite"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "\u0160\u012b ieraksta noteikumi"
-            ],
-            "Name": [
-                "V\u0101rds"
             ],
             "Most posts first": [
                 "Visvair\u0101k ierakstu vispirms"

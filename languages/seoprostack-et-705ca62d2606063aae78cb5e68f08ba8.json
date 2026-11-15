@@ -10,14 +10,17 @@
                 "lang": "et",
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
-            "Terms": [
-                "Tingimused"
-            ],
             "None": [
                 "Puudub"
             ],
+            "Name": [
+                "Nimi"
+            ],
             "Columns": [
                 "Veerud"
+            ],
+            "Terms": [
+                "Tingimused"
             ],
             "Link": [
                 "Link"
@@ -54,9 +57,6 @@
             ],
             "This post\u2019s terms": [
                 "Selle postituse tingimused"
-            ],
-            "Name": [
-                "Nimi"
             ],
             "Most posts first": [
                 "Enamik postitusi esimesena"

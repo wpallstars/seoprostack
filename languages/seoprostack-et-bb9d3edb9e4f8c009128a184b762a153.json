@@ -13,6 +13,9 @@
             "Settings": [
                 "Seaded"
             ],
+            "Icon": [
+                "Ikoon"
+            ],
             "Brand icons": [
                 "Br\u00e4ndi ikoonid"
             ],
@@ -27,9 +30,6 @@
             ],
             "No icons found.": [
                 "Ikoone ei leitud."
-            ],
-            "Icon": [
-                "Ikoon"
             ],
             "Brand colour": [
                 "Br\u00e4ndi v\u00e4rv"
