@@ -301,12 +301,12 @@ html:not(.sps-dark) body.sps-own-screen {
 	border-inline-start: 4px solid #dba617;
 }
 
-/* No icon on removed cards or cards from outside wordpress.org, so drop
-   core's 148px icon gutter. */
+/* No icon on removed cards or on cards from outside wordpress.org that
+   bring none, so drop core's 148px icon gutter. */
 .sps-wrap .sps-plugins .sps-plugin-removed .name,
 .sps-wrap .sps-plugins .sps-plugin-removed .desc > p,
-.sps-wrap .sps-plugins .sps-plugin-external .name,
-.sps-wrap .sps-plugins .sps-plugin-external .desc > p {
+.sps-wrap .sps-plugins .sps-plugin-external:not(.sps-plugin-has-icon) .name,
+.sps-wrap .sps-plugins .sps-plugin-external:not(.sps-plugin-has-icon) .desc > p {
 	margin-inline-start: 0;
 }
 

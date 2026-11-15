@@ -207,37 +207,52 @@ function seoprostack_get_free_plugins() {
 
 /**
  * Our own plugins on the list, which are not on WordPress.org yet: cards
- * from this data (SEOProStack_Plugin_Manager::external_plugins()), linking
- * to their GitHub repositories, with Activate once installed.
+ * from this data (SEOProStack_Plugin_Manager::external_plugins()), with
+ * Activate once installed. The name and author link to the plugin's page
+ * on wpallstars.com; More Details links to its GitHub repository.
  *
- * @return array<string,array{name:string,description:string,author:string,url:string,requires_php:string,source:string}>
+ * Icons ship with SEO Pro Stack, so the admin asks no other site for them:
+ * admin/images/plugins/{slug}.svg is a copy of that plugin's
+ * admin/images/icon.svg, so copy it again when the plugin's icon changes.
+ *
+ * @return array<string,array{name:string,description:string,author:string,homepage:string,url:string,icon:string,requires_php:string,source:string}>
  */
 function seoprostack_get_own_plugins() {
     $shared = array(
-        'author'       => 'wpallstars',
+        'author'       => 'WPALLSTARS',
         'requires_php' => '7.4',
         'source'       => __('From GitHub, by the makers of SEO Pro Stack.', 'seoprostack'),
     );
+    $images  = SEOPROSTACK_URL . 'admin/images/';
     $plugins = array(
         'seoprostack'         => array(
             'name'        => 'SEO Pro Stack',
             'description' => __('One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.', 'seoprostack'),
+            'homepage'    => 'https://www.wpallstars.com/wordpress/plugins/seoprostack/',
             'url'         => 'https://github.com/wpallstars/seoprostack',
+            'icon'        => $images . 'icon.svg',
         ),
         'seoprocookieconsent' => array(
             'name'        => 'SEO Pro Cookie Consent',
             'description' => __('Simple, light cookie consent: blocks scripts until consent, asks only where the law and the page need it, and fits your theme. Cookie, privacy and terms pages included; imports Complianz and 11 other consent plugins.', 'seoprostack'),
+            // No page of its own yet: the list of our plugins.
+            'homepage'    => 'https://www.wpallstars.com/wordpress/plugins/',
             'url'         => 'https://github.com/wpallstars/seoprocookieconsent',
+            'icon'        => $images . 'plugins/seoprocookieconsent.svg',
         ),
         'seoproanalytics'     => array(
             'name'        => 'SEO Pro Analytics',
             'description' => __('Private, cookie-free statistics with search rankings and sales, connected to your content. Imports the history of Burst Statistics and other statistics plugins.', 'seoprostack'),
+            'homepage'    => 'https://www.wpallstars.com/wordpress/plugins/seoproanalytics/',
             'url'         => 'https://github.com/wpallstars/seoproanalytics',
+            'icon'        => $images . 'plugins/seoproanalytics.svg',
         ),
         'seoprocustom'        => array(
             'name'        => 'SEO Pro Custom',
             'description' => __('Change how your theme and plugins behave when their settings can\'t, without waiting on their makers: one small file per change, in your own copy.', 'seoprostack'),
+            'homepage'    => 'https://www.wpallstars.com/wordpress/plugins/seoprocustom/',
             'url'         => 'https://github.com/wpallstars/seoprocustom',
+            'icon'        => $images . 'plugins/seoprocustom.svg',
         ),
     );
     // array_map() keeps the slugs as keys (one array given).

@@ -2637,7 +2637,7 @@ Developers can add settings, tabs and directory entries with filters. [docs/HOOK
 - `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
 - `seoprostack_free_plugins`: change the Free Plugins list (category => slugs).
 - `seoprostack_free_plugin_note`: a plain-text note under a plugin in Free Plugins (`$note`, `$slug`), worked out for the site on each view. `$note` starts with SEO Pro Stack's own note, if any (tools for fixing problems that are best left off day to day); return `''` to remove it.
-- `seoprostack_external_plugins`: card data for listed plugins that are not on WordPress.org (slug => `name`, `description`, `author`, `url`, `file` when installed, `network`, `install_url`, `requires_php`, `source`). Their cards are built from this data instead of the WordPress.org API, with an Install Now link to `install_url`. The array starts with our own plugins that are not on WordPress.org yet.
+- `seoprostack_external_plugins`: card data for listed plugins that are not on WordPress.org (slug => `name`, `description`, `author`, `homepage` where the name and author link (`url` when left out), `url` for More Details, `icon` (an image address; optional), `file` when installed, `network`, `install_url`, `requires_php`, `source`). Their cards are built from this data instead of the WordPress.org API, with an Install Now link to `install_url`. The array starts with our own plugins that are not on WordPress.org yet.
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
 - `seoprostack_auto_upload_limit`: change the per-save import limit.
 - `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
@@ -2746,6 +2746,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- Changed (**Free Plugins**; #1673): our own plugins' cards show their icons and By WPALLSTARS, and their name and author link to the plugin's page on wpallstars.com; More Details still opens its GitHub repository.
 
 ### 1.3.221
 
