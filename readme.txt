@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.218
+Stable tag: 1.3.219
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -73,24 +73,22 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
 * **Links skip redirects** to Rank Math's on-site targets.
-* **Robots.txt rules**, with any SEO plugin or none: no search spam; staging sites hidden.
+* **Robots.txt rules** with any SEO plugin: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
 * **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address**, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
-* **Load the CSS each page uses first** (off): pages with Kadence and recommended plugins show sooner, worked out on your server.
+* **Load the CSS each page uses first** (off): Kadence and recommended plugins' pages show sooner, worked out locally.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and tasks.
-* **Count terms and comments in the background** and **Remember admin counts** (off).
-* **Load large settings only where they are used** (single sites).
-* **Faster page counts on long lists** (off).
-* **Faster database keys**, kept after updates (single sites).
+* **Count terms and comments in the background**, **Remember admin counts** and **Faster page counts on long lists** (off).
+* **Load large settings only where they are used** and **Faster database keys** (single sites).
 * **Database key cleanup** with restore SQL. **Add database keys** (off).
 * **Database character set**: opt-in utf8mb4 for emoji.
 * **Load plugins only where needed**.
 
 = Plugins and set-up =
 
-* **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) applies them, and later changes, on its own.
+* **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) keeps them, and later changes, applied.
 * **Site templates**: WP-CLI apply, compare and undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds.
@@ -144,7 +142,7 @@ Hashed links work once for an hour. Password-step two-factor checks are skipped:
 
 From where you installed it. GitHub gets new versions first; WordPress.org 30 days on, security fixes at once.
 
-GitHub builds report host blocks. Opt-in GitHub auto-updates keep safety checks and holds; off by default.
+GitHub builds report host blocks. Opt-in GitHub auto-updates keep safety checks and holds.
 
 = Where do I get help? =
 
@@ -158,8 +156,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.218 =
-* Added: My Account without WooCommerce, same layout and hooks.
-* Fixed: a stopped watermark removal can be retried.
+= 1.3.219 =
+* Added: Faster database keys; dark email banner; translated Brand assets.
+* Fixed: Brand assets layout; Meta and AffiliateWP in Dark.
 
 Older: `changelog.txt`.

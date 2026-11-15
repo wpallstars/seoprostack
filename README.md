@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.218-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.219-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.218
+Version: 1.3.219
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2743,7 +2743,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.219
 
 - New (Server; on by default, single sites; #1649): **Faster database keys** gives WordPress's and WooCommerce's posts, custom field, comment, settings, users and order meta tables the keys Index WP MySQL For Speed adds, in the background and online, and keeps them after WordPress, WooCommerce and plugin updates, so nobody has to rebuild them by hand. It replaces Index WP MySQL For Speed (except its query monitor): while that is active, this waits; once it is deactivated, its keys are kept as they are. Turning it off or deleting SEO Pro Stack puts WordPress's own keys back. Free Plugins no longer lists Index WP MySQL For Speed. New `wp seoprostack fast-keys status|apply|undo`.
 - Changed (**Brand assets page**): the email signature banner is cropped so the space around the logo is the same on every side, instead of a 600 Ã— 150 banner with wide space at the sides; the card says how wide to show it in an email. The padded PNG files of the other pictures have half as much space around them.
