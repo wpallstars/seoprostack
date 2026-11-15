@@ -46,7 +46,7 @@ Plugins and Pro Plugins (`admin/data/free-plugins.php`,
 - Until they are on WordPress.org, our own plugins' cards come from
   `seoprostack_get_own_plugins()` (`admin/data/free-plugins.php`) through
   `seoprostack_external_plugins`: Activate once installed, the name and
-  `By WPALLSTARS` linking to the plugin's page on www.wpallstars.com
+  `By WPALLSTARS` linking to the plugin's page on `www.wpallstars.com`
   (`homepage`), More Details to its GitHub repository (`url`), and its
   icon from `admin/images/plugins/{slug}.svg`, a copy of the plugin's own
   `admin/images/icon.svg` (copy it again when that changes; give a new own
