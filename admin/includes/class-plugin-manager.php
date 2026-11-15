@@ -284,10 +284,12 @@ class SEOProStack_Plugin_Manager {
     /**
      * Recommended plugins that are not on WordPress.org.
      *
-     * @return array<string,array> Slug => name, description, author, url
-     *     (home page), file (installed plugin file or ''), network (activate
-     *     network-wide), install_url (installs and activates; '' hides the
-     *     button), requires_php and source (where it comes from).
+     * @return array<string,array> Slug => name, description, author,
+     *     homepage (where the name and author link; url when left out), url
+     *     (More Details), icon (image URL; optional), file (installed plugin
+     *     file or ''), network (activate network-wide), install_url
+     *     (installs and activates; '' hides the button), requires_php and
+     *     source (where it comes from).
      */
     public static function external_plugins() {
         self::load_admin_includes();
@@ -691,6 +693,20 @@ class SEOProStack_Plugin_Manager {
     }
 
     /**
+     * Where the name and author of a plugin from outside WordPress.org
+     * link: its home page, else its More Details address.
+     *
+     * @param array $data Card data (see external_plugins()).
+     * @return string
+     */
+    private static function external_home(array $data) {
+        if (!empty($data['homepage'])) {
+            return (string) $data['homepage'];
+        }
+        return isset($data['url']) ? (string) $data['url'] : '';
+    }
+
+    /**
      * Card for a plugin from outside WordPress.org (see external_plugins()).
      *
      * @param string $slug Slug.
@@ -703,15 +719,26 @@ class SEOProStack_Plugin_Manager {
         $php     = $state['php'];
         $php_bad = $state['php_bad'];
         $url     = isset($data['url']) ? (string) $data['url'] : '';
+        $home    = self::external_home($data);
+        $icon    = isset($data['icon']) ? (string) $data['icon'] : '';
+        $class   = 'plugin-card plugin-card-' . sanitize_html_class($slug) . ' sps-plugin-external' . ($icon ? ' sps-plugin-has-icon' : '');
         ?>
-        <div class="plugin-card plugin-card-<?php echo esc_attr(sanitize_html_class($slug)); ?> sps-plugin-external">
+        <div class="<?php echo esc_attr($class); ?>">
             <div class="plugin-card-top">
                 <div class="name column-name">
                     <h3>
-                        <?php if ($url) : ?>
-                            <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($name); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a>
+                        <?php if ($home) : ?>
+                            <a href="<?php echo esc_url($home); ?>" target="_blank" rel="noopener noreferrer">
+                                <?php echo esc_html($name); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
+                                <?php if ($icon) : ?>
+                                    <img src="<?php echo esc_url($icon); ?>" class="plugin-icon" alt="" loading="lazy" />
+                                <?php endif; ?>
+                            </a>
                         <?php else : ?>
                             <?php echo esc_html($name); ?>
+                            <?php if ($icon) : ?>
+                                <img src="<?php echo esc_url($icon); ?>" class="plugin-icon" alt="" loading="lazy" />
+                            <?php endif; ?>
                         <?php endif; ?>
                     </h3>
                 </div>
@@ -730,7 +757,13 @@ class SEOProStack_Plugin_Manager {
                         <p><?php echo esc_html((string) $data['description']); ?></p>
                     <?php endif; ?>
                     <?php if (!empty($data['author'])) : ?>
-                        <p class="authors"><cite><?php echo esc_html(sprintf(/* translators: %s: author */ __('By %s', 'seoprostack'), (string) $data['author'])); ?></cite></p>
+                        <?php
+                        $author = esc_html((string) $data['author']);
+                        if ($home) {
+                            $author = '<a href="' . esc_url($home) . '" target="_blank" rel="noopener noreferrer">' . $author . '<span class="screen-reader-text"> ' . esc_html__('(opens in a new tab)', 'seoprostack') . '</span></a>';
+                        }
+                        ?>
+                        <p class="authors"><cite><?php echo sprintf(/* translators: %s: author */ esc_html__('By %s', 'seoprostack'), $author); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above. ?></cite></p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -875,14 +908,21 @@ class SEOProStack_Plugin_Manager {
      */
     private static function external_row($slug, array $data) {
         $state     = self::external_state($slug, $data);
-        $url       = isset($data['url']) ? (string) $data['url'] : '';
+        $url       = self::external_home($data);
+        $icon      = isset($data['icon']) ? (string) $data['icon'] : '';
         $installed = get_plugins();
         ?>
         <tr class="sps-plugin-row sps-plugin-external plugin-card-<?php echo esc_attr(sanitize_html_class($slug)); ?>">
             <th scope="row" class="check-column"></th>
             <td class="sps-plugin-row__name">
                 <div class="sps-plugin-row__plugin">
-                    <span class="sps-plugin-row__icon" aria-hidden="true"><span class="dashicons dashicons-admin-plugins"></span></span>
+                    <span class="sps-plugin-row__icon" aria-hidden="true">
+                        <?php if ($icon) : ?>
+                            <img src="<?php echo esc_url($icon); ?>" alt="" width="32" height="32" loading="lazy" />
+                        <?php else : ?>
+                            <span class="dashicons dashicons-admin-plugins"></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="sps-plugin-row__text">
                         <?php if ($url) : ?>
                             <a class="sps-plugin-row__title" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($state['name']); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a>

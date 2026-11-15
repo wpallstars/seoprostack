@@ -2637,7 +2637,7 @@ Developers can add settings, tabs and directory entries with filters. [docs/HOOK
 - `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
 - `seoprostack_free_plugins`: change the Free Plugins list (category => slugs).
 - `seoprostack_free_plugin_note`: a plain-text note under a plugin in Free Plugins (`$note`, `$slug`), worked out for the site on each view. `$note` starts with SEO Pro Stack's own note, if any (tools for fixing problems that are best left off day to day); return `''` to remove it.
-- `seoprostack_external_plugins`: card data for listed plugins that are not on WordPress.org (slug => `name`, `description`, `author`, `url`, `file` when installed, `network`, `install_url`, `requires_php`, `source`). Their cards are built from this data instead of the WordPress.org API, with an Install Now link to `install_url`. The array starts with our own plugins that are not on WordPress.org yet.
+- `seoprostack_external_plugins`: card data for listed plugins that are not on WordPress.org (slug => `name`, `description`, `author`, `homepage` where the name and author link (`url` when left out), `url` for More Details, `icon` (an image address; optional), `file` when installed, `network`, `install_url`, `requires_php`, `source`). Their cards are built from this data instead of the WordPress.org API, with an Install Now link to `install_url`. The array starts with our own plugins that are not on WordPress.org yet.
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
 - `seoprostack_auto_upload_limit`: change the per-save import limit.
 - `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
@@ -2752,6 +2752,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - New (**Brand assets page**; #1664): filter `seoprostack_brand_assets_lockup` lets a theme add to the logo with the name that the page, the SVG and PNG files and the email banners draw, such as a line under the site title that is not Kadence's tagline, with its letter spacing and gap, and sized so its letters span the title's exactly (`tagFit`). The PNG files are drawn again when it changes.
 - Fixed (**Brand assets page**): colour values (HEX, RGB, CMYK) no longer wrap onto two lines on sites with a large text size or a narrow content column, and the Fonts cards' specimen gets smaller on a narrow card instead of wrapping.
 - Fixed (blocks; #1666): a release that changes a block's script or style now reaches browsers and Cloudflare: every block in the plugin takes the plugin's version, so its files' addresses change with each release.
+- Changed (**Free Plugins**; #1673): our own plugins' cards show their icons and By WPALLSTARS, and their name and author link to the plugin's page on wpallstars.com; More Details still opens its GitHub repository.
 
 ### 1.3.220
 

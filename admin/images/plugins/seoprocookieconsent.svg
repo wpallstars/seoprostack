@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  SEO Pro Cookie Consent icon (WordPress.org icons).
+  Source: .wordpress-org/icon.svg. Edit that, then run scripts/build-banner.sh,
+  which exports icon-256x256.png and icon-128x128.png from it.
+  The banner's picture (.wordpress-org/banner.svg) on its own: the wpallstars
+  plugin stack in red only with the cookie on its top tile, the logo's arc of
+  five stars, and the red double
+  stripes with cream between, on the banner's navy. No words, so it reads at
+  128 pixels. Keep the picture in step with the banner's.
+-->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg57"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <title
+     id="title1">SEO Pro Cookie Consent</title>
+  <defs
+     id="defs23">
+    <linearGradient
+       id="bg"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#000c1f"
+         id="stop1" />
+      <stop
+         offset="0.55"
+         stop-color="#001537"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#0d264d"
+         id="stop3" />
+    </linearGradient>
+    <radialGradient
+       id="glow-red"
+       cx="128"
+       cy="150"
+       r="150"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#bb0000"
+         stop-opacity="0.45"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#bb0000"
+         stop-opacity="0"
+         id="stop5" />
+    </radialGradient>
+    <radialGradient
+       id="glow-gold"
+       cx="1214"
+       cy="76"
+       r="120"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#ffc94d"
+         stop-opacity="0.45"
+         id="stop6" />
+      <stop
+         offset="1"
+         stop-color="#ffc94d"
+         stop-opacity="0"
+         id="stop7" />
+    </radialGradient>
+    <linearGradient
+       id="gold"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ffe08a"
+         id="stop8" />
+      <stop
+         offset="1"
+         stop-color="#f5a524"
+         id="stop9" />
+    </linearGradient>
+    <linearGradient
+       id="top-red"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ef4444"
+         id="stop10" />
+      <stop
+         offset="1"
+         stop-color="#bb0000"
+         id="stop11" />
+    </linearGradient>
+    <linearGradient
+       id="top-cream"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ff8a8a"
+         id="stop12" />
+      <stop
+         offset="1"
+         stop-color="#e03131"
+         id="stop13" />
+    </linearGradient>
+    <linearGradient
+       id="top-blue"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#c81e1e"
+         id="stop14" />
+      <stop
+         offset="1"
+         stop-color="#7a0000"
+         id="stop15" />
+    </linearGradient>
+    <!-- A five-pointed star, radius 1, centred on 0,0 -->
+    <polygon
+       id="star"
+       points="0,-1 0.2245,-0.309 0.9511,-0.309 0.3633,0.118 0.5878,0.809 0,0.382 -0.5878,0.809 -0.3633,0.118 -0.9511,-0.309 -0.2245,-0.309" />
+    <linearGradient
+       id="cookie-top"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#f7d08a"
+         id="stop16" />
+      <stop
+         offset="1"
+         stop-color="#d6913d"
+         id="stop17" />
+    </linearGradient>
+    <!-- The banner's cookie (keep the two in step): a bitten disc and its
+         chocolate chips through the top tile's face matrix. -->
+    <path
+       id="cookie"
+       transform="matrix(4.95 2.871 -4.95 2.871 1214 -57.42)"
+       d="M18.16 9.15 A8.2 8.2 0 1 1 10.85 1.84 A3 3 0 0 0 14.38 5.62 A3 3 0 0 0 18.16 9.15 Z" />
+    <g
+       id="chips"
+       transform="matrix(4.95 2.871 -4.95 2.871 1214 -57.42)">
+      <circle
+         cx="6.8"
+         cy="7.4"
+         r="1.25"
+         id="circle17" />
+      <circle
+         cx="11.2"
+         cy="10.6"
+         r="1.1"
+         id="circle18" />
+      <circle
+         cx="7.2"
+         cy="13.4"
+         r="1"
+         id="circle19" />
+      <circle
+         cx="12.6"
+         cy="14.6"
+         r="1.2"
+         id="circle20" />
+      <circle
+         cx="15.4"
+         cy="11.2"
+         r="0.9"
+         id="circle21" />
+      <circle
+         cx="9.8"
+         cy="4.6"
+         r="0.85"
+         id="circle22" />
+      <circle
+         cx="4.6"
+         cy="10.6"
+         r="0.8"
+         id="circle23" />
+    </g>
+  </defs>
+  <!-- Background -->
+  <rect
+     width="256"
+     height="256"
+     fill="url(#bg)"
+     id="rect23" />
+  <rect
+     width="256"
+     height="256"
+     fill="url(#glow-red)"
+     id="rect24" />
+  <!-- wpallstars.com's red double lines, with a cream line between them. -->
+  <g
+     id="g30">
+    <rect
+       y="0"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect25" />
+    <rect
+       y="4"
+       width="256"
+       height="3"
+       fill="#ffffea"
+       id="rect26" />
+    <rect
+       y="7"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect27" />
+    <rect
+       y="245"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect28" />
+    <rect
+       y="249"
+       width="256"
+       height="3"
+       fill="#ffffea"
+       id="rect29" />
+    <rect
+       y="252"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect30" />
+  </g>
+  <!-- The banner's picture, in the banner's coordinates: 376 x 443 from
+       1026,24, centred on 1214,245.5, scaled to fit between the stripes. -->
+  <g
+     transform="translate(128 128) scale(0.5) translate(-1214 -245.5)"
+     id="g57">
+    <!-- The stack: three red tiles, as on the banner (keep the two in step). -->
+    <g
+       stroke-linejoin="round"
+       id="g52">
+      <g
+         transform="translate(0 350)"
+         id="g33">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#5c0000"
+           id="polygon30" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#420000"
+           id="polygon31" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-blue)"
+           id="polygon32" />
+        <polygon
+           points="1214,-61 1319,0 1214,61 1109,0"
+           fill="none"
+           stroke="#ffffff"
+           stroke-opacity="0.3"
+           stroke-width="2"
+           id="polygon33" />
+      </g>
+      <g
+         transform="translate(0 294)"
+         id="g37">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#c22424"
+           id="polygon34" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#9e1414"
+           id="polygon35" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-cream)"
+           id="polygon36" />
+        <polygon
+           points="1214,-61 1319,0 1214,61 1109,0"
+           fill="none"
+           stroke="#001537"
+           stroke-opacity="0.18"
+           stroke-width="2"
+           id="polygon37" />
+      </g>
+      <g
+         transform="translate(0 238)"
+         id="g51">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#940000"
+           id="polygon38" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#700000"
+           id="polygon39" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-red)"
+           id="polygon40" />
+        <!-- The cookie, raised a little off the face, as on the banner. -->
+        <use
+           xlink:href="#cookie"
+           transform="translate(5 3)"
+           fill="#5c0000"
+           fill-opacity="0.55"
+           id="use40" />
+        <g
+           fill="#a3591d"
+           id="g49">
+          <use
+             xlink:href="#cookie"
+             id="use41" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -1)"
+             id="use42" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -2)"
+             id="use43" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -3)"
+             id="use44" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -4)"
+             id="use45" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -5)"
+             id="use46" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -6)"
+             id="use47" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -7)"
+             id="use48" />
+          <use
+             xlink:href="#cookie"
+             transform="translate(0 -8)"
+             id="use49" />
+        </g>
+        <use
+           xlink:href="#cookie"
+           transform="translate(0 -9)"
+           fill="url(#cookie-top)"
+           stroke="#ffffea"
+           stroke-width="0.35"
+           id="use50" />
+        <use
+           xlink:href="#chips"
+           transform="translate(0 -9)"
+           fill="#4a230c"
+           id="use51" />
+      </g>
+    </g>
+    <!-- The logo's arc of five stars: gold in the middle, floating above the stack -->
+    <circle
+       cx="1214"
+       cy="76"
+       r="120"
+       fill="url(#glow-gold)"
+       id="circle52" />
+    <g
+       stroke-linejoin="round"
+       id="g56">
+      <g
+         fill="#bb0000"
+         stroke="#ffffea"
+         stroke-width="5"
+         id="g55">
+        <use
+           xlink:href="#star"
+           transform="translate(1043 150) scale(17)"
+           stroke-width="0.3"
+           id="use52" />
+        <use
+           xlink:href="#star"
+           transform="translate(1110 100) scale(26)"
+           stroke-width="0.2"
+           id="use53" />
+        <use
+           xlink:href="#star"
+           transform="translate(1318 100) scale(26)"
+           stroke-width="0.2"
+           id="use54" />
+        <use
+           xlink:href="#star"
+           transform="translate(1385 150) scale(17)"
+           stroke-width="0.3"
+           id="use55" />
+      </g>
+      <use
+         xlink:href="#star"
+         transform="translate(1214 78) scale(54)"
+         fill="url(#gold)"
+         stroke="#ffffea"
+         stroke-width="0.11"
+         id="use56" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  SEO Pro Analytics icon (WordPress.org icons).
+  Source: .wordpress-org/icon.svg. Edit that, then run scripts/build-banner.sh,
+  which exports icon-256x256.png and icon-128x128.png from it.
+  The banner's picture (.wordpress-org/banner.svg) on its own: the wpallstars
+  plugin stack in red only with SEO Pro Analytics' rising bars on top, the logo's arc of five stars, and the red double
+  stripes with cream between, on the banner's navy. No words, so it reads at
+  128 pixels. Keep the picture in step with the banner's.
+-->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg51"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <title
+     id="title1">SEO Pro Analytics</title>
+  <defs
+     id="defs15">
+    <linearGradient
+       id="bg"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#000c1f"
+         id="stop1" />
+      <stop
+         offset="0.55"
+         stop-color="#001537"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#0d264d"
+         id="stop3" />
+    </linearGradient>
+    <radialGradient
+       id="glow-red"
+       cx="128"
+       cy="150"
+       r="150"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#bb0000"
+         stop-opacity="0.45"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#bb0000"
+         stop-opacity="0"
+         id="stop5" />
+    </radialGradient>
+    <radialGradient
+       id="glow-gold"
+       cx="1214"
+       cy="76"
+       r="120"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#ffc94d"
+         stop-opacity="0.45"
+         id="stop6" />
+      <stop
+         offset="1"
+         stop-color="#ffc94d"
+         stop-opacity="0"
+         id="stop7" />
+    </radialGradient>
+    <linearGradient
+       id="gold"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ffe08a"
+         id="stop8" />
+      <stop
+         offset="1"
+         stop-color="#f5a524"
+         id="stop9" />
+    </linearGradient>
+    <linearGradient
+       id="top-red"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ef4444"
+         id="stop10" />
+      <stop
+         offset="1"
+         stop-color="#bb0000"
+         id="stop11" />
+    </linearGradient>
+    <linearGradient
+       id="top-cream"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ff8a8a"
+         id="stop12" />
+      <stop
+         offset="1"
+         stop-color="#e03131"
+         id="stop13" />
+    </linearGradient>
+    <linearGradient
+       id="top-blue"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#c81e1e"
+         id="stop14" />
+      <stop
+         offset="1"
+         stop-color="#7a0000"
+         id="stop15" />
+    </linearGradient>
+    <!-- A five-pointed star, radius 1, centred on 0,0 -->
+    <polygon
+       id="star"
+       points="0,-1 0.2245,-0.309 0.9511,-0.309 0.3633,0.118 0.5878,0.809 0,0.382 -0.5878,0.809 -0.3633,0.118 -0.9511,-0.309 -0.2245,-0.309" />
+  </defs>
+  <!-- Background -->
+  <rect
+     width="256"
+     height="256"
+     fill="url(#bg)"
+     id="rect15" />
+  <rect
+     width="256"
+     height="256"
+     fill="url(#glow-red)"
+     id="rect16" />
+  <!-- wpallstars.com's red double lines, with a cream line between them. -->
+  <g
+     id="g22">
+    <rect
+       y="0"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect17" />
+    <rect
+       y="4"
+       width="256"
+       height="3"
+       fill="#ffffea"
+       id="rect18" />
+    <rect
+       y="7"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect19" />
+    <rect
+       y="245"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect20" />
+    <rect
+       y="249"
+       width="256"
+       height="3"
+       fill="#ffffea"
+       id="rect21" />
+    <rect
+       y="252"
+       width="256"
+       height="4"
+       fill="#bb0000"
+       id="rect22" />
+  </g>
+  <!-- The banner's picture, in the banner's coordinates: 376 x 443 from
+       1026,24, centred on 1214,245.5, scaled to fit between the stripes. -->
+  <g
+     transform="translate(128 128) scale(0.5) translate(-1214 -245.5)"
+     id="g51">
+    <!-- The stack: red, cream and blue layers, each with a top face and two sides -->
+    <g
+       stroke-linejoin="round"
+       id="g46">
+      <g
+         transform="translate(0 350)"
+         id="g25">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#5c0000"
+           id="polygon22" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#420000"
+           id="polygon23" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-blue)"
+           id="polygon24" />
+        <polygon
+           points="1214,-61 1319,0 1214,61 1109,0"
+           fill="none"
+           stroke="#ffffff"
+           stroke-opacity="0.3"
+           stroke-width="2"
+           id="polygon25" />
+      </g>
+      <g
+         transform="translate(0 294)"
+         id="g29">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#c22424"
+           id="polygon26" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#9e1414"
+           id="polygon27" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-cream)"
+           id="polygon28" />
+        <polygon
+           points="1214,-61 1319,0 1214,61 1109,0"
+           fill="none"
+           stroke="#001537"
+           stroke-opacity="0.18"
+           stroke-width="2"
+           id="polygon29" />
+      </g>
+      <g
+         transform="translate(0 238)"
+         id="g45">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#940000"
+           id="polygon30" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#700000"
+           id="polygon31" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-red)"
+           id="polygon32" />
+        <!-- SEO Pro Analytics' rising bars, as on the banner. -->
+        <g
+           fill="#5c0000"
+           fill-opacity="0.5"
+           id="g35">
+          <polygon
+             points="1103,-2 1133,-19.4 1163,-2 1133,15.4"
+             id="polygon33" />
+          <polygon
+             points="1193,-2 1223,-19.4 1253,-2 1223,15.4"
+             id="polygon34" />
+          <polygon
+             points="1283,-2 1313,-19.4 1343,-2 1313,15.4"
+             id="polygon35" />
+        </g>
+        <g
+           stroke="#ffffea"
+           stroke-opacity="0.35"
+           stroke-width="1"
+           stroke-linejoin="round"
+           id="g44">
+          <polygon
+             points="1094,0 1124,17.4 1124,-14.6 1094,-32"
+             fill="#ece0c2"
+             id="polygon36" />
+          <polygon
+             points="1124,17.4 1154,0 1154,-32 1124,-14.6"
+             fill="#c9b68c"
+             id="polygon37" />
+          <polygon
+             points="1094,-32 1124,-49.4 1154,-32 1124,-14.6"
+             fill="#ffffea"
+             id="polygon38" />
+          <polygon
+             points="1184,0 1214,17.4 1214,-40.6 1184,-58"
+             fill="#ece0c2"
+             id="polygon39" />
+          <polygon
+             points="1214,17.4 1244,0 1244,-58 1214,-40.6"
+             fill="#c9b68c"
+             id="polygon40" />
+          <polygon
+             points="1184,-58 1214,-75.4 1244,-58 1214,-40.6"
+             fill="#ffffea"
+             id="polygon41" />
+          <polygon
+             points="1274,0 1304,17.4 1304,-66.6 1274,-84"
+             fill="#f5b53a"
+             id="polygon42" />
+          <polygon
+             points="1304,17.4 1334,0 1334,-84 1304,-66.6"
+             fill="#c97f0e"
+             id="polygon43" />
+          <polygon
+             points="1274,-84 1304,-101.4 1334,-84 1304,-66.6"
+             fill="url(#gold)"
+             id="polygon44" />
+        </g>
+      </g>
+    </g>
+    <!-- The logo's arc of five stars: gold in the middle, floating above the stack -->
+    <circle
+       cx="1214"
+       cy="76"
+       r="120"
+       fill="url(#glow-gold)"
+       id="circle46" />
+    <g
+       stroke-linejoin="round"
+       id="g50">
+      <g
+         fill="#bb0000"
+         stroke="#ffffea"
+         stroke-width="5"
+         id="g49">
+        <use
+           xlink:href="#star"
+           transform="translate(1043 150) scale(17)"
+           stroke-width="0.3"
+           id="use46" />
+        <use
+           xlink:href="#star"
+           transform="translate(1110 100) scale(26)"
+           stroke-width="0.2"
+           id="use47" />
+        <use
+           xlink:href="#star"
+           transform="translate(1318 100) scale(26)"
+           stroke-width="0.2"
+           id="use48" />
+        <use
+           xlink:href="#star"
+           transform="translate(1385 150) scale(17)"
+           stroke-width="0.3"
+           id="use49" />
+      </g>
+      <use
+         xlink:href="#star"
+         transform="translate(1214 78) scale(54)"
+         fill="url(#gold)"
+         stroke="#ffffea"
+         stroke-width="0.11"
+         id="use50" />
+    </g>
+  </g>
+</svg>
