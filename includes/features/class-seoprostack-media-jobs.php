@@ -34,9 +34,12 @@ class SEOProStack_Media_Jobs {
     }
 
     /**
-     * wp seoprostack media-jobs start|status|stop|run remark|adopt|originals [--minutes=<n>]
+     * wp seoprostack media-jobs start|status|stop|run remark|adopt|originals [--minutes=<n>] [--restart]
      *
      * Start resumes a stopped/failed journal; completed jobs start a new scan.
+     * Start --restart drops a stopped, failed or waiting journal and starts
+     * over with the current settings (for example after the watermark changed).
+     * It takes the same lease as stop, so it is refused while a batch runs.
      * Status is read-only. Stop waits for the current lease rather than racing
      * its journal writer; already completed attachments are not rolled back.
      * Run works through a started job in this process, turn by turn, for
@@ -44,7 +47,7 @@ class SEOProStack_Media_Jobs {
      * be killed at any point and run again.
      *
      * @param array $args Positional arguments.
-     * @param array $assoc Options: minutes (run only).
+     * @param array $assoc Options: minutes (run only), restart (start only).
      */
     public static function cli($args, $assoc) {
         $op = $args[0] ?? 'status';
@@ -72,7 +75,7 @@ class SEOProStack_Media_Jobs {
                     $job['failed'] = self::failure_count($kind);
                 }
                 if ('start' === $op) {
-                    if (!$job || 'done' === $job['state']) {
+                    if (!$job || 'done' === $job['state'] || !empty($assoc['restart'])) {
                         $job = array('state' => 'waiting', 'before' => PHP_INT_MAX, 'done' => 0, 'failed' => 0, 'phase' => 'scan', 'pass' => 0, 'retry_cursor' => '', 'inflight' => 0, 'tries' => 0, 'recent' => array(), 'started' => time(), 'destination' => SEOProStack_Media_Storage::config()['signature']);
                         $latest = get_posts(array('post_type' => 'attachment', 'post_status' => 'inherit', 'numberposts' => 1, 'fields' => 'ids', 'orderby' => 'ID', 'order' => 'DESC', 'no_found_rows' => true));
                         $job['before'] = $latest ? (int) $latest[0] + 1 : 1;
