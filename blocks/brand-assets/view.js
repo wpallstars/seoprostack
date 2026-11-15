@@ -302,10 +302,18 @@
 		};
 	}
 
+	/* A copy of a lockup font at another size. */
 	function resized(font, size) {
-		var out = Object.assign({}, font);
-		out.size = size;
-		return out;
+		return {
+			family: font.family,
+			weight: font.weight,
+			style: font.style,
+			size: size,
+			lineHeight: font.lineHeight,
+			transform: font.transform,
+			color: font.color,
+			letterSpacing: font.letterSpacing
+		};
 	}
 
 	/*
@@ -343,15 +351,16 @@
 		var box = { width: 0, height: 0, lines: [], aligned: !!(lockup.tagFit && lockup.title && lockup.tagline) };
 		var fonts = fitted(lockup, ctx);
 		var gapEm = 'number' === typeof lockup.tagGap ? lockup.tagGap : 0.4375;
-		[[lockup.title, fonts.title], [lockup.tagline, fonts.tag]].forEach(function (line) {
-			if (!line[0]) {
+		[{ text: lockup.title, font: fonts.title }, { text: lockup.tagline, font: fonts.tag }].forEach(function (part) {
+			if (!part.text) {
 				return;
 			}
-			var text = transform(line[0], line[1].transform);
-			var m = measure(ctx, text, line[1]);
-			var height = line[1].size * line[1].lineHeight;
-			var gap = box.lines.length ? line[1].size * gapEm : 0;
-			box.lines.push({ text: text, font: line[1], width: m.width, inkLeft: m.inkLeft, shift: 0, height: height, top: box.height + gap });
+			var font = part.font;
+			var text = transform(part.text, font.transform);
+			var m = measure(ctx, text, font);
+			var height = font.size * font.lineHeight;
+			var gap = box.lines.length ? font.size * gapEm : 0;
+			box.lines.push({ text: text, font: font, width: m.width, inkLeft: m.inkLeft, shift: 0, height: height, top: box.height + gap });
 			box.height += gap + height;
 		});
 		// Fitted lines start at the same ink, not the same box.
