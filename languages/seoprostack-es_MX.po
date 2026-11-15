@@ -15837,7 +15837,7 @@ msgstr "Predeterminado (oculto)"
 #: includes/features/class-seoprostack-social-sharing.php:961
 #: blocks/brand-assets/index.js:38 blocks/client-dashboard/index.js:32
 msgid "Show"
-msgstr "Espectáculo"
+msgstr "Mostrar"
 
 # machine translation
 #: includes/features/class-seoprostack-spectra-blocks.php:63
