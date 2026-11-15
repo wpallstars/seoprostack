@@ -1165,7 +1165,8 @@ A site that kept WooCommerce only for its My Account page (log in, sign up, lost
 - WooCommerce's markup, classes, form fields, nonces and hooks, so tabs other plugins add (`woocommerce_get_query_vars`, `woocommerce_account_menu_items`, `woocommerce_account_{endpoint}_endpoint`, `woocommerce_endpoint_{endpoint}_title`) and the fields and checks they add to its forms (`woocommerce_register_form`, `woocommerce_register_post`, `woocommerce_created_customer`, `woocommerce_edit_account_form`, `woocommerce_save_account_details_errors`, `woocommerce_save_account_details`, `lostpassword_post`, `validate_password_reset`) keep working. Simple Cloudflare Turnstile's WooCommerce login, register, reset and account checks keep working with their own switches.
 - WooCommerce's settings are kept and read: the endpoint slugs, "Generate username" and "Generate password", the privacy text and the New account email switch. **People can sign up** starts as WooCommerce's "Allow customers to create an account on the My account page".
 - The Kadence theme's account layout (navigation position, avatar and its WooCommerce styles) looks the same. The password strength meter, page cache exclusion and logout confirmation work as WooCommerce's.
-- Orders, Downloads, Addresses and Payment methods are the shop's and need WooCommerce: keep it active on a site that sells.
+- Fluent Support's **Support** tab stays: when Fluent Support's Customer Portal setting is WooCommerce Account Navigation (Fluent Support Pro), the tab, its customer portal and the ticket links in its emails keep pointing at My Account → Support (#1661). Where Ultimate Multisite Plus's Support in My Account serves the tab, it is left to that.
+- Orders, Downloads, Addresses and Payment methods are the shop's and need WooCommerce: keep it active on a site that sells. A billing address for invoices is kept by the membership plugin (Ultimate Multisite's checkout and Billing info), not by WooCommerce's address book.
 - Other plugins check `SEOProStack_Account::available()` and use `page_url()`, `endpoint_url()`, `account_endpoint_url()`, `is_account_page()` and `add_notice()` where they would use WooCommerce's functions. Filters: `seoprostack_account_page`, `seoprostack_account_role`, `seoprostack_account_password_line`, `seoprostack_account_min_password_strength`.
 
 ### Lighter Tutor LMS pages (Speed)
@@ -2748,6 +2749,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Changed (**Free Plugins**, **Pro Plugins**; #1657): our own plugins are recommended: SEO Pro Stack in Minimal, SEO Pro Cookie Consent in Compliance, SEO Pro Analytics in SEO, SEO Pro Custom in Advanced and SEO Pro Analytics Connect in Pro Plugins, with links to GitHub until they are on WordPress.org. Complianz, Complianz Terms & Conditions and Burst Statistics, which they replace, are no longer listed. **Load the CSS each page uses first** covers SEO Pro Analytics' stylesheets.
+- New (**My Account without WooCommerce**; #1661): Fluent Support's Support tab stays when WooCommerce is deactivated. Where Fluent Support's customer portal is set to WooCommerce's account navigation, the tab, its portal and the ticket links in its emails keep opening My Account → Support instead of disappearing.
 
 ### 1.3.219
 

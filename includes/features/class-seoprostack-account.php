@@ -18,7 +18,9 @@
  *   their errors, lostpassword_post, validate_password_reset) keep working,
  *   Simple Cloudflare Turnstile's WooCommerce checks included;
  * - the Kadence theme's account layout (navigation, avatar, its WooCommerce
- *   styles) looks the same.
+ *   styles) looks the same;
+ * - Fluent Support's Support tab, which Fluent Support Pro adds only while
+ *   WooCommerce is loaded, stays when its portal setting is WooCommerce.
  *
  * Orders, Downloads, Addresses and Payment methods are the shop's and stay
  * WooCommerce's. While WooCommerce is active it serves My Account and this
@@ -59,7 +61,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
     const WC_SHORTCODE = 'woocommerce_my_account';
 
     /** Files in includes/account/ (class-seoprostack-account-{part}.php), loaded when the feature serves the page. */
-    const PARTS = array('endpoints', 'front-page', 'links', 'notices', 'view', 'kadence', 'turnstile', 'forms', 'login', 'signup', 'customer', 'password-form', 'password-reset', 'details');
+    const PARTS = array('endpoints', 'front-page', 'links', 'fluent-support', 'notices', 'view', 'kadence', 'turnstile', 'forms', 'login', 'signup', 'customer', 'password-form', 'password-reset', 'details');
 
     /**
      * Request cache of available().
@@ -118,6 +120,7 @@ class SEOProStack_Account extends SEOProStack_Feature {
         }
         SEOProStack_Account_Endpoints::boot();
         SEOProStack_Account_Links::boot();
+        SEOProStack_Account_Fluent_Support::boot();
 
         if (is_admin() && !wp_doing_ajax()) {
             return;
