@@ -2747,6 +2747,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced with WP Plugin Starter commit 1de9f7b (GitHub issue #1681): `scripts/check-hooks.js`, the `scripts/lib/deploy-remote*.sh` modules (cron retry, lock races and log-read failures in `deploy-sites.sh --apply`), `scripts/lib/plugin.sh`, `DEVELOPMENT.md` and `RELEASING.md`.
+
 ### 1.3.222
 
 - New (**media-jobs start --restart**; #1660): `wp seoprostack media-jobs start <kind> --restart` drops a stopped, failed or waiting journal and starts a new one with the current settings, such as a changed watermark. It is refused while a media batch is running.
