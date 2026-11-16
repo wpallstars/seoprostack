@@ -2747,6 +2747,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fixed (**Brand assets page**, #1688): **Link it from the footer** and `wp seoprostack brand-assets` no longer stop with an error when the footer menu location still points to a deleted menu.
+
 ### 1.3.223
 
 - Fixed (**Media in cloud storage** â†’ **Remove local copies after upload**, #1674): local copies of uploaded, verified pictures are removed even while other pictures still wait for their WebP/AVIF copies. Before, one waiting picture held back the whole library, so a large site could fill its host's inode limit.
