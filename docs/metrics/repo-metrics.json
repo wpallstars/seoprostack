@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-14T16:57:30Z",
+  "generated_at": "2026-11-16T01:32:19Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,75 +11,75 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 953,
-    "code": 158975,
-    "comments": 53659,
-    "blanks": 14139,
+    "source_files": 1010,
+    "code": 164942,
+    "comments": 56075,
+    "blanks": 14595,
     "languages": 10,
     "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 314,
-      "code": 86555,
-      "comments": 47916,
-      "blanks": 8287,
-      "percentage": 54.45,
+      "files": 341,
+      "code": 89652,
+      "comments": 50017,
+      "blanks": 8640,
+      "percentage": 54.35,
       "color": "#4F5D95"
     },
     {
       "name": "JSON",
-      "files": 468,
-      "code": 30976,
+      "files": 486,
+      "code": 31837,
       "comments": 0,
       "blanks": 0,
-      "percentage": 19.48,
+      "percentage": 19.3,
       "color": "#292929"
     },
     {
       "name": "JavaScript",
-      "files": 55,
-      "code": 13106,
-      "comments": 2124,
-      "blanks": 891,
-      "percentage": 8.24,
+      "files": 56,
+      "code": 13479,
+      "comments": 2197,
+      "blanks": 918,
+      "percentage": 8.17,
       "color": "#f1e05a"
     },
     {
       "name": "CSS",
       "files": 21,
-      "code": 10779,
-      "comments": 1470,
-      "blanks": 2593,
-      "percentage": 6.78,
+      "code": 10949,
+      "comments": 1508,
+      "blanks": 2637,
+      "percentage": 6.64,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
-      "files": 26,
-      "code": 8603,
-      "comments": 1923,
-      "blanks": 663,
-      "percentage": 5.41,
+      "files": 34,
+      "code": 8818,
+      "comments": 2102,
+      "blanks": 672,
+      "percentage": 5.35,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
       "files": 20,
-      "code": 6485,
+      "code": 6585,
       "comments": 0,
-      "blanks": 1591,
-      "percentage": 4.08,
+      "blanks": 1611,
+      "percentage": 3.99,
       "color": "#083fa1"
     },
     {
       "name": "SVG",
-      "files": 33,
-      "code": 1645,
-      "comments": 48,
-      "blanks": 12,
-      "percentage": 1.03,
+      "files": 36,
+      "code": 2796,
+      "comments": 73,
+      "blanks": 15,
+      "percentage": 1.7,
       "color": "#6e7781"
     },
     {
@@ -88,7 +88,7 @@
       "code": 742,
       "comments": 168,
       "blanks": 87,
-      "percentage": 0.47,
+      "percentage": 0.45,
       "color": "#cb171e"
     },
     {
@@ -106,7 +106,7 @@
       "code": 8,
       "comments": 3,
       "blanks": 2,
-      "percentage": 0.01,
+      "percentage": 0.0,
       "color": "#9c4221"
     }
   ],
