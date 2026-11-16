@@ -3065,9 +3065,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @phpstan-impure Reads the queue, which other requests change.
      * @param int $limit Most IDs.
+     * @param bool $more Receives whether the bounded scan stopped before the
+     *                   end of the queue, so more pictures may be ready.
      * @return int[]
      */
-    private static function removable_ready($limit) {
+    private static function removable_ready($limit, &$more = false) {
         $limit = max(1, (int) $limit);
         if (!SEOProStack_Nextgen_Images::enabled()) {
             return self::removable($limit);
@@ -3078,7 +3080,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         for ($page = 0; $page < 10 && count($ready) < $limit; $page++) {
             $ids = self::removable($limit * 2, $before);
             if (!$ids) {
-                break;
+                return $ready;
             }
             foreach ($ids as $id) {
                 if (count($ready) < $limit && !SEOProStack_Nextgen_Images::is_waiting($id)) {
@@ -3087,9 +3089,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
             $before = (int) min($ids);
             if (count($ids) < $limit * 2) {
-                break;
+                return $ready;
             }
         }
+        // Stopped at the bound, not the end: unexamined pictures remain.
+        $more = count($ready) < $limit;
         return $ready;
     }
 
@@ -3853,7 +3857,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return false;
         }
         if (self::removing()) {
-            return (bool) self::removable_ready(1);
+            $more = false;
+            // Stay scheduled while the scan has not reached the queue's end.
+            return (bool) self::removable_ready(1, $more) || $more;
         }
         return self::restoring() && self::restorable(1, PHP_INT_MAX, true);
     }
