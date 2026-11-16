@@ -3046,16 +3046,51 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @phpstan-impure Reads the queue, which other requests change.
      * @param int $limit Most IDs.
+     * @param int $before Only IDs below this one (paging).
      * @return int[]
      */
-    private static function removable($limit) {
+    private static function removable($limit, $before = PHP_INT_MAX) {
         global $wpdb;
         $signature = self::config()['signature'];
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded queue lookup, as waiting().
         return array_map('intval', $wpdb->get_col($wpdb->prepare(
-            "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'uploaded' LEFT JOIN {$wpdb->postmeta} l ON l.post_id = p.ID AND l.meta_key = %s WHERE p.post_type = 'attachment' AND (l.meta_id IS NULL OR (l.meta_value NOT IN (%s, %s) AND NOT (l.meta_value LIKE %s AND CAST(SUBSTRING_INDEX(l.meta_value, ':', -1) AS UNSIGNED) > %d))) ORDER BY p.ID DESC LIMIT %d",
-            self::DONE, self::upload_marker(), self::STATE, self::LOCAL, $signature, 'kept:' . $signature, $wpdb->esc_like('kept:' . $signature . ':') . '%', time() - self::KEPT_RETRY, max(1, (int) $limit)
+            "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'uploaded' LEFT JOIN {$wpdb->postmeta} l ON l.post_id = p.ID AND l.meta_key = %s WHERE p.post_type = 'attachment' AND (l.meta_id IS NULL OR (l.meta_value NOT IN (%s, %s) AND NOT (l.meta_value LIKE %s AND CAST(SUBSTRING_INDEX(l.meta_value, ':', -1) AS UNSIGNED) > %d))) AND p.ID < %d ORDER BY p.ID DESC LIMIT %d",
+            self::DONE, self::upload_marker(), self::STATE, self::LOCAL, $signature, 'kept:' . $signature, $wpdb->esc_like('kept:' . $signature . ':') . '%', time() - self::KEPT_RETRY, (int) $before, max(1, (int) $limit)
         )));
+    }
+
+    /**
+     * Removable pictures that are not waiting for their WebP/AVIF copies,
+     * newest first. Waiting pictures stay in the queue for a later turn.
+     *
+     * @phpstan-impure Reads the queue, which other requests change.
+     * @param int $limit Most IDs.
+     * @return int[]
+     */
+    private static function removable_ready($limit) {
+        $limit = max(1, (int) $limit);
+        if (!SEOProStack_Nextgen_Images::enabled()) {
+            return self::removable($limit);
+        }
+        $ready = array();
+        $before = PHP_INT_MAX;
+        // Bounded paging: a long run of waiting pictures never costs a whole turn.
+        for ($page = 0; $page < 10 && count($ready) < $limit; $page++) {
+            $ids = self::removable($limit * 2, $before);
+            if (!$ids) {
+                break;
+            }
+            foreach ($ids as $id) {
+                if (count($ready) < $limit && !SEOProStack_Nextgen_Images::is_waiting($id)) {
+                    $ready[] = $id;
+                }
+            }
+            $before = (int) min($ids);
+            if (count($ids) < $limit * 2) {
+                break;
+            }
+        }
+        return $ready;
     }
 
     /**
@@ -3429,7 +3464,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         $deadline = $start + $budget;
-        $ids = $removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true);
+        $ids = $removing ? self::removable_ready($limit) : self::restorable($limit, PHP_INT_MAX, true);
         if (!$removing) {
             foreach ($ids as $id) {
                 if (!self::more_time($start, $budget) || !self::local_step($id, false, $deadline)) {
@@ -3538,8 +3573,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return null;
         }
         if (self::removing()) {
-            // WebP and AVIF copies are made first, before files go.
-            return SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::waiting(1) ? null : true;
+            // WebP and AVIF copies are made first, before a picture's files go
+            // (removable_ready() leaves out pictures still waiting for theirs).
+            return true;
         }
         return self::restoring() ? false : null;
     }
@@ -3729,7 +3765,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return true;
         }
         // WebP and AVIF copies are made from local files, before they go
-        // (local_mode() waits for the whole library; this picture is enough).
+        // (removable_ready() makes the same per-picture check for the batch).
         if (SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::is_waiting($id)) {
             return false;
         }
@@ -3817,7 +3853,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return false;
         }
         if (self::removing()) {
-            return (bool) self::removable(1);
+            return (bool) self::removable_ready(1);
         }
         return self::restoring() && self::restorable(1, PHP_INT_MAX, true);
     }
