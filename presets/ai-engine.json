@@ -1,11 +1,11 @@
 {
     "name": "AI Engine",
-    "tested": "3.8.3",
-    "updated": "2026-10-06",
+    "tested": "3.9.3",
+    "updated": "2026-11-16",
     "also": {
         "ai-engine-pro": "AI Engine (Pro)"
     },
-    "notes": "Shows the Default chatbot on every page as a popup, its bubble in the bottom right corner (AI Engine's default, kept so it stays clear of Readabler's accessibility button, which Readabler's preset puts bottom left). The popup can open to the full screen and has a copy button on answers. The chatbot still needs an AI service and its key in AI Engine's settings; until then it cannot answer. AI Engine keeps its chatbots as a list, so only the chatbot named default is changed, and only when AI Engine has stored it (open AI Engine's Chatbots screen once on a new site); other chatbots stay as they are. Its name, instructions, model and avatar are each site's own, so they are left alone. Modules, models, limits and statistics are left alone too. AI Engine reads these settings on each page, so nothing needs saving again.",
+    "notes": "Gets the Default chatbot ready, so a site needs only its AI service key: add the key in AI Engine's Settings (Environments) first, then apply this preset, which also shows the chatbot on every page. Nothing here is applied on its own (Keep recommended settings leaves it), so the chatbot stays off on sites that do not ask for it. The chatbot opens as a popup from a bubble in the bottom right corner (AI Engine's default, kept so it stays clear of Readabler's accessibility button, which Readabler's preset puts bottom left); the popup can open to the full screen and has a copy button on answers. Taken from the owner's two live chatbots: visitors accept a short notice before they chat (the notice says conversations are kept for 90 days, AI Engine's default for Discussions, which this turns on, so they can be read in the Discussions tab), IP addresses are hashed, visitors can speak their question where the browser allows it, questions can be up to 1024 characters, the chatbot is aware of the page it is on (use {CONTENT}, {TITLE} or {URL} in its instructions) and a short line under the chat says answers are not advice. Insights is turned on because AI Engine Pro checks its usage limits (Insights, Limits) only while Insights is on; without it a key has no spending limit. AI Engine's own limits apply until they are changed. The free AI Engine has no Insights or limits, so watch the AI service's own spending limit. Add a link to the site's privacy policy to the notice. AI Engine keeps its chatbots as a list, so only the chatbot named default is changed, and only when AI Engine has stored it (open AI Engine's Chatbots screen once on a new site); other chatbots stay as they are. Its name, instructions, model, temperature and avatar are each site's own, so they are left alone, as are the other modules. AI Engine reads these settings on each page, so nothing needs saving again.",
     "records": {
         "mwai_chatbots": "botId"
     },
@@ -15,27 +15,45 @@
     ],
     "options": {
         "mwai_options": {
-            "botId": "default"
+            "botId": "default",
+            "module_statistics": true,
+            "privacy_first": true,
+            "chatbot_gdpr_consent": true,
+            "chatbot_gdpr_text": "This chat uses AI. What you type is sent in full to our AI provider to write a reply, and we keep the conversation for 90 days. Please do not include personal, sensitive or confidential information.",
+            "chatbot_discussions": true,
+            "speech_recognition": true
         },
         "mwai_chatbots": {
             "default": {
                 "window": true,
                 "iconPosition": "bottom-right",
                 "fullscreen": true,
-                "copyButton": true
+                "copyButton": true,
+                "contentAware": true,
+                "textInputMaxLength": 1024,
+                "textCompliance": "This AI assistant is experimental. Please do not rely on it alone for advice; use it as a starting point for your own research."
             }
         }
     },
     "defaults": {
         "mwai_options": {
-            "botId": null
+            "botId": null,
+            "module_statistics": false,
+            "privacy_first": false,
+            "chatbot_gdpr_consent": false,
+            "chatbot_gdpr_text": "By using this chatbot, you agree to the recording and processing of your data by our website and the external services it might use (LLMs, vector databases, etc.).",
+            "chatbot_discussions": false,
+            "speech_recognition": false
         },
         "mwai_chatbots": {
             "default": {
                 "window": false,
                 "iconPosition": "bottom-right",
                 "fullscreen": false,
-                "copyButton": false
+                "copyButton": false,
+                "contentAware": false,
+                "textInputMaxLength": 512,
+                "textCompliance": ""
             }
         }
     },
@@ -46,6 +64,50 @@
             "values": {
                 "default": "Default",
                 "null": "None (AI Engine's default)"
+            }
+        },
+        "mwai_options.module_statistics": {
+            "label": "Insights",
+            "description": "Logs each AI call and checks the usage limits (Insights, Limits); AI Engine Pro checks no limits without it.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_options.privacy_first": {
+            "label": "Privacy First",
+            "description": "Uses a site-specific hash for IP-based identification where supported.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_options.chatbot_gdpr_consent": {
+            "label": "GDPR Consent",
+            "description": "Visitors accept the GDPR Text before they can use the chatbot.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_options.chatbot_gdpr_text": {
+            "label": "GDPR Text",
+            "description": "The notice visitors accept before they chat. Add a link to the site's privacy policy."
+        },
+        "mwai_options.chatbot_discussions": {
+            "label": "Discussions",
+            "description": "Keeps the conversations (90 days by default) so they can be read in the Discussions tab.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_options.speech_recognition": {
+            "label": "Speech Recognition",
+            "description": "Visitors can speak their question, where their browser and system allow it.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
             }
         },
         "mwai_chatbots.default.window": {
@@ -80,6 +142,29 @@
             "values": {
                 "true": "On",
                 "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_chatbots.default.contentAware": {
+            "label": "Content Aware",
+            "description": "Makes the chatbot aware of the current page; use {CONTENT}, {TITLE}, {URL} or {EXCERPT} in its instructions.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_chatbots.default.textInputMaxLength": {
+            "label": "Input Max Length",
+            "description": "The most characters a visitor can type in one message.",
+            "values": {
+                "1024": "1024",
+                "512": "512 (AI Engine's default)"
+            }
+        },
+        "mwai_chatbots.default.textCompliance": {
+            "label": "Compliance Text",
+            "description": "A short line under the chat, such as a note that answers are not advice.",
+            "values": {
+                "": "None (AI Engine's default)"
             }
         }
     }

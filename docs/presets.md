@@ -82,6 +82,12 @@ Owner's decisions for single presets:
   (#577): Readabler bottom left, AI Engine's chatbot bubble bottom right,
   as the owner set them on a live site. Colours, chatbot names, instructions
   and models stay each site's own.
+- AI Engine's preset gets the Default chatbot ready, so a site needs only its
+  AI service key (#1690): consent notice, hashed IPs, discussions, speech
+  input, page-aware answers and Insights, taken from the owner's two live
+  chatbots. Insights stays in because AI Engine Pro checks usage limits only
+  while it is on. All of it stays `manual`: the chatbot shows only on sites
+  where someone applies the preset, after adding the key.
 - WPVulnerability emails daily and hides server software that managed hosts
   update (#840): Apache, nginx, MariaDB, MySQL, ImageMagick, curl, Memcached,
   Redis and SQLite. Weekly emails could report a new finding up to a week
