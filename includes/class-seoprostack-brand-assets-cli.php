@@ -54,7 +54,7 @@ class SEOProStack_Brand_Assets_CLI {
             array('item' => 'palettes', 'value' => implode(', ', array_map(function ($mode, $set) {
                 return $mode . ' ' . count($set);
             }, array_keys($palettes), $palettes))),
-            array('item' => 'fonts', 'value' => $fonts['heading']['name'] . ' / ' . $fonts['body']['name']),
+            array('item' => 'fonts', 'value' => (isset($fonts['title']) ? $fonts['title']['name'] . ' (page titles) / ' : '') . $fonts['heading']['name'] . ' / ' . $fonts['body']['name']),
         );
         $png    = SEOProStack_Brand_Assets::png_status();
         $rows[] = array('item' => 'png links', 'value' => sprintf('%d of %d saved, %d up to date', $png['saved'], $png['total'], $png['current']) . ($png['current'] < $png['total'] ? ' (an editor opening the page makes the rest)' : ''));
