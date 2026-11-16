@@ -2749,6 +2749,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Changed (**Plugin presets** â†’ **AI Engine**, #1690): applying the preset gets the Default chatbot ready, so a site needs only its AI service key: **Insights** on (AI Engine Pro checks its usage limits only while it is on), **Privacy First**, **GDPR Consent** with a notice, **Discussions**, **Speech Recognition**, **Content Aware**, longer questions and a short **Compliance Text**. Names, instructions, models and the privacy policy link stay each site's own, and the chatbot stays off until someone applies the preset.
 - Fixed (**Brand assets page**, #1688): **Link it from the footer** and `wp seoprostack brand-assets` no longer stop with an error when the footer menu location still points to a deleted menu.
 
 ### 1.3.223
