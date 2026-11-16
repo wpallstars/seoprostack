@@ -2748,6 +2748,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced with WP Plugin Starter commit c7fb99b (#1695): `scripts/check-hooks.js`, `scripts/lib/deploy-remote-cron.sh`, `scripts/lib/deploy-remote-install.sh` and `scripts/lib/plugin.sh`.
+
 ### 1.3.224
 
 - Changed (**Plugin presets** â†’ **AI Engine**, #1690): applying the preset gets the Default chatbot ready, so a site needs only its AI service key: **Insights** on (AI Engine Pro checks its usage limits only while it is on), **Privacy First**, **GDPR Consent** with a notice, **Discussions**, **Speech Recognition**, **Content Aware**, longer questions and a short **Compliance Text**. Names, instructions, models and the privacy policy link stay each site's own, and the chatbot stays off until someone applies the preset.
