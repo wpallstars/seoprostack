@@ -1568,7 +1568,7 @@ A **Brand assets** block, and a page holding it, for anyone writing about the bu
 - **Icons**: the small (mobile) logo and the site icon, shown on the light and dark backgrounds, with the original file and the sizes WordPress makes (192, Apple 180, browser tab 32).
 - **Email signature banner**: a PNG of the logo, or the logo with the site title, on the light background, with the same space on every side, up to 600 × 150 (drawn at twice that size, for sharp screens). The card says how many pixels wide to show it in an email.
 - **Colours**: under **Light mode** the active palette and, while Kadence Pro's dark mode is on, under **Dark mode** the dark palette, with each colour's role (the name given in the Customizer, or Kadence's own: Accent, Strongest text, Page background…) and its HEX, RGB and CMYK values, each with a copy button that copies that value as shown, to paste into a design app.
-- **Fonts**: the heading and body fonts with their weights, and a link to Google Fonts for Google fonts (in a new tab).
+- **Fonts**: the heading and body fonts with their weights, and the page title font when Kadence gives page titles another one (Above Page Title or Page Title typography), and a link to Google Fonts for Google fonts (in a new tab).
 - **Links to PNG files**: each logo card, the small logo, the site icon and the email banner have copy-link buttons for a PNG file of that picture, for forms that ask for a logo or profile picture by its address: **Padded** (on the card's background colour, with the same space on every side) and **Transparent** (no background, cropped to the picture). The files are saved in `uploads/seoprostack-brand-assets/`, named after the site. They are drawn by the browser of someone who can edit the theme when they open the page, and drawn again when the logo, palette, fonts, Customizer settings or theme version change; until then visitors see no button for a file not yet made. `wp seoprostack brand-assets status` counts them. Uninstalling the plugin deletes the folder.
 - **Formatting**: the page title and heading 2 to 4 styles, body text with a link and bold text, a quote and a button, in the site's styles, each with its font, weight, size and line height.
 - The block's settings choose which sections show. With another theme it shows a note to editors and nothing to visitors.
@@ -2749,6 +2749,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Fixed (**Brand assets page**, #1684): a site whose page titles use their own font in Kadence (such as Vidaloka for titles and Alata for headings) shows it: **Fonts** has a **Page titles** card, and **Formatting**'s page title is drawn in the title's own font, size and weight. A weight saved as "normal" is no longer listed beside 400.
 - Developers: core files synced with WP Plugin Starter commit 1de9f7b (GitHub issue #1681): `scripts/check-hooks.js`, the `scripts/lib/deploy-remote*.sh` modules (cron retry, lock races and log-read failures in `deploy-sites.sh --apply`), `scripts/lib/plugin.sh`, `DEVELOPMENT.md` and `RELEASING.md`.
 
 ### 1.3.222

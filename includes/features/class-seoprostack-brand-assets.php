@@ -438,8 +438,70 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     }
 
     /**
+     * A weight as a number where it has one: regular and normal are 400,
+     * bold is 700.
+     *
+     * @param mixed $weight Weight setting.
+     * @return string Weight, or ''.
+     */
+    private static function weight($weight) {
+        if (!is_scalar($weight)) {
+            return '';
+        }
+        $weight = strtolower(trim((string) $weight));
+        if ('regular' === $weight || 'normal' === $weight) {
+            return '400';
+        }
+        return 'bold' === $weight ? '700' : $weight;
+    }
+
+    /**
+     * The page title's typography as Kadence draws it: the h1 setting, then
+     * the title above the content (.entry-hero h1) when pages show it there,
+     * then the page title's own (.page-title h1, in either layout), each
+     * only where it is filled in.
+     *
+     * @return array Typography setting.
+     */
+    private static function title_font() {
+        $font   = self::option('h1_font');
+        $font   = is_array($font) ? $font : array();
+        $layers = 'above' === self::option('page_title_layout') ? array('title_above_font', 'page_title_font') : array('page_title_font');
+        $units  = array('size' => 'sizeType', 'lineHeight' => 'lineType', 'letterSpacing' => 'spacingType');
+        foreach ($layers as $key) {
+            $layer = self::option($key);
+            if (!is_array($layer)) {
+                continue;
+            }
+            foreach ($units as $measure => $unit) {
+                if ('' !== self::desktop($layer, $measure)) {
+                    $font[$measure] = $layer[$measure];
+                    $font[$unit]    = isset($layer[$unit]) ? $layer[$unit] : '';
+                }
+            }
+            $family = isset($layer['family']) && is_string($layer['family']) ? trim($layer['family']) : '';
+            if ('' !== $family && 'inherit' !== $family) {
+                foreach (array('family', 'google', 'fallback', 'variant') as $part) {
+                    if (isset($layer[$part])) {
+                        $font[$part] = $layer[$part];
+                    } else {
+                        unset($font[$part]);
+                    }
+                }
+            }
+            foreach (array('weight', 'style', 'transform', 'color') as $part) {
+                if (!empty($layer[$part])) {
+                    $font[$part] = $layer[$part];
+                }
+            }
+        }
+        return $font;
+    }
+
+    /**
      * The fonts: body and headings, each with its name, CSS family,
-     * weights and whether it is a Google font.
+     * weights and whether it is a Google font, and page titles where
+     * they use another family than the headings.
      *
      * @return array<string,array{name:string,css:string,weights:string[],google:bool}>
      */
@@ -461,6 +523,14 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if (!$fonts['heading']['weights']) {
             $fonts['heading']['weights'] = self::weights_used();
         }
+        $title  = self::title_font();
+        $family = isset($title['family']) && is_string($title['family']) ? trim($title['family']) : '';
+        if ('' !== $family && 'inherit' !== $family) {
+            $own = self::font($title, $fonts['heading']['css']);
+            if ($own['name'] !== $fonts['heading']['name']) {
+                $fonts['title'] = $own;
+            }
+        }
         return $fonts;
     }
 
@@ -481,14 +551,13 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $weights  = array();
         foreach ($variants as $variant) {
             // Google variants: regular, italic, 700, 700italic. Upright ones only.
-            if ('regular' === $variant) {
-                $weights[] = '400';
-            } elseif (is_string($variant) && preg_match('/^\d{3}$/', $variant)) {
+            $variant = self::weight($variant);
+            if (preg_match('/^\d{3}$/', $variant)) {
                 $weights[] = $variant;
             }
         }
-        if (!$weights && isset($font['weight']) && is_scalar($font['weight']) && '' !== (string) $font['weight']) {
-            $weights[] = 'regular' === $font['weight'] ? '400' : (string) $font['weight'];
+        if (!$weights && isset($font['weight']) && '' !== self::weight($font['weight'])) {
+            $weights[] = self::weight($font['weight']);
         }
         $weights = array_values(array_unique($weights));
         sort($weights);
@@ -509,8 +578,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $weights = array();
         foreach (self::HEADINGS as $level) {
             $font = self::option('h' . $level . '_font');
-            if (is_array($font) && isset($font['weight']) && is_scalar($font['weight']) && '' !== (string) $font['weight']) {
-                $weights[] = 'regular' === $font['weight'] ? '400' : (string) $font['weight'];
+            if (is_array($font) && isset($font['weight']) && '' !== self::weight($font['weight'])) {
+                $weights[] = self::weight($font['weight']);
             }
         }
         $weights = array_values(array_unique($weights));
@@ -575,8 +644,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     private static function spec(array $font, $name) {
         $family = isset($font['family']) && is_string($font['family']) && '' !== trim($font['family']) && 'inherit' !== $font['family'] && false === strpos($font['family'], ',') && false === strpos($font['family'], 'var(') ? $font['family'] : $name;
         $out    = $family;
-        if (isset($font['weight']) && is_scalar($font['weight']) && '' !== (string) $font['weight']) {
-            $out .= ' ' . ('regular' === $font['weight'] ? '400' : (string) $font['weight']);
+        if (isset($font['weight']) && '' !== self::weight($font['weight'])) {
+            $out .= ' ' . self::weight($font['weight']);
         }
         $size = self::desktop($font, 'size');
         if ('' !== $size) {
@@ -1788,9 +1857,15 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
     private static function render_fonts() {
         $c     = 'wp-block-seoprostack-brand-assets';
         $fonts = self::fonts();
-        $list  = array('heading' => __('Headings', 'seoprostack'), 'body' => __('Body text', 'seoprostack'));
+        $list  = array(
+            'title'   => __('Page titles', 'seoprostack'),
+            'heading' => __('Headings', 'seoprostack'),
+            'body'    => __('Body text', 'seoprostack'),
+        );
+        $list  = array_intersect_key($list, $fonts);
         $html  = '<h2 class="' . $c . '__title">' . esc_html__('Fonts', 'seoprostack') . '</h2>';
-        $html .= '<div class="' . $c . '__grid ' . $c . '__grid--two">';
+        // Three fonts share a row where there is room; two keep two columns.
+        $html .= '<div class="' . $c . '__grid' . (count($list) > 2 ? '' : ' ' . $c . '__grid--two') . '">';
         foreach ($list as $kind => $label) {
             $font  = $fonts[$kind];
             $html .= '<div class="' . $c . '__card ' . $c . '__font">';
@@ -1829,7 +1904,8 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
             4 => __('Heading 4', 'seoprostack'),
         );
         foreach (self::HEADINGS as $level) {
-            $font  = self::option('h' . $level . '_font');
+            // Kadence draws the page title with its own settings over h1's.
+            $font  = 1 === $level ? self::title_font() : self::option('h' . $level . '_font');
             $font  = is_array($font) ? $font : array();
             $html .= '<div class="' . $c . '__sample">';
             $html .= '<p class="' . $c . '__sample-text" style="' . esc_attr(self::style($font, $fonts['heading']['css'])) . '">' . esc_html($names[$level]) . '</p>';
