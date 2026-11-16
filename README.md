@@ -2749,6 +2749,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### 1.3.223
 
+- Fixed (**Media in cloud storage** â†’ **Remove local copies after upload**, #1674): local copies of uploaded, verified pictures are removed even while other pictures still wait for their WebP/AVIF copies. Before, one waiting picture held back the whole library, so a large site could fill its host's inode limit.
 - Fixed (**Brand assets page**, #1684): a site whose page titles use their own font in Kadence (such as Vidaloka for titles and Alata for headings) shows it: **Fonts** has a **Page titles** card, and **Formatting**'s page title is drawn in the title's own font, size and weight. A weight saved as "normal" is no longer listed beside 400.
 - Developers: core files synced with WP Plugin Starter commit 1de9f7b (GitHub issue #1681): `scripts/check-hooks.js`, the `scripts/lib/deploy-remote*.sh` modules (cron retry, lock races and log-read failures in `deploy-sites.sh --apply`), `scripts/lib/plugin.sh`, `DEVELOPMENT.md` and `RELEASING.md`.
 

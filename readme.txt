@@ -157,6 +157,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.223 =
-* Fixed: Brand assets page shows the page title font.
+* Fixed: local copies removed per picture; Brand assets page title font.
 
 Older: `changelog.txt`.
