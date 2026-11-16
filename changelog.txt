@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.224 =
 * Changed (Plugin presets, AI Engine; GitHub issue #1690): Apply preset now gets the Default chatbot ready, so a site needs only its AI service key: Insights on (module_statistics; AI Engine Pro adds its usage-limit check, mwai_ai_allowed in premium/statistics.php, only while Insights is on, so a key had no spending limit), Privacy First (hashed IPs), GDPR Consent with a notice that conversations are kept for 90 days, Discussions on (AI Engine's 90-day retention), Speech Recognition, and on the chatbot Content Aware, Input Max Length 1024 and a Compliance Text line, taken from the owner's two live chatbots (AI Engine Pro 3.9.3). Names, instructions, models, temperatures and the privacy policy link stay each site's own. Every AI Engine setting stays under manual, so Keep recommended settings never applies it and the chatbot stays off until someone applies the preset.
 * Fixed (Brand assets page; GitHub issue #1688): wp seoprostack brand-assets status, brand-assets create --footer and the card's Link it from the footer button stopped with a PHP fatal error (get_object_vars() on false in is_about_item()) when the theme's footer menu location, or a footer Navigation Menu widget, still named a deleted menu: wp_get_nav_menu_items() returns false for it, which (array) turned into one item. footer_places() now keeps only menus wp_get_nav_menu_object() finds, and add_footer_link() skips a menu whose items are not an array.
 
