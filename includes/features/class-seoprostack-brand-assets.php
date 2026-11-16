@@ -2182,7 +2182,11 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         if (!empty($locations['footer'])) {
             $menus[] = (int) $locations['footer'];
         }
-        return array('blocks' => array_values(array_unique($blocks)), 'menus' => array_values(array_unique(array_filter($menus))));
+        // A location or widget can still name a deleted menu.
+        $menus = array_filter(array_unique(array_filter($menus)), static function ($menu) {
+            return (bool) wp_get_nav_menu_object($menu);
+        });
+        return array('blocks' => array_values(array_unique($blocks)), 'menus' => array_values($menus));
     }
 
     /**
@@ -2203,7 +2207,10 @@ class SEOProStack_Brand_Assets extends SEOProStack_Feature {
         $found  = null;
         foreach ($places['menus'] as $menu) {
             $items = wp_get_nav_menu_items($menu, array('post_status' => 'any'));
-            foreach ((array) $items as $item) {
+            if (!is_array($items)) {
+                continue;
+            }
+            foreach ($items as $item) {
                 if (((int) $item->object_id === (int) $page->ID && 'page' === $item->object) || self::path($item->url) === $target) {
                     return array('status' => 'exists', 'message' => sprintf('The footer menu "%s" already links to the page.', self::menu_name($menu)));
                 }
