@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.223 =
 * Fixed (Brand assets page; GitHub issue #1684): the page left out the font of the site's page titles when Kadence gives them their own (Above Page Title, title_above_font, or Page Title, page_title_font), such as Vidaloka titles on a site whose headings and body are Alata: Fonts listed only Alata, and Formatting's Page title showed h1_font (Alata 400, 48px) instead of the title as drawn (Vidaloka, 70px / 1). New SEOProStack_Brand_Assets::title_font() merges the settings in Kadence's order, each only where filled in: h1_font (h1), title_above_font (.entry-hero h1, when page_title_layout is above), then page_title_font (.wp-site-blocks .page-title h1). Formatting's Page title uses it; fonts() adds a title font when its family differs from the headings', shown first in Fonts as Page titles (three cards share a row where they fit), and wp seoprostack brand-assets status lists it. New weight() reads regular and normal as 400 and bold as 700, so heading weights no longer show "400, normal".
 * Developers: core files synced with WP Plugin Starter commit 1de9f7b (GitHub issue #1681): scripts/check-hooks.js, the scripts/lib/deploy-remote*.sh modules (cron retry, lock races and log-read failures in deploy-sites.sh --apply), scripts/lib/plugin.sh, DEVELOPMENT.md and RELEASING.md.
 
