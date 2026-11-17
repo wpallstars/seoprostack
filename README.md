@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.225-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.226-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.225
+Version: 1.3.226
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2752,7 +2752,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.226
 
 - Fixed (**Fluent Forms**, #1702): Website URL fields accept `www.example.com` or `example.com` and add `https://`. Before, the browser and Fluent Forms refused them, so visitors could not send the form. Anything that is not a web address shows the field's "valid url" message as soon as the visitor leaves it. Entries sent without JavaScript are saved with `https://`, not `http://`.
 - Developers: core files synced with WP Plugin Starter commit 40762c0 (GitHub issue #1700): `scripts/lib/deploy-remote-cron.sh` (a cron retry's PHP or database error fails), `scripts/preflight-release.sh` (icon checks), `.github/workflows/sonarcloud.yml` (sonarqube-scan-action v8.5.0) and `STANDARDS.md`.
