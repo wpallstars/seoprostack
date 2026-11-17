@@ -2126,9 +2126,10 @@ Where the website lives. We use Hostinger: fast LiteSpeed servers, daily backups
 1. Open [Hostinger](https://hostinger.com?REFERRALCODE=1MARCUS454) and choose a **Premium** or **Business** web hosting plan, or Cloud hosting for bigger sites. The Single plan has no SSH access, which aidevops needs.
 2. Sign up, pay, and turn on two-factor authentication in your account settings.
 3. In hPanel, add the website and its domain (a temporary domain is fine until the domain is ready).
-4. Note the plan name and data centre in a comment on this task, never a password.
+4. Choose the newest PHP version: in hPanel, open the website's **Advanced → PHP Configuration** and pick the highest version listed. Newer PHP is faster and gets security fixes for longer. If a plugin the site needs does not support it yet, pick the newest one it does, and add a card to move up later. Check afterwards that the home page and wp-admin load. **Tools → Site Health → Info → Server** shows the version the site runs.
+5. Note the plan name and data centre in a comment on this task, never a password.
 
-Done when the site loads at its address and you can log in to hPanel.
+Done when the site loads at its address on the newest PHP version it supports and you can log in to hPanel.
 
 ##### 3. Setup Cloudflare (domain DNS and security)
 
@@ -2192,7 +2193,9 @@ SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your A
 3. Note the IP, port and username hPanel shows, and ask your AI to add a short name for the server to `~/.ssh/config` and test it with `ssh <name> 'wp --info'`.
 4. Tell aidevops which folder the site is in (hPanel shows it, such as `domains/example.com/public_html`).
 
-Never share your hosting password or private key. Done when `wp --info` works over SSH.
+**If `wp --info` ends with an error about `proc_open()`:** over SSH, PHP is the account's default version, which can differ from the website's, and Hostinger turns `proc_open()` off for some PHP versions on some plans. Most WP-CLI commands still work, but `wp --info` and the `wp db` commands need it. Ask your AI to find a PHP version that has it, with `for v in 82 83 84 85; do echo "$v $(/opt/alt/php$v/usr/bin/php -r 'var_dump(function_exists("proc_open"));')"; done`, and run WP-CLI with that version, for example `/opt/alt/php84/usr/bin/php /usr/local/bin/wp --info`. This changes nothing for the website, which keeps the PHP version chosen in Setup Hosting.
+
+Never share your hosting password or private key. Done when `wp --info` works over SSH, with the default PHP or the one your AI found.
 
 ##### 8. Connect your AI to this Board
 
@@ -2750,6 +2753,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Changed (**Website Setup** board, #1697): **Setup Hosting** now has the site run the newest PHP version hPanel offers (or the newest a needed plugin supports). **Setup SSH Access for aidevops** says what to do when `wp --info` ends with a `proc_open()` error: over SSH, PHP is the account's default version, and Hostinger turns `proc_open()` off for some versions on some plans, so your AI finds a version that has it and runs WP-CLI with it. Boards made before this keep their tasks.
 - Developers: core files synced with WP Plugin Starter commit c7fb99b (#1695): `scripts/check-hooks.js`, `scripts/lib/deploy-remote-cron.sh`, `scripts/lib/deploy-remote-install.sh` and `scripts/lib/plugin.sh`.
 
 ### 1.3.224

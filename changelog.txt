@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Changed (Website Setup board, starters/fluent-boards.json; GitHub issue #1697): Setup Hosting (Hostinger) gains a step to choose the newest PHP version in hPanel (Advanced, PHP Configuration), or the newest one a needed plugin supports, and its Done line names it. Setup SSH Access for aidevops explains a proc_open() error from wp --info: SSH uses the account's default PHP, which can differ from the website's, and Hostinger disables proc_open() for some PHP versions on some plans (observed: PHP 8.3 on a Cloud Startup plan; PHP 8.5 but not 8.2 to 8.4 on another Cloud account), which wp --info and the wp db commands need. It gives a one-line check of each /opt/alt/phpXX build and the command to run WP-CLI with one that has it (/opt/alt/php84/usr/bin/php /usr/local/bin/wp). README.md's setup tasks regenerated. Boards made before this keep their tasks.
 * Developers: core files synced with WP Plugin Starter commit c7fb99b (GitHub issue #1695): scripts/check-hooks.js (version define matching), scripts/lib/deploy-remote-cron.sh (cron retry errors), scripts/lib/deploy-remote-install.sh (single-site report) and scripts/lib/plugin.sh.
 
 = 1.3.224 =
