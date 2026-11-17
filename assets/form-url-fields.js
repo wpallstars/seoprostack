@@ -2,7 +2,8 @@
  * Fluent Forms' Website URL fields (SEOProStack_Form_Url_Fields): add
  * https:// to an address typed without it, such as www.example.com.
  *
- * - When the visitor leaves the field (change) and when the form is sent
+ * - When the visitor leaves the field (change, in the capture phase, before
+ *   Fluent Forms' conditional logic reads it) and when the form is sent
  *   (capture, before Fluent Forms' own submit handler, so pressing Enter in
  *   the field works too), anything that looks like a web address gets
  *   https://; "https//", "https:/" and an upper-case scheme are corrected.
@@ -112,13 +113,24 @@
 		content.appendChild(error);
 	}
 
-	document.addEventListener('change', function (event) {
+	function urlField(event) {
 		var field = event.target;
-		if (!field || !field.matches || !field.matches(FIELD)) {
-			return;
+		return field && field.matches && field.matches(FIELD) ? field : null;
+	}
+
+	// Capture: the address is fixed before Fluent Forms' own change handlers
+	// (conditional logic, error clearing) read it.
+	document.addEventListener('change', function (event) {
+		var field = urlField(event);
+		if (field) {
+			fix(field);
 		}
-		fix(field);
-		if (field.value !== '' && !VALID.test(field.value)) {
+	}, true);
+
+	// Bubble: after Fluent Forms has cleared the field's previous error.
+	document.addEventListener('change', function (event) {
+		var field = urlField(event);
+		if (field && field.value !== '' && !VALID.test(field.value)) {
 			showError(field);
 		}
 	});
