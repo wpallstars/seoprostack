@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-16T01:32:19Z",
+  "generated_at": "2026-11-17T08:42:22Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -12,9 +12,9 @@
   },
   "summary": {
     "source_files": 1010,
-    "code": 164942,
-    "comments": 56075,
-    "blanks": 14595,
+    "code": 165120,
+    "comments": 56124,
+    "blanks": 14602,
     "languages": 10,
     "dependencies": 14
   },
@@ -22,26 +22,26 @@
     {
       "name": "PHP",
       "files": 341,
-      "code": 89652,
-      "comments": 50017,
-      "blanks": 8640,
-      "percentage": 54.35,
+      "code": 89706,
+      "comments": 50060,
+      "blanks": 8642,
+      "percentage": 54.33,
       "color": "#4F5D95"
     },
     {
       "name": "JSON",
       "files": 486,
-      "code": 31837,
+      "code": 31922,
       "comments": 0,
       "blanks": 0,
-      "percentage": 19.3,
+      "percentage": 19.33,
       "color": "#292929"
     },
     {
       "name": "JavaScript",
       "files": 56,
-      "code": 13479,
-      "comments": 2197,
+      "code": 13491,
+      "comments": 2201,
       "blanks": 918,
       "percentage": 8.17,
       "color": "#f1e05a"
@@ -52,14 +52,14 @@
       "code": 10949,
       "comments": 1508,
       "blanks": 2637,
-      "percentage": 6.64,
+      "percentage": 6.63,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
       "files": 34,
-      "code": 8818,
-      "comments": 2102,
+      "code": 8828,
+      "comments": 2104,
       "blanks": 672,
       "percentage": 5.35,
       "color": "#89e051"
@@ -67,10 +67,10 @@
     {
       "name": "Markdown",
       "files": 20,
-      "code": 6585,
+      "code": 6602,
       "comments": 0,
-      "blanks": 1611,
-      "percentage": 3.99,
+      "blanks": 1616,
+      "percentage": 4.0,
       "color": "#083fa1"
     },
     {
@@ -79,7 +79,7 @@
       "code": 2796,
       "comments": 73,
       "blanks": 15,
-      "percentage": 1.7,
+      "percentage": 1.69,
       "color": "#6e7781"
     },
     {
