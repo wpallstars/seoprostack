@@ -19,6 +19,11 @@
  * does not close it, an opened searchable list scrolls into view, and Tab
  * stays on the visible fields of a multi-step form (assets/form-keys.js).
  *
+ * With Fluent Forms active, whatever the settings: unlabelled fields get an
+ * accessible name (SEOProStack_Form_Field_Names), and Website URL fields
+ * accept an address typed without https:// and add it
+ * (SEOProStack_Form_Url_Fields).
+ *
  * With "Policy links in forms open a new tab", links to the privacy policy,
  * cookie policy or terms inside a Fluent form open in a new tab, so reading
  * them never loses what the visitor typed (SEOProStack_Form_Policy_Links).
@@ -51,6 +56,7 @@ if (!defined('ABSPATH')) {
 require_once dirname(__DIR__) . '/class-seoprostack-form-key-store.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-modal.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-field-names.php';
+require_once dirname(__DIR__) . '/class-seoprostack-form-url-fields.php';
 require_once dirname(__DIR__) . '/class-seoprostack-form-policy-links.php';
 require_once dirname(__DIR__) . '/class-seoprostack-review-links.php';
 
@@ -109,6 +115,7 @@ class SEOProStack_Form_Keys extends SEOProStack_Feature {
             return;
         }
         SEOProStack_Form_Field_Names::boot();
+        SEOProStack_Form_Url_Fields::boot();
         if ((bool) SEOProStack_Settings::get(self::TABS_KEY)) {
             SEOProStack_Form_Policy_Links::boot();
         }
