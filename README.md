@@ -2751,6 +2751,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced with WP Plugin Starter commit 40762c0 (GitHub issue #1700): `scripts/lib/deploy-remote-cron.sh` (a cron retry's PHP or database error fails), `scripts/preflight-release.sh` (icon checks), `.github/workflows/sonarcloud.yml` (sonarqube-scan-action v8.5.0) and `STANDARDS.md`.
+
 ### 1.3.225
 
 - Changed (**Website Setup** board, #1697): **Setup Hosting** now has the site run the newest PHP version hPanel offers (or the newest a needed plugin supports). **Setup SSH Access for aidevops** says what to do when `wp --info` ends with a `proc_open()` error: over SSH, PHP is the account's default version, and Hostinger turns `proc_open()` off for some versions on some plans, so your AI finds a version that has it and runs WP-CLI with it. Boards made before this keep their tasks.
