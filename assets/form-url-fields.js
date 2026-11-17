@@ -21,14 +21,41 @@
 	var FIELD = 'input[data-seoprostack-url]';
 	var SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i;
 	var LOOSE = /^(https?)(?::\/*|\/+)(.+)$/i;
-	var LABEL = '[a-z0-9\\u00a1-\\uffff](?:[a-z0-9\\u00a1-\\uffff-]{0,61}[a-z0-9\\u00a1-\\uffff])?';
-	var HOST = new RegExp(
-		'^(?:(?:' + LABEL + '\\.)+(?:[a-z\\u00a1-\\uffff]{2,}|xn--[a-z0-9-]+)|(?:\\d{1,3}\\.){3}\\d{1,3})' +
-		'(?::\\d{1,5})?(?:[/?#]\\S*)?$',
-		'i'
-	);
+	var LABEL = /^[a-z0-9\u00a1-\uffff-]{1,63}$/i;
+	var TLD = /^(?:[a-z\u00a1-\uffff]{2,63}|xn--[a-z0-9-]{1,59})$/i;
+	var OCTET = /^\d{1,3}$/;
+	var PORT = /^\d{1,5}$/;
 	// Fluent Forms' own url rule (assets/js/form-submission.js).
 	var VALID = /^(ftp|http|https):\/\/[^ "]+$/;
+
+	// A host name or IPv4 address, with an optional port, then a path,
+	// query or fragment with no spaces: checked a part at a time, so no
+	// pattern can backtrack.
+	function isHost(text) {
+		if (text.length > 2048 || /\s/.test(text)) {
+			return false;
+		}
+		var host = text.split(/[/?#]/)[0];
+		var colon = host.indexOf(':');
+		if (colon !== -1) {
+			if (!PORT.test(host.slice(colon + 1))) {
+				return false;
+			}
+			host = host.slice(0, colon);
+		}
+		var labels = host.split('.');
+		if (labels.length < 2) {
+			return false;
+		}
+		if (labels.length === 4 && labels.every(function (label) {
+			return OCTET.test(label) && Number(label) < 256;
+		})) {
+			return true;
+		}
+		return TLD.test(labels[labels.length - 1]) && labels.every(function (label) {
+			return LABEL.test(label) && label.charAt(0) !== '-' && label.charAt(label.length - 1) !== '-';
+		});
+	}
 
 	function normalise(value) {
 		var text = String(value).trim();
@@ -41,11 +68,11 @@
 			});
 		}
 		var loose = LOOSE.exec(text);
-		if (loose && HOST.test(loose[2])) {
+		if (loose && isHost(loose[2])) {
 			return loose[1].toLowerCase() + '://' + loose[2];
 		}
 		var host = text.indexOf('//') === 0 ? text.slice(2) : text;
-		return HOST.test(host) ? 'https://' + host : text;
+		return isHost(host) ? 'https://' + host : text;
 	}
 
 	function fix(field) {
