@@ -2309,7 +2309,7 @@ Keeps the site safe to change and tells you when it is down, before your custome
 2. **Before a big change** (updating by hand, an import, a new plugin), click **Generate backup** first (once a day at most) and wait until it shows in the list. Entry-level plans need Business or higher for this; until then, download the latest automatic backup instead. Once, **Download** a backup and check it holds the site's files and its database (`.sql`) file, so you know it is usable. Never test **Restore** on the live site: it overwrites the current files and database. To try changes first, use a [staging copy](https://docs.hostinger.com/wordpress/staging) where the plan includes it (not on WordPress multisite).
 3. **Updates: choose one updater**, so two never compete. In hPanel, open the WordPress site's **Security** page ([guide](https://docs.hostinger.com/wordpress/security)). **Smart auto-updates** lets Hostinger update WordPress, plugins and themes at the level you choose (keep at least security updates on; [what it changes](https://docs.hostinger.com/wordpress/hostinger-plugins/must-use-plugins/smart-auto-updates)). **Native auto-updates** leaves it to WordPress (Plugins → Enable auto-updates, per plugin). Premium plugins and themes update from their own servers with their licence or updater.
 4. **Once a month**, open Dashboard → Updates (or ask your AI for `wp plugin list --update=available`), take a backup, install what is waiting, then check the home page, a form and wp-admin. Add a card for anything that broke.
-5. **Uptime alert.** In hPanel, open **Websites → Monitoring** ([guide](https://docs.hostinger.com/websites/monitoring)), create an alert for the site's address and send it to the support mailbox.
+5. **Uptime alert.** On Hostinger Agency Hosting, open hPanel → **Websites → Monitoring** ([guide](https://docs.hostinger.com/websites/monitoring)) and create an alert for the site's address, sent to the support mailbox. On other plans (Cloud, Business and others do not have this menu), use a free external monitor such as UptimeRobot: an HTTP(S) check of the home page every 5 minutes, ideally a keyword check for text the home page always shows, alerting the support mailbox. Write which one you used in a comment here.
 
 Done when a backup within the site's interval is listed (the last day for a site that needs daily, otherwise the last week), one downloaded backup has been checked, a comment here names the updater chosen and who checks updates each month, and the uptime alert is saved.
 
@@ -2751,6 +2751,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- Fixed (**Website Setup board**, #1705): the uptime step of Setup Backups, Updates and Uptime Alerts named Hostinger's Websites → Monitoring, which only Agency Hosting plans have. It now says so and, for other plans, suggests a free external monitor such as UptimeRobot. Boards made before this keep their tasks.
 
 ### 1.3.226
 
