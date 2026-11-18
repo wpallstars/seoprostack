@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.226
+Stable tag: 1.3.227
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -72,7 +72,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
-* **Website status link** (off): a footer link to the site's uptime status page, shown per site.
+* **Website status link** (off): links the uptime status page.
 * **Links skip redirects** to Rank Math's on-site targets.
 * **Robots.txt rules** with any SEO plugin: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
@@ -157,7 +157,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.226 =
-* Fixed: Fluent Forms URL fields accept example.com.
+= 1.3.227 =
+* Added: Website status link; updown.io setup task.
 
 Older: `changelog.txt`.
