@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-17T08:42:22Z",
+  "generated_at": "2026-11-18T21:47:02Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,21 +11,21 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 1010,
-    "code": 165120,
-    "comments": 56124,
-    "blanks": 14602,
+    "source_files": 1012,
+    "code": 165340,
+    "comments": 56230,
+    "blanks": 14626,
     "languages": 10,
     "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 341,
-      "code": 89706,
-      "comments": 50060,
-      "blanks": 8642,
-      "percentage": 54.33,
+      "files": 342,
+      "code": 89789,
+      "comments": 50137,
+      "blanks": 8652,
+      "percentage": 54.31,
       "color": "#4F5D95"
     },
     {
@@ -34,16 +34,16 @@
       "code": 31922,
       "comments": 0,
       "blanks": 0,
-      "percentage": 19.33,
+      "percentage": 19.31,
       "color": "#292929"
     },
     {
       "name": "JavaScript",
-      "files": 56,
-      "code": 13491,
-      "comments": 2201,
-      "blanks": 918,
-      "percentage": 8.17,
+      "files": 57,
+      "code": 13600,
+      "comments": 2227,
+      "blanks": 928,
+      "percentage": 8.23,
       "color": "#f1e05a"
     },
     {
@@ -52,25 +52,25 @@
       "code": 10949,
       "comments": 1508,
       "blanks": 2637,
-      "percentage": 6.63,
+      "percentage": 6.62,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
       "files": 34,
-      "code": 8828,
-      "comments": 2104,
+      "code": 8832,
+      "comments": 2107,
       "blanks": 672,
-      "percentage": 5.35,
+      "percentage": 5.34,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
       "files": 20,
-      "code": 6602,
+      "code": 6626,
       "comments": 0,
-      "blanks": 1616,
-      "percentage": 4.0,
+      "blanks": 1620,
+      "percentage": 4.01,
       "color": "#083fa1"
     },
     {
