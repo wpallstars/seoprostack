@@ -72,6 +72,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
+* **Website status link** (off): a footer link to the site's uptime status page, shown per site.
 * **Links skip redirects** to Rank Math's on-site targets.
 * **Robots.txt rules** with any SEO plugin: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
