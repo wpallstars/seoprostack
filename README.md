@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.226-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.227-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.226
+Version: 1.3.227
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1352,6 +1352,23 @@ hidden element.
   deferred, so browsers fetch it after the page's first pictures (#1502).
   Nothing is stored and pages are not rewritten.
 
+### Website status link (Links)
+
+Off by default. Links to `#website-status`, such as a **Website status** link
+in the footer, go to the site's public uptime status page (an updown.io check
+or status page, or any other monitor's) in a new tab. While the switch is off,
+or **Status page** is empty, those links are left out of the page: the
+paragraph, list item, button or navigation link block holding the link, or the
+classic menu item (with its sub-items). So a theme or site template can ship
+the link once, and each site shows it only when it has a status page. The
+Website Setup board's **Setup Uptime Monitoring (updown.io)** task sets one up.
+
+- The editor and wp-admin show the link as written; the address is applied as
+  each front-end page is made, so nothing in pages changes.
+- WP-CLI: `wp seoprostack status-link` shows it;
+  `wp seoprostack status-link set https://updown.io/abcd --on` sets the
+  address and shows the link; `--off` leaves it out again.
+
 ### Links skip redirects (Links)
 
 On by default. When a page is renamed or moved, Rank Math → Redirections keeps
@@ -2309,9 +2326,21 @@ Keeps the site safe to change and tells you when it is down, before your custome
 2. **Before a big change** (updating by hand, an import, a new plugin), click **Generate backup** first (once a day at most) and wait until it shows in the list. Entry-level plans need Business or higher for this; until then, download the latest automatic backup instead. Once, **Download** a backup and check it holds the site's files and its database (`.sql`) file, so you know it is usable. Never test **Restore** on the live site: it overwrites the current files and database. To try changes first, use a [staging copy](https://docs.hostinger.com/wordpress/staging) where the plan includes it (not on WordPress multisite).
 3. **Updates: choose one updater**, so two never compete. In hPanel, open the WordPress site's **Security** page ([guide](https://docs.hostinger.com/wordpress/security)). **Smart auto-updates** lets Hostinger update WordPress, plugins and themes at the level you choose (keep at least security updates on; [what it changes](https://docs.hostinger.com/wordpress/hostinger-plugins/must-use-plugins/smart-auto-updates)). **Native auto-updates** leaves it to WordPress (Plugins → Enable auto-updates, per plugin). Premium plugins and themes update from their own servers with their licence or updater.
 4. **Once a month**, open Dashboard → Updates (or ask your AI for `wp plugin list --update=available`), take a backup, install what is waiting, then check the home page, a form and wp-admin. Add a card for anything that broke.
-5. **Uptime alert.** On Hostinger Agency Hosting, open hPanel → **Websites → Monitoring** ([guide](https://docs.hostinger.com/websites/monitoring)) and create an alert for the site's address, sent to the support mailbox. On other plans (Cloud, Business and others do not have this menu), use a free external monitor such as UptimeRobot: an HTTP(S) check of the home page every 5 minutes, ideally a keyword check for text the home page always shows, alerting the support mailbox. Write which one you used in a comment here.
+5. **Uptime alert.** On Hostinger Agency Hosting, open hPanel → **Websites → Monitoring** ([guide](https://docs.hostinger.com/websites/monitoring)) and create an alert for the site's address, sent to the support mailbox. On other plans (Cloud, Business and others do not have this menu), follow **Setup Uptime Monitoring (updown.io)**, the next task, which also gives the site a public status page. Write which one you used in a comment here.
 
 Done when a backup within the site's interval is listed (the last day for a site that needs daily, otherwise the last week), one downloaded backup has been checked, a comment here names the updater chosen and who checks updates each month, and the uptime alert is saved.
+
+##### 18. Setup Uptime Monitoring (updown.io)
+
+[updown.io](https://updown.io/r/kddkt) checks the site from several countries and emails you when it stops answering, its SSL certificate is about to expire, or it gets slow, and gives it a public status page with its uptime and response times. It is pay-as-you-go: each check request uses one credit, so a check every 5 minutes uses about 8,640 credits a month. Skip this task if the site already has an uptime monitor you are happy with.
+
+1. **Account.** Sign up at [updown.io](https://updown.io/r/kddkt) with the support mailbox's address, so alerts reach whoever looks after the site.
+2. **Check.** Click **Add a check**, enter the home page's full address (`https://` and the address visitors use, after any redirect) and choose the interval: 5 minutes suits most sites, 1 minute a site that takes orders or bookings. In the check's options, set the text the page must contain to something the home page always shows (such as the site's name in the footer), so an error page that still answers counts as down.
+3. **Alerts.** In updown.io's alert settings add the support mailbox (and, if you like, a phone for SMS or a chat app), and select it for the check. Wait for the first green result.
+4. **Status page.** Make the check public: its page (`https://updown.io/` and the check's code) shows visitors the uptime and response times. For several sites, or your own address such as `status.example.com`, create a status page instead: add the checks, then point the address at it with the CNAME record updown.io shows.
+5. **Website status link (optional).** To link the status page from the site, add a link to `#website-status` (for example the text **Website status** in the footer), then in SEO Pro Stack → Links switch on **Website status link** and paste the status page's address. While it is off, links to `#website-status` are left out, so a theme can ship the link and each site decides whether to show it. Or ask your AI for `wp seoprostack status-link set <address> --on`.
+
+Done when the check shows the site up, the support mailbox is selected for its alerts, and a comment here gives the status page's address and whether the site links to it.
 
 <!-- setup-tasks:end -->
 
@@ -2752,8 +2781,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.227
 
+- New: **Website status link** (Links tab, off by default, #1707). Links to `#website-status` go to the site's public uptime status page in a new tab, or are left out while it is off or has no address, so a theme can ship a "Website status" footer link and each site decides whether it shows. `wp seoprostack status-link set <address> --on`.
+- New (**Website Setup board**, #1707): a task, **Setup Uptime Monitoring (updown.io)**, after Setup Backups, Updates and Uptime Alerts: an updown.io check of the home page with a text match, alerts to the support mailbox, a public status page and the optional Website status link. The uptime step of the backups task points to it for plans without Hostinger's Monitoring. `wp seoprostack starters add fluent-boards` adds it to existing boards.
 - Fixed (**Website Setup board**, #1705): the uptime step of Setup Backups, Updates and Uptime Alerts named Hostinger's Websites → Monitoring, which only Agency Hosting plans have. It now says so and, for other plans, suggests a free external monitor such as UptimeRobot. Boards made before this keep their tasks.
 
 ### 1.3.226
