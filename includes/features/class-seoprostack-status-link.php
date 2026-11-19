@@ -63,7 +63,7 @@ class SEOProStack_Status_Link extends SEOProStack_Feature {
                 'default'     => '',
                 'parent'      => self::KEY,
                 'label'       => __('Status page', 'seoprostack'),
-                'placeholder' => 'https://updown.io/abcd',
+                'placeholder' => 'https://status.example.com/',
                 'description' => __('The public status page of this site\'s uptime monitor, such as an updown.io check\'s page or a status page on your own domain.', 'seoprostack'),
                 'network'     => false,
             ),
@@ -212,7 +212,7 @@ class SEOProStack_Status_Link extends SEOProStack_Feature {
      * ## EXAMPLES
      *
      *     wp seoprostack status-link
-     *     wp seoprostack status-link set https://updown.io/abcd --off
+     *     wp seoprostack status-link set https://status.example.com/ --off
      *     wp seoprostack status-link set --on
      *
      * @param array $args       Positional arguments.

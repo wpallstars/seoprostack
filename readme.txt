@@ -159,5 +159,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.228 =
 * Added: Cloudflare scanner protection setup task.
+* Changed: the uptime monitoring setup task uses one updown.io account for all sites and a status page on each site's status subdomain.
 
 Older: `changelog.txt`.
