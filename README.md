@@ -2798,9 +2798,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### 1.3.228
+### Unreleased
 
 - Changed (**Website Setup board**, #1715): the **Setup Uptime Monitoring (updown.io)** task adds the check to the updown.io account that already monitors the other sites and defaults to a status page on the site's `status.` subdomain (`CNAME page.updown.io`, Cloudflare DNS only), with the check's public page as the fallback. The Website status link example is now `https://status.example.com/`. Existing boards are not changed.
+
+### 1.3.228
 
 - New (**Website Setup board**, #1710): a task, **Protect the Site from Scanners (Cloudflare security rules)**, after Setup Cloudflare. It has two free Cloudflare rules, each ready to paste: a Custom rule that blocks probes for secret and settings files (`/.env`, `/.git`, `.sql` backups and the like), and a Rate limiting rule that blocks an IP sending more than 100 page requests in 10 seconds. It also covers keeping other services on the domain out of the rules, multisite networks and mapped domains, and why Bot Fight Mode stays off. `wp seoprostack starters add fluent-boards` adds it to existing boards.
 
