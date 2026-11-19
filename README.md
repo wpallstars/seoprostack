@@ -2161,7 +2161,22 @@ Cloudflare runs the domain's DNS for free and protects and speeds up the site.
 
 Done when Cloudflare shows the domain as **Active** and the site loads over https.
 
-##### 4. Clear Cloudflare's cache with LiteSpeed Cache
+##### 4. Protect the Site from Scanners (Cloudflare security rules)
+
+Scanners try every website for leaked password and settings files, such as `/.env`, `/.git` or a `.sql` backup, and can send thousands of requests in a few minutes. WordPress answers each one with a "not found" page it builds from the database, so a busy scanner uses up the hosting plan's CPU and database connections and slows the site or stops it (hPanel shows the plan's resource limits reached). Two free Cloudflare rules stop them before they reach the server.
+
+1. In Cloudflare, open the domain, then **Security → Security rules** (older dashboards: **Security → WAF**) and create a **Custom rule**. Name it `Block scanner probes`, choose **Edit expression**, paste this, set the action to **Block** and deploy it: `(http.request.uri.path contains "/.env" or http.request.uri.path contains "/.git/" or ends_with(http.request.uri.path, "/.git") or http.request.uri.path contains "/.aws/" or http.request.uri.path contains "/.ssh/" or http.request.uri.path contains "/.svn/" or http.request.uri.path contains "/.dev.vars" or http.request.uri.path contains "/.htpasswd" or http.request.uri.path contains "/.DS_Store" or http.request.uri.path contains "docker-compose" or http.request.uri.path contains "/phpinfo" or http.request.uri.path contains "wp-config.php." or http.request.uri.path contains "/vendor/phpunit/" or ends_with(http.request.uri.path, ".sql") or ends_with(http.request.uri.path, ".sql.gz"))`
+2. On the same page, create a **Rate limiting rule** named `Limit requests per visitor`, with this expression, so pictures, styles and scripts do not count: `(not http.request.uri.path.extension in {"js" "css" "png" "jpg" "jpeg" "gif" "svg" "webp" "avif" "ico" "woff" "woff2" "ttf" "map"})`. Count requests by **IP**; when they exceed **100** in **10 seconds**, **Block** for **10 seconds**. A person never opens that many pages so fast, and a scanner is stopped within seconds. The Free plan allows one rate limiting rule per domain.
+3. **Other services on the domain** (such as Nextcloud, a mail app or a file app on a subdomain): put `http.host in {"example.com" "www.example.com"} and ` (the website's own addresses) straight after the first bracket of both expressions, so those services are not affected.
+4. **A multisite network** (such as Ultimate Multisite with sites at subdomains): the rules cover every site at the domain. Keep the wildcard DNS record (`*`) when new sites get their own subdomain, as they need it. Each mapped domain (a site with its own domain) is a separate domain in Cloudflare: add both rules there too.
+5. Leave **Bot Fight Mode** off: it challenges requests that do not come from a browser, such as plugin licence checks, uptime monitors and your AI assistant. Blocking AI crawlers is a separate choice, as they also bring the site into AI answers.
+6. Test: open `https://<domain>/.env`. Cloudflare's "Sorry, you have been blocked" page shows. Check that the home page, wp-admin and a form work as before.
+
+**With aidevops:** it can add both rules through Cloudflare's API with your Cloudflare access from its secret store, test them, and a day later check **Security → Events** for real visitors blocked by mistake.
+
+Done when `/.env` shows Cloudflare's block page, the home page and wp-admin load, and a day later Security → Events shows no real visitors blocked.
+
+##### 5. Clear Cloudflare's cache with LiteSpeed Cache
 
 LiteSpeed Cache keeps fast copies of pages on the server, and Cloudflare can keep its own. When LiteSpeed Cache empties its copies (Purge All, after updates), Cloudflare's stay until they expire, so visitors can see old pages. With a Cloudflare token, every Purge All empties Cloudflare too.
 
@@ -2175,7 +2190,7 @@ LiteSpeed Cache keeps fast copies of pages on the server, and Cloudflare can kee
 
 Done when Purge All reports that Cloudflare was notified. (Only if the site's pages are cached by Cloudflare, `cf-cache-status` on the home page shows `MISS` straight after a purge; a visitor's request can refill it first, and `DYNAMIC` is normal when Cloudflare does not cache HTML.)
 
-##### 5. Setup Spam Protection (Cloudflare Turnstile)
+##### 6. Setup Spam Protection (Cloudflare Turnstile)
 
 *Added on sites where the `simple-cloudflare-turnstile` plugin is active.*
 
@@ -2189,7 +2204,7 @@ Done when Purge All reports that Cloudflare was notified. (Only if the site's pa
 
 A site copied from another one has that site's keys here: replace them with your own, or the check fails on your domain. Never paste a key into a task or comment. Done when the test response succeeds and a form sends with Turnstile showing.
 
-##### 6. Setup aidevops (your AI assistant)
+##### 7. Setup aidevops (your AI assistant)
 
 [aidevops](https://aidevops.sh) lets an AI assistant on your computer set up and look after this site with you: plugin updates, settings, checks and fixes, and these setup tasks.
 
@@ -2202,7 +2217,7 @@ Docs: [aidevops.sh/docs](https://aidevops.sh/docs) and [GitHub](https://github.c
 
 Done when `aidevops status` shows it ready.
 
-##### 7. Setup SSH Access for aidevops
+##### 8. Setup SSH Access for aidevops
 
 SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your AI can do in seconds what takes many clicks, and check its own work. Recommended for every site.
 
@@ -2215,7 +2230,7 @@ SSH lets aidevops run WordPress's command line (WP-CLI) on the server, so your A
 
 Never share your hosting password or private key. Done when `wp --info` works over SSH, with the default PHP or the one your AI found.
 
-##### 8. Connect your AI to this Board
+##### 9. Connect your AI to this Board
 
 Optional. With SSH (the task before), aidevops can already read and update this board through WP-CLI. To let another AI client (ChatGPT, Claude) work on the board directly:
 
@@ -2225,7 +2240,7 @@ Optional. With SSH (the task before), aidevops can already read and update this 
 
 Without any AI: work through the tasks in order and move each to Done when finished.
 
-##### 9. Setup Business Email (Purelymail)
+##### 10. Setup Business Email (Purelymail)
 
 Mailboxes people write to, such as hello@ and support@ at your domain. [Purelymail](https://purelymail.com/) is simple and low-cost ([pricing](https://purelymail.com/pricing)).
 
@@ -2236,7 +2251,7 @@ Mailboxes people write to, such as hello@ and support@ at your domain. [Purelyma
 
 Done when mail arrives both ways and Purelymail shows the DNS records as correct.
 
-##### 10. Setup Email Sending (Amazon SES)
+##### 11. Setup Email Sending (Amazon SES)
 
 The website's own emails (forms, newsletters, password resets) go through [Amazon SES](https://aws.amazon.com/ses/), so they reach inboxes instead of spam. FluentSMTP connects WordPress to it.
 
@@ -2247,7 +2262,7 @@ The website's own emails (forms, newsletters, password resets) go through [Amazo
 
 FluentSMTP encrypts the key with the site's salts: re-enter it if they change. A site copied from another one has that site's connections in FluentSMTP: delete them once yours works. Done when the test email arrives.
 
-##### 11. Setup File Storage (Cloudflare R2)
+##### 12. Setup File Storage (Cloudflare R2)
 
 [Cloudflare R2](https://developers.cloudflare.com/r2/get-started/) stores files off the server, such as backups, with no download fees. The free allowance covers most sites.
 
@@ -2258,7 +2273,7 @@ FluentSMTP encrypts the key with the site's salts: re-enter it if they change. A
 
 Done when a first backup appears in the bucket.
 
-##### 12. Setup Google Cloud
+##### 13. Setup Google Cloud
 
 Google services the site uses (such as Maps, or Cloud Translation on a site in more than one language) are billed through a Google Cloud project. Search Console, which is free, has its own task.
 
@@ -2268,7 +2283,7 @@ Google services the site uses (such as Maps, or Cloud Translation on a site in m
 
 Done when the project exists with billing and a budget alert.
 
-##### 13. Setup Google Search Console
+##### 14. Setup Google Search Console
 
 [Search Console](https://search.google.com/search-console/about) shows how Google sees the site: the searches it appears in, the pages Google cannot index and why, and problems to fix. It is free, and separate from Google Cloud. Do it once the site is on its own domain and open to search engines (**Settings → Reading**).
 
@@ -2279,7 +2294,7 @@ Done when the project exists with billing and a budget alert.
 
 Bing has its own task, next. Done when the property is verified and the sitemap shows **Success**.
 
-##### 14. Setup Bing Webmaster Tools
+##### 15. Setup Bing Webmaster Tools
 
 [Bing Webmaster Tools](https://www.bing.com/webmasters/about) does for Bing what Search Console does for Google: the searches the site appears in, the pages Bing cannot index and why, and a place to submit the sitemap. Bing's results also appear in other search engines, such as DuckDuckGo, Yahoo and Ecosia, and in Microsoft Copilot. It is free. Do it after Setup Google Search Console, once the site is on its own domain and open to search engines (**Settings → Reading**).
 
@@ -2290,7 +2305,7 @@ Bing has its own task, next. Done when the property is verified and the sitemap 
 
 Optional, with Rank Math: turn on its **Instant Indexing** module, which tells Bing at once when a page is published or changed (IndexNow). Done when the site shows as verified and the sitemap's status is **Success**.
 
-##### 15. Setup Google Translation (Cloud Translation API)
+##### 16. Setup Google Translation (Cloud Translation API)
 
 *Added on sites where the `translatepress-multilingual` plugin is active.*
 
@@ -2304,7 +2319,7 @@ TranslatePress translates the site's pages into its other languages automaticall
 
 A site copied from another one has that site's key here: replace it with yours. Never paste the key into a task or comment. Done when a new page translates and the key comes from your own project.
 
-##### 16. Setup Payment Processing
+##### 17. Setup Payment Processing
 
 Choose who takes card payments. You can use more than one.
 
@@ -2318,7 +2333,7 @@ Choose who takes card payments. You can use more than one.
 
 Done when a live payment reaches your account and its receipt email arrives.
 
-##### 17. Setup Backups, Updates and Uptime Alerts
+##### 18. Setup Backups, Updates and Uptime Alerts
 
 Keeps the site safe to change and tells you when it is down, before your customers do. The steps are for Hostinger; other hosts have the same three things under other names.
 
@@ -2330,7 +2345,7 @@ Keeps the site safe to change and tells you when it is down, before your custome
 
 Done when a backup within the site's interval is listed (the last day for a site that needs daily, otherwise the last week), one downloaded backup has been checked, a comment here names the updater chosen and who checks updates each month, and the uptime alert is saved.
 
-##### 18. Setup Uptime Monitoring (updown.io)
+##### 19. Setup Uptime Monitoring (updown.io)
 
 [updown.io](https://updown.io/r/kddkt) checks the site from several countries and emails you when it stops answering, its SSL certificate is about to expire, or it gets slow, and gives it a public status page with its uptime and response times. It is pay-as-you-go: each check request uses one credit, so a check every 5 minutes uses about 8,640 credits a month. Skip this task if the site already has an uptime monitor you are happy with.
 
