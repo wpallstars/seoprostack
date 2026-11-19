@@ -5,6 +5,8 @@
 # scripts/build-release.sh also removes the Git Updater header lines
 # (GitHub Plugin URI, Primary Branch, Release Asset) from seoprostack.php.
 /includes/github-updater/
+# Licensed updates from the wpallstars.com shop: also updates from elsewhere.
+/includes/wpallstars-licence/
 /includes/features/class-seoprostack-github-updates.php
 # WordPress.org plugins must not alter WordPress update routines.
 /includes/features/class-seoprostack-update-delay.php
