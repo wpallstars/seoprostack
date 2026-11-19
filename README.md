@@ -2796,6 +2796,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New (**Website Setup board**, #1710): a task, **Protect the Site from Scanners (Cloudflare security rules)**, after Setup Cloudflare. It has two free Cloudflare rules, each ready to paste: a Custom rule that blocks probes for secret and settings files (`/.env`, `/.git`, `.sql` backups and the like), and a Rate limiting rule that blocks an IP sending more than 100 page requests in 10 seconds. It also covers keeping other services on the domain out of the rules, multisite networks and mapped domains, and why Bot Fight Mode stays off. `wp seoprostack starters add fluent-boards` adds it to existing boards.
+
 ### 1.3.227
 
 - New: **Website status link** (Links tab, off by default, #1707). Links to `#website-status` go to the site's public uptime status page in a new tab, or are left out while it is off or has no address, so a theme can ship a "Website status" footer link and each site decides whether it shows. `wp seoprostack status-link set <address> --on`.
