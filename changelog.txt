@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.228 =
 * Added (Fluent Boards starter data, Website Setup board; GitHub issue #1710): a Protect the Site from Scanners (Cloudflare security rules) task (starters/fluent-boards.json, after Setup Cloudflare): a free Custom rule that blocks probes for secret and settings files (/.env, /.git, /.aws, /.ssh, /.svn, /.dev.vars, /.htpasswd, /.DS_Store, docker-compose, /phpinfo, wp-config.php. copies, /vendor/phpunit/, .sql and .sql.gz), and the Free plan's one Rate limiting rule: more than 100 requests per IP in 10 seconds, pictures, styles, scripts and fonts not counted, blocked for 10 seconds. Each expression is given to paste. Also covered: limiting both rules to the website's own addresses (http.host in {…}) when other services share the domain; on a multisite network, keeping the wildcard record for sites at new subdomains and adding the rules to each mapped domain; leaving Bot Fight Mode off, since it challenges licence checks, uptime monitors and AI assistants. Done when /.env shows Cloudflare's block page, the site and wp-admin load, and Security → Events shows no real visitors blocked a day later. Observed on a Hostinger account with about 80 sites: one scanner's uncached 404s (1 to 5 s each with LiteSpeed Cache's miss) reached the account's MySQL connection limit; with these rules on 20 domains, pages answer 200 and probes 403 at Cloudflare. Add starter data adds the task to existing boards (only missing tasks are added). README.md's setup tasks regenerated.
 
 = 1.3.227 =
