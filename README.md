@@ -1366,7 +1366,7 @@ Website Setup board's **Setup Uptime Monitoring (updown.io)** task sets one up.
 - The editor and wp-admin show the link as written; the address is applied as
   each front-end page is made, so nothing in pages changes.
 - WP-CLI: `wp seoprostack status-link` shows it;
-  `wp seoprostack status-link set https://updown.io/abcd --on` sets the
+  `wp seoprostack status-link set https://status.example.com/ --on` sets the
   address and shows the link; `--off` leaves it out again.
 
 ### Links skip redirects (Links)
@@ -2349,13 +2349,15 @@ Done when a backup within the site's interval is listed (the last day for a site
 
 [updown.io](https://updown.io/r/kddkt) checks the site from several countries and emails you when it stops answering, its SSL certificate is about to expire, or it gets slow, and gives it a public status page with its uptime and response times. It is pay-as-you-go: each check request uses one credit, so a check every 5 minutes uses about 8,640 credits a month. Skip this task if the site already has an uptime monitor you are happy with.
 
-1. **Account.** Sign up at [updown.io](https://updown.io/r/kddkt) with the support mailbox's address, so alerts reach whoever looks after the site.
+1. **Account.** Add the check to the [updown.io](https://updown.io/r/kddkt) account that already monitors your other sites: one account covers them all, and each site still gets its own status page. Sign up with the support mailbox's address only when there is no account yet, so alerts reach whoever looks after the site.
 2. **Check.** Click **Add a check**, enter the home page's full address (`https://` and the address visitors use, after any redirect) and choose the interval: 5 minutes suits most sites, 1 minute a site that takes orders or bookings. In the check's options, set the text the page must contain to something the home page always shows (such as the site's name in the footer), so an error page that still answers counts as down.
 3. **Alerts.** In updown.io's alert settings add the support mailbox (and, if you like, a phone for SMS or a chat app), and select it for the check. Wait for the first green result.
-4. **Status page.** Make the check public: its page (`https://updown.io/` and the check's code) shows visitors the uptime and response times. For several sites, or your own address such as `status.example.com`, create a status page instead: add the checks, then point the address at it with the CNAME record updown.io shows.
-5. **Website status link (optional).** To link the status page from the site, add a link to `#website-status` (for example the text **Website status** in the footer), then in SEO Pro Stack → Links switch on **Website status link** and paste the status page's address. While it is off, links to `#website-status` are left out, so a theme can ship the link and each site decides whether to show it. Or ask your AI for `wp seoprostack status-link set <address> --on`.
+4. **Status page.** Give the site a status page on its own subdomain, `status.` plus the site's domain. In updown.io create a status page and add the site's check, then in the page's settings enter `status.example.com` (the site's domain after `status.`) as its custom domain. Then add the DNS record: name `status` (for a site on a subdomain such as `shop.example.com`, the name is `status.shop`), type `CNAME`, target `page.updown.io`. In Cloudflare set Proxy status to **DNS only**; if the record must stay proxied, add two CAA records on that name, `0 issue "letsencrypt.org"` and `0 issue "sectigo.com"`, and do not use Flexible TLS, which loops. A site on a subdomain needs DNS only, because Cloudflare's free certificate covers one level. On a multisite network with sites at subdomains, keep the `*` wildcard record: the `status` record takes precedence, so no site may be called `status`. Wait until updown.io shows the page's certificate, then open the address. Without access to the DNS, make the check public instead: its page (`https://updown.io/` and the check's code) shows visitors the uptime and response times.
+5. **Website status link (optional).** To link the status page from the site, add a link to `#website-status` (for example the text **Website status** in the footer), then in SEO Pro Stack → Links switch on **Website status link** and paste the `https://status.` address. While it is off, links to `#website-status` are left out, so a theme can ship the link and each site decides whether to show it. Or ask your AI for `wp seoprostack status-link set <address> --on`.
 
-Done when the check shows the site up, the support mailbox is selected for its alerts, and a comment here gives the status page's address and whether the site links to it.
+Done when the check shows the site up, the support mailbox is selected for its alerts, the `https://status.` address loads with a valid certificate and shows the check, and a comment here gives that address and whether the site links to it.
+
+**With aidevops:** your AI can create the check and status page with `updown-helper.sh` and add the DNS record through the DNS host's API. The custom domain is entered in updown.io, because its API has no field for it.
 
 <!-- setup-tasks:end -->
 
@@ -2795,6 +2797,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed request rules and the main address redirects from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated), and Load the CSS each page uses first's stylesheet records.
 
 ## Changelog
+
+### Unreleased
+
+- Changed (**Website Setup board**, #1715): the **Setup Uptime Monitoring (updown.io)** task adds the check to the updown.io account that already monitors the other sites and defaults to a status page on the site's `status.` subdomain (`CNAME page.updown.io`, Cloudflare DNS only), with the check's public page as the fallback. The Website status link example is now `https://status.example.com/`. Existing boards are not changed.
 
 ### 1.3.228
 
