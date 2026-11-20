@@ -56,6 +56,9 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
     /** Single event that adds the cards on a fresh request after a plugin is activated. */
     const CARDS_EVENT = 'seoprostack_addon_cards';
 
+    /** Lock (SEOProStack_Settings::under_lock) that serialises adding cards. */
+    const CARDS_LOCK = 'seoprostack_addon_cards_lock';
+
     /** Tries before giving up on a plugin whose cards would not add. */
     const CARDS_TRIES = 3;
 
@@ -192,20 +195,40 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters.php';
         foreach ($pending as $file => $slug) {
-            $folder = dirname($file);
-            $before = SEOProStack_Starters::cards_missing($slug, $folder);
-            if (null === $before) {
-                continue; // Not running on this request: try again on the next.
-            }
-            $result = $before ? SEOProStack_Starters::add($slug, $folder) : 0;
-            $left   = is_wp_error($result) ? null : SEOProStack_Starters::cards_missing($slug, $folder);
-            if (0 === $left) {
+            // One run at a time: the check for a card and its creation must not
+            // overlap with another request's (the event and admin requests).
+            $outcome = SEOProStack_Settings::under_lock(function () use ($slug, $file) {
+                return self::add_cards($slug, dirname($file));
+            }, '', self::CARDS_LOCK);
+            if ('done' === $outcome) {
                 $done[$file] = time();
-            } elseif (null !== $left || is_wp_error($result)) {
+            } elseif ('failed' === $outcome) {
                 $done[$file] = (isset($done[$file]) ? (int) $done[$file] : 0) - 1;
+            } else {
+                continue; // Waiting (not running here, or the lock was busy): the next request tries again.
             }
             update_option(self::CARDS, $done, false);
         }
+    }
+
+    /**
+     * Add one add-on's missing cards. Run under the cards lock.
+     *
+     * @param string $slug   Starter folder.
+     * @param string $folder Plugin folder.
+     * @return string done, failed, or wait (the plugin or Fluent Boards is not running).
+     */
+    private static function add_cards($slug, $folder) {
+        $before = SEOProStack_Starters::cards_missing($slug, $folder);
+        if (null === $before) {
+            return 'wait';
+        }
+        $result = $before ? SEOProStack_Starters::add($slug, $folder) : 0;
+        $left   = is_wp_error($result) ? null : SEOProStack_Starters::cards_missing($slug, $folder);
+        if (0 === $left) {
+            return 'done';
+        }
+        return null === $left && !is_wp_error($result) ? 'wait' : 'failed';
     }
 
     /** @param string $slug Plugin whose preset was changed. */

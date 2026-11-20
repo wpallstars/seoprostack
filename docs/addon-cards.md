@@ -50,5 +50,7 @@ relay (see `AGENTS.md`). After editing `starters/fluent-boards.json`, run
 
 - `bash scripts/preflight-plugin.sh .` checks the starters' JSON.
 - On a disposable multisite, assign a membership with the CRM add-on to a
-  site: FluentCRM activates and the Website Setup board gets the CRM tasks
-  once; switching it off and on again adds nothing new.
+  site, then open that site's wp-admin (a forced activation may not fire
+  `activated_plugin`, so the next admin request adds the cards): FluentCRM is
+  active and the Website Setup board has the CRM tasks once; switching it off
+  and on again, and opening wp-admin, adds nothing new.
