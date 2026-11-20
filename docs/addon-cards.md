@@ -19,7 +19,7 @@ add-on is turning the plugin on; the cards are the guide.
   is defined once, in `starters/fluent-boards.json`, and made from there if
   missing; the add-on's starter does not repeat it. Put a Pro plugin's cards
   in the same starter with the Pro plugin's folder.
-- `SEOProStack_Plugin_Presets::ADDONS` maps each plugin file to its starter.
+- `SEOProStack_Plugin_Presets::ADDONS` maps each starter to its plugin files.
   `addon_cards()` runs on `admin_init` (priority 99) and on a single event
   that `activated_plugin` schedules. A plugin that Ultimate Multisite switches
   on (`force_active`) may not fire `activated_plugin`; it is in the site's

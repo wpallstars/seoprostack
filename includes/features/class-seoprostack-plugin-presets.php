@@ -61,18 +61,15 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
 
     /**
      * Website add-ons: the plugins that Ultimate Multisite switches on for a
-     * membership (force_active), by plugin file, with the starter folder
-     * that holds their setup cards (starters/{folder}.json).
+     * membership (force_active): the folder of the starter that holds their
+     * setup cards (starters/{folder}.json), then the plugin files, base
+     * plugin first.
      */
     const ADDONS = array(
-        'fluent-crm/fluent-crm.php'                 => 'fluent-crm',
-        'fluentcampaign-pro/fluentcampaign-pro.php' => 'fluent-crm',
-        'fluent-support/fluent-support.php'         => 'fluent-support',
-        'fluent-support-pro/fluent-support-pro.php' => 'fluent-support',
-        'fluent-boards/fluent-boards.php'           => 'fluent-boards',
-        'fluent-boards-pro/fluent-boards-pro.php'   => 'fluent-boards',
-        'tutor/tutor.php'                           => 'tutor',
-        'tutor-pro/tutor-pro.php'                   => 'tutor',
+        'fluent-crm'     => array('fluent-crm/fluent-crm.php', 'fluentcampaign-pro/fluentcampaign-pro.php'),
+        'fluent-support' => array('fluent-support/fluent-support.php', 'fluent-support-pro/fluent-support-pro.php'),
+        'fluent-boards'  => array('fluent-boards/fluent-boards.php', 'fluent-boards-pro/fluent-boards-pro.php'),
+        'tutor'          => array('tutor/tutor.php', 'tutor-pro/tutor-pro.php'),
     );
 
     /**
@@ -148,9 +145,24 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
      * @param string $plugin Plugin file.
      */
     public static function addon_activated($plugin) {
-        if (isset(self::ADDONS[(string) $plugin]) && !wp_next_scheduled(self::CARDS_EVENT)) {
+        if (isset(self::addon_files()[(string) $plugin]) && !wp_next_scheduled(self::CARDS_EVENT)) {
             wp_schedule_single_event(time() + 15, self::CARDS_EVENT);
         }
+    }
+
+    /**
+     * The website add-on plugins, as plugin file => starter folder.
+     *
+     * @return array<string,string>
+     */
+    private static function addon_files() {
+        $files = array();
+        foreach (self::ADDONS as $slug => $list) {
+            foreach ($list as $file) {
+                $files[$file] = $slug;
+            }
+        }
+        return $files;
     }
 
     /**
@@ -167,7 +179,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             $on = array_merge($on, array_keys((array) get_site_option('active_sitewide_plugins', array())));
         }
         $pending = array();
-        foreach (self::ADDONS as $file => $slug) {
+        foreach (self::addon_files() as $file => $slug) {
             $state = isset($done[$file]) ? (int) $done[$file] : 1;
             if ((!isset($done[$file]) || $state <= 0) && $state > -self::CARDS_TRIES && in_array($file, $on, true)) {
                 $pending[$file] = $slug;
