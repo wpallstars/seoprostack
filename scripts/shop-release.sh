@@ -19,6 +19,9 @@
 #                      product's version, download the offered package and
 #                      print its version, size, SHA-256, entry count and
 #                      main-file Version:, never the signed package address.
+#                      The refresh rewrites the site's update transients, so
+#                      they are kept first and put back when it ends, even
+#                      after a failure.
 #   --wp-cli COMMAND   WP-CLI on the host (default: wp).
 #
 # Only for a licensed plugin: the main file has `Update URI:
@@ -169,10 +172,14 @@ identify() {
 }
 
 # Make a private folder on the host for this run, and remember it for cleanup.
+# The host allocates it exclusively (mktemp -d), so two runs, even by the same
+# user, never share a folder; cleanup removes only the one returned here.
 remote_dir() {
 	local dir
-	dir="$REMOTE_BASE/run-$(date -u +%Y%m%dT%H%M%SZ)-$$"
-	remote "umask 077 && mkdir -p $REMOTE_BASE/backups $dir && chmod 700 $REMOTE_BASE $REMOTE_BASE/backups $dir" || die "cannot make a private folder on the host"
+	dir="$(remote "umask 077 && mkdir -p $REMOTE_BASE/backups && chmod 700 $REMOTE_BASE $REMOTE_BASE/backups && mktemp -d $REMOTE_BASE/run-XXXXXXXXXX")" || dir=""
+	if [[ ! "$dir" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+		die "cannot make a private folder on the host"
+	fi
 	REMOTE_DIR="$dir"
 	return 0
 }
@@ -197,20 +204,30 @@ check_site() {
 }
 
 release() {
-	local root sha zip version changelog="changelog.txt"
+	local root sha zip version changelog=""
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	cd "$root"
 	sha="$(git rev-parse --verify --quiet "$REF^{commit}")" || die "not a commit: $REF"
 	identify "$sha"
-	git cat-file -e "$sha:$changelog" 2>/dev/null || changelog="readme.txt"
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$PLUGIN_SLUG-shop.XXXXXX")"
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$PLUGIN_SLUG-shop.XXXXXX")" || TMP_DIR=""
+	[[ -n "$TMP_DIR" && -d "$TMP_DIR" ]] || die "cannot make a temporary folder"
 	zip="$("$SCRIPT_DIR/build-release.sh" --ref "$sha" --out "$TMP_DIR" --quiet)" || die "the build failed"
 	[[ "$zip" != *$'\n'* ]] || die "the build made more than one zip; a licensed plugin gets one"
 	version="$(basename "$zip" .zip)"
 	version="${version#"$PLUGIN_SLUG"-}"
 	[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "the build is not named $PLUGIN_SLUG-X.Y.Z.zip: $zip"
+	local section="^= $version( [^=]*)? ="
+	changelog=""
+	local candidate text
+	for candidate in changelog.txt readme.txt; do
+		text="$(git show "$sha:$candidate" 2>/dev/null)" || continue
+		if grep -Eq "$section" <<<"$text"; then
+			changelog="$candidate"
+			break
+		fi
+	done
+	[[ -n "$changelog" ]] || die "neither changelog.txt nor readme.txt at $REF has a = $version = section"
 	git show "$sha:$changelog" >"$TMP_DIR/changelog.txt" || die "no $changelog at $REF"
-	grep -Eq "^= $version( [^=]*)? =" "$TMP_DIR/changelog.txt" || die "$changelog at $REF has no = $version = section"
 	local digest
 	digest="$(sha256_of "$zip")"
 	printf '%s %s from %s (%s), product %s, SHA-256 %s\n' "$PLUGIN_NAME" "$version" "$REF" "${sha:0:12}" "$ITEM" "$digest"
