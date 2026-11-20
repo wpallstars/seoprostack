@@ -140,6 +140,9 @@ Read the doc for your task first (`STANDARDS.md` → Agent docs):
 
 - Adding or changing a preset (`presets/`) or starter data (`starters/`):
   `docs/presets.md`.
+- Changing the Client Orders how-to cards in `starters/agency.json`
+  (building a client website from the template, setting up an add-on), or
+  the add-on setup cards: `docs/website-delivery.md`, `docs/addon-cards.md`.
 - Changing which plugins Free Plugins or Pro Plugins recommend:
   `docs/plugin-directory.md`.
 - Adding a feature that replaces another plugin, or is modelled on one:

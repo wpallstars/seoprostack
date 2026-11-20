@@ -2094,6 +2094,8 @@ Fluent Boards' starter data adds a **Website Setup** board: a checklist of the a
 
 **Add-on setup cards:** when a website add-on plugin (FluentCRM, Fluent Support, Fluent Boards or Tutor LMS, and their Pro plugins) is switched on for a site, by hand or by Ultimate Multisite, its own setup tasks are added to this board, once per site and plugin, even when the Plugin presets setting is off. See `docs/addon-cards.md`.
 
+**Client delivery cards:** the Agency starter adds two how-to tasks to its **Client Orders** board: building a client's one-page or multi-page website from the template site (copy, Kadence branding, pages, forms, SEO basics, checks before handover) and setting up a website add-on (switch on its product, then work through its setup tasks). The same steps are in `docs/website-delivery.md`.
+
 Other plugins add their own tasks to the same board through the `seoprostack_starters` filter, after the task they follow: SEO Pro Directory adds Google Maps Platform, Outscraper, Jev (optional) and its first listings after Setup Google Cloud. Add Fluent Boards' starter data first, so those tasks find the one they follow (otherwise they go to the top). Tasks never hold a password or key; each says where its key belongs (the plugin's settings, `wp-config.php`, or the aidevops secret store).
 
 **Without an AI assistant:** open **Plugins**, find Fluent Boards' row, choose **Add starter data**, then open **Fluent Boards → Website Setup** and work through the tasks from the top, moving each to Done.
