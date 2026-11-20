@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-18T21:47:02Z",
+  "generated_at": "2026-11-20T04:55:02Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,30 +11,30 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 1012,
-    "code": 165340,
-    "comments": 56230,
-    "blanks": 14626,
+    "source_files": 1018,
+    "code": 166807,
+    "comments": 56924,
+    "blanks": 14764,
     "languages": 10,
     "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 342,
-      "code": 89789,
-      "comments": 50137,
-      "blanks": 8652,
-      "percentage": 54.31,
+      "files": 347,
+      "code": 90971,
+      "comments": 50765,
+      "blanks": 8750,
+      "percentage": 54.54,
       "color": "#4F5D95"
     },
     {
       "name": "JSON",
       "files": 486,
-      "code": 31922,
+      "code": 31934,
       "comments": 0,
       "blanks": 0,
-      "percentage": 19.31,
+      "percentage": 19.14,
       "color": "#292929"
     },
     {
@@ -43,7 +43,7 @@
       "code": 13600,
       "comments": 2227,
       "blanks": 928,
-      "percentage": 8.23,
+      "percentage": 8.15,
       "color": "#f1e05a"
     },
     {
@@ -52,25 +52,25 @@
       "code": 10949,
       "comments": 1508,
       "blanks": 2637,
-      "percentage": 6.62,
+      "percentage": 6.56,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
-      "files": 34,
-      "code": 8832,
-      "comments": 2107,
-      "blanks": 672,
-      "percentage": 5.34,
+      "files": 35,
+      "code": 9020,
+      "comments": 2171,
+      "blanks": 692,
+      "percentage": 5.41,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
       "files": 20,
-      "code": 6626,
+      "code": 6711,
       "comments": 0,
-      "blanks": 1620,
-      "percentage": 4.01,
+      "blanks": 1640,
+      "percentage": 4.02,
       "color": "#083fa1"
     },
     {
@@ -79,16 +79,16 @@
       "code": 2796,
       "comments": 73,
       "blanks": 15,
-      "percentage": 1.69,
+      "percentage": 1.68,
       "color": "#6e7781"
     },
     {
       "name": "YAML",
       "files": 14,
       "code": 742,
-      "comments": 168,
+      "comments": 170,
       "blanks": 87,
-      "percentage": 0.45,
+      "percentage": 0.44,
       "color": "#cb171e"
     },
     {
