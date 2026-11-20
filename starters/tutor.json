@@ -4,19 +4,6 @@
     "updated": "2026-11-20",
     "notes": "Setup tasks for the Courses add-on, added to the Website Setup board (Fluent Boards) when Tutor LMS is switched on for a site: the first course with its lessons and price, and with Tutor LMS Pro, certificates. Added once per site by SEO Pro Stack, or by hand from the Plugins screen. Written for the site owner or their AI assistant, and never ask for a password or key in a task.",
     "items": {
-        "fluentboards_boards": [
-            {
-                "title": "Website Setup",
-                "when": "fluent-boards",
-                "type": "to-do",
-                "description": "The accounts and keys this site needs, in the order to set them up. Each task has the steps and links. Never paste a password or key into a task or comment.",
-                "stages": [
-                    { "title": "To-Do" },
-                    { "title": "In Progress" },
-                    { "title": "Done", "closed": true }
-                ]
-            }
-        ],
         "fluentboards_tasks": [
             {
                 "board": "Website Setup",

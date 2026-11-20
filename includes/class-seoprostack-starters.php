@@ -441,34 +441,56 @@ final class SEOProStack_Starters {
         }
         $active = self::active_folders();
         $out    = array();
-        $boards = array();
         if ('' !== $addon) {
-            foreach (isset($starter['items']['fluentboards_tasks']) ? $starter['items']['fluentboards_tasks'] : array() as $item) {
-                if (isset($item['addon']) && (string) $item['addon'] === $addon) {
-                    $boards[(string) $item['board']] = true;
-                }
-            }
+            return self::card_items($starter, $addon, $active);
         }
         foreach ($starter['items'] as $type => $items) {
             if (!self::type_ready($type)) {
-                continue;
-            }
-            if ('' !== $addon && !in_array($type, array('fluentboards_boards', 'fluentboards_tasks'), true)) {
                 continue;
             }
             foreach ($items as $item) {
                 if ((!empty($item['when']) && !isset($active[(string) $item['when']])) || !self::requirement_met($item)) {
                     continue;
                 }
-                if ('' !== $addon) {
-                    $owned = 'fluentboards_tasks' === $type ? isset($item['addon']) && (string) $item['addon'] === $addon : isset($boards[(string) $item['title']]);
-                    if (!$owned) {
-                        continue;
-                    }
-                }
                 $out[$type][] = $item;
             }
         }
+        return $out;
+    }
+
+    /**
+     * An add-on's setup cards: its tasks (marked "addon", for a plugin that
+     * is active) and the boards they are on, which the Fluent Boards starter
+     * defines, so the starters of the add-ons need not repeat them.
+     *
+     * @param array               $starter Starter (see all()).
+     * @param string              $addon   Plugin folder.
+     * @param array<string,true>  $active  Active plugin folders.
+     * @return array<string,array> Item type => items.
+     */
+    private static function card_items(array $starter, $addon, array $active) {
+        if (!self::type_ready('fluentboards_tasks')) {
+            return array();
+        }
+        $tasks  = array();
+        $boards = array();
+        foreach (isset($starter['items']['fluentboards_tasks']) ? $starter['items']['fluentboards_tasks'] : array() as $item) {
+            if (isset($item['addon']) && (string) $item['addon'] === $addon && (empty($item['when']) || isset($active[(string) $item['when']]))) {
+                $tasks[] = $item;
+                $boards[(string) $item['board']] = true;
+            }
+        }
+        $out = array();
+        if (!$tasks) {
+            return $out;
+        }
+        $home = self::get('fluent-boards');
+        foreach (isset($home['items']['fluentboards_boards']) ? $home['items']['fluentboards_boards'] : array() as $board) {
+            if (isset($boards[(string) $board['title']])) {
+                $out['fluentboards_boards'][] = $board;
+            }
+        }
+        $out['fluentboards_tasks'] = $tasks;
         return $out;
     }
 

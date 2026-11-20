@@ -76,19 +76,6 @@
                 "lists": ["lists"]
             }
         ],
-        "fluentboards_boards": [
-            {
-                "title": "Website Setup",
-                "when": "fluent-boards",
-                "type": "to-do",
-                "description": "The accounts and keys this site needs, in the order to set them up. Each task has the steps and links. Never paste a password or key into a task or comment.",
-                "stages": [
-                    { "title": "To-Do" },
-                    { "title": "In Progress" },
-                    { "title": "Done", "closed": true }
-                ]
-            }
-        ],
         "fluentboards_tasks": [
             {
                 "board": "Website Setup",
