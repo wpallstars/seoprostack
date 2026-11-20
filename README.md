@@ -2092,6 +2092,8 @@ They are JSON files in `starters/`, one per plugin folder; `includes/class-seopr
 
 Fluent Boards' starter data adds a **Website Setup** board: a checklist of the accounts and keys a site needs, one task each, in the order to set them up, written so anyone can follow them. Each task says what the service is for, the steps with links, where its key belongs and when the task is done. Once added, the tasks are in **Fluent Boards → Website Setup**, where you move each one along as you go; the same steps are below ([The setup tasks](#the-setup-tasks)), to read before adding them or to follow on a site without Fluent Boards.
 
+**Add-on setup cards:** when a website add-on plugin (FluentCRM, Fluent Support, Fluent Boards or Tutor LMS, and their Pro plugins) is switched on for a site, by hand or by Ultimate Multisite, its own setup tasks are added to this board, once per site and plugin, even when the Plugin presets setting is off. See `docs/addon-cards.md`.
+
 Other plugins add their own tasks to the same board through the `seoprostack_starters` filter, after the task they follow: SEO Pro Directory adds Google Maps Platform, Outscraper, Jev (optional) and its first listings after Setup Google Cloud. Add Fluent Boards' starter data first, so those tasks find the one they follow (otherwise they go to the top). Tasks never hold a password or key; each says where its key belongs (the plugin's settings, `wp-config.php`, or the aidevops secret store).
 
 **Without an AI assistant:** open **Plugins**, find Fluent Boards' row, choose **Add starter data**, then open **Fluent Boards → Website Setup** and work through the tasks from the top, moving each to Done.
@@ -2358,6 +2360,21 @@ Done when a backup within the site's interval is listed (the last day for a site
 Done when the check shows the site up, the support mailbox is selected for its alerts, the `https://status.` address loads with a valid certificate and shows the check, and a comment here gives that address and whether the site links to it.
 
 **With aidevops:** your AI can create the check and status page with `updown-helper.sh` and add the DNS record through the DNS host's API. The custom domain is entered in updown.io, because its API has no field for it.
+
+##### 20. Setup Project Management (Fluent Boards)
+
+*Added on sites where the `fluent-boards` plugin is active.*
+
+Project Management is switched on for this site. Fluent Boards keeps work in boards: a board is a list of tasks in columns (stages) such as To-Do, In Progress and Done, and you move each task along as it is worked on. Use one board per area of work, such as the website, a client or a campaign.
+
+1. In WordPress, open **Fluent Boards** and click **Add Board** (or the plus button).
+2. Give it a name and a short description, choose **To-Do board**, and click **Create**. Boards already here, such as **Website** and **Website Setup**, came with the site: look at them first, to see how a board reads.
+3. Open the board, click **Add a stage** and name the steps your work goes through (for example To-Do, In Progress, Done). Put a final stage that means finished at the end, so closed work leaves your sight.
+4. Add the first task: click **Add Task** in the first stage, give it a clear name saying what done looks like, then open it to add a description, a due date and a label.
+5. Add people: open the board's menu, choose **Members** and add each person by their WordPress account. Open a task to assign it, so each task has one person who owns it.
+6. Ask people to switch on notifications in Fluent Boards, so they hear about tasks assigned to them and comments, without checking the board.
+
+Done when the board has its stages, its members and at least one task assigned to someone. Never put a password or key in a task or comment.
 
 <!-- setup-tasks:end -->
 
@@ -2800,6 +2817,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New (**add-on setup cards**, #1721): when a website add-on plugin is switched on for a site (CRM: FluentCRM and FluentCRM Pro; Support Desk: Fluent Support and Fluent Support Pro; Project Management: Fluent Boards and Fluent Boards Pro; Courses: Tutor LMS and Tutor LMS Pro), its setup tasks are added to the site's **Website Setup** board in Fluent Boards, once per site and plugin, so the owner or their AI assistant can set it up from plain steps: import contacts, connect forms and send a first email (CRM); the mailbox, business hours and support page (Support Desk); a first board and its members (Project Management); a first course, its lessons, price and certificates (Courses). It works whether the plugin was activated by hand or switched on by Ultimate Multisite, a task already on the board is never added again, and it needs Fluent Boards running (it waits until it is). New starter data for Fluent Support and Tutor LMS, the cards in the FluentCRM and Fluent Boards starters, and a `docs/addon-cards.md` page; no passwords or keys are ever asked for in a task.
 - New (**American English translation**, #1719): an English (United States) catalogue, `en_US`, so a site in that language shows US spelling (Colors, accent color, recolor, license, optimize, behavior) on the Brand assets page, its block, the footer link and the admin screens. Only strings whose US form differs are translated; every other string shows the source text.
 - Changed (**Website Setup board**, #1715): the **Setup Uptime Monitoring (updown.io)** task adds the check to the updown.io account that already monitors the other sites and defaults to a status page on the site's `status.` subdomain (`CNAME page.updown.io`, Cloudflare DNS only), with the check's public page as the fallback. The Website status link example is now `https://status.example.com/`. Existing boards are not changed.
 - Developers: core files synced with WP Plugin Starter commit 520f394 (GitHub issue #1712): the shared licensed-updates library (`includes/wpallstars-licence/`, left out of the WordPress.org build), `scripts/shop-release.sh`, and the deploy, release, badge and test-site script, CI, PHPStan, `STANDARDS.md` and `DEVELOPMENT.md` changes since the last sync.

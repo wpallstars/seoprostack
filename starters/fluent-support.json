@@ -1,0 +1,31 @@
+{
+    "name": "Fluent Support",
+    "tested": "",
+    "updated": "2026-11-20",
+    "notes": "Setup tasks for the Support Desk add-on, added to the Website Setup board (Fluent Boards) when Fluent Support is switched on for a site: the mailbox, business hours and the support page. Added once per site by SEO Pro Stack, or by hand from the Plugins screen. Written for the site owner or their AI assistant, and never ask for a password or key in a task.",
+    "items": {
+        "fluentboards_tasks": [
+            {
+                "board": "Website Setup",
+                "title": "Setup Support Desk: Mailbox (Fluent Support)",
+                "when": "fluent-support",
+                "addon": "fluent-support",
+                "description": "Support Desk is switched on for this site. Fluent Support turns the emails and messages your customers send into tickets, so every request has an owner, a status and a history, and nothing gets lost in a shared inbox. A business inbox is the support address tickets belong to, such as support@ your domain.\n\n1. Make sure the support address exists as a mailbox (the task **Setup Business Email (Purelymail)**) and that the site can send email (the task **Setup Email Sending (Amazon SES)**).\n2. In WordPress, open **Fluent Support → Settings → Business Inboxes** (the page lists the inboxes tickets can go to). Open the default one and change its name and email address to your support address, such as support@ your domain, and its From name to your business name.\n3. Turning incoming email into tickets needs Fluent Support Pro. With it, switch on **Fluent Support email by IMAP** in SEO Pro Stack (**Settings → Plugins**), which reads the support mailbox itself, and enter the mailbox's host and user name. The password is set as `SEOPROSTACK_HELPDESK_IMAP_PASSWORD` in `wp-config.php` (your AI assistant can add it from your secret store): never in a task or comment. Do not use an email forwarding or piping service that sends your customers' mail through another company. Without Pro, staff open tickets in Fluent Support and customers use the support page (the task after next).\n4. Send a test reply: open a ticket under **Fluent Support → Tickets**, reply to it, and check the reply reaches your other address. With Pro and IMAP on, also email the support address from another address and check it becomes a ticket.\n\nDone when a reply from a ticket arrives, and, with Pro, an email to the support address makes a ticket."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Support Desk: Business Hours and Replies (Fluent Support)",
+                "when": "fluent-support",
+                "addon": "fluent-support",
+                "description": "Tell customers when to expect an answer, and save time on the answers you give often.\n\n1. In WordPress, open **Fluent Support → Settings** and find the **Business Hours** section. Switch it on, choose your time zone and the days and times you answer, and save. Tickets that arrive out of hours show it, and you can see which tickets are waiting for the next working day.\n2. Open **Fluent Support → Saved Replies** and add answers you often give, such as how to reach you, how refunds work or how to reset a password. Write them in your own voice, short and kind.\n3. In **Settings → Email Notifications**, check that customers get an email when you reply and you get one when a ticket comes in, and edit the wording to sound like you.\n4. Open a test ticket and send a saved reply to check it reads well.\n\nDone when business hours are set, there are two or three saved replies and a test ticket gets a reply."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Support Desk: Support Page (Fluent Support)",
+                "when": "fluent-support",
+                "addon": "fluent-support",
+                "description": "Customers see their tickets, and can open a new one, on a page of your site. Fluent Support makes that page from its portal block.\n\n1. In WordPress, go to **Pages → Add New**, title it *Support* and add the **Fluent Support Portal** block (or the shortcode `[fluent_support_portal]`). Publish it.\n2. Open **Fluent Support → Settings**, find the customer portal setting, choose that page as the portal page and save.\n3. Add the page to your menu or footer, so customers find it, and link to it from your contact page.\n4. Open the page in a private window, create a customer account or sign in, and open a test ticket. Check it shows under **Fluent Support → Tickets**.\n\nDone when a customer can open the Support page, send a ticket and see the answer."
+            }
+        ]
+    }
+}

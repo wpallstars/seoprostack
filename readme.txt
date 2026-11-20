@@ -90,6 +90,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) keeps them, and later changes, applied.
+* **Add-on setup cards**: switching on FluentCRM, Fluent Support, Fluent Boards or Tutor LMS adds its setup tasks to the Website Setup board in Fluent Boards, once.
 * **Site templates**: WP-CLI apply, compare and undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds.

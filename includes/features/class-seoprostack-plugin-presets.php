@@ -50,6 +50,31 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
     /** Query arg carrying the result back to the Plugins screen. */
     const RESULT = 'seoprostack_preset';
 
+    /** Option (per site, not autoloaded): add-on plugin file => time its setup cards were added, or 0 and below for tries that failed. */
+    const CARDS = 'seoprostack_addon_cards';
+
+    /** Single event that adds the cards on a fresh request after a plugin is activated. */
+    const CARDS_EVENT = 'seoprostack_addon_cards';
+
+    /** Lock (SEOProStack_Settings::under_lock) that serialises adding cards. */
+    const CARDS_LOCK = 'seoprostack_addon_cards_lock';
+
+    /** Tries before giving up on a plugin whose cards would not add. */
+    const CARDS_TRIES = 3;
+
+    /**
+     * Website add-ons: the plugins that Ultimate Multisite switches on for a
+     * membership (force_active): the folder of the starter that holds their
+     * setup cards (starters/{folder}.json), then the plugin files, base
+     * plugin first.
+     */
+    const ADDONS = array(
+        'fluent-crm'     => array('fluent-crm/fluent-crm.php', 'fluentcampaign-pro/fluentcampaign-pro.php'),
+        'fluent-support' => array('fluent-support/fluent-support.php', 'fluent-support-pro/fluent-support-pro.php'),
+        'fluent-boards'  => array('fluent-boards/fluent-boards.php', 'fluent-boards-pro/fluent-boards-pro.php'),
+        'tutor'          => array('tutor/tutor.php', 'tutor-pro/tutor-pro.php'),
+    );
+
     /**
      * Settings.
      *
@@ -102,11 +127,108 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters-cli.php';
             WP_CLI::add_command('seoprostack starters', 'SEOProStack_Starters_CLI');
         }
+        // Setup cards for website add-ons, whether or not Plugin presets is on:
+        // delivering an add-on is turning its plugin on, and the cards guide it.
+        // A plugin Ultimate Multisite forces on may not fire activated_plugin,
+        // so every admin request also checks for add-ons not yet done.
+        add_action('activated_plugin', array(__CLASS__, 'addon_activated'));
+        add_action(self::CARDS_EVENT, array(__CLASS__, 'addon_cards'));
+        add_action('admin_init', array(__CLASS__, 'addon_cards'), 99);
         if (!self::enabled() || !is_admin()) {
             return;
         }
         add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle'));
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+    }
+
+    /**
+     * A plugin was activated: if it is a website add-on, add its cards on a
+     * fresh request a moment later, when the plugin is fully loaded.
+     *
+     * @param string $plugin Plugin file.
+     */
+    public static function addon_activated($plugin) {
+        if (isset(self::addon_files()[(string) $plugin]) && !wp_next_scheduled(self::CARDS_EVENT)) {
+            wp_schedule_single_event(time() + 15, self::CARDS_EVENT);
+        }
+    }
+
+    /**
+     * The website add-on plugins, as plugin file => starter folder.
+     *
+     * @return array<string,string>
+     */
+    private static function addon_files() {
+        $files = array();
+        foreach (self::ADDONS as $slug => $list) {
+            foreach ($list as $file) {
+                $files[$file] = $slug;
+            }
+        }
+        return $files;
+    }
+
+    /**
+     * Add the setup cards of every website add-on that is on for this site
+     * and has none yet, to its Website Setup board (Fluent Boards), once per
+     * site and plugin. Cards already on the board are never added twice. An
+     * add-on whose plugin or Fluent Boards is not running yet waits.
+     */
+    public static function addon_cards() {
+        $done = get_option(self::CARDS, array());
+        $done = is_array($done) ? $done : array();
+        $on   = (array) get_option('active_plugins', array());
+        if (is_multisite()) {
+            $on = array_merge($on, array_keys((array) get_site_option('active_sitewide_plugins', array())));
+        }
+        $pending = array();
+        foreach (self::addon_files() as $file => $slug) {
+            $state = isset($done[$file]) ? (int) $done[$file] : 1;
+            if ((!isset($done[$file]) || $state <= 0) && $state > -self::CARDS_TRIES && in_array($file, $on, true)) {
+                $pending[$file] = $slug;
+            }
+        }
+        // Fluent Boards must be running (its classes load before admin_init and cron).
+        if (!$pending || !class_exists('FluentBoards\App\Services\BoardService')) {
+            return;
+        }
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters.php';
+        foreach ($pending as $file => $slug) {
+            // One run at a time: the check for a card and its creation must not
+            // overlap with another request's (the event and admin requests).
+            $outcome = SEOProStack_Settings::under_lock(function () use ($slug, $file) {
+                return self::add_cards($slug, dirname($file));
+            }, '', self::CARDS_LOCK);
+            if ('done' === $outcome) {
+                $done[$file] = time();
+            } elseif ('failed' === $outcome) {
+                $done[$file] = (isset($done[$file]) ? (int) $done[$file] : 0) - 1;
+            } else {
+                continue; // Waiting (not running here, or the lock was busy): the next request tries again.
+            }
+            update_option(self::CARDS, $done, false);
+        }
+    }
+
+    /**
+     * Add one add-on's missing cards. Run under the cards lock.
+     *
+     * @param string $slug   Starter folder.
+     * @param string $folder Plugin folder.
+     * @return string done, failed, or wait (the plugin or Fluent Boards is not running).
+     */
+    private static function add_cards($slug, $folder) {
+        $before = SEOProStack_Starters::cards_missing($slug, $folder);
+        if (null === $before) {
+            return 'wait';
+        }
+        $result = $before ? SEOProStack_Starters::add($slug, $folder) : 0;
+        $left   = is_wp_error($result) ? null : SEOProStack_Starters::cards_missing($slug, $folder);
+        if (0 === $left) {
+            return 'done';
+        }
+        return null === $left && !is_wp_error($result) ? 'wait' : 'failed';
     }
 
     /** @param string $slug Plugin whose preset was changed. */
