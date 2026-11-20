@@ -2800,6 +2800,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- New (**American English translation**, #1719): an English (United States) catalogue, `en_US`, so a site in that language shows US spelling (Colors, accent color, recolor, license, optimize, behavior) on the Brand assets page, its block, the footer link and the admin screens. Only strings whose US form differs are translated; every other string shows the source text.
 - Changed (**Website Setup board**, #1715): the **Setup Uptime Monitoring (updown.io)** task adds the check to the updown.io account that already monitors the other sites and defaults to a status page on the site's `status.` subdomain (`CNAME page.updown.io`, Cloudflare DNS only), with the check's public page as the fallback. The Website status link example is now `https://status.example.com/`. Existing boards are not changed.
 - Developers: core files synced with WP Plugin Starter commit 520f394 (GitHub issue #1712): the shared licensed-updates library (`includes/wpallstars-licence/`, left out of the WordPress.org build), `scripts/shop-release.sh`, and the deploy, release, badge and test-site script, CI, PHPStan, `STANDARDS.md` and `DEVELOPMENT.md` changes since the last sync.
 - Developers: core files synced with WP Plugin Starter commit c093ffa (GitHub issue #1718): fixes to the shared licensed-updates library, the shop release scripts, the CI workflow, `STANDARDS.md` and `DEVELOPMENT.md`.
