@@ -53,7 +53,10 @@
  *   with the board too (matched by title, so it is made only once).
  *   Remove keeps tasks that were edited, moved to another stage, closed,
  *   archived, given a due date, assignees or labels, commented on or
- *   given attachments or subtasks.
+ *   given attachments or subtasks. A task with "addon" (a plugin folder, with
+ *   the same "when") is one of that add-on's setup cards: when the plugin is
+ *   switched on for a site, once, only its cards are added, with the board
+ *   (SEOProStack_Plugin_Presets::addon_cards, docs/addon-cards.md).
  * - fluentsupport_products: title, description. Matched by title.
  * - fluentbooking_events: title, description, duration, crm_list (a list
  *   slug), location (phone_guest, phone_organizer, online_meeting,
@@ -424,28 +427,76 @@ final class SEOProStack_Starters {
     /**
      * Items of a starter that apply to this site (their "when" plugin is active).
      *
-     * @param string $slug Plugin folder.
+     * With $addon, only that add-on's setup cards: its tasks (marked
+     * "addon") and the boards they are on.
+     *
+     * @param string $slug  Plugin folder.
+     * @param string $addon Plugin folder whose setup cards only.
      * @return array<string,array> Item type => items.
      */
-    private static function items($slug) {
+    private static function items($slug, $addon = '') {
         $starter = self::get($slug);
         if (!$starter) {
             return array();
         }
         $active = self::active_folders();
         $out    = array();
+        $boards = array();
+        if ('' !== $addon) {
+            foreach (isset($starter['items']['fluentboards_tasks']) ? $starter['items']['fluentboards_tasks'] : array() as $item) {
+                if (isset($item['addon']) && (string) $item['addon'] === $addon) {
+                    $boards[(string) $item['board']] = true;
+                }
+            }
+        }
         foreach ($starter['items'] as $type => $items) {
             if (!self::type_ready($type)) {
+                continue;
+            }
+            if ('' !== $addon && !in_array($type, array('fluentboards_boards', 'fluentboards_tasks'), true)) {
                 continue;
             }
             foreach ($items as $item) {
                 if ((!empty($item['when']) && !isset($active[(string) $item['when']])) || !self::requirement_met($item)) {
                     continue;
                 }
+                if ('' !== $addon) {
+                    $owned = 'fluentboards_tasks' === $type ? isset($item['addon']) && (string) $item['addon'] === $addon : isset($boards[(string) $item['title']]);
+                    if (!$owned) {
+                        continue;
+                    }
+                }
                 $out[$type][] = $item;
             }
         }
         return $out;
+    }
+
+    /**
+     * How many of an add-on's setup cards are not on the board yet: 0 when
+     * the add-on has none, null while its plugin or Fluent Boards is not
+     * running (so nothing can be added yet).
+     *
+     * @param string $slug  Plugin folder of the starter.
+     * @param string $addon Plugin folder whose setup cards.
+     * @return int|null
+     */
+    public static function cards_missing($slug, $addon) {
+        if (!self::ready($slug) || !self::type_ready('fluentboards_tasks')) {
+            return null;
+        }
+        $count = 0;
+        foreach (self::items($slug, (string) $addon) as $type => $items) {
+            if ('fluentboards_tasks' !== $type) {
+                continue;
+            }
+            foreach ($items as $item) {
+                if (!self::exists($type, $item)) {
+                    ++$count;
+                }
+            }
+        }
+        return $count;
     }
 
     /**
@@ -554,10 +605,15 @@ final class SEOProStack_Starters {
     /**
      * Add the missing items. Existing items are left as they are.
      *
-     * @param string $slug Plugin folder.
+     * With $addon (a plugin folder), only that add-on's setup cards: the
+     * tasks of the starter marked "addon": that folder, and the boards they
+     * are on. Nothing else in the starter is added.
+     *
+     * @param string $slug  Plugin folder.
+     * @param string $addon Plugin folder whose setup cards only to add.
      * @return int|WP_Error Items added.
      */
-    public static function add($slug) {
+    public static function add($slug, $addon = '') {
         if (!self::get($slug)) {
             return new WP_Error('seoprostack_no_starter', __('There is no starter data for this plugin.', 'seoprostack'));
         }
@@ -568,7 +624,7 @@ final class SEOProStack_Starters {
         $records = self::added($slug);
         $count   = 0;
         try {
-            foreach (self::items($slug) as $type => $items) {
+            foreach (self::items($slug, $addon) as $type => $items) {
                 foreach ($items as $item) {
                     if (self::exists($type, $item)) {
                         // A setting added earlier, before every item it names

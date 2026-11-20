@@ -75,6 +75,50 @@
                 "tags": ["tags"],
                 "lists": ["lists"]
             }
+        ],
+        "fluentboards_boards": [
+            {
+                "title": "Website Setup",
+                "when": "fluent-boards",
+                "type": "to-do",
+                "description": "The accounts and keys this site needs, in the order to set them up. Each task has the steps and links. Never paste a password or key into a task or comment.",
+                "stages": [
+                    { "title": "To-Do" },
+                    { "title": "In Progress" },
+                    { "title": "Done", "closed": true }
+                ]
+            }
+        ],
+        "fluentboards_tasks": [
+            {
+                "board": "Website Setup",
+                "title": "Setup CRM: Import Your Contacts (FluentCRM)",
+                "when": "fluent-crm",
+                "addon": "fluent-crm",
+                "description": "CRM is switched on for this site. FluentCRM keeps everyone you deal with in one place: customers, clients, suppliers and people who asked to hear from you. Each contact has lists (where they came from) and tags (who they are to you), so you can find them and write to the right people. SEO Pro Stack's starter data adds the lists and tags we use (**Plugins → FluentCRM → Add starter data**); it is worth adding them before you import.\n\n1. Make a spreadsheet of your contacts and save it as a CSV file. Put one person on each row, with columns for email address, first name, last name and any other detail you keep, such as company.\n2. Only import people you have the right to email, such as customers and people who asked to hear from you. Leave out anyone who asked you to stop.\n3. In WordPress, open **FluentCRM → Contacts** and click **Import**. Choose **CSV file** and upload yours.\n4. Match each column to a FluentCRM field (email address to Email, and so on), choose the list the contacts belong to and the tag that says who they are (for example Customer / Client), and set their status to **Subscribed** only if they agreed to emails; otherwise choose **Transactional** or **Pending**.\n5. Start the import and wait for it to finish.\n\nDone when **FluentCRM → Contacts** shows your people, each on a list with a tag. Never put a password or key in a task or comment."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup CRM: Connect Your Forms (FluentCRM)",
+                "when": "fluent-crm",
+                "addon": "fluent-crm",
+                "description": "New enquiries should land in FluentCRM without anyone copying them over. Fluent Forms (the site's form plugin) can add each person who sends a form to a list, with a tag.\n\n1. In WordPress, open **Fluent Forms** and click **Edit** under the form (for example the contact form).\n2. Open **Settings & Integrations**, then **Configure Integrations** and **Add New Integration**, and choose **FluentCRM**.\n3. Give the feed a name, choose the list the form's people go to (for example Website Contact Form) and any tag, and match the form's Email, First Name and Last Name fields to the contact's fields.\n4. Leave the status as **Pending** or **Subscribed** only for forms that ask clearly whether the person wants emails, such as a newsletter form. A contact form is not permission to send newsletters.\n5. Save, send a test form and check that the person appears under **FluentCRM → Contacts**.\n\nRepeat for each form. Done when a test entry from each form shows up as a contact on the right list."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup CRM: Send Your First Email (FluentCRM)",
+                "when": "fluent-crm",
+                "addon": "fluent-crm",
+                "description": "Emails to many people go out as a campaign. They need working email sending first: the task **Setup Email Sending (Amazon SES)** sets that up, so do it before this.\n\n1. In WordPress, open **FluentCRM → Settings → Business Settings** and fill in your business name, address (the law requires a postal address in marketing emails) and the From name and address people see.\n2. Open **FluentCRM → Campaigns** and click **Create Campaign**. Name it, for example *Welcome*.\n3. Write a subject line and a short email with one clear message. Use the **Email Template** option to choose how it looks, and keep the unsubscribe link: the law and email providers expect it.\n4. Choose the list (and tag, if you want only some) to send to.\n5. Click **Send test email** to your own address, and check it on your phone as well as your computer.\n6. Send it, or schedule it for later.\n\nDone when the email has reached your own inbox and the campaign shows as sent. Never put a password or key in a task or comment."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup CRM Automations (FluentCRM Pro)",
+                "when": "fluentcampaign-pro",
+                "addon": "fluentcampaign-pro",
+                "after": "Setup CRM: Send Your First Email (FluentCRM)",
+                "description": "FluentCRM Pro is switched on for this site. Its automations (**FluentCRM → Automations**) send emails and change tags or lists for you when something happens, such as someone joining a list, sending a form or buying.\n\n1. In WordPress, open **FluentCRM → Automations** and click **Create Automation**.\n2. Choose what starts it (for example **Tag Applied** or **Added to List**) and name it, for example *Welcome new subscribers*.\n3. Add the steps: **Send Email** with a short welcome, then a **Wait** of a few days and a second email if you like.\n4. Switch the automation from draft to **Active**.\n5. Test it with your own email address: join the list yourself and check the emails arrive when you expect.\n\nDone when your test contact received the emails. Keep to people who asked for them."
+            }
         ]
     }
 }

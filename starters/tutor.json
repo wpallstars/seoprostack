@@ -1,0 +1,45 @@
+{
+    "name": "Tutor LMS",
+    "tested": "",
+    "updated": "2026-11-20",
+    "notes": "Setup tasks for the Courses add-on, added to the Website Setup board (Fluent Boards) when Tutor LMS is switched on for a site: the first course with its lessons and price, and with Tutor LMS Pro, certificates. Added once per site by SEO Pro Stack, or by hand from the Plugins screen. Written for the site owner or their AI assistant, and never ask for a password or key in a task.",
+    "items": {
+        "fluentboards_boards": [
+            {
+                "title": "Website Setup",
+                "when": "fluent-boards",
+                "type": "to-do",
+                "description": "The accounts and keys this site needs, in the order to set them up. Each task has the steps and links. Never paste a password or key into a task or comment.",
+                "stages": [
+                    { "title": "To-Do" },
+                    { "title": "In Progress" },
+                    { "title": "Done", "closed": true }
+                ]
+            }
+        ],
+        "fluentboards_tasks": [
+            {
+                "board": "Website Setup",
+                "title": "Setup Courses: Your First Course (Tutor LMS)",
+                "when": "tutor",
+                "addon": "tutor",
+                "description": "Courses is switched on for this site. Tutor LMS lets you teach online: a course is made of topics (sections), each with lessons, and students enrol, work through them and see their progress.\n\n1. In WordPress, open **Tutor LMS → Courses** and click **Add New**.\n2. Give the course a clear title, and in the description say who it is for, what they will be able to do at the end, and how long it takes. Add a featured picture.\n3. In the course builder, click **Add Topic** and name the first section, then **Add Lesson** inside it. Give each lesson a title, its content (text, pictures or a video) and, if you like, a short summary. Keep each lesson to one idea.\n4. Add a few more topics and lessons the same way, in the order a student should take them.\n5. Preview the course from the **Preview** button and read it as a student would.\n\nDone when the course has at least one topic with two or three lessons and reads well in the preview. Keep the course as a draft until the price task is done."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Courses: Price and Publish (Tutor LMS)",
+                "when": "tutor",
+                "addon": "tutor",
+                "description": "Choose whether a course is free or paid, then publish it.\n\n1. Open the course in **Tutor LMS → Courses** and find its **Pricing** or **Course Settings** section.\n2. For a free course, choose **Free**: a student enrols with one click.\n3. For a paid course, choose **Paid** and enter the price. Taking payment needs a shop: Tutor LMS works with WooCommerce (**Tutor LMS → Settings → Monetization**, choose **WooCommerce**, and set up WooCommerce's payment methods with the task **Setup Payment Processing**) or Tutor LMS's own checkout with the payment methods you switch on under the same Monetization settings.\n4. Click **Publish**.\n5. In a private window, open the published course as a student: enrol (with a test payment if it is paid) and open the first lesson.\n6. Add the course to your menu or a page, so visitors can find it, and link to it from your newsletter.\n\nDone when a student can find the course, enrol and open the first lesson. Never put a password or key in a task or comment."
+            },
+            {
+                "board": "Website Setup",
+                "title": "Setup Course Certificates (Tutor LMS Pro)",
+                "when": "tutor-pro",
+                "addon": "tutor-pro",
+                "after": "Setup Courses: Price and Publish (Tutor LMS)",
+                "description": "Tutor LMS Pro is switched on for this site. With it, students who finish a course can get a certificate with their name on it.\n\n1. In WordPress, open **Tutor LMS → Settings** and find **Certificate**.\n2. Choose a certificate template and enter your business's name and the signature name you want shown.\n3. Open a course, switch on the certificate in its settings and choose the template.\n4. Enrol as a test student, finish the course and check that the certificate is offered and reads well, with the right name and date.\n\nDone when a test student has a certificate for a course."
+            }
+        ]
+    }
+}

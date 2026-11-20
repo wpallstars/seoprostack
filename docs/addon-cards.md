@@ -1,0 +1,53 @@
+# Add-on setup cards
+
+When a website add-on plugin is switched on for a site, its setup tasks are
+added to that site's **Website Setup** board in Fluent Boards, so the site
+owner, or their AI assistant, can set it up from plain steps. Delivering an
+add-on is turning the plugin on; the cards are the guide.
+
+| Add-on | Plugins | Starter |
+|--------|---------|---------|
+| CRM | `fluent-crm`, `fluentcampaign-pro` | `starters/fluent-crm.json` |
+| Support Desk | `fluent-support`, `fluent-support-pro` | `starters/fluent-support.json` |
+| Project Management | `fluent-boards`, `fluent-boards-pro` | `starters/fluent-boards.json` |
+| Courses | `tutor`, `tutor-pro` | `starters/tutor.json` |
+
+## How it works
+
+- A card is a `fluentboards_tasks` item in the plugin's starter with
+  `"addon": "<plugin folder>"` and the same folder as `"when"`. Its board
+  (`Website Setup`, with `"when": "fluent-boards"`) is in the same starter, so
+  it is made if missing. Put a Pro plugin's cards in the same starter with the
+  Pro plugin's folder.
+- `SEOProStack_Plugin_Presets::ADDONS` maps each plugin file to its starter.
+  `addon_cards()` runs on `admin_init` (priority 99) and on a single event
+  that `activated_plugin` schedules. A plugin that Ultimate Multisite switches
+  on (`force_active`) may not fire `activated_plugin`; it is in the site's
+  active plugins on the next admin request, which is enough.
+- It runs only for plugins in the site's active plugins (network-activated
+  ones too), and only while Fluent Boards is running; until then it waits.
+- `SEOProStack_Starters::add($slug, $folder)` adds only that add-on's cards
+  and their board, never the rest of the starter (lists, tags, forms).
+  A task already on the board (matched by title, archived ones too) is not
+  added again.
+- The per-site option `seoprostack_addon_cards` records each plugin file once
+  its cards are on the board, so switching it off and on again adds nothing.
+  A plugin whose cards would not add is tried three times.
+- Cards are also added by hand from the plugin's row on the Plugins screen
+  (**Add starter data**) or with `wp seoprostack starters add <folder>`, which
+  adds the rest of the starter too.
+
+## Writing cards
+
+Plain steps a non-developer or their AI can follow: what the add-on is for,
+then numbered steps, then when it is done. Never ask for or store a password
+or key in a task. Never send a customer's email through a vendor's hosted
+relay (see `AGENTS.md`). After editing `starters/fluent-boards.json`, run
+`node scripts/readme-setup-tasks.js`.
+
+## Checking
+
+- `bash scripts/preflight-plugin.sh .` checks the starters' JSON.
+- On a disposable multisite, assign a membership with the CRM add-on to a
+  site: FluentCRM activates and the Website Setup board gets the CRM tasks
+  once; switching it off and on again adds nothing new.
