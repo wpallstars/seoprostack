@@ -269,17 +269,75 @@ final class WPAllStars_Licence {
      * Store one product's licence, or forget it (null).
      *
      * @param int                      $item  Item ID.
-     * @param array<string,mixed>|null $state State.
+     * @param array<string,mixed>|null $state  State.
+     * @param string|null              $expect The stored secret this save was
+     *                                         worked out from. When the stored
+     *                                         secret differs inside the lock (a
+     *                                         key was activated, changed or
+     *                                         removed meanwhile) nothing is saved.
+     * @return bool Whether the state was saved.
      */
-    private static function save($item, $state) {
+    private static function save($item, $state, $expect = null) {
+        $locked = self::lock();
+        // Re-read inside the lock, past any cached copy, so a save from a
+        // concurrent request for another product is kept, not overwritten.
+        self::forget_cache();
         $all = self::all();
+        if (null !== $expect) {
+            $now = isset($all[(int) $item]['secret']) ? (string) $all[(int) $item]['secret'] : '';
+            if ($now !== $expect) {
+                if ($locked) {
+                    delete_site_option(self::OPTION . '_lock');
+                }
+                return false;
+            }
+        }
         if (null === $state) {
             unset($all[(int) $item]);
         } else {
             $all[(int) $item] = self::normalise($state);
         }
         update_site_option(self::OPTION, $all);
+        if ($locked) {
+            delete_site_option(self::OPTION . '_lock');
+        }
         delete_site_transient(self::UPDATE_CACHE . (int) $item);
+        return true;
+    }
+
+    /**
+     * Take the save lock (an atomic add; a stale lock is taken over after
+     * 15 seconds). Waits up to about 5 seconds.
+     *
+     * @return bool Whether the lock is held.
+     */
+    private static function lock() {
+        $name = self::OPTION . '_lock';
+        for ($try = 0; $try < 50; $try++) {
+            if (add_site_option($name, (string) time())) {
+                return true;
+            }
+            self::forget_cache();
+            if ((int) get_site_option($name, 0) < time() - 15) {
+                delete_site_option($name);
+                continue;
+            }
+            usleep(100000);
+        }
+        return false;
+    }
+
+    /**
+     * Drop the cached copies of the licence option and its lock, so the next
+     * read comes from the database.
+     */
+    private static function forget_cache() {
+        foreach (array(self::OPTION, self::OPTION . '_lock') as $name) {
+            wp_cache_delete($name, 'options');
+            wp_cache_delete(get_current_network_id() . ':' . $name, 'site-options');
+        }
+        wp_cache_delete('alloptions', 'options');
+        wp_cache_delete('notoptions', 'options');
     }
 
     /**
@@ -357,19 +415,21 @@ final class WPAllStars_Licence {
         $secret = self::secret($item);
         if (null === $secret) {
             $error = new WP_Error('wpallstars_licence_unreadable', __('This site cannot read the stored licence key: its security keys changed, or it was copied from another site. Activate the key again.', 'seoprostack'));
-            self::save($item, array('status' => self::UNREADABLE, 'checked' => time(), 'error' => $error->get_error_message()) + $stored);
+            self::save($item, array('status' => self::UNREADABLE, 'checked' => time(), 'error' => $error->get_error_message()) + $stored, $stored['secret']);
             return $error;
         }
         $answer = self::ask($item, 'check_license', array('license_key' => $secret['key'], 'activation_hash' => $secret['hash']));
         if (is_wp_error($answer)) {
-            self::save($item, array('error' => $answer->get_error_message()) + $stored);
+            // Discarded when the licence changed while the shop was asked.
+            self::save($item, array('error' => $answer->get_error_message()) + $stored, $stored['secret']);
             return $answer;
         }
         $state = self::from_answer($answer);
         if ('valid' !== $state['status']) {
             $state['error'] = self::refused($answer)->get_error_message();
         }
-        self::save($item, $state + $stored);
+        // Discarded when the licence changed while the shop was asked.
+        self::save($item, $state + $stored, $stored['secret']);
         return true;
     }
 
@@ -526,7 +586,9 @@ final class WPAllStars_Licence {
             return new WP_Error('wpallstars_licence_http', sprintf(__('wpallstars.com could not be reached: %s', 'seoprostack'), $response->get_error_message()));
         }
         $answer = json_decode((string) wp_remote_retrieve_body($response), true);
-        if (!is_array($answer)) {
+        $code   = (int) wp_remote_retrieve_response_code($response);
+        // A service failure (outage, rate limit) or an answer with neither a licence status nor a refusal type is not a licence answer: keep the stored state.
+        if (!is_array($answer) || $code >= 500 || 429 === $code || (!isset($answer['status']) && !isset($answer['error_type']) && !isset($answer['new_version']))) {
             /* translators: %d: HTTP status */
             return new WP_Error('wpallstars_licence_http', sprintf(__('wpallstars.com gave an answer that is not the licensing API\'s (HTTP %d). Try again later.', 'seoprostack'), (int) wp_remote_retrieve_response_code($response)));
         }
@@ -724,12 +786,18 @@ final class WPAllStars_Licence {
 
     /**
      * The shop's latest version of a product, cached: null without a stored
-     * key (nothing is asked) or while the shop cannot be reached.
+     * key (nothing is asked), while the licence is not valid, or while the
+     * shop cannot be reached.
      *
      * @param int $item Item ID.
      * @return array{version:string,homepage:string,package:string,updated:string,sections:array<string,string>,icons:array<string,string>,banners:array<string,string>}|null
      */
     private static function version_info($item) {
+        // No offer, cached or fetched, once the licence is no longer valid
+        // (expired past GRACE, or not valid): matches describe().
+        if (!self::valid($item)) {
+            return null;
+        }
         $secret = self::secret($item);
         if (null === $secret) {
             return null;

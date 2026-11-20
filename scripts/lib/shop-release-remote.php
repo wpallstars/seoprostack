@@ -11,12 +11,17 @@
  * apply need product ITEM titled TITLE with licence settings on and exactly
  * one locally stored download row, and a zip named SLUG-X.Y.Z.zip whose
  * X.Y.Z is newer than the product's licence version. apply writes a JSON
- * backup (mode 600) of the download row and the two meta rows it changes,
+ * backup (mode 600) of the download row and the two meta rows it changes (on a
+ * first release it records which were absent and, after writing, the IDs of
+ * the rows it inserted: roll back by deleting those and restoring the rest),
  * copies the zip into FluentCart's storage beside the old one (kept for a
  * rollback), points the download row at it, sets the licence version and
  * the update changelog (the version's section of CHANGELOG, a changelog.txt
  * or readme.txt, without its "Developers:" lines), touches the product, then
  * reads it all back and fails, naming the backup, when anything differs.
+ * apply holds a product-scoped lock from before it reads the licence version
+ * to after the read-back, so overlapping applies for a product serialise and
+ * the older one is rejected as not newer.
  *
  * check runs on a site with a valid licence for ITEM (the shared licence
  * library, includes/wpallstars-licence/): it asks the shop again, downloads
@@ -99,6 +104,25 @@ function wpas_shop_changelog_html($file, $version) {
 }
 
 /**
+ * Put the release's section into the stored update changelog: a stored
+ * section for the same version (a draft) is replaced, other versions stay.
+ *
+ * @param string $stored  The stored changelog HTML.
+ * @param string $version X.Y.Z.
+ * @param string $section The release's `<h4>X.Y.Z</h4><ul>...</ul>` HTML.
+ * @return string
+ */
+function wpas_shop_changelog_merge($stored, $version, $section) {
+    $head    = '<h4>' . $version . '</h4>';
+    $pattern = '#' . preg_quote($head, '#') . '(?:\s*<ul>.*?</ul>)?#s';
+    if (false === strpos($stored, $head)) {
+        return $section . $stored;
+    }
+    $merged = preg_replace($pattern, str_replace(array('\\', '$'), array('\\\\', '\\$'), $section), $stored, 1);
+    return null === $merged ? $section . $stored : $merged;
+}
+
+/**
  * The release's facts, checked: product, download row, versions, file names.
  *
  * @param array<int,string> $args The command's arguments after the mode.
@@ -134,7 +158,11 @@ function wpas_shop_plan(array $args) {
     }
     global $wpdb;
     $downloads = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}fct_product_downloads WHERE post_id = %d", $item), ARRAY_A);
-    $count     = is_array($downloads) ? count($downloads) : 0;
+    if (!is_array($downloads) || '' !== $wpdb->last_error) {
+        // A failed lookup is not "no rows": never treat it as a first release.
+        wpas_shop_fail('Cannot read the product\'s download rows: ' . $wpdb->last_error);
+    }
+    $count     = count($downloads);
     $uploads   = wp_upload_dir(null, false);
     $dir       = trailingslashit($uploads['basedir']) . 'fluent-cart';
     if (0 === $count && '' === $current) {
@@ -161,8 +189,19 @@ function wpas_shop_plan(array $args) {
         }
     }
     $file = basename($zip) . '__fluent-cart__.' . substr($sha, 0, 32) . '.zip';
+    $reuse = false;
     if (is_file($dir . '/' . $file)) {
-        wpas_shop_fail("$file is already in FluentCart's storage; stopping rather than overwriting it.");
+        // A failed apply can leave its copied ZIP behind. The same bytes that
+        // no download row references are that leftover: reuse it. Anything
+        // else (other bytes, or a file a row serves) is never touched.
+        $refs = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}fct_product_downloads WHERE file_path = %s", $file));
+        if ('' !== $wpdb->last_error || null === $refs) {
+            wpas_shop_fail('Cannot check whether ' . $file . ' is in use: ' . $wpdb->last_error);
+        }
+        if (0 !== (int) $refs || hash_file('sha256', $dir . '/' . $file) !== $sha) {
+            wpas_shop_fail("$file is already in FluentCart's storage and is not an unreferenced copy of this ZIP; stopping rather than overwriting it.");
+        }
+        $reuse = true;
     }
     return array(
         'item'         => $item,
@@ -175,6 +214,7 @@ function wpas_shop_plan(array $args) {
         'dir'          => $dir,
         'old_file'     => (string) $download['file_path'],
         'file'         => $file,
+        'reuse'        => $reuse,
         'download'     => $download,
         'settings_row' => wpas_shop_meta_row($item, 'license_settings'),
         'settings'     => $settings,
@@ -201,6 +241,14 @@ function wpas_shop_backup(array $plan) {
         'download'         => $plan['download'],
         'license_settings' => $plan['settings_row'],
         'changelog'        => $plan['log_row'],
+        // A first release has no row to restore: apply inserts them. Rollback:
+        // delete the rows named in "inserted" (filled in after apply writes),
+        // and restore by ID only the rows that were not absent.
+        'absent'           => array(
+            'download'  => 0 === (int) $plan['download']['id'],
+            'changelog' => !$plan['log_row'],
+        ),
+        'inserted'         => array('download_id' => null, 'changelog_row_id' => null),
     ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     umask($old);
     if (false === $saved) {
@@ -211,20 +259,43 @@ function wpas_shop_backup(array $plan) {
 }
 
 /**
+ * Record in the backup the IDs of the rows apply inserted, so a rollback can
+ * delete them.
+ *
+ * @param string             $backup   The backup's path.
+ * @param array<string,?int> $inserted download_id and changelog_row_id.
+ */
+function wpas_shop_backup_inserted($backup, array $inserted) {
+    $data = json_decode((string) file_get_contents($backup), true); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- the private backup just written.
+    if (!is_array($data)) {
+        wpas_shop_fail('Cannot read the backup back to record the inserted rows: ' . $backup);
+    }
+    $data['inserted'] = $inserted;
+    if (false === file_put_contents($backup, wp_json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- as above.
+        wpas_shop_fail('Cannot record the inserted rows in the backup: ' . $backup);
+    }
+}
+
+/**
  * Point the download row at the new file and set the licence version,
  * changelog and product time.
  *
- * @param array<string,mixed> $plan The release's facts.
- * @return int The download row's ID, or 0 when an update failed.
+ * Every completed write is undone when a later one fails, so the licence
+ * version and changelog never advance without the download.
+ *
+ * @param array<string,mixed> $plan     The release's facts.
+ * @param string              $error    Set to the first failure's description.
+ * @param array<string,?int>  $inserted Set to the IDs of the rows inserted.
+ * @return int The download row's ID, or 0 when a write failed (all undone).
  */
-function wpas_shop_write(array $plan) {
+function wpas_shop_write(array $plan, &$error = '', array &$inserted = array()) {
     global $wpdb;
     $now                 = current_time('mysql');
     $meta                = $wpdb->prefix . 'fct_product_meta';
     $settings            = $plan['settings'];
     $settings['version'] = $plan['version'];
     $log                 = $plan['log_row'] ? (string) $plan['log_row']['meta_value'] : '';
-    $log                 = false === strpos($log, '<h4>' . $plan['version'] . '</h4>') ? $plan['changelog'] . $log : $log;
+    $log                 = wpas_shop_changelog_merge($log, $plan['version'], $plan['changelog']);
     $file                = array(
         'title'      => $plan['title'] . ' ' . $plan['version'],
         'file_name'  => $plan['file'],
@@ -234,9 +305,20 @@ function wpas_shop_write(array $plan) {
         'updated_at' => $now,
     );
     $id                  = (int) $plan['download']['id'];
+    $downloads           = $wpdb->prefix . 'fct_product_downloads';
+    $undo                = array();
+    $fail                = static function ($what) use (&$error, &$undo, $wpdb, $plan) {
+        // Keep the first database error: the undo queries replace last_error.
+        $error = $what . ('' !== $wpdb->last_error ? ': ' . $wpdb->last_error : '');
+        foreach (array_reverse($undo) as $restore) {
+            $restore();
+        }
+        clean_post_cache($plan['item']);
+        return 0;
+    };
     if (0 === $id) {
         // First release: the row FluentCart's product editor would add.
-        $added = $wpdb->insert($wpdb->prefix . 'fct_product_downloads', $file + array(
+        $added = $wpdb->insert($downloads, $file + array(
             'post_id'              => $plan['item'],
             'product_variation_id' => wp_json_encode($plan['download']['variations']),
             'download_identifier'  => wp_generate_uuid4(),
@@ -246,18 +328,83 @@ function wpas_shop_write(array $plan) {
             'serial'               => 1,
             'created_at'           => $now,
         ));
-        $id    = $added ? (int) $wpdb->insert_id : 0;
+        if (!$added) {
+            return $fail('The download row could not be added');
+        }
+        $id                      = (int) $wpdb->insert_id;
+        $inserted['download_id'] = $id;
+        $undo[]                  = static function () use ($wpdb, $downloads, $id) {
+            $wpdb->delete($downloads, array('id' => $id));
+        };
+    } else {
+        $old = array_intersect_key($plan['download'], $file);
+        if (false === $wpdb->update($downloads, $file, array('id' => $id))) {
+            return $fail('The download row could not be updated');
+        }
+        $undo[] = static function () use ($wpdb, $downloads, $id, $old) {
+            $wpdb->update($downloads, $old, array('id' => $id));
+        };
     }
-    $results             = array(
-        $id > 0 && false !== $wpdb->update($wpdb->prefix . 'fct_product_downloads', $file, array('id' => $id)),
-        $wpdb->update($meta, array('meta_value' => wp_json_encode($settings, JSON_UNESCAPED_SLASHES), 'updated_at' => $now), array('id' => (int) $plan['settings_row']['id'])), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- FluentCart's own table, by primary key.
-        $plan['log_row']
-            ? $wpdb->update($meta, array('meta_value' => $log, 'updated_at' => $now), array('id' => (int) $plan['log_row']['id'])) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
-            : $wpdb->insert($meta, array('object_id' => $plan['item'], 'object_type' => $plan['settings_row']['object_type'], 'meta_key' => '_fluent_sl_changelog', 'meta_value' => $log, 'created_at' => $now, 'updated_at' => $now)), // phpcs:ignore WordPress.DB.SlowDBQuery -- as above.
-        $wpdb->update($wpdb->posts, array('post_modified' => $now, 'post_modified_gmt' => current_time('mysql', true)), array('ID' => $plan['item'])),
-    );
+    // The licence version and changelog advance only after the download row did.
+    $old_settings = $plan['settings_row'];
+    if (false === $wpdb->update($meta, array('meta_value' => wp_json_encode($settings, JSON_UNESCAPED_SLASHES), 'updated_at' => $now), array('id' => (int) $old_settings['id']))) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- FluentCart's own table, by primary key.
+        return $fail('The licence settings could not be updated');
+    }
+    $undo[] = static function () use ($wpdb, $meta, $old_settings) {
+        $wpdb->update($meta, array('meta_value' => $old_settings['meta_value'], 'updated_at' => isset($old_settings['updated_at']) ? $old_settings['updated_at'] : current_time('mysql')), array('id' => (int) $old_settings['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
+    };
+    if ($plan['log_row']) {
+        $old_log = $plan['log_row'];
+        if (false === $wpdb->update($meta, array('meta_value' => $log, 'updated_at' => $now), array('id' => (int) $old_log['id']))) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
+            return $fail('The changelog could not be updated');
+        }
+        $undo[] = static function () use ($wpdb, $meta, $old_log) {
+            $wpdb->update($meta, array('meta_value' => $old_log['meta_value'], 'updated_at' => isset($old_log['updated_at']) ? $old_log['updated_at'] : current_time('mysql')), array('id' => (int) $old_log['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
+        };
+    } elseif (!$wpdb->insert($meta, array('object_id' => $plan['item'], 'object_type' => $plan['settings_row']['object_type'], 'meta_key' => '_fluent_sl_changelog', 'meta_value' => $log, 'created_at' => $now, 'updated_at' => $now))) { // phpcs:ignore WordPress.DB.SlowDBQuery -- as above.
+        return $fail('The changelog could not be added');
+    } else {
+        $log_id                       = (int) $wpdb->insert_id;
+        $inserted['changelog_row_id'] = $log_id;
+        $undo[]                       = static function () use ($wpdb, $meta, $log_id) {
+            $wpdb->delete($meta, array('id' => $log_id));
+        };
+    }
+    if (false === $wpdb->update($wpdb->posts, array('post_modified' => $now, 'post_modified_gmt' => current_time('mysql', true)), array('ID' => $plan['item']))) {
+        return $fail('The product time could not be updated');
+    }
     clean_post_cache($plan['item']);
-    return in_array(false, $results, true) ? 0 : $id;
+    return $id;
+}
+
+/**
+ * Take the product's release lock (a MySQL named lock, scoped to this
+ * database and product), waiting up to 60 seconds for another apply. Held
+ * from before the plan reads the licence version until after the read-back,
+ * so an overlapping apply waits, then plans from what the first published and
+ * is rejected when its version is no longer newer. MySQL frees the lock if
+ * this process dies.
+ *
+ * @param int $item Product ID.
+ * @return string The lock's name, for wpas_shop_unlock().
+ */
+function wpas_shop_lock($item) {
+    global $wpdb;
+    $name = 'wpas_shop_release_' . substr(hash('sha256', $wpdb->prefix . ':' . (int) $item), 0, 32);
+    if ('1' !== (string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 60)', $name))) {
+        wpas_shop_fail("Another release of product $item is still running; nothing changed. Try again when it finishes.");
+    }
+    return $name;
+}
+
+/**
+ * Release the lock taken by wpas_shop_lock().
+ *
+ * @param string $name The lock's name.
+ */
+function wpas_shop_unlock($name) {
+    global $wpdb;
+    $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $name));
 }
 
 /**
@@ -268,12 +415,19 @@ function wpas_shop_write(array $plan) {
 function wpas_shop_apply(array $plan) {
     global $wpdb;
     $backup = wpas_shop_backup($plan);
-    if (!copy($plan['zip'], $plan['dir'] . '/' . $plan['file'])) {
+    if (empty($plan['reuse']) && !copy($plan['zip'], $plan['dir'] . '/' . $plan['file'])) {
         wpas_shop_fail('Cannot copy the zip into FluentCart\'s storage; nothing else changed. Backup: ' . $backup);
     }
-    $id = wpas_shop_write($plan);
+    $error    = '';
+    $inserted = array('download_id' => null, 'changelog_row_id' => null);
+    $id       = wpas_shop_write($plan, $error, $inserted);
     if (0 === $id) {
-        wpas_shop_fail('A database update failed: ' . $wpdb->last_error . '. Restore from the backup: ' . $backup);
+        wpas_shop_fail('A database update failed (completed writes were undone): ' . $error . '. Backup: ' . $backup);
+    }
+    // Writes succeeded: name the rows they inserted in the backup, for a rollback.
+    if (null !== $inserted['download_id'] || null !== $inserted['changelog_row_id']) {
+        wpas_shop_backup_inserted($backup, $inserted);
+        WP_CLI::log('Rows inserted (delete on rollback): download ' . (int) $inserted['download_id'] . ', changelog ' . (int) $inserted['changelog_row_id'] . '.');
     }
     $row      = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}fct_product_downloads WHERE id = %d", $id), ARRAY_A);
     $settings = wpas_shop_settings($plan['item']);
@@ -283,7 +437,7 @@ function wpas_shop_apply(array $plan) {
         'the download row does not point at the new file'      => is_array($row) && $row['file_path'] === $plan['file'],
         'the licence version is not ' . $plan['version']       => $settings && isset($settings['version']) && $settings['version'] === $plan['version'],
         'the stored file\'s SHA-256 is not the build\'s'       => is_file($target) && hash_file('sha256', $target) === $plan['sha'],
-        'the update changelog has no ' . $plan['version'] . ' section' => $log && false !== strpos((string) $log['meta_value'], '<h4>' . $plan['version'] . '</h4>'),
+        'the update changelog has no ' . $plan['version'] . ' section' => $log && false !== strpos((string) $log['meta_value'], $plan['changelog']),
     );
     $problems = array_keys(array_filter($checks, static function ($ok) {
         return !$ok;
@@ -292,6 +446,34 @@ function wpas_shop_apply(array $plan) {
         wpas_shop_fail('Read back failed: ' . implode('; ', $problems) . '. Restore from the backup: ' . $backup);
     }
     WP_CLI::success(sprintf('Published %s %s (product %d): file %s, SHA-256 %s. The old file %s stays for a rollback.', $plan['title'], $plan['version'], $plan['item'], $plan['file'], $plan['sha'], $plan['old_file']));
+}
+
+/**
+ * Remember site transients and restore them when the run ends (success,
+ * failure or WP_CLI::error), whatever the refresh left behind.
+ *
+ * @param array<int,string> $names Site transient names.
+ */
+function wpas_shop_keep_transients(array $names) {
+    $kept = array();
+    foreach ($names as $name) {
+        $value = get_site_transient($name);
+        if (false === $value) {
+            $kept[$name] = array('had' => false, 'value' => null, 'ttl' => 0);
+            continue;
+        }
+        $timeout     = (int) get_site_option('_site_transient_timeout_' . $name, 0);
+        $kept[$name] = array('had' => true, 'value' => $value, 'ttl' => $timeout > time() ? $timeout - time() : 0);
+    }
+    register_shutdown_function(static function () use ($kept) {
+        foreach ($kept as $name => $old) {
+            if ($old['had']) {
+                set_site_transient($name, $old['value'], $old['ttl']);
+            } else {
+                delete_site_transient($name);
+            }
+        }
+    });
 }
 
 /**
@@ -319,9 +501,13 @@ function wpas_shop_check(array $args) {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-includes/update.php';
-    delete_site_transient(WPAllStars_Licence::UPDATE_CACHE . $item);
     $theme     = 'theme' === $product['type'];
     $transient = $theme ? 'update_themes' : 'update_plugins';
+    // The refresh below rewrites shared update state (other plugins' offers
+    // live in it). Keep what is there and put it back on every exit, so the
+    // check changes nothing and a failed refresh loses no offers.
+    wpas_shop_keep_transients(array(WPAllStars_Licence::UPDATE_CACHE . $item, $transient));
+    delete_site_transient(WPAllStars_Licence::UPDATE_CACHE . $item);
     delete_site_transient($transient);
     if ($theme) {
         wp_update_themes();
@@ -359,7 +545,14 @@ function wpas_shop_check(array $args) {
         }
     }
     WP_CLI::log(sprintf('Installed: %s', $product['version']));
-    WP_CLI::log(sprintf('Offered:   %s (%s)', '' !== $offered ? $offered : '?', $offer['pending'] ? 'update available' : 'up to date'));
+    if ($offer['pending']) {
+        $status = 'update available';
+    } elseif ('' !== $offered && version_compare($offered, (string) $product['version'], '<')) {
+        $status = 'older than installed';
+    } else {
+        $status = 'up to date';
+    }
+    WP_CLI::log(sprintf('Offered:   %s (%s)', '' !== $offered ? $offered : '?', $status));
     WP_CLI::log(sprintf('Package:   %d bytes, SHA-256 %s, %d entries, main file Version: %s', (int) filesize($file), hash_file('sha256', $file), $entries, '' !== $version ? $version : '?'));
     wp_delete_file($file);
     if ('' === $version || $version !== $offered) {
@@ -373,12 +566,15 @@ $wpas_shop_mode = $wpas_shop_args ? (string) array_shift($wpas_shop_args) : '';
 if ('check' === $wpas_shop_mode) {
     wpas_shop_check($wpas_shop_args);
 } elseif ('plan' === $wpas_shop_mode || 'apply' === $wpas_shop_mode) {
+    // apply: lock first, so the plan is built from the state seen under the lock.
+    $wpas_shop_lock = 'apply' === $wpas_shop_mode && isset($wpas_shop_args[0]) ? wpas_shop_lock((int) $wpas_shop_args[0]) : '';
     $wpas_shop_plan = wpas_shop_plan($wpas_shop_args);
     WP_CLI::log(sprintf('Product %d "%s": licence version %s -> %s', $wpas_shop_plan['item'], $wpas_shop_plan['title'], '' !== $wpas_shop_plan['current'] ? $wpas_shop_plan['current'] : '(none)', $wpas_shop_plan['version']));
     WP_CLI::log(sprintf('Download row %d: %s -> %s (%d bytes, SHA-256 %s)', $wpas_shop_plan['download']['id'], $wpas_shop_plan['old_file'], $wpas_shop_plan['file'], $wpas_shop_plan['size'], $wpas_shop_plan['sha']));
     WP_CLI::log('Update changelog adds: ' . wp_strip_all_tags(str_replace(array('</li>', '</h4>'), array(' | ', ': '), $wpas_shop_plan['changelog'])));
     if ('apply' === $wpas_shop_mode) {
         wpas_shop_apply($wpas_shop_plan);
+        wpas_shop_unlock($wpas_shop_lock);
     } else {
         WP_CLI::log('Dry run: nothing changed. Add --apply to publish.');
     }
