@@ -283,6 +283,87 @@ function wpas_shop_backup_inserted($backup, array $inserted) {
 }
 
 /**
+ * Add or update the download row (first release adds the row FluentCart's
+ * product editor would add).
+ *
+ * @param array<string,mixed>   $plan     The release's facts.
+ * @param array<string,string>  $file     The row's new file columns.
+ * @param string                $now      Current MySQL time.
+ * @param array<int,callable>   $undo     Gets a callback undoing the write.
+ * @param array<string,?int>    $inserted Gets download_id when a row is added.
+ * @param int                   $id       The download row's ID; set when added.
+ * @return string The failure's description, or '' on success.
+ */
+function wpas_shop_write_download(array $plan, array $file, $now, array &$undo, array &$inserted, &$id) {
+    global $wpdb;
+    $downloads = $wpdb->prefix . 'fct_product_downloads';
+    $id        = (int) $plan['download']['id'];
+    if (0 !== $id) {
+        $old = array_intersect_key($plan['download'], $file);
+        if (false === $wpdb->update($downloads, $file, array('id' => $id))) {
+            return 'The download row could not be updated';
+        }
+        $undo[] = static function () use ($wpdb, $downloads, $id, $old) {
+            return false !== $wpdb->update($downloads, $old, array('id' => $id));
+        };
+        return '';
+    }
+    $added = $wpdb->insert($downloads, $file + array(
+        'post_id'              => $plan['item'],
+        'product_variation_id' => wp_json_encode($plan['download']['variations']),
+        'download_identifier'  => wp_generate_uuid4(),
+        'type'                 => 'zip',
+        'driver'               => 'local',
+        'settings'             => wp_json_encode(array('download_limit' => '', 'download_expiry' => '', 'bucket' => '')),
+        'serial'               => 1,
+        'created_at'           => $now,
+    ));
+    if (!$added) {
+        return 'The download row could not be added';
+    }
+    $id                      = (int) $wpdb->insert_id;
+    $inserted['download_id'] = $id;
+    $undo[]                  = static function () use ($wpdb, $downloads, $id) {
+        return false !== $wpdb->delete($downloads, array('id' => $id));
+    };
+    return '';
+}
+
+/**
+ * Update the changelog row, or add it when the product has none.
+ *
+ * @param array<string,mixed> $plan     The release's facts.
+ * @param string              $log      The merged changelog.
+ * @param string              $now      Current MySQL time.
+ * @param array<int,callable> $undo     Gets a callback undoing the write.
+ * @param array<string,?int>  $inserted Gets changelog_row_id when a row is added.
+ * @return string The failure's description, or '' on success.
+ */
+function wpas_shop_write_changelog(array $plan, $log, $now, array &$undo, array &$inserted) {
+    global $wpdb;
+    $meta    = $wpdb->prefix . 'fct_product_meta';
+    $old_log = $plan['log_row'];
+    if (!$old_log) {
+        if (!$wpdb->insert($meta, array('object_id' => $plan['item'], 'object_type' => $plan['settings_row']['object_type'], 'meta_key' => '_fluent_sl_changelog', 'meta_value' => $log, 'created_at' => $now, 'updated_at' => $now))) { // phpcs:ignore WordPress.DB.SlowDBQuery -- FluentCart's own table.
+            return 'The changelog could not be added';
+        }
+        $log_id                       = (int) $wpdb->insert_id;
+        $inserted['changelog_row_id'] = $log_id;
+        $undo[]                       = static function () use ($wpdb, $meta, $log_id) {
+            return false !== $wpdb->delete($meta, array('id' => $log_id));
+        };
+        return '';
+    }
+    if (false === $wpdb->update($meta, array('meta_value' => $log, 'updated_at' => $now), array('id' => (int) $old_log['id']))) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
+        return 'The changelog could not be updated';
+    }
+    $undo[] = static function () use ($wpdb, $meta, $old_log) {
+        return false !== $wpdb->update($meta, array('meta_value' => $old_log['meta_value'], 'updated_at' => isset($old_log['updated_at']) ? $old_log['updated_at'] : current_time('mysql')), array('id' => (int) $old_log['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
+    };
+    return '';
+}
+
+/**
  * Point the download row at the new file and set the licence version,
  * changelog and product time.
  *
@@ -312,8 +393,7 @@ function wpas_shop_write(array $plan, &$error = '', array &$inserted = array(), 
         'file_size'  => (string) $plan['size'],
         'updated_at' => $now,
     );
-    $id                  = (int) $plan['download']['id'];
-    $downloads           = $wpdb->prefix . 'fct_product_downloads';
+    $id                  = 0;
     $undo                = array();
     $fail                = static function ($what) use (&$error, &$undo, &$undone, $wpdb, $plan) {
         // Keep the first database error: the undo queries replace last_error.
@@ -326,34 +406,9 @@ function wpas_shop_write(array $plan, &$error = '', array &$inserted = array(), 
         clean_post_cache($plan['item']);
         return 0;
     };
-    if (0 === $id) {
-        // First release: the row FluentCart's product editor would add.
-        $added = $wpdb->insert($downloads, $file + array(
-            'post_id'              => $plan['item'],
-            'product_variation_id' => wp_json_encode($plan['download']['variations']),
-            'download_identifier'  => wp_generate_uuid4(),
-            'type'                 => 'zip',
-            'driver'               => 'local',
-            'settings'             => wp_json_encode(array('download_limit' => '', 'download_expiry' => '', 'bucket' => '')),
-            'serial'               => 1,
-            'created_at'           => $now,
-        ));
-        if (!$added) {
-            return $fail('The download row could not be added');
-        }
-        $id                      = (int) $wpdb->insert_id;
-        $inserted['download_id'] = $id;
-        $undo[]                  = static function () use ($wpdb, $downloads, $id) {
-            return false !== $wpdb->delete($downloads, array('id' => $id));
-        };
-    } else {
-        $old = array_intersect_key($plan['download'], $file);
-        if (false === $wpdb->update($downloads, $file, array('id' => $id))) {
-            return $fail('The download row could not be updated');
-        }
-        $undo[] = static function () use ($wpdb, $downloads, $id, $old) {
-            return false !== $wpdb->update($downloads, $old, array('id' => $id));
-        };
+    $failed = wpas_shop_write_download($plan, $file, $now, $undo, $inserted, $id);
+    if ('' !== $failed) {
+        return $fail($failed);
     }
     // The licence version and changelog advance only after the download row did.
     $old_settings = $plan['settings_row'];
@@ -363,22 +418,9 @@ function wpas_shop_write(array $plan, &$error = '', array &$inserted = array(), 
     $undo[] = static function () use ($wpdb, $meta, $old_settings) {
         return false !== $wpdb->update($meta, array('meta_value' => $old_settings['meta_value'], 'updated_at' => isset($old_settings['updated_at']) ? $old_settings['updated_at'] : current_time('mysql')), array('id' => (int) $old_settings['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
     };
-    if ($plan['log_row']) {
-        $old_log = $plan['log_row'];
-        if (false === $wpdb->update($meta, array('meta_value' => $log, 'updated_at' => $now), array('id' => (int) $old_log['id']))) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
-            return $fail('The changelog could not be updated');
-        }
-        $undo[] = static function () use ($wpdb, $meta, $old_log) {
-            return false !== $wpdb->update($meta, array('meta_value' => $old_log['meta_value'], 'updated_at' => isset($old_log['updated_at']) ? $old_log['updated_at'] : current_time('mysql')), array('id' => (int) $old_log['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
-        };
-    } elseif (!$wpdb->insert($meta, array('object_id' => $plan['item'], 'object_type' => $plan['settings_row']['object_type'], 'meta_key' => '_fluent_sl_changelog', 'meta_value' => $log, 'created_at' => $now, 'updated_at' => $now))) { // phpcs:ignore WordPress.DB.SlowDBQuery -- as above.
-        return $fail('The changelog could not be added');
-    } else {
-        $log_id                       = (int) $wpdb->insert_id;
-        $inserted['changelog_row_id'] = $log_id;
-        $undo[]                       = static function () use ($wpdb, $meta, $log_id) {
-            return false !== $wpdb->delete($meta, array('id' => $log_id));
-        };
+    $failed = wpas_shop_write_changelog($plan, $log, $now, $undo, $inserted);
+    if ('' !== $failed) {
+        return $fail($failed);
     }
     if (false === $wpdb->update($wpdb->posts, array('post_modified' => $now, 'post_modified_gmt' => current_time('mysql', true)), array('ID' => $plan['item']))) {
         return $fail('The product time could not be updated');
@@ -459,6 +501,20 @@ function wpas_shop_read_back(array $plan, $id) {
 }
 
 /**
+ * Name the rows apply inserted in the backup (nothing when it inserted none).
+ *
+ * @param string             $backup   The backup's path.
+ * @param array<string,?int> $inserted download_id and changelog_row_id.
+ */
+function wpas_shop_record_inserted($backup, array $inserted) {
+    if (null === $inserted['download_id'] && null === $inserted['changelog_row_id']) {
+        return;
+    }
+    wpas_shop_backup_inserted($backup, $inserted);
+    WP_CLI::log('Rows inserted (delete on rollback): download ' . (int) $inserted['download_id'] . ', changelog ' . (int) $inserted['changelog_row_id'] . '.');
+}
+
+/**
  * Publish the release, then read it back.
  *
  * @param array<string,mixed> $plan The release's facts.
@@ -481,10 +537,7 @@ function wpas_shop_apply(array $plan) {
     }
     // Writes succeeded: name the rows they inserted in the backup, for a rollback
     // (before the lock check, so a lost lock still leaves the IDs recorded).
-    if (null !== $inserted['download_id'] || null !== $inserted['changelog_row_id']) {
-        wpas_shop_backup_inserted($backup, $inserted);
-        WP_CLI::log('Rows inserted (delete on rollback): download ' . (int) $inserted['download_id'] . ', changelog ' . (int) $inserted['changelog_row_id'] . '.');
-    }
+    wpas_shop_record_inserted($backup, $inserted);
     if (!wpas_shop_lock_held($plan)) {
         wpas_shop_fail('The release lock was lost while publishing (the database connection changed); check the rows against the backup: ' . $backup);
     }
