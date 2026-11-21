@@ -158,6 +158,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fixed: failed WebP and AVIF copies no longer leave empty temporary files; AVIF copies fall back to GD when Imagick cannot write them. New: wp seoprostack convert-images --cleanup-temp removes old leftovers.
+
 = 1.3.228 =
 * Added: Cloudflare scanner protection setup task.
 

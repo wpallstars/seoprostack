@@ -1465,8 +1465,16 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         // Unique, so a bulk action and a background batch do not write over
         // each other's file.
         $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . pathinfo($path, PATHINFO_EXTENSION);
-        $saved = $editor->save($temp, $mime);
+        try {
+            $saved = $editor->save($temp, $mime);
+        } catch (\Throwable $error) {
+            $saved = new WP_Error('watermark_save', __('The marked picture could not be saved.', 'seoprostack'));
+        }
         if (is_wp_error($saved)) {
+            // A failed save can leave an empty file behind.
+            if (is_file($temp)) {
+                wp_delete_file($temp);
+            }
             return $saved;
         }
         clearstatcache();
@@ -1474,6 +1482,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (empty($saved['path']) || $saved['path'] !== $temp || $saved['mime-type'] !== $mime || !is_file($temp)) {
             if (!empty($saved['path']) && is_file($saved['path'])) {
                 wp_delete_file($saved['path']);
+            }
+            if (is_file($temp)) {
+                wp_delete_file($temp);
             }
             return new WP_Error('watermark_save', __('The marked picture could not be saved.', 'seoprostack'));
         }

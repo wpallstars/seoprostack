@@ -69,6 +69,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     /** Network (site) option: sites using the rules, and the rules' status. */
     const RULES = 'seoprostack_nextgen_rules';
 
+    /** Site transient: the Imagick version that listed AVIF but could not write it. */
+    const IMAGICK_AVIF_BROKEN = 'seoprostack_nextgen_imagick_avif_broken';
+
     /** Option: what this site last put in the rules, so syncing is free when nothing changed. */
     const SYNCED = 'seoprostack_nextgen_synced';
 
@@ -347,6 +350,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         static $can = array();
         if (!isset($can[$format])) {
             $can[$format] = isset(self::FORMATS[$format]) && wp_image_editor_supports(array('mime_type' => self::FORMATS[$format]));
+        }
+        // Imagick found unable to write AVIF counts only when GD can.
+        if ('avif' === $format && $can[$format] && self::imagick_avif_broken()) {
+            return function_exists('imageavif');
         }
         return $can[$format];
     }
@@ -779,11 +786,71 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return string|null The new file's path; null when it failed.
      */
     private static function encode($path, $format) {
-        $mime   = self::FORMATS[$format];
-        $editor = self::editor($path, $mime);
+        $mime    = self::FORMATS[$format];
+        $gd_avif = 'avif' === $format && self::imagick_avif_broken() && function_exists('imageavif');
+        $editor = self::editor($path, $mime, $gd_avif);
         if (null === $editor) {
             return null;
         }
+        $temp = self::save_copy($editor, $path, $format);
+        if (null === $temp && 'avif' === $format && !$gd_avif && $editor instanceof WP_Image_Editor_Imagick && function_exists('imageavif')) {
+            // Imagick lists AVIF but cannot write it: remember that, and
+            // make this copy with GD.
+            self::mark_imagick_avif_broken();
+            $editor = self::editor($path, $mime, true);
+            $temp   = null === $editor ? null : self::save_copy($editor, $path, $format);
+        }
+        return $temp;
+    }
+
+    /**
+     * Imagick's version string, empty without Imagick.
+     *
+     * @return string
+     */
+    private static function imagick_version() {
+        if (!class_exists('Imagick')) {
+            return '';
+        }
+        try {
+            $version = Imagick::getVersion();
+        } catch (\Throwable $error) {
+            return '';
+        }
+        return (string) ($version['versionString'] ?? '');
+    }
+
+    /**
+     * Whether Imagick was found unable to write AVIF, in this version.
+     *
+     * @return bool
+     */
+    private static function imagick_avif_broken() {
+        $marked = get_site_transient(self::IMAGICK_AVIF_BROKEN);
+        return is_string($marked) && '' !== $marked && self::imagick_version() === $marked;
+    }
+
+    /**
+     * Remember that Imagick cannot write AVIF, for a day or until its
+     * version changes.
+     */
+    private static function mark_imagick_avif_broken() {
+        $version = self::imagick_version();
+        if ('' !== $version) {
+            set_site_transient(self::IMAGICK_AVIF_BROKEN, $version, DAY_IN_SECONDS);
+        }
+    }
+
+    /**
+     * Save an editor's picture as a copy to a new unique temporary file.
+     *
+     * @param WP_Image_Editor $editor Editor holding the picture.
+     * @param string          $path   Original file.
+     * @param string          $format webp or avif.
+     * @return string|null The temporary file; null when it failed, leaving no file.
+     */
+    private static function save_copy($editor, $path, $format) {
+        $mime    = self::FORMATS[$format];
         $size    = $editor->get_size();
         $quality = self::quality($format, (int) ($size['width'] ?? 0), (int) ($size['height'] ?? 0));
         // save() resets the quality to WordPress's default for the new
@@ -797,19 +864,26 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
 
         // Unique, so a bulk action and a background batch on the same
         // picture do not write over each other's file.
-        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
-        $saved = $editor->save($temp, $mime);
+        $temp = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
+        try {
+            $saved = $editor->save($temp, $mime);
+        } catch (\Throwable $error) {
+            $saved = new WP_Error('nextgen_save', $error->getMessage());
+        }
         remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
-        if (is_wp_error($saved) || empty($saved['path']) || !is_file($saved['path'])) {
-            return null;
-        }
         clearstatcache();
-        // Another plugin may change the output format.
-        if ($saved['mime-type'] !== $mime || $saved['path'] !== $temp) {
-            wp_delete_file($saved['path']);
-            return null;
+        if (!is_wp_error($saved) && !empty($saved['path']) && $saved['path'] === $temp && $saved['mime-type'] === $mime && is_file($temp) && filesize($temp) > 0) {
+            return $temp;
         }
-        return $temp;
+        // Another plugin may change the output format; a failed save can
+        // leave an empty file. Never keep either.
+        if (!is_wp_error($saved) && !empty($saved['path']) && $saved['path'] !== $temp && is_file($saved['path'])) {
+            wp_delete_file($saved['path']);
+        }
+        if (is_file($temp)) {
+            wp_delete_file($temp);
+        }
+        return null;
     }
 
     /**
@@ -818,12 +892,16 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      *
      * @param string $path Original file.
      * @param string $mime Type to write.
+     * @param bool   $gd   Use only the GD editor.
      * @return WP_Image_Editor|null Null when it failed.
      */
-    private static function editor($path, $mime) {
-        $editors = function ($classes) {
+    private static function editor($path, $mime, $gd = false) {
+        $editors = function ($classes) use ($gd) {
             require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-imagick.php';
             require_once SEOPROSTACK_DIR . 'includes/image-editors/class-seoprostack-nextgen-gd.php';
+            if ($gd) {
+                return array('SEOProStack_Nextgen_GD');
+            }
             foreach ((array) $classes as $key => $class) {
                 if ('WP_Image_Editor_Imagick' === $class) {
                     $classes[$key] = 'SEOProStack_Nextgen_Imagick';
@@ -2456,6 +2534,59 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Remove leftover temporary copies of earlier versions from the uploads
+     * folders (each site's, on a network): only this plugin's own temporary
+     * names, older than an hour, never following links.
+     *
+     * @param bool $dry Count without deleting.
+     * @return array{files:int,bytes:int}
+     */
+    private static function cleanup_temp($dry) {
+        $result = array('files' => 0, 'bytes' => 0);
+        $roots  = array();
+        $sites  = is_multisite() ? get_sites(array('fields' => 'ids', 'number' => 0)) : array(get_current_blog_id());
+        foreach ($sites as $site) {
+            if (is_multisite()) {
+                switch_to_blog((int) $site);
+            }
+            $upload = wp_get_upload_dir();
+            if (is_multisite()) {
+                restore_current_blog();
+            }
+            $base = empty($upload['basedir']) ? '' : realpath($upload['basedir']);
+            if ($base && is_dir($base)) {
+                $roots[$base] = true;
+            }
+        }
+        $seen   = array();
+        $cutoff = time() - HOUR_IN_SECONDS;
+        foreach (array_keys($roots) as $root) {
+            try {
+                $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD);
+                foreach ($files as $file) {
+                    if ($file->isLink() || !$file->isFile() || !preg_match('/\.sps-tmp[A-Za-z0-9]{6}\.[a-z0-9]+$/', $file->getFilename())) {
+                        continue;
+                    }
+                    $name = $file->getPathname();
+                    if (isset($seen[$name]) || $file->getMTime() > $cutoff) {
+                        continue;
+                    }
+                    $seen[$name] = true;
+                    $bytes       = (int) $file->getSize();
+                    if (!$dry && !wp_delete_file_from_directory($name, $root)) {
+                        continue;
+                    }
+                    $result['files']++;
+                    $result['bytes'] += $bytes;
+                }
+            } catch (UnexpectedValueException $error) {
+                continue;
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Explicit CLI cleanup: keep adopted copies beside the original pictures.
      *
      * @return true|WP_Error
@@ -2789,15 +2920,32 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * first. When it cannot run, it says why. Combine with --dry-run to show
      * the leftovers' count and size, and what would stop it, without changes.
      *
+     * [--cleanup-temp]
+     * : Delete leftover temporary files (named like picture.jpg.sps-tmpAbC123.avif)
+     * from failed copies made by earlier versions. Only files with this
+     * plugin's own temporary name and older than an hour are removed; links
+     * are not followed. Combine with --dry-run to count them without deleting.
+     *
      * ## EXAMPLES
      *
      *     wp seoprostack convert-images
      *     wp seoprostack convert-images --force
+     *     wp seoprostack convert-images --cleanup-temp --dry-run
      *
      * @param array $args  Positional arguments.
      * @param array $assoc Options.
      */
     public static function cli($args, $assoc) {
+        if (isset($assoc['cleanup-temp'])) {
+            $dry   = isset($assoc['dry-run']);
+            $found = self::cleanup_temp($dry);
+            WP_CLI::success(sprintf(
+                $dry ? 'Temporary files found: %d (%s). Nothing changed.' : 'Temporary files removed: %d (%s).',
+                $found['files'],
+                size_format($found['bytes'], 1)
+            ));
+            return;
+        }
         if (isset($assoc['cleanup-compressx'])) {
             if (isset($assoc['force'])) {
                 WP_CLI::error('Run conversion with --force separately before cleanup.');
