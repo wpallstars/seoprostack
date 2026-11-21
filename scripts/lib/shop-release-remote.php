@@ -364,6 +364,28 @@ function wpas_shop_write_changelog(array $plan, $log, $now, array &$undo, array 
 }
 
 /**
+ * Update the licence settings row (with the new version), registering its undo.
+ *
+ * @param array<string,mixed> $plan     The release's facts.
+ * @param array<string,mixed> $settings The new settings.
+ * @param string              $now      Current MySQL time.
+ * @param array<int,callable> $undo     Undo steps, appended to.
+ * @return string The failure's description, or '' on success.
+ */
+function wpas_shop_write_settings(array $plan, array $settings, $now, array &$undo) {
+    global $wpdb;
+    $meta         = $wpdb->prefix . 'fct_product_meta';
+    $old_settings = $plan['settings_row'];
+    if (false === $wpdb->update($meta, array('meta_value' => wp_json_encode($settings, JSON_UNESCAPED_SLASHES), 'updated_at' => $now), array('id' => (int) $old_settings['id']))) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- FluentCart's own table, by primary key.
+        return 'The licence settings could not be updated';
+    }
+    $undo[] = static function () use ($wpdb, $meta, $old_settings) {
+        return false !== $wpdb->update($meta, array('meta_value' => $old_settings['meta_value'], 'updated_at' => isset($old_settings['updated_at']) ? $old_settings['updated_at'] : current_time('mysql')), array('id' => (int) $old_settings['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
+    };
+    return '';
+}
+
+/**
  * Point the download row at the new file and set the licence version,
  * changelog and product time.
  *
@@ -380,7 +402,6 @@ function wpas_shop_write(array $plan, &$error = '', array &$inserted = array(), 
     global $wpdb;
     $undone              = true;
     $now                 = current_time('mysql');
-    $meta                = $wpdb->prefix . 'fct_product_meta';
     $settings            = $plan['settings'];
     $settings['version'] = $plan['version'];
     $log                 = $plan['log_row'] ? (string) $plan['log_row']['meta_value'] : '';
@@ -411,13 +432,10 @@ function wpas_shop_write(array $plan, &$error = '', array &$inserted = array(), 
         return $fail($failed);
     }
     // The licence version and changelog advance only after the download row did.
-    $old_settings = $plan['settings_row'];
-    if (false === $wpdb->update($meta, array('meta_value' => wp_json_encode($settings, JSON_UNESCAPED_SLASHES), 'updated_at' => $now), array('id' => (int) $old_settings['id']))) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- FluentCart's own table, by primary key.
-        return $fail('The licence settings could not be updated');
+    $failed = wpas_shop_write_settings($plan, $settings, $now, $undo);
+    if ('' !== $failed) {
+        return $fail($failed);
     }
-    $undo[] = static function () use ($wpdb, $meta, $old_settings) {
-        return false !== $wpdb->update($meta, array('meta_value' => $old_settings['meta_value'], 'updated_at' => isset($old_settings['updated_at']) ? $old_settings['updated_at'] : current_time('mysql')), array('id' => (int) $old_settings['id'])); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- as above.
-    };
     $failed = wpas_shop_write_changelog($plan, $log, $now, $undo, $inserted);
     if ('' !== $failed) {
         return $fail($failed);
