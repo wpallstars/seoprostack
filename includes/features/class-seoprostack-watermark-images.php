@@ -1464,7 +1464,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
         // Unique, so a bulk action and a background batch do not write over
         // each other's file.
-        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . pathinfo($path, PATHINFO_EXTENSION);
+        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . strtolower(pathinfo($path, PATHINFO_EXTENSION)); // WordPress lowercases the saved extension.
         try {
             $saved = $editor->save($temp, $mime);
         } catch (\Throwable $error) {

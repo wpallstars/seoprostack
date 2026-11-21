@@ -787,18 +787,25 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      */
     private static function encode($path, $format) {
         $mime    = self::FORMATS[$format];
-        $gd_avif = 'avif' === $format && self::imagick_avif_broken() && function_exists('imageavif');
+        $broken  = 'avif' === $format && self::imagick_avif_broken();
+        $gd_avif = $broken && function_exists('imageavif');
+        if ($broken && !$gd_avif) {
+            // Known not to work here: do not try again.
+            return null;
+        }
         $editor = self::editor($path, $mime, $gd_avif);
         if (null === $editor) {
             return null;
         }
         $temp = self::save_copy($editor, $path, $format);
-        if (null === $temp && 'avif' === $format && !$gd_avif && $editor instanceof WP_Image_Editor_Imagick && function_exists('imageavif')) {
+        if (null === $temp && 'avif' === $format && !$gd_avif && $editor instanceof WP_Image_Editor_Imagick) {
             // Imagick lists AVIF but cannot write it: remember that, and
-            // make this copy with GD.
+            // make this copy with GD when it can.
             self::mark_imagick_avif_broken();
-            $editor = self::editor($path, $mime, true);
-            $temp   = null === $editor ? null : self::save_copy($editor, $path, $format);
+            if (function_exists('imageavif')) {
+                $editor = self::editor($path, $mime, true);
+                $temp   = null === $editor ? null : self::save_copy($editor, $path, $format);
+            }
         }
         return $temp;
     }
@@ -2573,8 +2580,12 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                     }
                     $seen[$name] = true;
                     $bytes       = (int) $file->getSize();
-                    if (!$dry && !wp_delete_file_from_directory($name, $root)) {
-                        continue;
+                    if (!$dry) {
+                        wp_delete_file_from_directory($name, $root);
+                        clearstatcache(true, $name);
+                        if (file_exists($name)) {
+                            continue;
+                        }
                     }
                     $result['files']++;
                     $result['bytes'] += $bytes;
