@@ -2824,6 +2824,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Changed (**Website Setup board**, #1715): the **Setup Uptime Monitoring (updown.io)** task adds the check to the updown.io account that already monitors the other sites and defaults to a status page on the site's `status.` subdomain (`CNAME page.updown.io`, Cloudflare DNS only), with the check's public page as the fallback. The Website status link example is now `https://status.example.com/`. Existing boards are not changed.
 - Developers: core files synced with WP Plugin Starter commit 520f394 (GitHub issue #1712): the shared licensed-updates library (`includes/wpallstars-licence/`, left out of the WordPress.org build), `scripts/shop-release.sh`, and the deploy, release, badge and test-site script, CI, PHPStan, `STANDARDS.md` and `DEVELOPMENT.md` changes since the last sync.
 - Developers: core files synced with WP Plugin Starter commit c093ffa (GitHub issue #1718): fixes to the shared licensed-updates library, the shop release scripts, the CI workflow, `STANDARDS.md` and `DEVELOPMENT.md`.
+- Developers: core files synced with WP Plugin Starter commit 7f15ab5 (GitHub issue #1731): the licensed-updates library (lists products before their Update URI moves to the shop), `scripts/deploy-sites.sh` and the deploy-remote install and log scripts, and `scripts/lib/shop-release-remote.php`.
 
 ### 1.3.228
 
