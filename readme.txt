@@ -5,15 +5,13 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.228
+Stable tag: 1.3.229
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with a switch.
 
 == Description ==
-
-Free and open source: faster admin, easier publishing, safer logins.
 
 Safe features start on in **Settings → SEO Pro Stack**. Replacements import once, keep originals and wait for deactivation.
 
@@ -89,8 +87,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 = Plugins and set-up =
 
-* **Plugin presets** and **starter data**: opt-in, with undo. **Keep recommended settings** (off) keeps them, and later changes, applied.
-* **Add-on setup cards**: switching on FluentCRM, Fluent Support, Fluent Boards or Tutor LMS adds its setup tasks to the Website Setup board in Fluent Boards, once.
+* **Plugin presets** and **starter data**: opt-in, with undo; switched-on add-ons add setup cards. **Keep recommended settings** (off) keeps them, and later changes, applied.
 * **Site templates**: WP-CLI apply, compare and undo.
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds.
@@ -102,7 +99,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 = External services =
 
-* **Your IMAP server** (opt-in): reads support email; saves whole sent ticket emails (up to 20 retried); SSL/STARTTLS, verified. Its policies apply.
+* **Your IMAP server** (opt-in): reads support email; saves whole sent ticket emails; SSL/STARTTLS, verified. Its policies apply.
 * **S3-compatible storage**: opted-in batches send pictures and signed requests, tests included, to your endpoint. Marked pictures are public. SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET holds unmarked originals separately: disable public access, including r2.dev and custom domains; the plugin cannot detect it. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **Cloudflare API** (api.cloudflare.com, opt-in): sends your token (or email and key), zone ID and addresses to purge. Policies as above.
 * **Gravatar** (secure.gravatar.com): fetches authors' pictures once by email hash. [Terms](https://wordpress.com/tos/), [privacy](https://automattic.com/privacy/).
@@ -158,10 +155,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Fixed: failed WebP and AVIF copies no longer leave empty temporary files; AVIF copies fall back to GD when Imagick cannot write them. New: wp seoprostack convert-images --cleanup-temp removes old leftovers.
-
-= 1.3.228 =
-* Added: Cloudflare scanner protection setup task.
+= 1.3.229 =
+* Added: add-on setup cards; en_US translation.
+* Fixed: failed WebP/AVIF copies leave no empty temp files; AVIF falls back to GD.
 
 Older: `changelog.txt`.

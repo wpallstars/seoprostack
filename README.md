@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.228-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.229-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.228
+Version: 1.3.229
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2817,7 +2817,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.229
 
 - Fixed (**Website Setup board**, #1733): the **Setup Uptime Monitoring (updown.io)** task no longer says to enter the status page's custom domain in updown.io, where there is no such field. It lists the two DNS records that put the page on its address: `status` `CNAME page.updown.io` and `_updown.status` `TXT "updown-page=p/<page code>"`. Existing boards are not changed.
 - New (**add-on setup cards**, #1721): when a website add-on plugin is switched on for a site (CRM: FluentCRM and FluentCRM Pro; Support Desk: Fluent Support and Fluent Support Pro; Project Management: Fluent Boards and Fluent Boards Pro; Courses: Tutor LMS and Tutor LMS Pro), its setup tasks are added to the site's **Website Setup** board in Fluent Boards, once per site and plugin, so the owner or their AI assistant can set it up from plain steps: import contacts, connect forms and send a first email (CRM); the mailbox, business hours and support page (Support Desk); a first board and its members (Project Management); a first course, its lessons, price and certificates (Courses). It works whether the plugin was activated by hand or switched on by Ultimate Multisite, a task already on the board is never added again, and it needs Fluent Boards running (it waits until it is). New starter data for Fluent Support and Tutor LMS, the cards in the FluentCRM and Fluent Boards starters, and a `docs/addon-cards.md` page; no passwords or keys are ever asked for in a task.
