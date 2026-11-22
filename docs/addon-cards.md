@@ -37,6 +37,9 @@ add-on is turning the plugin on; the cards are the guide.
   (**Add starter data**) or with `wp seoprostack starters add <folder>`, which
   adds the rest of the starter too; by hand they go on the Website Setup
   board only when it exists (add Fluent Boards' starter data first).
+- When a release rewords a card, `wp seoprostack starters refresh fluent-boards
+  [--dry-run]` updates the description of cards added earlier that nobody has
+  touched; edited, moved, assigned, commented, closed or archived ones are kept.
 
 ## Writing cards
 

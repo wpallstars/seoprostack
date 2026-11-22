@@ -1782,9 +1782,13 @@ final class SEOProStack_Starters {
         }
         $records = self::added($slug);
         if (empty($records['fluentboards_tasks'])) {
-            return new WP_Error('seoprostack_nothing_added', __('SEO Pro Stack has not added any tasks for this plugin.', 'seoprostack'));
+            // Tasks added before records were kept: each reports "no record".
+            $records['fluentboards_tasks'] = array();
         }
         $items   = self::items($slug);
+        if (empty($items['fluentboards_tasks'])) {
+            $items['fluentboards_tasks'] = array();
+        }
         $updated = array();
         $kept    = array();
         $changed = false;
@@ -1822,8 +1826,8 @@ final class SEOProStack_Starters {
                 if (!$dry_run) {
                     $task->description = $description;
                     $task->save();
-                    $task = \FluentBoards\App\Models\Task::find((int) $record['id']);
-                    $records['fluentboards_tasks'][$match]['hash'] = self::task_hash($task);
+                    // Hash the text written, not a re-read task, so a concurrent edit stays "touched".
+                    $records['fluentboards_tasks'][$match]['hash'] = hash('sha256', (string) $task->title . "\n" . $description);
                     $changed = true;
                 }
                 $updated[] = $title;
