@@ -2818,6 +2818,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced with WP Plugin Starter commit f3c249d (GitHub issue #1738): the licensed-updates library (update_plugins and update_themes restored with no expiry under an external object cache; review fixes), scripts/shop-release.sh and scripts/lib/shop-release-remote.php, scripts/lib/deploy-remote-cron.sh and deploy-remote-installs.sh, scripts/preflight-release.sh, DEVELOPMENT.md and RELEASING.md.
+
 ### 1.3.229
 
 - Fixed (**Website Setup board**, #1733): the **Setup Uptime Monitoring (updown.io)** task no longer says to enter the status page's custom domain in updown.io, where there is no such field. It lists the two DNS records that put the page on its address: `status` `CNAME page.updown.io` and `_updown.status` `TXT "updown-page=p/<page code>"`. Existing boards are not changed.
