@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Developers: core files synced with WP Plugin Starter commit f3c249d (GitHub issue #1738): the licensed-updates library (update_plugins and update_themes restored with no expiry under an external object cache; review fixes), scripts/shop-release.sh and scripts/lib/shop-release-remote.php, scripts/lib/deploy-remote-cron.sh and deploy-remote-installs.sh, scripts/preflight-release.sh, DEVELOPMENT.md and RELEASING.md.
+
 = 1.3.229 =
 * Fixed (Fluent Boards starter data, Website Setup board; GitHub issue #1733): task Setup Uptime Monitoring (updown.io) no longer says to enter the status page's custom domain in updown.io, where there is no such field. Step 4 lists the two DNS records that put the page on its address, status CNAME page.updown.io and _updown.status TXT "updown-page=p/<page code>" (status.shop and _updown.status.shop in the parent zone for a site on a subdomain), and says the first visit can fail while updown.io issues the certificate; the With aidevops line adds both records through the DNS host's API and checks them with updown-helper.sh status-page domain. Existing boards are not changed. README.md's setup tasks regenerated.
 * Developers: core files synced with WP Plugin Starter commit 7f15ab5 (GitHub issue #1731): the licensed-updates library (lists products before their Update URI moves to the shop), scripts/deploy-sites.sh and the deploy-remote install and log scripts, and scripts/lib/shop-release-remote.php.
