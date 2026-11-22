@@ -180,6 +180,7 @@ class SEOProStack_Starters_CLI {
         $result  = SEOProStack_Starters::refresh($slug, $dry_run);
         if (is_wp_error($result)) {
             WP_CLI::error($slug . ': ' . $result->get_error_message());
+            return;
         }
         foreach ($result['updated'] as $name) {
             WP_CLI::log(sprintf('%s: %s', $dry_run ? 'Would update' : 'Updated', $name));
