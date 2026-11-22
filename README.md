@@ -2086,6 +2086,7 @@ They are JSON files in `starters/`, one per plugin folder; `includes/class-seopr
 - `wp seoprostack starters list`: each starter, whether its plugin is active, how many items are missing and how many SEO Pro Stack added.
 - `wp seoprostack starters diff <plugin>`: the items this site does not have yet.
 - `wp seoprostack starters add <plugin>… | --all`: add the missing items. Boards and booking events are created by `--user`, or the first administrator. Booking events are matched by title within that user's host calendar; existing events and calendars are left alone.
+- `wp seoprostack starters refresh <plugin> [--dry-run]`: after a release rewords a Fluent Boards task, update the description of the tasks added earlier that nobody has touched (edited, moved, assigned, labelled, commented on, closed or archived tasks are kept; status never changes; tasks with no record are left alone). One line per task.
 - `wp seoprostack starters remove <plugin>…`: remove what was added, while unused.
 
 #### Website Setup board

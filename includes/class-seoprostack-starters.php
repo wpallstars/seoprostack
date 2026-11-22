@@ -1745,6 +1745,107 @@ final class SEOProStack_Starters {
     }
 
     /**
+     * Whether someone worked on a task SEO Pro Stack added: moved to another
+     * stage, given a due date, assignees or labels, edited, closed, archived,
+     * commented on, or given attachments or subtasks.
+     *
+     * @param mixed $task   Fluent Boards' Task.
+     * @param array $record Stored record of the added task.
+     * @return bool
+     */
+    private static function task_worked_on($task, array $record) {
+        return 'open' !== (string) $task->status || !empty($task->archived_at)
+            || (isset($record['stage_id']) && (int) $task->stage_id !== (int) $record['stage_id'])
+            || !empty($task->due_at)
+            || $task->assignees()->count() > 0
+            || $task->labels()->count() > 0
+            || self::task_hash($task) !== (string) $record['hash']
+            || $task->comments()->count() > 0
+            || $task->attachments()->count() > 0
+            || \FluentBoards\App\Models\Task::where('parent_id', (int) $task->id)->count() > 0;
+    }
+
+    /**
+     * Bring tasks SEO Pro Stack added up to the installed starter text, where
+     * the site has not touched them. Only the description changes.
+     *
+     * @param string $slug    Plugin folder.
+     * @param bool   $dry_run Report only.
+     * @return array{updated:string[],kept:array<int,array{name:string,reason:string}>}|WP_Error
+     */
+    public static function refresh($slug, $dry_run = false) {
+        if (!self::get($slug)) {
+            return new WP_Error('seoprostack_no_starter', __('There is no starter data for this plugin.', 'seoprostack'));
+        }
+        if (!self::ready($slug) || !self::type_ready('fluentboards_tasks')) {
+            return new WP_Error('seoprostack_starter_inactive', __('Activate the plugin first.', 'seoprostack'));
+        }
+        $records = self::added($slug);
+        if (empty($records['fluentboards_tasks'])) {
+            // Tasks added before records were kept: each reports "no record".
+            $records['fluentboards_tasks'] = array();
+        }
+        $items   = self::items($slug);
+        if (empty($items['fluentboards_tasks'])) {
+            $items['fluentboards_tasks'] = array();
+        }
+        $updated = array();
+        $kept    = array();
+        $changed = false;
+        try {
+            foreach ($items['fluentboards_tasks'] as $item) {
+                $title  = sanitize_text_field((string) $item['title']);
+                $match  = null;
+                $board  = self::find_id('fluentboards_boards', (string) $item['board']);
+                foreach ($records['fluentboards_tasks'] as $key => $record) {
+                    if ((string) $record['name'] === (string) $item['title'] && (int) $record['board_id'] === (int) $board) {
+                        $match = $key;
+                        break;
+                    }
+                }
+                if (null === $match) {
+                    $kept[] = array('name' => $title, 'reason' => 'no record');
+                    continue;
+                }
+                $record = (array) $records['fluentboards_tasks'][$match];
+                $task   = \FluentBoards\App\Models\Task::find((int) $record['id']);
+                if (!$task || (int) $task->board_id !== (int) $record['board_id']) {
+                    $kept[] = array('name' => $title, 'reason' => 'task gone');
+                    continue;
+                }
+                if (self::task_worked_on($task, $record)) {
+                    $kept[] = array('name' => $title, 'reason' => 'worked on');
+                    continue;
+                }
+                $description = isset($item['description']) ? (string) $item['description'] : '';
+                $description = function_exists('fluent_boards_sanitize_description') ? fluent_boards_sanitize_description($description) : wp_kses_post($description);
+                if ((string) $task->description === $description) {
+                    $kept[] = array('name' => $title, 'reason' => 'up to date');
+                    continue;
+                }
+                if (!$dry_run) {
+                    $task->description = $description;
+                    $task->save();
+                    // Hash the text written, not a re-read task, so a concurrent edit stays "touched".
+                    $records['fluentboards_tasks'][$match]['hash'] = hash('sha256', (string) $task->title . "\n" . $description);
+                    $changed = true;
+                }
+                $updated[] = $title;
+            }
+        } catch (Throwable $e) {
+            if ($changed) {
+                self::save_added($slug, $records);
+            }
+            self::$missing = array();
+            return new WP_Error('seoprostack_starter_failed', $e->getMessage());
+        }
+        if ($changed) {
+            self::save_added($slug, $records);
+        }
+        return array('updated' => $updated, 'kept' => $kept);
+    }
+
+    /**
      * Create a board task in the board's first stage, as Fluent Boards' own
      * add-task form does, then put it after the task it follows.
      *
@@ -2190,15 +2291,7 @@ final class SEOProStack_Starters {
                 // Kept once someone worked on it: moved to another stage,
                 // given a due date, assignees or labels, edited, closed,
                 // archived, commented on, or given attachments or subtasks.
-                if ('open' !== (string) $task->status || !empty($task->archived_at)
-                    || (isset($record['stage_id']) && (int) $task->stage_id !== (int) $record['stage_id'])
-                    || !empty($task->due_at)
-                    || $task->assignees()->count() > 0
-                    || $task->labels()->count() > 0
-                    || self::task_hash($task) !== (string) $record['hash']
-                    || $task->comments()->count() > 0
-                    || $task->attachments()->count() > 0
-                    || \FluentBoards\App\Models\Task::where('parent_id', (int) $task->id)->count() > 0) {
+                if (self::task_worked_on($task, $record)) {
                     return $name;
                 }
                 (new \FluentBoards\App\Services\TaskService())->deleteTask($task);

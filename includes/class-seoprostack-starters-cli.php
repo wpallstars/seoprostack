@@ -156,6 +156,47 @@ class SEOProStack_Starters_CLI {
     }
 
     /**
+     * Update untouched starter tasks to the installed starter text.
+     *
+     * Only the description of a task SEO Pro Stack added changes, and only
+     * while nobody has edited, moved, assigned, labelled, commented on,
+     * closed or archived it. Status is never changed. Tasks added before
+     * records were kept are left alone ("no record").
+     *
+     * ## OPTIONS
+     *
+     * <plugin>
+     * : Plugin folder, such as fluent-boards.
+     *
+     * [--dry-run]
+     * : Show what would change without changing it.
+     *
+     * @param array $args       Arguments.
+     * @param array $assoc_args Options.
+     */
+    public function refresh($args, $assoc_args) {
+        $slug    = $this->starter_slug($args[0]);
+        $dry_run = (bool) WP_CLI\Utils\get_flag_value($assoc_args, 'dry-run');
+        $result  = SEOProStack_Starters::refresh($slug, $dry_run);
+        if (is_wp_error($result)) {
+            WP_CLI::error($slug . ': ' . $result->get_error_message());
+            return;
+        }
+        foreach ($result['updated'] as $name) {
+            WP_CLI::log(sprintf('%s: %s', $dry_run ? 'Would update' : 'Updated', $name));
+        }
+        foreach ($result['kept'] as $row) {
+            WP_CLI::log(sprintf('Kept (%s): %s', $row['reason'], $row['name']));
+        }
+        $count = count($result['updated']);
+        if (!$count) {
+            WP_CLI::success(sprintf('%s: nothing to change.', $slug));
+            return;
+        }
+        WP_CLI::success(sprintf('%s: %d %s %s.', $slug, $count, 1 === $count ? 'task' : 'tasks', $dry_run ? 'would be updated' : 'updated'));
+    }
+
+    /**
      * A plugin folder that has starter data, or stop.
      *
      * @param string $slug Plugin folder.
