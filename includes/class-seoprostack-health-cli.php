@@ -91,6 +91,9 @@ class SEOProStack_Health_CLI {
      * @param array $assoc_args Options.
      */
     public function __invoke($args, $assoc_args) {
+        // A fixed ceiling, never none: the audit was stopped by the host on a
+        // large network with no limit (GitHub issue #1587).
+        SEOProStack_Memory_Ceilings::job('seoprostack health');
         $format = isset($assoc_args['format']) ? $assoc_args['format'] : 'table';
         $fail   = isset($assoc_args['fail-on']) ? $assoc_args['fail-on'] : '';
         if (!in_array($format, array('table', 'json'), true) || !in_array($fail, array('', 'critical', 'recommended'), true)) {

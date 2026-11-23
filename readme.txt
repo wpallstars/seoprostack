@@ -89,7 +89,7 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 
 * **Plugin presets** and **starter data**: opt-in, with undo; switched-on add-ons add setup cards. **Keep recommended settings** (off) keeps them, and later changes, applied.
 * **Site templates**: WP-CLI apply, compare and undo.
-* **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
+* **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** and **Memory ceilings** (a PHP memory limit for every page, admin, cron and WP-CLI process, where PHP allows the change).
 * **Fixes for other plugins**: known bug workarounds.
 * **Agency** orders and client dashboard; **Recommended** themes, plugins, hosting and tools.
 
