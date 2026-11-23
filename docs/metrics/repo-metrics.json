@@ -1,7 +1,7 @@
 {
   "schema": "aidevops.repo-metrics.v1",
   "schema_version": 1,
-  "generated_at": "2026-11-22T13:35:02Z",
+  "generated_at": "2026-11-23T14:31:54Z",
   "tool": {
     "name": "aidevops repo-metrics",
     "version": "1.0.0"
@@ -11,21 +11,21 @@
     "slug": "wpallstars/seoprostack"
   },
   "summary": {
-    "source_files": 1043,
-    "code": 169149,
-    "comments": 57268,
-    "blanks": 14832,
+    "source_files": 1050,
+    "code": 169863,
+    "comments": 57860,
+    "blanks": 14926,
     "languages": 10,
     "dependencies": 14
   },
   "languages": [
     {
       "name": "PHP",
-      "files": 347,
-      "code": 91562,
-      "comments": 51084,
-      "blanks": 8785,
-      "percentage": 54.13,
+      "files": 354,
+      "code": 92254,
+      "comments": 51665,
+      "blanks": 8874,
+      "percentage": 54.31,
       "color": "#4F5D95"
     },
     {
@@ -34,7 +34,7 @@
       "code": 33480,
       "comments": 0,
       "blanks": 0,
-      "percentage": 19.79,
+      "percentage": 19.71,
       "color": "#292929"
     },
     {
@@ -43,7 +43,7 @@
       "code": 13600,
       "comments": 2227,
       "blanks": 928,
-      "percentage": 8.04,
+      "percentage": 8.01,
       "color": "#f1e05a"
     },
     {
@@ -52,24 +52,24 @@
       "code": 10949,
       "comments": 1508,
       "blanks": 2637,
-      "percentage": 6.47,
+      "percentage": 6.45,
       "color": "#563d7c"
     },
     {
       "name": "Shell",
       "files": 35,
-      "code": 9068,
-      "comments": 2187,
+      "code": 9073,
+      "comments": 2198,
       "blanks": 693,
-      "percentage": 5.36,
+      "percentage": 5.34,
       "color": "#89e051"
     },
     {
       "name": "Markdown",
       "files": 22,
-      "code": 6839,
+      "code": 6856,
       "comments": 0,
-      "blanks": 1668,
+      "blanks": 1673,
       "percentage": 4.04,
       "color": "#083fa1"
     },
@@ -88,7 +88,7 @@
       "code": 771,
       "comments": 179,
       "blanks": 91,
-      "percentage": 0.46,
+      "percentage": 0.45,
       "color": "#cb171e"
     },
     {
