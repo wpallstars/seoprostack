@@ -575,6 +575,8 @@ delete_metadata('user', 0, 'seoprostack_network_plugins_hidden', '', true);
 // Plugins moved from the network to each site, kept for Undo. The plugins
 // stay activated on each site.
 delete_site_option('seoprostack_network_moved');
+// Memory peaks of WP-CLI commands and cron runs (Memory ceilings), one for the network.
+delete_site_option('seoprostack_cli_memory');
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.

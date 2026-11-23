@@ -197,6 +197,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 'label'       => __('Hosting needs', 'seoprostack'),
                 'description' => __('Check whether your hosting fits this site, and what to ask your host for. Compares OPcache, which keeps PHP code in memory, with the code your plugins and theme can load, and the PHP memory limit with the most memory a request used in the last 7 days. Shown below the plugin list and in Tools → Site Health. When WP-Cron is turned off (DISABLE_WP_CRON) and no cron job on the server runs the scheduled jobs, says so on the Dashboard and Plugins screens, with the commands for this site.', 'seoprostack'),
             ),
+            SEOProStack_Memory_Sizes::ACCOUNT => array(
+                'type'        => 'text',
+                'default'     => '',
+                'parent'      => self::KEY,
+                'label'       => __('Account memory', 'seoprostack'),
+                'description' => __('The memory of the hosting account this site shares with other sites, such as 12G (Hostinger: the plan’s memory, or hPanel → Advanced → Resource usage). Memory ceilings keeps each process under half of it, and Hosting needs warns when a limit could use more. Leave empty when the server shows its own (a container’s limit).', 'seoprostack'),
+                'placeholder' => '12G',
+            ),
         );
     }
 
@@ -207,6 +215,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         // Learned origin addresses serve Keep pages cached too, so learn with Hosting needs off.
         add_action('shutdown', array('SEOProStack_Litespeed_Crawler', 'learn'));
         if (!self::enabled()) {
+            // Memory ceilings sizes WP-CLI and cron from their peaks.
+            add_action('shutdown', function () {
+                self::record_processes();
+            }, PHP_INT_MAX);
             return;
         }
         // Started earlier by the must-use file of Load plugins only where needed.
@@ -247,14 +259,39 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * Record this request: its memory peak, and its time for 1 in 20.
      */
     public static function record() {
-        if ((defined('WP_CLI') && WP_CLI) || wp_installing()) {
-            return; // The command line has its own limit, often none, and no visitors.
+        if (self::record_processes()) {
+            return;
         }
         $kind = self::kind();
         // Before this request's own writes below.
         self::record_writes($kind);
         self::record_peak($kind);
         self::sample($kind);
+    }
+
+    /**
+     * Record WP-CLI's and cron's memory peaks, for Memory ceilings, also
+     * with Hosting needs off.
+     *
+     * @return bool Whether nothing else is recorded: installing, or WP-CLI.
+     */
+    public static function record_processes() {
+        if (wp_installing()) {
+            return true;
+        }
+        if (defined('WP_CLI') && WP_CLI) {
+            // The command line has its own limit, often none, and no visitors:
+            // its peaks are kept per command. The health audit saves nothing
+            // (SEOProStack_Health_CLI::prepare()).
+            if (!(class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing())) {
+                SEOProStack_Memory_Peaks::record(SEOProStack_Memory_Peaks::record_key());
+            }
+            return true;
+        }
+        if (wp_doing_cron()) {
+            SEOProStack_Memory_Peaks::record('cron');
+        }
+        return false;
     }
 
     /**
@@ -2192,12 +2229,18 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 'value' => (string) $server,
             ),
         );
-        $peaks = self::peaks();
+        // Each kind of process's limit, WP-CLI's and cron's peaks (Memory ceilings).
+        $ceilings = SEOProStack_Memory_Report::report(SEOProStack_Memory_Sizes::bytes((string) $server), $web);
+        $fields  += $ceilings['fields'];
+        $warning  = $ceilings['warning'];
+        $peaks    = self::peaks();
         if (!$peaks) {
             return array(
-                'status'  => 'unknown',
-                'summary' => __('No recent web-request memory peak is recorded yet. Check again after the site has had some visits.', 'seoprostack'),
-                'unrecorded' => true,
+                'status'  => '' !== $warning ? 'recommended' : 'unknown',
+                'summary' => trim(__('No recent web-request memory peak is recorded yet. Check again after the site has had some visits.', 'seoprostack') . ' ' . $warning),
+                // A known risk stays recommended, also for the WP-CLI audit's --fail-on.
+                'unrecorded' => '' === $warning,
+                'risk'    => '' !== $warning,
                 'ask'     => array(),
                 'fields'  => $fields,
                 'note'    => '',
@@ -2250,9 +2293,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             /* translators: %s: UTC time or date of the newest web memory peak. */
             $summary .= ' ' . sprintf(__('Newest web peak recorded at %s.', 'seoprostack'), $latest['time']);
         }
+        if ('' !== $warning) {
+            $summary .= ' ' . $warning;
+            $state    = 'good' === $state ? 'recommended' : $state;
+        }
         return array(
             'status'  => $state,
             'summary' => $summary,
+            'risk'    => '' !== $warning,
             'ask'     => $ask,
             'fields'  => $fields,
             'note'    => $near ? '' : self::high_limit_note((string) $server),
@@ -2599,7 +2647,18 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         foreach (self::peaks() as $pair) {
             $peak = max($peak, $pair[0]);
         }
-        return self::step(max(256, $peak * 1.5 / MB_IN_BYTES), self::LIMIT_STEPS);
+        return self::need_for_peak($peak);
+    }
+
+    /**
+     * PHP memory limit with room for a peak: half as much again, at least
+     * 256 MB, rounded up to LIMIT_STEPS (Memory ceilings uses it too).
+     *
+     * @param int $peak Highest use, bytes.
+     * @return int MB.
+     */
+    public static function need_for_peak($peak) {
+        return self::step(max(256, (int) $peak * 1.5 / MB_IN_BYTES), self::LIMIT_STEPS);
     }
 
     /**
@@ -3175,6 +3234,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             : __('PHP memory has room for this site', 'seoprostack');
         if ('unknown' === $part['status']) {
             $label = __('PHP memory could not be assessed', 'seoprostack');
+        }
+        if (!empty($part['risk']) && !$part['ask']) {
+            $label = __('One PHP process could fill the hosting account’s memory', 'seoprostack');
         }
         $description = '<p>' . esc_html__('Each request can use memory up to the PHP memory limit. SEO Pro Stack records the most memory a request used each day, for pages, the admin and the REST API with cron.', 'seoprostack') . '</p>';
         if ('' !== $part['note']) {

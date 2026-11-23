@@ -168,6 +168,8 @@ final class SEOProStack_Setup {
         // After Plugin fixes, so its last pre_http_request filter counts their answers as not sent.
         'SEOProStack_Outbound_Calls',
         'SEOProStack_Hosting_Needs',
+        // Sizes its ceilings from Hosting needs' peaks; set from init() below, before features boot.
+        'SEOProStack_Memory_Ceilings',
         'SEOProStack_Snippets_Audit',
         'SEOProStack_Plugin_References',
         'SEOProStack_Agency_Orders',
@@ -369,6 +371,13 @@ final class SEOProStack_Setup {
         }
         // Also loaded by that must-use file, before other plugins.
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-option-writes.php';
+        // Memory ceilings' sizes, WP-CLI and cron peaks, and its Hosting needs rows.
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-sizes.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-peaks.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-trim.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-needs.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-report.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-warning.php';
     }
 
     /**
@@ -378,6 +387,10 @@ final class SEOProStack_Setup {
         // Deleting a network site drops its tables: ours too, whichever
         // features are on, as a site keeps a table after its feature is off.
         add_filter('wpmu_drop_tables', array(__CLASS__, 'site_tables'), 10, 2);
+
+        // A memory limit for this process as soon as SEO Pro Stack loads, so a
+        // WP-CLI command never runs without one (Memory ceilings).
+        SEOProStack_Memory_Ceilings::early();
 
         if (defined('WP_CLI') && WP_CLI) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-health-cli.php';
