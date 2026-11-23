@@ -374,8 +374,10 @@ final class SEOProStack_Setup {
         // Memory ceilings' sizes, WP-CLI and cron peaks, and its Hosting needs rows.
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-sizes.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-peaks.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-trim.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-needs.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-report.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-memory-warning.php';
     }
 
     /**

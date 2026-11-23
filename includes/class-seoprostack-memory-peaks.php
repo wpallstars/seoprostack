@@ -115,7 +115,7 @@ class SEOProStack_Memory_Peaks {
     public static function record($key) {
         $time    = time();
         $stored  = self::stored();
-        $changed = self::prune($stored, $time - self::DAYS * DAY_IN_SECONDS);
+        $changed = SEOProStack_Memory_Trim::prune($stored, $time - self::DAYS * DAY_IN_SECONDS);
         if (null !== self::$cli_php && (!isset($stored['php'][0]) || (int) $stored['php'][0] !== self::$cli_php)) {
             $stored['php'] = array(self::$cli_php, $time);
             $changed       = true;
@@ -154,61 +154,8 @@ class SEOProStack_Memory_Peaks {
             }
         }
         $list[] = array($peak, SEOProStack_Memory_Sizes::bytes(ini_get('memory_limit')), $time);
-        $stored['peaks'][$key] = self::skyline(array_values($list));
+        $stored['peaks'][$key] = SEOProStack_Memory_Trim::skyline(array_values($list));
         return true;
-    }
-
-    /**
-     * Keep an entry unless TOP others are both higher and newer: the TOP
-     * highest of 30 days, plus the highest of each recent stretch, so a
-     * recent peak outlives older, higher ones when they expire.
-     *
-     * @param array $list Entries: array(peak, limit, time).
-     * @return array
-     */
-    private static function skyline(array $list) {
-        $kept = array();
-        foreach ($list as $i => $entry) {
-            $above = 0;
-            foreach ($list as $j => $other) {
-                if ($i !== $j && $other[0] >= $entry[0] && $other[2] >= $entry[2]) {
-                    ++$above;
-                }
-            }
-            if ($above < self::TOP) {
-                $kept[] = $entry;
-            }
-        }
-        usort($kept, function ($a, $b) {
-            return $b[0] <=> $a[0];
-        });
-        return $kept;
-    }
-
-    /**
-     * Drop peaks older than a time, and commands left with none.
-     *
-     * @param array $stored From stored(), changed in place.
-     * @param int   $since  Oldest time kept.
-     * @return bool Whether anything was dropped.
-     */
-    private static function prune(array &$stored, $since) {
-        $changed = false;
-        foreach ($stored['peaks'] as $key => $list) {
-            $kept = array();
-            foreach (is_array($list) ? $list : array() as $entry) {
-                if (is_array($entry) && isset($entry[0], $entry[1], $entry[2]) && (int) $entry[2] >= $since) {
-                    $kept[] = array((int) $entry[0], (int) $entry[1], (int) $entry[2]);
-                }
-            }
-            $changed = $changed || count($kept) !== count((array) $list);
-            if ($kept) {
-                $stored['peaks'][$key] = $kept;
-            } else {
-                unset($stored['peaks'][$key]);
-            }
-        }
-        return $changed;
     }
 
     /**
@@ -216,7 +163,7 @@ class SEOProStack_Memory_Peaks {
      *
      * @return array{peaks: array<string,array>, php: array}
      */
-    private static function stored() {
+    public static function stored() {
         $stored = get_site_option(self::OPTION, array());
         $stored = is_array($stored) ? $stored : array();
         return array(
@@ -232,7 +179,7 @@ class SEOProStack_Memory_Peaks {
      */
     public static function highest() {
         $stored = self::stored();
-        self::prune($stored, time() - self::DAYS * DAY_IN_SECONDS);
+        SEOProStack_Memory_Trim::prune($stored, time() - self::DAYS * DAY_IN_SECONDS);
         $highest = array();
         foreach ($stored['peaks'] as $key => $list) {
             $highest[(string) $key] = self::column($list, 0);
