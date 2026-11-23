@@ -143,15 +143,46 @@ class SEOProStack_Memory_Peaks {
     private static function add_peak(array &$stored, $key, $time) {
         $peak = (int) memory_get_peak_usage(true);
         $list = isset($stored['peaks'][$key]) ? $stored['peaks'][$key] : array();
-        if (count($list) >= self::TOP && $peak <= self::column($list, 0, true)) {
-            return false;
+        $day  = (int) floor($time / DAY_IN_SECONDS);
+        // One entry per day: a run only writes when it beats its day's highest.
+        foreach ($list as $i => $entry) {
+            if ((int) floor($entry[2] / DAY_IN_SECONDS) === $day) {
+                if ($peak <= $entry[0]) {
+                    return false;
+                }
+                unset($list[$i]);
+            }
         }
         $list[] = array($peak, SEOProStack_Memory_Sizes::bytes(ini_get('memory_limit')), $time);
-        usort($list, function ($a, $b) {
+        $stored['peaks'][$key] = self::skyline(array_values($list));
+        return true;
+    }
+
+    /**
+     * Keep an entry unless TOP others are both higher and newer: the TOP
+     * highest of 30 days, plus the highest of each recent stretch, so a
+     * recent peak outlives older, higher ones when they expire.
+     *
+     * @param array $list Entries: array(peak, limit, time).
+     * @return array
+     */
+    private static function skyline(array $list) {
+        $kept = array();
+        foreach ($list as $i => $entry) {
+            $above = 0;
+            foreach ($list as $j => $other) {
+                if ($i !== $j && $other[0] >= $entry[0] && $other[2] >= $entry[2]) {
+                    ++$above;
+                }
+            }
+            if ($above < self::TOP) {
+                $kept[] = $entry;
+            }
+        }
+        usort($kept, function ($a, $b) {
             return $b[0] <=> $a[0];
         });
-        $stored['peaks'][$key] = array_slice($list, 0, self::TOP);
-        return true;
+        return $kept;
     }
 
     /**

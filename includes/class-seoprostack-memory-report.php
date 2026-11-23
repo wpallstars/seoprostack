@@ -29,7 +29,8 @@ class SEOProStack_Memory_Report {
      * @return array{fields: array, warning: string}
      */
     public static function report($server, $web) {
-        $on     = SEOProStack_Memory_Ceilings::enabled();
+        // Switched on and applicable: with a host that forbids changing memory_limit, no ceiling is set.
+        $on     = SEOProStack_Memory_Ceilings::enabled() && SEOProStack_Memory_Ceilings::changeable();
         $limits = array();
         $fields = 0 !== $server ? self::web_fields((int) $server, $web, $on, $limits) : array();
         $fields['ceiling_cli'] = self::cli_field($on, $limits);
@@ -48,19 +49,25 @@ class SEOProStack_Memory_Report {
      * @return array
      */
     private static function web_fields($server, $web, $on, array &$limits) {
-        $cap            = $on ? SEOProStack_Memory_Needs::web($server, 'site') : 0;
-        $limits['page'] = $cap > 0 ? $cap : $server;
+        // WordPress raises memory_limit to WP_MEMORY_LIMIT first; ceilings are worked out from that.
+        $base = $server;
+        if (defined('WP_MEMORY_LIMIT')) {
+            $wp   = SEOProStack_Memory_Sizes::bytes(WP_MEMORY_LIMIT);
+            $base = -1 === $wp || -1 === $server ? -1 : max($server, $wp);
+        }
+        $cap            = $on ? SEOProStack_Memory_Needs::web($base, 'site') : 0;
+        $limits['page'] = $cap > 0 ? $cap : $base;
         $fields         = array(
             'ceiling_page' => array(
                 'label' => __('Memory limit: pages', 'seoprostack'),
                 'value' => $cap > 0
                     /* translators: 1: memory limit, 2: the server's memory limit. */
                     ? sprintf(__('%1$s, set by Memory ceilings (the server’s: %2$s)', 'seoprostack'), self::size($cap), self::size($server))
-                    : self::size($server),
+                    : self::size($base),
             ),
         );
         if ($web && defined('WP_MAX_MEMORY_LIMIT')) {
-            $fields += self::raised_fields(SEOProStack_Memory_Sizes::bytes(WP_MAX_MEMORY_LIMIT), $server, $on, $limits);
+            $fields += self::raised_fields(SEOProStack_Memory_Sizes::bytes(WP_MAX_MEMORY_LIMIT), $base, $on, $limits);
         }
         return $fields;
     }
@@ -223,7 +230,9 @@ class SEOProStack_Memory_Report {
      */
     private static function advice(array $risky, $account, $on) {
         $text = '';
-        if (!$on) {
+        if (!$on && SEOProStack_Memory_Ceilings::enabled()) {
+            $text .= ' ' . __('The host does not let PHP change its memory limit, so Memory ceilings cannot set one: ask the host for lower limits.', 'seoprostack');
+        } elseif (!$on) {
             $text .= ' ' . __('Turn on Memory ceilings on the Server tab to give each a limit.', 'seoprostack');
         } elseif (isset($risky['image']) || isset($risky['admin'])) {
             $text .= ' ' . sprintf(

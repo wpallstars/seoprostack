@@ -300,7 +300,7 @@ class SEOProStack_Memory_Ceilings extends SEOProStack_Feature {
     }
 
     /** Whether this process may change memory_limit. @return bool */
-    private static function changeable() {
+    public static function changeable() {
         return function_exists('ini_set') && wp_is_ini_value_changeable('memory_limit');
     }
 
