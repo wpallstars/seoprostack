@@ -92,27 +92,9 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
 - The Read Me tab's banner source is `.wordpress-org/banner.svg`; rebuild it
   with `scripts/build-banner.sh`.
 - No page caching or CSS and JS minification in SEO Pro Stack (owner's
-  decision): they are a common source of broken sites and support load, so
-  leave them to plugins that specialise in them (LiteSpeed Cache,
-  WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
-  through their presets, saving through their own code. One exception, at
-  the owner's request (#1194, widened in #1260): **Load the CSS each page
-  uses first** (Used CSS) for the stylesheets of the Kadence theme (and a
-  child theme of it), the plugins SEO Pro Stack recommends, their Pro
-  add-ons, Kadence's own plugins, the plugins it works with
-  (`SEOProStack_Used_Css_Links::PLUGINS`) and WordPress's block library,
-  worked out on the site's own server. When a plugin is added to or removed
-  from Free Plugins or Pro Plugins, update that list too. Do not widen it to
-  other themes or plugins; the `seoprostack_used_css_sources` filter is for
-  site owners, unsupported.
-- Speed work that needs knowledge of one theme or plugin (Used CSS, Load
-  plugins only where needed, Image loading's opening block, moving a
-  plugin's files to the end of the page) covers only Kadence and its
-  plugins, the plugins SEO Pro Stack recommends and their Pro add-ons, and
-  plugins the owner names on a site of theirs (Bookly, #1414). Owner's
-  rule: do better than a specialist plugin only where that does not mean
-  supporting any number of themes and plugins we do not recommend. Others
-  get a filter for site owners, unsupported, or nothing.
+  decision); speed work that needs knowledge of one theme or plugin covers
+  only Kadence and the plugins SEO Pro Stack recommends (details, and the
+  Used CSS exception, in `docs/speed-scope.md`).
 - Link Whisper retirement does not need historic click data or replacement
   analytics (owner's choice): leave the toolkit's click counting off for the
   rollout; separate analytics plugins and apps can cover those needs.
@@ -124,15 +106,8 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   referral query, to `.wporg-links` with its plain address, so the
   WordPress.org build has none. Link straight to the service, never through
   a redirect or short link.
-- Support email stays between the site and its own mailbox (owner's
-  decision, for data privacy, #1066): helpdesks (Fluent Support or another)
-  read it over IMAP, through Fluent Support email by IMAP or the plugin that
-  manages the mailbox, and reply through the site's mail plugin (FluentSMTP).
-  Never route it through a vendor's hosted relay or piping service, such as
-  Fluent's email piping, which passes every customer email through the
-  vendor. A GPL feature that works locally must not wait on a licence check
-  or call home: call the plugin's own local code, as
-  `SEOProStack_Helpdesk_Imap_Reader` does with Fluent's `ByMailHandler`.
+- Support email stays between the site and its own mailbox, never a
+  vendor's relay (owner's decision, #1066).
 
 ## Task docs
 
@@ -147,6 +122,10 @@ Read the doc for your task first (`STANDARDS.md` → Agent docs):
   `docs/plugin-directory.md`.
 - Adding a feature that replaces another plugin, or is modelled on one:
   `docs/replaced-plugins.md`.
+- Adding or changing a Speed or Server feature, or anything that needs
+  knowledge of one theme or plugin: `docs/speed-scope.md`.
+- Changing Fluent Support email by IMAP, or anything touching a site's
+  support mailbox: `docs/support-email.md`.
 - Adding, renaming or removing a `seoprostack_*` filter or action:
   `docs/HOOKS.md` (list and deprecation rule; `scripts/lint.sh hooks`).
 - Testing, or timing pages on a live site: `TESTING.md`.
