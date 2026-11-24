@@ -1200,10 +1200,12 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
      */
     private static function log($url, $error) {
         if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
-            // One line per failure: a service's message cannot start a log line of its own.
-            $error = (string) preg_replace('/[\r\n]+/', ' ', $error);
+            // One line per failure: neither the address nor a service's
+            // message can start a log line of its own.
+            $line = sprintf('[SEO Pro Stack] Screenshot of %s failed: %s', esc_url_raw($url), $error);
+            $line = str_replace(array("\r", "\n"), ' ', $line);
             // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-            error_log(sprintf('[SEO Pro Stack] Screenshot of %s failed: %s', esc_url_raw($url), $error));
+            error_log($line); // NOSONAR: line breaks are replaced above.
         }
     }
 

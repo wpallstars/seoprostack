@@ -43,7 +43,7 @@ def plain_strings(blocks):
             continue
         msgid, msgstr = field(lines, 'msgid'), field(lines, 'msgstr')
         marked = '# machine translation' in lines
-        fuzzy = any('fuzzy' in re.split(r'\s*,\s*', line[2:].strip())
+        fuzzy = any('fuzzy' in [flag.strip() for flag in line[2:].split(',')]
                     for line in lines if line.startswith('#,'))
         # Unreviewed (marked or fuzzy) wording must not be copied as reviewed.
         if msgid and msgstr and not marked and not fuzzy:

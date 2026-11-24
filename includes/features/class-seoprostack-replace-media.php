@@ -259,7 +259,7 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
                 <input type="hidden" name="action" value="<?php echo esc_attr(self::ACTION); ?>">
                 <input type="hidden" name="attachment" value="<?php echo esc_attr((string) $id); ?>">
                 <?php wp_nonce_field(self::ACTION . '_' . $id); ?>
-                <table class="form-table" role="presentation">
+                <table class="form-table">
                     <tr>
                         <th scope="row"><label for="<?php echo esc_attr(self::FIELD); ?>"><?php esc_html_e('New file', 'seoprostack'); ?></label></th>
                         <td>

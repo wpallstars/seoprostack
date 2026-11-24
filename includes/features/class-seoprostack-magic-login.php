@@ -33,6 +33,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-login-markup.php';
+
 class SEOProStack_Magic_Login extends SEOProStack_Feature {
 
     const KEY = 'magic_login';
@@ -331,14 +333,10 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
             </p>
             <?php wp_nonce_field(self::ACTION . '_request', '_seoprostack_nonce'); ?>
             <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect); ?>" />
-            <p class="submit">
-                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Email me a login link', 'seoprostack'); ?>" />
-            </p>
+            <?php SEOProStack_Login_Markup::submit_button(__('Email me a login link', 'seoprostack')); ?>
         </form>
-        <p id="nav">
-            <a href="<?php echo esc_url(wp_login_url($redirect)); ?>"><?php esc_html_e('Log in with a password', 'seoprostack'); ?></a>
-        </p>
         <?php
+        SEOProStack_Login_Markup::nav_links(array(__('Log in with a password', 'seoprostack') => wp_login_url($redirect)));
         login_footer('user_login');
     }
 
@@ -370,9 +368,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
 
         $message = '<p class="message">' . esc_html__('If that account can use login links, we have emailed one to its address. Check your inbox and spam folder.', 'seoprostack') . '</p>';
         login_header(__('Check your email', 'seoprostack'), $message);
-        ?>
-        <p id="nav"><a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Back to log in', 'seoprostack'); ?></a></p>
-        <?php
+        SEOProStack_Login_Markup::nav_links(array(__('Back to log in', 'seoprostack') => wp_login_url()));
         login_footer();
     }
 
@@ -461,9 +457,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
             <input type="hidden" name="uid" value="<?php echo esc_attr((string) $user->ID); ?>" />
             <input type="hidden" name="token" value="<?php echo esc_attr($token); ?>" />
             <?php wp_nonce_field(self::ACTION . '_confirm', '_seoprostack_nonce'); ?>
-            <p class="submit">
-                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log in', 'seoprostack'); ?>" />
-            </p>
+            <?php SEOProStack_Login_Markup::submit_button(__('Log in', 'seoprostack')); ?>
         </form>
         <?php
         login_footer();
@@ -527,13 +521,10 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
      */
     private static function render_link_error(WP_Error $error) {
         login_header(__('Login link', 'seoprostack'), '', $error);
-        ?>
-        <p id="nav">
-            <a href="<?php echo esc_url(self::url()); ?>"><?php esc_html_e('Email me a new link', 'seoprostack'); ?></a>
-            <span aria-hidden="true">|</span>
-            <a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Log in with a password', 'seoprostack'); ?></a>
-        </p>
-        <?php
+        SEOProStack_Login_Markup::nav_links(array(
+            __('Email me a new link', 'seoprostack')    => self::url(),
+            __('Log in with a password', 'seoprostack') => wp_login_url(),
+        ));
         login_footer();
     }
 

@@ -841,7 +841,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         $advice = $new ? '' : self::preset_advice($post->ID, $link['url']);
         wp_nonce_field('seoprostack_short_link_' . $post->ID, '_seoprostack_short_link');
         ?>
-        <table class="form-table" role="presentation">
+        <table class="form-table">
             <tr>
                 <th scope="row"><label for="sps-link-slug"><?php esc_html_e('Short address', 'seoprostack'); ?></label></th>
                 <td>
