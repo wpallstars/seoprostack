@@ -490,7 +490,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     public static function catalog() {
         static $catalog = null;
         if (null === $catalog) {
-            $data = require SEOPROSTACK_DIR . 'admin/data/admin-menu.php';
+            $data = require SEOPROSTACK_DIR . 'admin/data/admin-menu.php'; // NOSONAR: the file returns its data; require_once would return true a second time.
             $data['plugins'][dirname(plugin_basename(SEOPROSTACK_FILE))] = 'super-admin';
             /**
              * Filter where menu entries go.

@@ -78,7 +78,10 @@
     // Pictures ticked Keep colours in dark mode: upload-relative stems.
     var keep = Array.isArray(config.keep) ? config.keep : [];
     // Path of the uploads folder (/wp-content/uploads, or a custom one).
-    var uploads = 'string' === typeof config.uploads ? config.uploads.replace(/\/+$/, '') : '';
+    var uploads = 'string' === typeof config.uploads ? config.uploads : '';
+    while ('/' === uploads.charAt(uploads.length - 1)) {
+        uploads = uploads.slice(0, -1);
+    }
     var originals = new WeakMap(); // el -> { part: opacity before changes }.
     var tints = new Map(); // Background image address -> Promise of its tint.
     var pending = []; // Elements waiting for the watermark look.

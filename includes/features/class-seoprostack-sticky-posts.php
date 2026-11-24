@@ -668,10 +668,10 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             return;
         }
         printf(
-            '<button type="button" class="button-link seoprostack-sticky" data-post="%1$d" data-nonce="%2$s" aria-pressed="%3$s" aria-label="%4$s" title="%5$s"><span class="dashicons dashicons-admin-post" aria-hidden="true"></span></button>',
+            '<button type="button" class="button-link seoprostack-sticky" data-post="%1$d" data-nonce="%2$s" %3$s aria-label="%4$s" title="%5$s"><span class="dashicons dashicons-admin-post" aria-hidden="true"></span></button>',
             (int) $post_id,
             esc_attr(wp_create_nonce(self::AJAX . '_' . $post_id)),
-            $sticky ? 'true' : 'false',
+            $sticky ? 'aria-pressed="true"' : 'aria-pressed="false"',
             /* translators: %s: post title */
             esc_attr(sprintf(__('Pin “%s” to the top', 'seoprostack'), $title)),
             esc_attr__('Pin to the top', 'seoprostack')

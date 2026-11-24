@@ -101,7 +101,7 @@ class SEOProStack_Theme_Manager {
         }
 
         ob_start();
-        include SEOPROSTACK_DIR . 'admin/partials/theme-panel.php';
+        include SEOPROSTACK_DIR . 'admin/partials/theme-panel.php'; // NOSONAR: a template, printed each time it is included.
         wp_send_json_success(array('html' => ob_get_clean()));
     }
 }
