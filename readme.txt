@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.229
+Stable tag: 1.3.230
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -149,8 +149,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.229 =
-* Added: add-on setup cards; en_US translation.
-* Fixed: failed WebP/AVIF copies leave no empty temp files; AVIF falls back to GD.
+= 1.3.230 =
+* Added: Memory ceilings; wp seoprostack starters refresh.
+* Fixed: SonarCloud findings; Read Me covers every feature.
 
 Older: `changelog.txt`.
