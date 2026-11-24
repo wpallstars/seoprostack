@@ -2862,7 +2862,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
-- Developers: core files synced with WP Plugin Starter commit 55531c6 (#1749): `scripts/deploy-sites.sh` gains `--zip FILE`, to install a built zip of a plugin with no GitHub release; Scorecard and CodeQL actions updated; `DEVELOPMENT.md` and `RELEASING.md`. `AGENTS.md` is under its 150-line limit again, with the Speed scope and support email rules in `docs/speed-scope.md` and `docs/support-email.md`.
+- Developers: core files synced with WP Plugin Starter commit 55531c6 (#1749, #1748): `scripts/deploy-sites.sh` gains `--zip FILE`, to install a built zip of a plugin with no GitHub release; Scorecard and CodeQL actions updated; `DEVELOPMENT.md` and `RELEASING.md`. `AGENTS.md` is under its 150-line limit again, with the Speed scope and support email rules in `docs/speed-scope.md` and `docs/support-email.md`.
 
 ### 1.3.230
 
