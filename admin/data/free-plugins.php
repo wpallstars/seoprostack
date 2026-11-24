@@ -227,7 +227,7 @@ function seoprostack_get_own_plugins() {
     $plugins = array(
         'seoprostack'         => array(
             'name'        => 'SEO Pro Stack',
-            'description' => __('One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.', 'seoprostack'),
+            'description' => __('Replaces 66+ bloated plugins with one full-stack to cover every organisation and speed optimisation you could need for 100% PageSpeed scores across the board.', 'seoprostack'),
             'homepage'    => 'https://www.wpallstars.com/wordpress/plugins/seoprostack/',
             'url'         => 'https://github.com/wpallstars/seoprostack',
             'icon'        => $images . 'icon.svg',

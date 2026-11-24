@@ -18,9 +18,18 @@
 [![Languages by lines of code](docs/metrics/badges/languages.svg)](docs/metrics/repo-metrics.md)
 <!-- aidevops:badges:end -->
 
-One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
+Replaces 66+ bloated plugins with one full-stack to cover every organisation and speed optimisation you could need for 100% PageSpeed scores across the board.
 
-SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no paid version, nothing locked.
+SEO Pro Stack does the jobs that usually take dozens of single-purpose plugins:
+
+- **Admin:** a calmer, faster admin with Light, Dark and System modes on every screen, an organised menu, quiet notices and prompts, and access by role.
+- **Security:** HTTPS and security headers, unused remote access turned off, password length, magic login links, integrity checks and known vulnerabilities.
+- **Speed:** pages loaded before the click, images, fonts, jQuery and other plugins' scripts that wait until they are needed, the CSS each page uses first, lighter WooCommerce and Tutor LMS pages, and page caches and Cloudflare kept in step.
+- **Server:** plugins loaded only where needed, database clean-up and keys, PHP memory ceilings, fewer background requests and a check of what the hosting account needs.
+- **Content, media and links:** writing, publishing and term tools, blocks, social sharing, WebP and AVIF images, cloud storage, short links, redirects, 410s and internal linking, with Kadence's light and dark palettes carried into the plugins we recommend.
+- **Set-up and agencies:** tested presets and starter data for the plugins we recommend, site templates, and client orders and dashboards.
+
+Features that are safe on any site start switched on; every other one is a switch you turn on when you need it. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no paid version, nothing locked.
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
@@ -84,26 +93,17 @@ Drafts only: nothing leaves the site until an administrator sends it in Tools �
 
 ## Features
 
-**Site templates:** agency-built manifests can initialise template sites through
-`wp seoprostack site-templates apply <slug>`. After plugin updates, each site
-updates only unedited template parts; edited or removed parts stay untouched.
-The Content setting **Update unedited template parts automatically** is on by
-default, but does nothing without a template record. Cloned client sites inherit
-the record. WP-CLI offers `list`, `status`, `diff`, `apply` and `undo`, with
-`--url` and sequential `--all-sites`. Undo refuses later edits and retains newly
-created posts as drafts rather than deleting content. No manifests ship yet;
-the format is in `site-templates/README.md`.
-
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
 - **Security:** Email protection, Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
-- **Speed:** Recommended speed settings, Load pages before the click, Keep pages cached (nothing happens without LiteSpeed Cache or WP-Optimize's page cache), Redirect to the main address before WordPress loads (only redirects the site already makes; Apache and LiteSpeed), Load the CSS each page uses first (off by default; for Kadence and the recommended plugins), Image loading, Load jQuery at the end of the page, Keep text still while web fonts load, Remove WordPress extras, Lighter WooCommerce pages, Lighter Tutor LMS pages, Faster editor with Kadence Blocks, Faster Kadence icon picker, Leave out Rank Math’s stats bar, Load Fluent Forms’ Turnstile when a form comes near, Load Fluent Forms’ scripts when a form comes near, Load Simple Cloudflare Turnstile when a form comes near, Load AI Engine’s chatbot on first use, Load TranslatePress’s scripts without holding up the page (the last ten do nothing without those plugins), Measure Kadence’s scrollbar without holding up the page (Kadence theme only) and Load Google Maps embeds when they come near.
+- **Speed:** Recommended speed settings, Load pages before the click, Keep pages cached (nothing happens without LiteSpeed Cache or WP-Optimize's page cache), Redirect to the main address before WordPress loads (only redirects the site already makes; Apache and LiteSpeed), Image loading, Load jQuery at the end of the page, Keep text still while web fonts load, Remove WordPress extras, Lighter WooCommerce pages, Lighter Tutor LMS pages, Faster editor with Kadence Blocks, Faster Kadence icon picker, Leave out Rank Math’s stats bar, Load Fluent Forms’ Turnstile when a form comes near, Load Fluent Forms’ scripts when a form comes near, Load Simple Cloudflare Turnstile when a form comes near, Load AI Engine’s chatbot on first use, Load TranslatePress’s scripts without holding up the page (the last ten do nothing without those plugins), Measure Kadence’s scrollbar without holding up the page (Kadence theme only) and Load Google Maps embeds when they come near.
+- **Content:** Fluent Forms by key with Policy links in forms open a new tab, Fluent Forms colours, WP Grid Builder colours, FluentCart styled by Kadence, Palette colours for Kadence’s dark mode switch, Kadence colour check, My Account without WooCommerce and Update unedited template parts automatically (each does nothing without the plugins or theme it names, or without a [site template](#site-templates-content)).
 - **Links:** Robots.txt rules, Modal links and Links skip redirects.
 - **Server:** Fewer Heartbeat requests, Short not-found answer for missing files, Clean the database weekly, Load large settings only where they are used and Faster database keys (single sites), Hosting needs and Memory ceilings.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first; Keep recommended settings, off by default, applies them on its own) and Plugins menu in the admin bar.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Editors use the business plugins, Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen, Avatars without Gravatar and Kadence author box fields (nothing changes without the Kadence theme).
 
-Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Fluent Support email by IMAP (a mailbox and its password), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID), File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address) and Known vulnerabilities from Wordfence Intelligence (an API key, and a shared folder for sites sharing one). Watermark pictures (Media) changes uploaded pictures, so it is off too.
+Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Delay automatic updates (how long to hold them), Load the CSS each page uses first (pages with menus, tabs and forms are worth a check after turning it on), Clear Cloudflare’s copies of pages (a Cloudflare API token), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Fluent Support email by IMAP (a mailbox and its password), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID), File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address) and Known vulnerabilities from Wordfence Intelligence (an API key, and a shared folder for sites sharing one). Watermark pictures (Media) changes uploaded pictures, so it is off too.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -119,7 +119,7 @@ SEO Pro Stack replaces **66 plugins**, some of them in part, with free and Pro e
 | Magic login links | Admin | WP Magic Link Login and Magic Login, in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
-| Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
+| Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages | Admin, Content, Speed, Server | Disable Bloat (PRO), in part |
 | Notification emails | Admin | Manage Notification E-mails |
 | Hide admin notices | Admin | Hide Admin Notices |
 | Avatars without Gravatar | Admin | Avatar Privacy |
@@ -153,7 +153,7 @@ SEO Pro Stack replaces **66 plugins**, some of them in part, with free and Pro e
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
 | Image loading | Speed | Flying Images, in part |
-| Clean the database weekly | Speed | WP-Optimize and WP-Optimize Premium, in part, where LiteSpeed Cache runs on a LiteSpeed server |
+| Clean the database weekly | Server | WP-Optimize and WP-Optimize Premium, in part, where LiteSpeed Cache runs on a LiteSpeed server |
 | Calls to other sites | Server | HTTP Requests Manager |
 | Faster database keys | Server | Index WP MySQL For Speed, in part: its query monitor is not replaced |
 | 410 Gone for removed pages | Links | Ultimate 410 |
@@ -629,6 +629,19 @@ No scripts or saved WP Grid Builder settings change; turning this off restores
 its colours. No styles are added without active WP Grid Builder and Kadence,
 or on pages where WP Grid Builder does not print styles.
 
+### Fluent Forms colours (Content)
+
+**On by default.** On Kadence (including child themes), Fluent Forms' labels,
+help text, inputs, placeholders and file-upload areas follow the theme's
+palette, so forms change with Kadence Pro's light and dark mode switch: labels
+and input text palette 4, help text palette 5, fields palette 9 with palette 7
+borders, and palette 1 on focus. Placeholders are lighter than typed text, so
+an empty field does not look filled in, and still read at 4.5:1 or more on
+Kadence's palettes. The form's preview in the block editor gets the same
+colours. Submit buttons and error states keep Fluent Forms' colours, and its
+saved styles are not changed. Only a small stylesheet is added, alongside
+Fluent Forms' own; nothing changes without Fluent Forms and Kadence.
+
 ### FluentCart styled by Kadence (Content)
 
 **On by default.** With FluentCart and Kadence (including child themes),
@@ -877,6 +890,21 @@ Some plugins add panels to the post editor’s sidebar that only the people who 
 WordPress keeps every revision of every post. This keeps the newest few (10 by default, 0 to 100) with core’s `wp_revisions_to_keep` filter, or fewer where another filter or `WP_POST_REVISIONS` asks for fewer. Core removes older ones the next time a post is saved; with 0, it stops saving revisions and leaves the saved ones alone. Autosaves still work. Nothing is stored or deleted by SEO Pro Stack.
 
 - Replaces Disable Bloat PRO’s post revisions switch, imported once as 0 while it is active.
+
+### Site templates (Content)
+
+Agency-built manifests set up a site from a template with
+`wp seoprostack site-templates apply <slug>`. **Update unedited template parts
+automatically** (on by default; nothing happens on a site without a template
+record) then updates, after each plugin update, only the template parts nobody
+has edited; edited or removed parts stay as they are. Client sites cloned from
+a template site keep its record.
+
+- WP-CLI: `list`, `status`, `diff`, `apply` and `undo`, with `--url` and, one
+  site after another, `--all-sites`.
+- Undo refuses parts edited since, and keeps posts it created as drafts rather
+  than deleting content.
+- No manifests ship yet; the format is in `site-templates/README.md`.
 
 ### Recommended speed settings (Speed)
 
@@ -2835,6 +2863,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: **Memory ceilings** (Server, on by default): every page, admin, cron and WP-CLI process gets a PHP memory limit sized from what it uses, where PHP allows the change, so one that grows stops at PHP's limit instead of filling a shared hosting account's memory. WP-CLI commands get at least 2 GB (4 GB for heavy ones), never more than half the account's memory; `SEOPROSTACK_CLI_MEMORY_LIMIT=6G wp …` asks for more once. Hosting needs gains **Account memory**, WP-CLI and cron peaks, a limit row per kind of process and a warning when one could use more than half the account's memory or has none (#1740).
+- Changed (**Read Me**, #1742): the description now says what SEO Pro Stack is for: it replaces 66+ bloated plugins with one full-stack for 100% PageSpeed scores, in the plugin's header, its Free Plugins card and the bundled translations. The intro lists what each area offers; Features lists Content's on-by-default features, the features left off until you choose (now with Load the CSS each page uses first, Delay automatic updates and Clear Cloudflare’s copies of pages), and new [Fluent Forms colours](#fluent-forms-colours-content) and [Site templates](#site-templates-content) sections. `readme.txt` covers the same features and is back under WordPress.org's 10 KB.
 - Developers: core files synced with WP Plugin Starter commit f3c249d (GitHub issue #1738): the licensed-updates library (update_plugins and update_themes restored with no expiry under an external object cache; review fixes), scripts/shop-release.sh and scripts/lib/shop-release-remote.php, scripts/lib/deploy-remote-cron.sh and deploy-remote-installs.sh, scripts/preflight-release.sh, DEVELOPMENT.md and RELEASING.md.
 
 ### 1.3.229

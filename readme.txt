@@ -9,7 +9,7 @@ Stable tag: 1.3.229
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with a switch.
+Replaces 66+ bloated plugins with one full-stack covering every organisation and speed optimisation for 100% PageSpeed scores across the board.
 
 == Description ==
 
@@ -20,22 +20,20 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Light, Dark or System**: per-person admin colours.
 * **Developer admins**: limit plugin, theme, admin and address changes.
 * **Organise the admin menu** with role previews.
-* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
-* **Quiet Freemius prompts**, **Quiet Appsero prompts** and **Quiet Imagify suggestions**.
-* **Dev tab in the block editor**.
+* **Tidy the dashboard**, **widgets**, **admin notices**, **More menu** and **Dev tab in the block editor**.
+* Quiet **Freemius**, **Appsero** and **Imagify** prompts.
 * **Tidy admin screens**, **WooCommerce admin**, **Login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeats** and **Limit revisions**.
 * **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
 = Safer logins and access =
 
 * **Magic login links**: one-use, scanner-safe email links.
-* **Admin bar and dashboard access** by role; admins keep access.
-* **Editors use the business plugins**.
+* **Admin bar and dashboard access** by role. **Editors use the business plugins**.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 for new passwords (on).
 * **Email protection** (on): hides addresses from scrapers; needs JavaScript.
 * **Known vulnerabilities**: WPVulnerability or opt-in Wordfence feed.
-* **File and account integrity checks** and **HTTPS check** in Site Health.
+* **File and account integrity checks** and **HTTPS check** in Site Health; **Delay automatic updates** (off).
 * **Maintenance mode**: 503 page, revocable 24-hour bypass links.
 
 = Writing and publishing =
@@ -44,15 +42,14 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 * **Duplicate posts**, **Staged new versions** and **Shareable preview links**.
 * **Pinned posts**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
 * **Tag clouds and related posts** (TaxoPress/Tag Groups compatible).
-* **Custom fields to content**: ACF/SCF text and terms, including excerpts.
+* **Custom fields to content**: ACF/SCF text, terms and excerpts.
 * **Restrict content** by membership/role. **Menu item visibility** by login/role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Brand assets page**: Kadence's logos, colours and fonts, with downloads.
 * **Named lists and Saved panel**.
-* **Spectra block replacements**, **TranslatePress colours**, a **flag language switcher** and **Kadence query filters**.
-* **WP Grid Builder** and **FluentCart** in Kadence's styles; **palette colours for its switch**.
-* **Kadence colour check**: fixes Customizer contrast.
-* **Fluent Forms by key**: form, panel and modal blocks.
+* **Spectra block replacements**, **Kadence query filters**; TranslatePress **colours**, **flag switcher** and **hreflang country**.
+* **WP Grid Builder**, **FluentCart**, **Fluent Forms** and **Readabler** in Kadence's colours; **palette colours for its switch**; **Kadence colour check**.
+* **Fluent Forms by key**: form, panel and modal blocks. **My Account without WooCommerce**.
 
 = Media =
 
@@ -67,29 +64,26 @@ Safe features start on in **Settings → SEO Pro Stack**. Replacements import on
 = Links and speed =
 
 * **Rank Math defaults**: keywords, pillars, opt-in identity sync.
-* **Short links** with click counts and **410 Gone** for removed pages.
-* **Short addresses for custom post types**.
+* **Short links** with click counts, **410 Gone** and **Short addresses for custom post types**.
 * **External link icons**: script-free. **Modal links** open drawers and modals.
-* **Website status link** (off): links the uptime status page.
-* **Links skip redirects** to Rank Math's on-site targets.
+* **Links skip redirects** to Rank Math's on-site targets. **Website status link** (off).
 * **Robots.txt rules** with any SEO plugin: no search spam; staging sites hidden.
 * **Internal linking tools** (off): suggestions and undo.
-* **Speed settings**, **Preload pages**, **Keep pages cached**, **Clear Cloudflare’s copies of pages**, **Redirect to the main address**, **Delay scripts**, **Delayed Google Analytics**; lighter WooCommerce, Tutor LMS and Kadence Blocks editing; no Rank Math stats bar; AI Engine's chatbot on first use.
-* **Load the CSS each page uses first** (off): Kadence and recommended plugins' pages show sooner, worked out locally.
+* **Speed settings**, **Preload pages**, **Keep pages cached**, **Cloudflare purge**, **Redirect to the main address**, **Delay scripts**, **Delayed Google Analytics**; images, maps, forms and chatbots wait; steady web fonts; lighter WooCommerce, Tutor LMS and Kadence Blocks; no Rank Math stats bar.
+* **Load the CSS each page uses first** (off): Kadence and recommended plugins, worked out locally.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
 * **Fluent Support email by IMAP** (off): email tickets, no hosted relay.
 * **Clean the database weekly**: spam, bin, expired data and tasks.
-* **Count terms and comments in the background**, **Remember admin counts** and **Faster page counts on long lists** (off).
+* **Background term counts**, **Remember admin counts** and **Faster page counts** (off).
 * **Load large settings only where they are used** and **Faster database keys** (single sites).
-* **Database key cleanup** with restore SQL. **Add database keys** (off).
-* **Database character set**: opt-in utf8mb4 for emoji.
+* **Database key cleanup** with restore SQL; **Add database keys** and utf8mb4 **Database character set** (off).
 * **Load plugins only where needed**.
 
 = Plugins and set-up =
 
-* **Plugin presets** and **starter data**: opt-in, with undo; switched-on add-ons add setup cards. **Keep recommended settings** (off) keeps them, and later changes, applied.
+* **Plugin presets** and **starter data**: opt-in, with undo; add-ons add setup cards. **Keep recommended settings** (off) keeps them applied.
 * **Site templates**: WP-CLI apply, compare and undo.
-* **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** and **Memory ceilings** (a PHP memory limit for every page, admin, cron and WP-CLI process, where PHP allows the change).
+* **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** and **Memory ceilings** for every PHP process.
 * **Fixes for other plugins**: known bug workarounds.
 * **Agency** orders and client dashboard; **Recommended** themes, plugins, hosting and tools.
 

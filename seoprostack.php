@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SEO Pro Stack
  * Plugin URI:        https://github.com/wpallstars/seoprostack
- * Description:       One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
+ * Description:       Replaces 66+ bloated plugins with one full-stack to cover every organisation and speed optimisation you could need for 100% PageSpeed scores across the board.
  * Version:           1.3.229
  * Requires at least: 6.2
  * Requires PHP:      7.4

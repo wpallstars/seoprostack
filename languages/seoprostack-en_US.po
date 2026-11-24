@@ -32,8 +32,8 @@ msgstr ""
 
 #. Description of the plugin
 #: seoprostack.php admin/data/free-plugins.php:230
-msgid "One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on."
-msgstr ""
+msgid "Replaces 66+ bloated plugins with one full-stack to cover every organisation and speed optimisation you could need for 100% PageSpeed scores across the board."
+msgstr "Replaces 66+ bloated plugins with one full-stack to cover every organization and speed optimization you could need for 100% PageSpeed scores across the board."
 
 #. Author of the plugin
 #: seoprostack.php
