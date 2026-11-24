@@ -2860,6 +2860,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced with WP Plugin Starter commit 55531c6 (#1749): `scripts/deploy-sites.sh` gains `--zip FILE`, to install a built zip of a plugin with no GitHub release; Scorecard and CodeQL actions updated; `DEVELOPMENT.md` and `RELEASING.md`. `AGENTS.md` is under its 150-line limit again, with the Speed scope and support email rules in `docs/speed-scope.md` and `docs/support-email.md`.
+
 ### 1.3.230
 
 - New: **Memory ceilings** (Server, on by default): every page, admin, cron and WP-CLI process gets a PHP memory limit sized from what it uses, where PHP allows the change, so one that grows stops at PHP's limit instead of filling a shared hosting account's memory. WP-CLI commands get at least 2 GB (4 GB for heavy ones), never more than half the account's memory; `SEOPROSTACK_CLI_MEMORY_LIMIT=6G wp â€¦` asks for more once. Hosting needs gains **Account memory**, WP-CLI and cron peaks, a limit row per kind of process and a warning when one could use more than half the account's memory or has none (#1740).
