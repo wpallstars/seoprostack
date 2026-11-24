@@ -102,7 +102,7 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
     public static function rules() {
         static $rules = null;
         if (null === $rules) {
-            $data = include SEOPROSTACK_DIR . 'admin/data/dashboard.php';
+            $data = include SEOPROSTACK_DIR . 'admin/data/dashboard.php'; // NOSONAR: the file returns its data; include_once would return true a second time.
             /**
              * Filter how Tidy the dashboard lays out widgets.
              *

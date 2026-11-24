@@ -44,7 +44,7 @@ class SEOProStack_Free_Plugins_Manager {
         ?>
         <div class="sps-plugins">
             <div class="wp-filter sps-filter">
-                <ul class="filter-links" role="list">
+                <ul class="filter-links">
                     <?php foreach ($links as $slug => $label) : ?>
                         <li>
                             <a href="<?php echo esc_url(SEOProStack_Admin_Manager::tab_url('recommended', array('category' => $slug))); ?>"

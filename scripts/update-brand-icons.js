@@ -91,7 +91,7 @@ async function fetchPackage(name, dir) {
 	fs.writeFileSync(tgz, Buffer.from(await body.arrayBuffer()));
 	const into = path.join(dir, slugify(name));
 	fs.mkdirSync(into);
-	execFileSync('tar', ['-xzf', tgz, '-C', into]);
+	execFileSync('tar', ['-xzf', tgz, '-C', into]); // NOSONAR: a maintainer's script, run by hand with their own tar.
 	return { version: meta.version, dir: path.join(into, 'package') };
 }
 

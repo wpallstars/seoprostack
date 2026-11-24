@@ -57,6 +57,8 @@ const FREQ = [12.70, 9.06, 8.17, 7.51, 6.97, 6.75, 6.33, 6.09, 5.99, 4.25, 4.03,
 const MEASURED = LOWER + CAPS + ' ';
 /* Google Fonts requests at a time. */
 const PARALLEL = 12;
+/* Sort by UTF-16 code units, as sort() does by default, so files keep their order. */
+const byCodeUnits = (a, b) => Number(a > b) - Number(a < b);
 
 async function fetchPackage(name, dir) {
 	const res = await fetch('https://registry.npmjs.org/' + name.replaceAll('/', '%2F') + '/latest');
@@ -70,7 +72,7 @@ async function fetchPackage(name, dir) {
 		throw new Error(name + ': download said ' + body.status);
 	}
 	fs.writeFileSync(tgz, Buffer.from(await body.arrayBuffer()));
-	execFileSync('tar', ['-xzf', tgz, '-C', dir]);
+	execFileSync('tar', ['-xzf', tgz, '-C', dir]); // NOSONAR: a maintainer's script, run by hand with their own tar.
 	return { version: meta.version, dir: path.join(dir, 'package') };
 }
 
@@ -165,7 +167,7 @@ function widthsPerEm(b) {
 		return null;
 	}
 	const advance = (ch) => {
-		const g = glyph(ch.charCodeAt(0));
+		const g = glyph(ch.codePointAt(0));
 		return g ? b.readUInt16BE(t.hmtx + Math.min(g, metrics - 1) * 4) / upm : 0;
 	};
 	const average = (letters) => {
@@ -267,7 +269,7 @@ async function main() {
 		const { entireMetricsCollection: all } = require(path.join(pkg.dir, 'dist', 'entireMetricsCollection.cjs'));
 		const fonts = {};
 		const todo = [];
-		Object.keys(all).sort().forEach((key) => {
+		Object.keys(all).sort(byCodeUnits).forEach((key) => {
 			const m = all[key];
 			const cat = CATEGORIES[m.category];
 			const name = String(m.familyName || '').trim();
@@ -300,7 +302,7 @@ async function main() {
 		}
 		// In name order, as they finish in any order.
 		const sorted = {};
-		Object.keys(fonts).sort().forEach((key) => {
+		Object.keys(fonts).sort(byCodeUnits).forEach((key) => {
 			sorted[key] = fonts[key];
 		});
 		fs.mkdirSync(OUT, { recursive: true });
@@ -319,7 +321,7 @@ async function main() {
 			'',
 		].join('\n'));
 		const keys = Object.keys(sorted);
-		console.log(PACKAGE + ' ' + pkg.version + ': ' + keys.length + ' families, ' + keys.filter((k) => sorted[k].length > 8).length + ' with bold; left out (not on Google Fonts at 400): ' + left.sort().join(', '));
+		console.log(PACKAGE + ' ' + pkg.version + ': ' + keys.length + ' families, ' + keys.filter((k) => sorted[k].length > 8).length + ' with bold; left out (not on Google Fonts at 400): ' + left.sort(byCodeUnits).join(', '));
 	} finally {
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}
