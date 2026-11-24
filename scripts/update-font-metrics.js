@@ -321,7 +321,8 @@ async function main() {
 			'',
 		].join('\n'));
 		const keys = Object.keys(sorted);
-		console.log(PACKAGE + ' ' + pkg.version + ': ' + keys.length + ' families, ' + keys.filter((k) => sorted[k].length > 8).length + ' with bold; left out (not on Google Fonts at 400): ' + left.sort(byCodeUnits).join(', '));
+		left.sort(byCodeUnits);
+		console.log(PACKAGE + ' ' + pkg.version + ': ' + keys.length + ' families, ' + keys.filter((k) => sorted[k].length > 8).length + ' with bold; left out (not on Google Fonts at 400): ' + left.join(', '));
 	} finally {
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}

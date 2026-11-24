@@ -623,7 +623,7 @@ class SEOProStack_Host_Redirect extends SEOProStack_Feature {
      * @return string
      */
     private static function hash(array $hosts) {
-        return md5(implode("\n", self::rules($hosts))); // NOSONAR: a fingerprint of the rules, not security.
+        return hash('sha256', implode("\n", self::rules($hosts)));
     }
 
     /**
