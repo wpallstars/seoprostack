@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.229-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.230-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -33,7 +33,7 @@ Features that are safe on any site start switched on; every other one is a switc
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.229
+Version: 1.3.230
 
 <!-- github-only:start -->
 ## Screenshots
@@ -2860,11 +2860,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.230
 
 - New: **Memory ceilings** (Server, on by default): every page, admin, cron and WP-CLI process gets a PHP memory limit sized from what it uses, where PHP allows the change, so one that grows stops at PHP's limit instead of filling a shared hosting account's memory. WP-CLI commands get at least 2 GB (4 GB for heavy ones), never more than half the account's memory; `SEOPROSTACK_CLI_MEMORY_LIMIT=6G wp …` asks for more once. Hosting needs gains **Account memory**, WP-CLI and cron peaks, a limit row per kind of process and a warning when one could use more than half the account's memory or has none (#1740).
 - Changed (**Read Me**, #1742): the description now says what SEO Pro Stack is for: it replaces 66+ bloated plugins with one full-stack for 100% PageSpeed scores, in the plugin's header, its Free Plugins card and the bundled translations. The intro lists what each area offers; Features lists Content's on-by-default features, the features left off until you choose (now with Load the CSS each page uses first, Delay automatic updates and Clear Cloudflare’s copies of pages), and new [Fluent Forms colours](#fluent-forms-colours-content) and [Site templates](#site-templates-content) sections. `readme.txt` covers the same features and is back under WordPress.org's 10 KB.
 - Developers: core files synced with WP Plugin Starter commit f3c249d (GitHub issue #1738): the licensed-updates library (update_plugins and update_themes restored with no expiry under an external object cache; review fixes), scripts/shop-release.sh and scripts/lib/shop-release-remote.php, scripts/lib/deploy-remote-cron.sh and deploy-remote-installs.sh, scripts/preflight-release.sh, DEVELOPMENT.md and RELEASING.md.
+- New (**WP-CLI**, #1736): `wp seoprostack starters refresh <plugin> [--dry-run]` updates the wording of Fluent Boards tasks added earlier from starter data, after a release rewords them, when nobody has touched the task. Edited, moved, assigned, labelled, commented, closed or archived tasks are kept.
+- Fixed (**code quality**, #1743): the SonarCloud quality gate passes again. Magic login links' screens repeat no id, settings tables with headers lose `role="presentation"`, the pin button's state is written whole, the screenshot failure log stays on one line, and Redirect other domains fingerprints its rules with SHA-256 (each site writes its unchanged rules once after the update).
 
 ### 1.3.229
 
