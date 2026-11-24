@@ -35,8 +35,8 @@ msgstr "SEO Pro Stack"
 # machine translation
 #. Description of the plugin
 #: seoprostack.php admin/data/free-plugins.php:230
-msgid "One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on."
-msgstr "Jedna darmowa wtyczka dla szybszego i bardziej uporządkowanego WordPress. Wykonuje zadania ponad 40 wtyczek jednofunkcyjnych, z których każda to włączony przełącznik."
+msgid "Replaces 66+ bloated plugins with one full-stack to cover every organisation and speed optimisation you could need for 100% PageSpeed scores across the board."
+msgstr "Zastępuje ponad 66 przeładowanych wtyczek jednym kompletnym pakietem, który obejmuje całą organizację i optymalizację szybkości potrzebną do uzyskania 100% w PageSpeed we wszystkich kategoriach."
 
 # machine translation
 #. Author of the plugin
