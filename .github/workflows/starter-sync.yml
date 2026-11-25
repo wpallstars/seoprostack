@@ -86,6 +86,22 @@ jobs:
           # no label (repositories that do not use aidevops).
           DISPATCH_LABEL: ${{ vars.STARTER_SYNC_DISPATCH_LABEL || 'auto-dispatch' }}
         run: |
+          # GitHub's API sometimes fails for a moment ("GraphQL: Something went
+          # wrong", #1753): try each gh call up to three times. Creating an
+          # issue is not repeated, so a call that half worked cannot duplicate it.
+          gh() {
+            local attempt=1 rc=0
+            while true; do
+              command gh "$@" && return 0
+              rc=$?
+              if [[ "$1 $2" == "issue create" || "$attempt" -ge 3 ]]; then
+                return "$rc"
+              fi
+              echo "::warning::gh $1 $2 failed (attempt $attempt of 3); trying again." >&2
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+          }
           set +e
           report="$(../starter/scripts/sync-core.sh --check --from ../starter 2>&1)"
           status=$?
