@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Developers: core files synced with WP Plugin Starter commit 7363e11 (GitHub issue #1756): scripts/deploy-sites.sh clears CDPATH before it changes directory, so a CDPATH in the shell no longer prints a path or breaks the script's own directory.
 * Developers: core files synced with WP Plugin Starter commit 1567c82 (GitHub issue #1753): .github/workflows/starter-sync.yml now tries each gh call up to three times (issue creation is never repeated), so one moment of GitHub API trouble ("GraphQL: Something went wrong") no longer fails the daily Starter sync; scripts/deploy-sites.sh and RELEASING.md brought up to the starter's versions.
 * Developers: core files synced with WP Plugin Starter commit 55531c6 (GitHub issues #1749 and #1748): scripts/deploy-sites.sh (new --zip FILE, to install a built zip of a plugin with no GitHub release), .github/workflows/scorecard.yml (scorecard-action v2.6.0, codeql-action upload-sarif v4.39.4), DEVELOPMENT.md and RELEASING.md. AGENTS.md is under its 150-line limit again: the Speed scope rules (no page caching or minification, the Used CSS exception, which themes and plugins speed work covers) move to docs/speed-scope.md, and the support email rule to docs/support-email.md, each with a one-line pointer.
 
