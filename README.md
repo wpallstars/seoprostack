@@ -2862,6 +2862,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Developers: core files synced with WP Plugin Starter commit 7d210b8 (#1759): `CONTRIBUTING.md` and `DEVELOPMENT.md` say to fill in `.github/pull_request_template.md` (its headings, each checklist item done or n/a with the reason for any n/a), and how a dependency or workflow-only pull request answers its test section.
 - Developers: core files synced with WP Plugin Starter commit 7363e11 (#1756): `scripts/deploy-sites.sh` clears `CDPATH` before it changes directory, so a `CDPATH` in the shell no longer breaks the script's own directory.
 - Developers: core files synced with WP Plugin Starter commit 1567c82 (#1753): `.github/workflows/starter-sync.yml` now tries each `gh` call up to three times (issue creation is never repeated), so one moment of GitHub API trouble no longer fails the daily Starter sync; `scripts/deploy-sites.sh` and `RELEASING.md` match the starter again.
 - Developers: core files synced with WP Plugin Starter commit 55531c6 (#1749, #1748): `scripts/deploy-sites.sh` gains `--zip FILE`, to install a built zip of a plugin with no GitHub release; Scorecard and CodeQL actions updated; `DEVELOPMENT.md` and `RELEASING.md`. `AGENTS.md` is under its 150-line limit again, with the Speed scope and support email rules in `docs/speed-scope.md` and `docs/support-email.md`.
